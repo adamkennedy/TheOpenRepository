@@ -25,6 +25,7 @@ sub convex_hull {
         my $start_index = _find_start_point($points); # O(n)
 
         my $angles_points = _calculate_angles($points, $start_index); # O(n)
+        my $start = splice(@$angles_points, $start_index, 1);
 
         @$angles_points =
                         sort {
@@ -34,40 +35,48 @@ sub convex_hull {
                         }
                         @$angles_points;             # O(n*log(n))
 
+        unshift @$angles_points, $start;
+
         # remove duplicates (O(n))
+        # At the same time, drop the angle
         my $prev = $angles_points->[0][1];
-        for (my $i = 1; $i < @$angles_points; $i++) {
-          my $this = $angles_points->[$i][1];
-          if ( $this->[0]+1e-15 > $prev->[0] && $this->[0]-1e-15 < $prev->[0]
-            && $this->[1]+1e-15 > $prev->[1] && $this->[1]-1e-15 < $prev->[1] ) {
-            splice(@$angles_points, $i, 1);
-            $i--;
-            next;
-          }
-          $prev = $this;
+        my @hull;
+        push @hull, $prev;
+        for my $r (@$angles_points) {
+                my $p = $r->[1];
+                push @hull, $p
+                        if (   $p->[0]+1e-15 <= $prev->[0] || $p->[0]-1e-15 >= $prev->[0]
+                            || $p->[1]+1e-15 <= $prev->[1] || $p->[1]-1e-15 >= $prev->[1]);
+                $prev = $p;
         }
 
-        unshift @$angles_points, [undef, $points->[$start_index]];
-        my $hull = [
-                0, 1   # these are indices in $angles_points
-        ];
+        # copy of the reference point as sentinel to stop loop
+        unshift @hull, $hull[0];
 
+        my $n_in_hull = 2;
         # O(n)
-        for (my $i = 2; $i < @$angles_points; $i++) {
-                my $p = $angles_points->[$i][1];
+        for (my $i = 3; $i < @hull; ++$i) {
                 while (
                         _under_180(
-                                $angles_points->[$hull->[-2]][1],
-                                $angles_points->[$hull->[-1]][1],
-                                $p
+                                $hull[$n_in_hull-1],
+                                $hull[$n_in_hull],
+                                $hull[$i]
                         ) > 0
                 ) {
-                        pop @$hull;
+                        if ($n_in_hull == 2) {
+                                ($hull[$i], $hull[$n_in_hull]) = (@hull[$n_in_hull, $i]);
+                                ++$i;
+                        }
+                        else {
+                                --$n_in_hull;
+                        }
                 }
-                push @$hull, $i;
+                ++$n_in_hull;
+                ($hull[$i], $hull[$n_in_hull]) = (@hull[$n_in_hull, $i]);
         }
 
-        return [map $angles_points->[$_][1], @$hull];
+        # return points in hull
+        return [@hull[1..$n_in_hull]];
 }
 
 
@@ -96,16 +105,19 @@ sub _calculate_angles {
         
         my $p_no = 0;
         foreach my $p (@$points) {
-                $p_no++, next if $p_no == $start;
+                my $angle;
+                if ($p_no == $start) {
+                        $angle = 0;
+                }
+                else {
+                        my $x_diff = $p->[0] - $s_x;
+                        my $y_diff = $p->[1] - $s_y;
 
-                my $x_diff = $p->[0] - $s_x;
-                my $y_diff = $p->[1] - $s_y;
-
-                my $angle = atan2($y_diff, $x_diff);
-                $angle = PI-$angle if $angle < 0;
+                        $angle = atan2($y_diff, $x_diff);
+                        $angle = PI-$angle if $angle < 0;
+                }
 
                 push @$angles, [$angle, $p];
-                
                 $p_no++;
         }
 
