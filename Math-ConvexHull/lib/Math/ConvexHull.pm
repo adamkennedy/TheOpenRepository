@@ -123,12 +123,12 @@ sub _find_start_point {
         my $s_point = 0;
 
         for (my $i = 1; $i < @$points; $i++) {
-                my $p = $points->[$i];
-
+                my ($p0, $p1)   = @{ $points->[$i] };
+                my ($sp0, $sp1) = @{ $points->[$s_point] };
                 if (
-                        $p->[1] <= $points->[$s_point][1] and
-                        $p->[1] < $points->[$s_point][1] ||
-                        $p->[0] < $points->[$s_point][0]
+                        $p1 <= $sp1 and
+                        $p1 < $sp1 ||
+                        $p0 < $sp0
                 ) {
                         $s_point = $i;
                 }
