@@ -2498,8 +2498,10 @@ EOF
 	}
 
 	# Add environment variables.
-	$self->add_env( 'TERM',        'dumb' );
-	$self->add_env( 'FTP_PASSIVE', '1' );
+	# We use YAML as the backend because we have it.
+	$self->add_env( 'TERM',              'dumb' );
+	$self->add_env( 'FTP_PASSIVE',       '1'    );
+	$self->add_env( 'PERL_YAML_BACKEND', 'YAML' );
 
 	# Blow away the directory cache for a new build.
 	Perl::Dist::WiX::DirectoryCache->instance()->clear_cache();
