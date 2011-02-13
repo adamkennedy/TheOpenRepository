@@ -245,6 +245,8 @@ sub _build_modules {
 
 	push @modules_list, qw{
 	  Win32::UTCFileTime
+	  CPAN::Meta::YAML
+	  JSON::PP
 	  Parse::CPAN::Meta
 	  YAML
 	  Net::FTP
@@ -253,7 +255,6 @@ sub _build_modules {
 	  Digest::SHA
 	  Module::Metadata
 	  Perl::OSType
-	  CPAN::Meta::YAML
 	  Module::Build
 	  Term::Cap
 	  CPAN
