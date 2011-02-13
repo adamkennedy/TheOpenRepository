@@ -23,6 +23,11 @@ my @tests = (
     input => [[0,0],[1,0],[1,1],[0.5,1.001],[0,1]],
     output => [[0,0],[1,0],[1,1],[0.5,1.001],[0,1]],
   },
+  {
+    name => 'square with extra point on hull',
+    input => [[0,0],[1,0],[1,1],[0.5,1],[0,1]],
+    output => [[0,0],[1,0],[1,1],[0,1]],
+  },
 );
 
 plan tests => 2 * @tests + sum(map scalar(@{$_->{output}}), @tests);
