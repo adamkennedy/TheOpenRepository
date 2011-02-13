@@ -153,7 +153,7 @@ Math::ConvexHull - Calculate convex hulls using Graham's scan (n*log(n))
 
 =head1 DESCRIPTION
 
-Math::ConvexHull is a simple module that calculates convex hulls from a set
+C<Math::ConvexHull> is a simple module that calculates convex hulls from a set
 of points in 2D space. It is a straightforward implementation of the algorithm
 known as Graham's scan which, with complexity of O(n*log(n)), is the fastest
 known method of finding the convex hull of an arbitrary set of points.
@@ -169,18 +169,19 @@ remove duplicates yourself.
 
 =head2 EXPORT
 
-None by default, but you may choose to have the convex_hull() subroutine
+None by default, but you may choose to have the C<convex_hull()> subroutine
 exported to your namespace using standard Exporter semantics.
 
 =head2 convex_hull() subroutine
 
-Math::ConvexHull implements exactly one public subroutine which, surprisingly,
-is called convex_hull(). convex_hull() expects an array reference to an array
+C<Math::ConvexHull> implements exactly one public subroutine which, surprisingly,
+is called C<convex_hull()>. C<convex_hull()> expects an array reference to an array
 of points and returns an array reference to an array of points in the convex
 hull.
 
-In this context, a point is considered to be an array containing an x and a y
-coordinate. So an example use of convex_hull() would be:
+In this context, a point is considered to be a reference to an
+array containing an x and a y coordinate. So an example use of
+C<convex_hull()> would be:
 
   use Data::Dumper;
   use Math::ConvexHull qw/convex_hull/;
@@ -195,7 +196,7 @@ coordinate. So an example use of convex_hull() would be:
   
   # Prints out the points [0,0], [1,0], [0,1], [1,1].
 
-Please note that convex_hull() does not return I<copies> of the points but
+Please note that C<convex_hull()> does not return I<copies> of the points but
 instead returns the same array references that were passed in.
 
 =head1 SEE ALSO
@@ -210,7 +211,7 @@ what's going on, I suggest you have a look at the book.
 
 =head1 AUTHOR
 
-Steffen Mueller, E<lt>smueller at cpan dot orgE<gt>
+Steffen Mueller, E<lt>smueller@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
