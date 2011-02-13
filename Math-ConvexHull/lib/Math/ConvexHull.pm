@@ -7,7 +7,7 @@ use constant PI => 3.1415926535897932384626433832795;
 
 require Exporter;
 
-our $VERSION = '1.03';
+our $VERSION = '1.04';
 
 
 our @ISA = qw(Exporter);
