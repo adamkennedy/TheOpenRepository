@@ -218,6 +218,15 @@ Orwant et al, "Mastering Algorithms with Perl". Their code reads better than
 mine, so if you looked at the module sources and don't understand
 what's going on, I suggest you have a look at the book.
 
+In early 2011, much of the module was rewritten to use the formulation of
+the algorithm that was shown on the Wikipedia article on Graham's scan at
+the time. This takes care of issues with including collinear points in the
+hull.
+
+L<http://en.wikipedia.org/wiki/Graham_scan>
+
+One of these days, somebody should implement Chan's algorithm instead...
+
 =head1 AUTHOR
 
 Steffen Mueller, E<lt>smueller@cpan.orgE<gt>
