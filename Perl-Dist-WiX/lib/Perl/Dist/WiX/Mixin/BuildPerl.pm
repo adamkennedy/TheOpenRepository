@@ -197,6 +197,30 @@ sub install_cpan_upgrades {
 				$self->_install_cpan_module( $module, 1 );
 			}
 
+			when (m{/Math-BigInt-1.991}msx) {
+
+				# 1.991 makes Math::BigRat 0.26 fail tests.
+				# A message has been sent to FLORA and PJACKLAM about this.
+				$self->install_distribution(
+					name     => "FLORA/Math-BigInt-1.99.tar.gz",
+					mod_name => 'Math::BigInt',
+					$self->_install_location(1),
+					$self->_force_flag($default_force),
+				);
+			}
+
+			when (m{/Math-BigInt-FastCalc-0.26}msx) {
+
+				# Math::BigInt 1.99 is too low a version for 
+				# versions above 0.24 of this module.
+				$self->install_distribution(
+					name     => "FLORA/Math-BigInt-FastCalc-0.24.tar.gz",
+					mod_name => 'Math::BigInt::FastCalc',
+					$self->_install_location(1),
+					$self->_force_flag($default_force),
+				);
+			}
+
 			## no critic(ProhibitUnusedCapture)
 			# There's a problem with extracting these two files, so
 			# upgrading to these versions, instead...
