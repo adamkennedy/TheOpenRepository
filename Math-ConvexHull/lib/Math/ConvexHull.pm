@@ -1,23 +1,22 @@
 package Math::ConvexHull;
-
+use 5.006;
 use strict;
+use warnings;
 
 use constant PI => 3.1415926535897932384626433832795;
 
 require Exporter;
 
-use vars qw/@ISA %EXPORT_TAGS @EXPORT_OK $VERSION/;
+our $VERSION = '1.03';
 
-@ISA = qw(Exporter);
 
-%EXPORT_TAGS = ( 'all' => [ qw(
+our @ISA = qw(Exporter);
+
+our @EXPORT_OK = qw(
 	convex_hull
-) ] );
+);
 
-@EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
-
-$VERSION = '1.03';
-
+our %EXPORT_TAGS = ( 'all' => \@EXPORT_OK );
 
 
 sub convex_hull {
@@ -215,7 +214,7 @@ Steffen Mueller, E<lt>smueller at cpan dot orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2003-2008 by Steffen Mueller
+Copyright (C) 2003-2011 by Steffen Mueller
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.6 or,
