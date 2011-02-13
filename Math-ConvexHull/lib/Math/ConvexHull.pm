@@ -13,26 +13,26 @@ our $VERSION = '1.03';
 our @ISA = qw(Exporter);
 
 our @EXPORT_OK = qw(
-	convex_hull
+        convex_hull
 );
 
 our %EXPORT_TAGS = ( 'all' => \@EXPORT_OK );
 
 
 sub convex_hull {
-	my $points = shift;
-	
-	my $start_index = _find_start_point($points); # O(n)
+        my $points = shift;
+        
+        my $start_index = _find_start_point($points); # O(n)
 
-	my $angles_points = _calculate_angles($points, $start_index); # O(n)
+        my $angles_points = _calculate_angles($points, $start_index); # O(n)
 
-	@$angles_points =
-			sort {
-				$a->[0] <=> $b->[0] ||
-				$a->[1][0] <=> $b->[1][0] ||
-				$a->[1][1] <=> $b->[1][1]
-			}
-			@$angles_points;             # O(n*log(n))
+        @$angles_points =
+                        sort {
+                                $a->[0] <=> $b->[0] ||
+                                $a->[1][0] <=> $b->[1][0] ||
+                                $a->[1][1] <=> $b->[1][1]
+                        }
+                        @$angles_points;             # O(n*log(n))
 
         # remove duplicates (O(n))
         my $prev = $angles_points->[0][1];
@@ -47,94 +47,94 @@ sub convex_hull {
           $prev = $this;
         }
 
-	unshift @$angles_points, [undef, $points->[$start_index]];
-	my $hull = [
-		0, 1   # these are indices in $angles_points
-	];
+        unshift @$angles_points, [undef, $points->[$start_index]];
+        my $hull = [
+                0, 1   # these are indices in $angles_points
+        ];
 
-	# O(n)
-	for (my $i = 2; $i < @$angles_points; $i++) {
-		my $p = $angles_points->[$i][1];
-		while (
-			_under_180(
-				$angles_points->[$hull->[-2]][1],
-				$angles_points->[$hull->[-1]][1],
-				$p
-			) > 0
-		) {
-			pop @$hull;
-		}
-		push @$hull, $i;
-	}
+        # O(n)
+        for (my $i = 2; $i < @$angles_points; $i++) {
+                my $p = $angles_points->[$i][1];
+                while (
+                        _under_180(
+                                $angles_points->[$hull->[-2]][1],
+                                $angles_points->[$hull->[-1]][1],
+                                $p
+                        ) > 0
+                ) {
+                        pop @$hull;
+                }
+                push @$hull, $i;
+        }
 
-	return [map $angles_points->[$_][1], @$hull];
+        return [map $angles_points->[$_][1], @$hull];
 }
 
 
 
 sub _under_180 {
-	my $p1 = shift;
-	my $p2 = shift;
-	my $p3 = shift;
-	
-	return(
-		($p3->[0] - $p1->[0]) *
-		($p2->[1] - $p1->[1]) -
-		($p2->[0] - $p1->[0]) *
-		($p3->[1] - $p1->[1])
-	);
+        my $p1 = shift;
+        my $p2 = shift;
+        my $p3 = shift;
+        
+        return(
+                ($p3->[0] - $p1->[0]) *
+                ($p2->[1] - $p1->[1]) -
+                ($p2->[0] - $p1->[0]) *
+                ($p3->[1] - $p1->[1])
+        );
 }
 
 sub _calculate_angles {
-	my $points = shift;
-	my $start  = shift;
+        my $points = shift;
+        my $start  = shift;
 
-	my $s_x = $points->[$start]->[0];
-	my $s_y = $points->[$start]->[1];
+        my $s_x = $points->[$start]->[0];
+        my $s_y = $points->[$start]->[1];
 
-	my $angles = [];
-	
-	my $p_no = 0;
-	foreach my $p (@$points) {
-		$p_no++, next if $p_no == $start;
+        my $angles = [];
+        
+        my $p_no = 0;
+        foreach my $p (@$points) {
+                $p_no++, next if $p_no == $start;
 
-		my $x_diff = $p->[0] - $s_x;
-		my $y_diff = $p->[1] - $s_y;
+                my $x_diff = $p->[0] - $s_x;
+                my $y_diff = $p->[1] - $s_y;
 
-		my $angle = atan2($y_diff, $x_diff);
-		$angle = PI-$angle if $angle < 0;
+                my $angle = atan2($y_diff, $x_diff);
+                $angle = PI-$angle if $angle < 0;
 
-		push @$angles, [$angle, $p];
-		
-		$p_no++;
-	}
+                push @$angles, [$angle, $p];
+                
+                $p_no++;
+        }
 
-	return $angles;
+        return $angles;
 }
 
 
 
 # Returns the index of the starting point.
 sub _find_start_point {
-	my $points = shift;
-	
-	# Looking for the lowest, then leftmost point.
-	
-	my $s_point = 0;
+        my $points = shift;
+        
+        # Looking for the lowest, then leftmost point.
+        
+        my $s_point = 0;
 
-	for (my $i = 1; $i < @$points; $i++) {
-		my $p = $points->[$i];
+        for (my $i = 1; $i < @$points; $i++) {
+                my $p = $points->[$i];
 
-		if (
-			$p->[1] <= $points->[$s_point][1] and
-			$p->[1] < $points->[$s_point][1] ||
-			$p->[0] < $points->[$s_point][0]
-		) {
-			$s_point = $i;
-		}
-	}
+                if (
+                        $p->[1] <= $points->[$s_point][1] and
+                        $p->[1] < $points->[$s_point][1] ||
+                        $p->[0] < $points->[$s_point][0]
+                ) {
+                        $s_point = $i;
+                }
+        }
 
-	return $s_point;
+        return $s_point;
 }
 
 
