@@ -57,11 +57,11 @@ sub convex_hull {
         # O(n)
         for (my $i = 3; $i < @hull; ++$i) {
                 while (
-                        _under_180(
+                        _ccw(
                                 $hull[$n_in_hull-1],
                                 $hull[$n_in_hull],
                                 $hull[$i]
-                        ) > 0
+                        ) <= 0
                 ) {
                         if ($n_in_hull == 2) {
                                 ($hull[$i], $hull[$n_in_hull]) = (@hull[$n_in_hull, $i]);
@@ -79,18 +79,15 @@ sub convex_hull {
         return [@hull[1..$n_in_hull]];
 }
 
-
-
-sub _under_180 {
+sub _ccw {
         my $p1 = shift;
         my $p2 = shift;
         my $p3 = shift;
         
         return(
-                ($p3->[0] - $p1->[0]) *
-                ($p2->[1] - $p1->[1]) -
-                ($p2->[0] - $p1->[0]) *
-                ($p3->[1] - $p1->[1])
+                ($p2->[0] - $p1->[0])*($p3->[1] - $p1->[1])
+                -
+                ($p2->[1] - $p1->[1])*($p3->[0] - $p1->[0])
         );
 }
 
