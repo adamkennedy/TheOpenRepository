@@ -79,15 +79,15 @@ sub remove (@) {
 	# Iterate over the files
 	my @removes;
 	foreach my $path ( @files ) {
-                # need to check for symlink first
-                # could be pointing to nonexisting/non-readable destination
+		# need to check for symlink first
+		# could be pointing to nonexisting/non-readable destination
 		if ( -l $path ) {
 			print "link: $path\n" if DEBUG;
 			if ( $unlink ? $unlink->($path) : unlink($path) ) {
 				push @removes, $path;
 			}
 			next;
-                }
+		}
 		unless ( -e $path ) {
 			print "missing: $path\n" if DEBUG;
 			push @removes, $path; # Say we deleted it
@@ -134,7 +134,19 @@ sub remove (@) {
 
 		} elsif ( -d $path ) {
 			print "dir: $path\n" if DEBUG;
-			my $dir = File::Spec->canonpath( $path );
+			my $dir = File::Spec->canonpath($path);
+
+			if ( IS_WIN32 ) {
+				# Do we need to move our cwd out of the location
+				# we are planning to delete? Only do this on
+				# Windows for now, but later we might want to
+				# do this on all platforms.
+				my $chdir = _moveto($dir);
+				if ( length $chdir ) {
+					chdir($chdir) or next;
+				}
+			}
+
 			if ( $$recursive ) {
 				if ( File::Path::rmtree( [ $dir ], DEBUG, 0 ) ) {
 					# Failed to delete the directory
@@ -219,13 +231,33 @@ sub undelete (@) {
 # and if so which.
 sub _moveto {
 	# Do everything in absolute terms
-	my $cwd = Cwd::abs_path( Cwd::cwd() );
-	my $dir = Cwd::abs_path( File::Spec->rel2abs(shift) );
+	my $cwd    = Cwd::abs_path( Cwd::cwd() );
+	my $remove = Cwd::abs_path( File::Spec->rel2abs(shift) );
 
-	# Split the paths
-	my ($cwdv, $cwdd, $cwdf) = File::Spec->splitpath($cwd);
-	my ($dirv, $dird, $dirf) = File::Spec->splitpath($dir);
-	return '' if $cwdv ne $dirv;
+	# If we are on a different volume we don't need to move
+	my ( $cv, $cd ) = File::Spec->splitpath( $cwd,    1 );
+	my ( $rv, $rd ) = File::Spec->splitpath( $remove, 1 );
+	return '' unless $cv eq $rv;
+
+	# If we have to move, it's to one level above the deletion
+	my @cd = File::Spec->splitdir($cd);
+	my @rd = File::Spec->splitdir($rd);
+	pop @rd;
+
+	# Is the current directory inside of the moveto directory?
+	unless ( @cd > @rd ) {
+		return '';
+	}
+	foreach ( 0 .. $#rd ) {
+		$cd[$_] eq $rd[$_] or return '';
+	}
+
+	# Confirmed, the current working dir is in the removal dir
+	return File::Spec->catpath(
+		$rv,
+		File::Spec->catdir(@rd),
+		''
+	);
 }
 
 1;

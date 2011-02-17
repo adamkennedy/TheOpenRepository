@@ -6,10 +6,10 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 7;
+use Test::More tests => 9;
 use File::Spec::Functions ':ALL';
 use File::Remove ();
-use Cwd ();
+use Cwd          ();
 
 # Create the test directories
 my $base = Cwd::abs_path(Cwd::cwd());
@@ -45,6 +45,5 @@ is( Cwd::abs_path(Cwd::cwd()), $cwdabs, "We are now back in the original directo
 
 # Move back to the base dir and confirm everything was deleted.
 chdir($base) or die "chdir($base): $!";
-ok( ! -e $cwd,  "$cwd does not exist"  );
 ok( ! -e $foo,  "$foo does not exist"  );
 ok( ! -e $file, "$file does not exist" );
