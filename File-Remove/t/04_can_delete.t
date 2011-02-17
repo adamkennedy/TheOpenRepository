@@ -27,11 +27,11 @@ my $d2 = catdir( $d1, 'd2' );
 my $f3 = catfile( $d2, 'f3.txt' );
 
 sub create_directory {
-	mkdir $d1 or die "Failed to create $d1";
+	mkdir($d1,0777) or die "Failed to create $d1";
 	ok( -d $d1, "Created $d1 ok" );
 	ok( -r $d1, "Created $d1 -r" );
 	ok( -w $d1, "Created $d1 -w" );
-	mkdir $d2 or die "Failed to create $d2";
+	mkdir($d2,0777) or die "Failed to create $d2";
 	ok( -d $d2, "Created $d2 ok" );
 	ok( -r $d2, "Created $d2 -r" );
 	ok( -w $d2, "Created $d2 -w" );

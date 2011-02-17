@@ -25,7 +25,7 @@ for my $path ( reverse @dirs ) {
 
 for my $path ( @dirs ) {
 	ok( ! -e $path,   "!-e: $path"   );
-	ok( mkdir($path), "mkdir: $path" );
+	ok( mkdir($path, 0777), "mkdir: $path" );
 	chmod 0777, $path;
 	ok( -e $path,     "-e: $path"    );
 }
@@ -38,7 +38,7 @@ for my $path (reverse @dirs) {
 
 for my $path ( @dirs ) {
 	ok( ! -e $path,   "!-e: $path"   );
-	ok( mkdir($path), "mkdir: $path" );
+	ok( mkdir($path, 0777), "mkdir: $path" );
 	chmod 0777, $path;
 	ok( -e $path,     "-e: $path"    );
 }
@@ -51,7 +51,7 @@ for my $path (reverse @dirs) {
 
 for my $path (@dirs) {
 	ok( !-e $path,    "!-e: $path"   );
-	ok( mkdir($path), "mkdir: $path" );
+	ok( mkdir($path, 0777), "mkdir: $path" );
 	chmod 0777, $path;
 	ok( -e $path,     "-e: $path"    );
 }
@@ -85,7 +85,7 @@ SKIP: {
 
 	for my $path (@dirs) {
 		ok( !-e $path,    "!-e: $path"   );
-		ok( mkdir($path), "mkdir: $path" );
+		ok( mkdir($path, 0777), "mkdir: $path" );
 		chmod 0777, $path;
 		ok( -e $path,     "-e: $path"    );
 	}
@@ -107,7 +107,7 @@ SKIP: {
 
 	for my $path (@dirs) {
 		ok( !-e $path,    "!-e: $path"   );
-		ok( mkdir($path), "mkdir: $path" );
+		ok( mkdir($path, 0777), "mkdir: $path" );
 		chmod 0777, $path;
 		ok( -e $path,     "-e: $path"    );
 	}
@@ -128,7 +128,7 @@ SKIP: {
 
 	for my $path (@dirs) {
 		ok( !-e $path,    "!-e: $path"   );
-		ok( mkdir($path), "mkdir: $path" );
+		ok( mkdir($path, 0777), "mkdir: $path" );
 		chmod 0777, $path;
 		ok( -e $path,     "-e: $path"    );
 	}
@@ -136,7 +136,7 @@ SKIP: {
 	for my $path (reverse @dirs) {
 		ok( -e $path, "-e: $path"        );
 		ok(
-                        # fake callbacks will not remove directories, so trash() would return empty list
+			# Fake callbacks will not remove directories, so trash() would return empty list
 			eval { trash({ 'rmdir' => sub { 1 }, 'unlink' => sub { 1 } }, $path); 1 },
 			"trash: $path",
 		);
