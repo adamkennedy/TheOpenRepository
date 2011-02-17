@@ -19,7 +19,7 @@ my $file = rel2abs(catdir('t', 'cwd', 'foo', 'bar.txt'));
 File::Remove::clear($cwd);
 mkdir($cwd,0777)  or die "mkdir($cwd): $!";
 mkdir($foo,0777)  or die "mkdir($foo): $!";
-open( FILE, '>', $file ) or die "open($file): $!";
+open( FILE, ">$file" ) or die "open($file): $!";
 print FILE "blah\n";
 close( FILE ) or die "close($file): $!";
 ok( -d $cwd,  "$cwd directory exists" );
