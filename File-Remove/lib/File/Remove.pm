@@ -3,11 +3,12 @@ package File::Remove;
 use 5.00503;
 use strict;
 
-use vars qw{$VERSION @ISA @EXPORT_OK};
-use vars qw{$debug $unlink $rmdir};
+use vars qw{ $VERSION @ISA @EXPORT_OK };
+use vars qw{ $DEBUG $unlink $rmdir    };
 BEGIN {
-	$VERSION   = '1.44';
-	@ISA       = qw{ Exporter};
+	$VERSION   = '1.45_01';
+	$VERSION   = eval $VERSION;
+	@ISA       = qw{ Exporter };
 	@EXPORT_OK = qw{ remove rm clear trash };
 }
 
@@ -25,7 +26,7 @@ sub expand (@) {
 
 # $debug variable must be set before loading File::Remove.
 # Convert to a constant to allow debugging code to be pruned out.
-use constant DEBUG    => !! $debug;
+use constant DEBUG    => !! $DEBUG;
 
 # Are we on VMS?
 # If so copy File::Path and assume VMS::Filespec is loaded
@@ -225,8 +226,6 @@ sub _moveto {
 	my ($cwdv, $cwdd, $cwdf) = File::Spec->splitpath($cwd);
 	my ($dirv, $dird, $dirf) = File::Spec->splitpath($dir);
 	return '' if $cwdv ne $dirv;
-
-	
 }
 
 1;
@@ -334,10 +333,10 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Some parts copyright 2006 - 2010 Adam Kennedy.
+Some parts copyright 2006 - 2011 Adam Kennedy.
 
 Taken over by Adam Kennedy E<lt>adamk@cpan.orgE<gt> to fix the
-"deep readonly files" bug, and do some more cleaning up.
+"deep readonly files" bug, and do some package cleaning.
 
 Some parts copyright 2004 - 2005 Richard Soderberg.
 

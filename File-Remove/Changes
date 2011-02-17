@@ -1,5 +1,11 @@
 Revision history for Perl extension File-Remove
 
+1.45_01 Thu 17 Feb 2011 - Adam Kennedy
+	- No functional changes
+	- Updated to Module::Install::DSL 1.00
+	- Skip test on cygwin due to non-root users not being able to deny
+	  themselves write permissions to files.
+
 1.44 Mon 10 May 2010 - Adam Kennedy
 	- Updated to Module::Install::DSL 0.96
 	- Added a test to delete directories when the current working
