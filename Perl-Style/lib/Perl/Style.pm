@@ -44,8 +44,7 @@ custom script to instantiate and execute the style process.
 
 use 5.008;
 use strict;
-use PPI::Document  ();
-use PPI::Transform ();
+use PPI 1.213 ();
 
 our $VERSION = '0.01';
 
