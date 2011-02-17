@@ -136,15 +136,11 @@ sub remove (@) {
 			print "dir: $path\n" if DEBUG;
 			my $dir = File::Spec->canonpath($path);
 
-			if ( IS_WIN32 ) {
-				# Do we need to move our cwd out of the location
-				# we are planning to delete? Only do this on
-				# Windows for now, but later we might want to
-				# do this on all platforms.
-				my $chdir = _moveto($dir);
-				if ( length $chdir ) {
-					chdir($chdir) or next;
-				}
+			# Do we need to move our cwd out of the location
+			# we are planning to delete?
+			my $chdir = _moveto($dir);
+			if ( length $chdir ) {
+				chdir($chdir) or next;
 			}
 
 			if ( $$recursive ) {
