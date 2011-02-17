@@ -46,6 +46,10 @@ use 5.008;
 use strict;
 use PPI 1.213 ();
 
+# For now just load all classes in advance
+use Perl::Style::Policy                  ();
+use Perl::Style::Policy::PodExplicitOpen ();
+
 our $VERSION = '0.01';
 
 =pod
@@ -59,7 +63,6 @@ TO BE COMPLETED
 sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
-
 	return $self;
 }
 
