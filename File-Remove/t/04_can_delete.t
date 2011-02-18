@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More qw(no_plan);
+use Test::More tests => 12;
 use File::Spec::Functions ':ALL';
 use File::Copy   ();
 use File::Remove ();
@@ -40,12 +40,12 @@ sub create_directory {
 	chmod( 0400, $f3 );
 	ok( -f $f3, "Created $f3 ok" );
 	ok( -r $f3, "Created $f3 -r" );
-    SKIP: {
-	if ( $^O ne 'MSWin32' and $< == 0 ) {
-		skip("This test doesn't work as root", 1);
-	}
-   	ok( ! -w $f3, "Created $f3 ! -w" );	
-    };
+	SKIP: {
+		if ( $^O ne 'MSWin32' and $< == 0 ) {
+			skip("This test doesn't work as root", 1);
+		}
+		ok( ! -w $f3, "Created $f3 ! -w" );	
+	};
 }
 
 sub clear_directory {

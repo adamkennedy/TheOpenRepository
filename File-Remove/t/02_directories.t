@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More   qw(no_plan); # tests => 2;
+use Test::More tests => 152;
 use File::Remove qw{ remove trash };
 
 
@@ -147,5 +147,3 @@ SKIP: {
 
 	UNDELETE: 1;
 }
-
-1;

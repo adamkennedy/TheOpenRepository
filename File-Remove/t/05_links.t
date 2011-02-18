@@ -62,5 +62,3 @@ ok( @entries == 0, "no links remained in directory; found @entries" );
 ok( File::Remove::remove(\1, $testdir), "remove \\1: $testdir" );
 
 ok( ! -e $testdir,         "!-e: $testdir" );
-
-1;

@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More qw(no_plan);
+use Test::More tests => 12;
 use File::Spec::Functions ':ALL';
 use File::Copy   ();
 use File::Remove ();

@@ -1,5 +1,9 @@
 Revision history for Perl extension File-Remove
 
+1.47_01 to be released
+	- Add test counts to all test scripts
+	- Added a test for space-safe globs
+
 1.46 Fri 18 Feb 2011 - Adam Kennedy
 	- No changes from 1.45_01
 	- CPAN Testers likes the dev release, moving to production release
