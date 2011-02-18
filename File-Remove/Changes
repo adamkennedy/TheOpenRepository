@@ -1,7 +1,10 @@
 Revision history for Perl extension File-Remove
 
+1.46 Fri 18 Feb 2011 - Adam Kennedy
+	- No changes from 1.45_01
+	- CPAN Testers likes the dev release, moving to production release
+
 1.45_01 Thu 17 Feb 2011 - Adam Kennedy
-	- No functional changes
 	- Updated to Module::Install::DSL 1.00
 	- Skip test on cygwin due to non-root users not being able to deny
 	  themselves write permissions to files.
