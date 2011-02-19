@@ -679,7 +679,7 @@ sub install_perl_toolchain {
 			when (/TermReadKey-2 [.] 30/msx) {
 
 				# Upgrading to this version, instead...
-				$dist = 'STSI/TermReadKey-2.30.01.tar.gz';
+				$dist = 'STSI/TermReadKey-2.30.02.tar.gz';
 			}
 			when (/CPAN-1 [.] 9402/msx) {
 
@@ -707,8 +707,7 @@ sub install_perl_toolchain {
 			}
 			when (/Module-Build-/msx) {
 
-				# Test updated development version.
-				$dist = 'DAGOLDEN/Module-Build-0.36_17.tar.gz';
+				# Can't test on D-drive builds.
 				$force ||= ( $self->image_dir() =~ /\AD:/ms ) ? 1 : 0;
 
 			}

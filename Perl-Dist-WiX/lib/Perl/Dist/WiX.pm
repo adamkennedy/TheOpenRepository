@@ -2758,7 +2758,7 @@ sub install_portable {
 		install_to => 'portableshell.bat',
 	);
 
-	$self->get_directory_tree()->add_directories_id( 'Data', 'data' );
+	$self->get_directory_tree()->get_directory_object('INSTALLDIR')->add_directories_id( 'Data', 'data' );
 	$self->_add_fragment(
 		'DataFolder',
 		Perl::Dist::WiX::Fragment::CreateFolder->new(
