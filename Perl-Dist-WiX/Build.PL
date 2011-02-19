@@ -1,3 +1,4 @@
+use 5.010;
 use Module::Build;
 
 die "OS unsupported\n" unless 'MSWin32' eq $^O;
@@ -83,6 +84,7 @@ my $builder = $class->new(
 	configure_requires => {
 		'Module::Build'             => '0.36',
 		'CPAN'                      => '1.9462',
+		'parent'                    => '0.221',
 	},
 	requires => {
 		'perl'                       => '5.010',
@@ -90,7 +92,7 @@ my $builder = $class->new(
 		'Alien::WiX'                 => '0.300000',
 		'Archive::Tar'               => '1.66',
 		'Archive::Zip'               => '1.26',
-		'CPAN'                       => '1.9458',
+		'CPAN'                       => '1.9462',
 		'Clone'                      => '0.31',
 		'Data::Dump::Streamer'       => '2.08',
 		'Data::UUID'                 => '1.149',
