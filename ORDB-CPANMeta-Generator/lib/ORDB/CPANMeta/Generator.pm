@@ -35,14 +35,14 @@ use File::HomeDir      0.86 ();
 use File::Basename        0 ();
 use Module::CoreList   2.17 ();
 use Parse::CPAN::Meta  1.39 ();
-use Params::Util       1.00 qw{_HASH};
+use Params::Util       1.00 ();
 use Getopt::Long       2.34 ();
 use DBI               1.609 ();
 use CPAN::Mini        0.576 ();
 use CPAN::Mini::Visit  0.11 ();
 use Xtract::Publish    0.10 ();
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 use Object::Tiny 1.06 qw{
 	minicpan
@@ -157,7 +157,7 @@ sub run {
 	}
 
 	# Update the minicpan if needed
-	if ( _HASH($self->minicpan) ) {
+	if ( Params::Util::_HASH($self->minicpan) ) {
 		CPAN::Mini->update_mirror(
 			trace         => $self->trace,
 			no_conn_cache => 1,
@@ -260,13 +260,22 @@ END_SQL
 				release => $the->{dist},
 				meta    => 0,
 			};
-			my @yaml = eval {
-				Parse::CPAN::Meta::LoadFile(
-					File::Spec->catfile(
-						$the->{tempdir}, 'META.yml',
-					)
-				);
-			};
+			my $yaml_file = File::Spec->catfile(
+				$the->{tempdir}, 'META.yml',
+			);
+			my $json_file = File::Spec->catfile(
+				$the->{tempdir}, 'META.json',
+			);
+			my @data = ();
+			if ( -f $json_file ) {
+				@data = eval {
+					Parse::CPAN::Meta->load_file($json_file)
+				};
+			} elsif ( -f $yaml_file ) {
+				@data = eval {
+					Parse::CPAN::Meta->load_file($yaml_file)
+				};
+			}
 			unless ( $@ ) {
 				$dist->{meta}           = 1;
 				$dist->{meta_name}      = $yaml[0]->{name};
