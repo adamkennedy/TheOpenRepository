@@ -2903,6 +2903,13 @@ sub install_win32_extras {
 				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
 			);
 		}
+		if ( $self->perl_version_human eq '5.12.2' ) {
+			$self->install_website(
+				name      => 'Perl 5.12.2 Documentation',
+				url       => 'http://perldoc.perl.org/5.12.2/',
+				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
+			);
+		}
 		$self->install_website(
 			name      => 'Win32 Perl Wiki',
 			url       => 'http://win32.perl.org/',
