@@ -255,7 +255,7 @@ sub run {
 	# Load the CPAN META.yml database
 	my $cpanmeta;
 	if ( $self->cpanmeta ) {
-		# Generate out own CPANMeta database
+		# Generate our own CPANMeta database
 		$self->say("Generating META.yml Data...");
 		require ORDB::CPANMeta::Generator;
 		my $prefer_bin = $^O eq 'MSWin32' ? 0 : 1;
@@ -320,6 +320,10 @@ SELECT
 	author || '/' || filename as release,
 	DATE(released, 'unixepoch') AS uploaded
 FROM upload.uploads
+GROUP BY release
+ORDER BY
+	release ASC,
+	LENGTH(dist) ASC
 END_SQL
 
 	# Index the temporary tables so our joins don't take forever
@@ -377,11 +381,11 @@ WHERE
 		OR perl LIKE '5.8%'
 		OR perl LIKE '5.10%'
 		OR perl LIKE '5.12%'
+		OR perl LIKE '5.14%'
 	)
 	AND dist_version in (
 		select dist_version from t_distribution
 	)
-	AND tester NOT LIKE '%dcollins%'
 END_SQL
 
 	# Step two, group into the smaller totals table
