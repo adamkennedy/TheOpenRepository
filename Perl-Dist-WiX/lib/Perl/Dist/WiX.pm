@@ -2871,7 +2871,7 @@ sub install_win32_extras {
 			bin  => 'cpan',
 		);
 		$self->install_website(
-			name      => 'CPAN Search',
+			name      => 'CPAN Module Search',
 			url       => 'http://search.cpan.org/',
 			icon_file => catfile( $self->wix_dist_dir(), 'cpan.ico' ) );
 
