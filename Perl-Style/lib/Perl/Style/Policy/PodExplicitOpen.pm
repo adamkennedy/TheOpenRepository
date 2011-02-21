@@ -1,10 +1,10 @@
-package Perl::Style::Policy::PodExplicitOpen;
+package Perl::Style::Policy::SubscriptArrow;
 
 =pod
 
 =head1 NAME
 
-Perl::Style::Policy::PodExplicitOpen - Should POD have =pod at the start
+Perl::Style::Policy::SubscriptArrow - Should POD have =pod at the start
 
 =head1 DESCRIPTION
 
@@ -45,8 +45,10 @@ or false if we should never have explicit =pod tags.
 
 sub new {
 	my $class = shift;
-	my $self  = bless { @_ }, $class;
+	my %param = @_ == 1 ? ( pod => shift ) : @_;
+	my $self  = bless \%param, $class;
 
+	# Check params
 	unless ( defined $self->{pod} ) {
 		die "Did not provide a 'pod' param to " . __PACKAGE__;
 	}

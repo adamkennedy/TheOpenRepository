@@ -1,0 +1,5 @@
+---
+Perl::Style::Policy::PodExplicitOpen:
+  pod: 1
+Perl::Style::Policy::SubscriptChain:
+  arrow: 1

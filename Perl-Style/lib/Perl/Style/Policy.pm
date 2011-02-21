@@ -22,22 +22,70 @@ it a collection of other transform objects.
 use 5.008;
 use strict;
 use warnings;
+use Params::Util   ();
 use PPI::Transform ();
 
 our $VERSION = '0.01';
 our @ISA     = 'PPI::Transform';
 
+
+
+
+
+######################################################################
+# Constructor
+
 sub new {
 	my $class = shift;
 	my $self  = bless {
-		config   => [ @_ ],
-		children => [ ],
+		config    => [ ],
+		transform => [ ],
 	}, $class;
 
 	# TODO Initialise the config here, later
 
 	return $self;
 }
+
+
+
+
+
+######################################################################
+# Policy Methods
+
+sub add_transform {
+	my $self   = shift;
+	my $policy = Params::Util::_INSTANCE(shift, 'PPI::Transform');
+	unless ( $policy ) {
+		die "Missing or invalid transform object";
+	}
+
+	# Add to the transform list
+	push @{$self->{transform}}, $policy;
+
+	return 1;
+}
+
+sub add_config {
+	my $self = shift;
+	my $config = Params::Util::_INSTANCE(shift, 'Perl::Style::Config');
+	unless ( $config ) {
+		die "Missing or invalid config object";
+	}
+
+	# Add the configuration to the list
+	push @{$self->{config}}, $config;
+
+	# 
+}
+
+
+
+
+
+######################################################################
+# PPI::Transform Methods
 
 sub document {
 	my $self     = shift;
@@ -57,6 +105,8 @@ sub document {
 
 	return $changes;
 }
+
+1;
 
 =pod
 
