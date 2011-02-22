@@ -87,8 +87,8 @@ my $builder = $class->new(
 	meta_merge     => {
 		resources => {
 			homepage    => 'http://perl.curtisjewell.name/',
-			bugtracker  => { web => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=WiX3', },
-			repository  => { web  => 'http://hg.curtisjewell.name/WiX3', type => 'hg', },
+			bugtracker  => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=WiX3',
+			repository  => 'http://hg.curtisjewell.name/WiX3',
 		},
 	},
 	add_to_cleanup      => [ 'WiX3-*' ],
