@@ -4,7 +4,7 @@ use 5.008001;
 use warnings;
 use strict;
 
-our $VERSION = '0.010002';
+our $VERSION = '0.010003';
 $VERSION =~ s/_//ms;
 
 1;                                     # Magic true value required at end of module
@@ -13,7 +13,7 @@ __END__
 
 =begin readme text
 
-WiX3 Version 0.010002
+WiX3 Version 0.010003
 
 =end readme
 
@@ -25,7 +25,7 @@ WiX3 - Objects useful for generating Windows Installer XML files.
 
 =head1 VERSION
 
-This document describes WiX3 version 0.010002
+This document describes WiX3 version 0.010003
 
 =for readme continue
 
@@ -108,7 +108,11 @@ WiX3 requires no configuration files or environment variables.
 
 =head1 DEPENDENCIES
 
-L<Moose|Moose>, L<Exception::Class|Exception::Class> (more to add later)
+L<Moose|Moose>, L<Exception::Class|Exception::Class>, 
+L<List::MoreUtils|List::MoreUtils>, L<Data::UUID|Data::UUID>, 
+L<Params::Util|Params::Util>, L<MooseX::Singleton|MooseX::Singleton>,
+L<MooseX::Types|MooseX::Types>, L<Regexp::Common|Regexp::Common>, and 
+L<Readonly|Readonly>.
 
 =head1 WARNING
 
@@ -140,7 +144,7 @@ Curtis Jewell  C<< <csjewell@cpan.org> >>
 
 =head1 LICENCE AND COPYRIGHT
 
-Copyright 2009, 2010 Curtis Jewell C<< <csjewell@cpan.org> >>.
+Copyright 2009, 2010, 2011 Curtis Jewell C<< <csjewell@cpan.org> >>.
 
 This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic|perlartistic>.

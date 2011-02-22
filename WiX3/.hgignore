@@ -1,0 +1,10 @@
+glob:_build/*
+glob:blib/*
+glob:Build
+glob:Build.bat
+glob:MANIFEST
+glob:MYMETA.yml
+glob:LICENSE
+glob:META.yml
+glob:Makefile.PL
+glob:README

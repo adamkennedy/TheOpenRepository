@@ -1,5 +1,8 @@
 Revision history for WiX3
 
+0.010003  Tue 22 Feb 2011
+       - Updating documentation.
+
 0.010002  Tue 19 Oct 2010
        - Allow parameters to be undefined in more places.
 

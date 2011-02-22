@@ -3,7 +3,9 @@
 \bCVS\b
 ,v$
 \B\.svn\b
+\B\.hg\b
 \B\.cvsignore$
+\B\.hgignore$
 
 # Avoid Makemaker generated and utility files.
 \bMakefile$
