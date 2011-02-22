@@ -24,10 +24,11 @@
 \bBuild$
 \bBuild.bat$
 \b_build
-\bBuild.COM$
-\bBUILD.COM$
-\bbuild.com$
-^MYMETA.yml$
+\bBuild\.COM$
+\bBUILD\.COM$
+\bbuild\.com$
+^MYMETA\.yml$
+^MYMETA\.json$
 ^dist.ini$
 
 # Avoid Devel::Cover generated files

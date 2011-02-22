@@ -13,8 +13,8 @@ BEGIN {
 }
 
 my @MODULES = (
-    'Parse::CPAN::Meta 1.38',
-	'Test::CPAN::Meta 0.13',
+    'Parse::CPAN::Meta 1.4401',
+	'Test::CPAN::Meta::JSON 0.10',
 );
 
 # Load the testing modules
@@ -25,5 +25,5 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-meta_yaml_ok();
+meta_json_ok();
 

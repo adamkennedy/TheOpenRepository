@@ -32,7 +32,7 @@ my @modules_skip = (
 # Modules needed for prerequisites, not for this module
     'metaclass',
 # Needed only for AUTHOR_TEST tests
-	'Parse::CPAN::Meta',
+	'Parse::CPAN::Meta::JSON',
 	'Perl::Critic',
 	'Perl::Critic::More',
 	'Perl::Critic::Utils::Constants',
