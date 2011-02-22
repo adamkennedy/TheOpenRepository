@@ -3,6 +3,7 @@ Revision history for Perl extension POE-Declare
 0.51 to be released
 	- Renaming _compile to as_perl
 	- Bumped the POE dependency again
+	- Fixed a POD typo
 
 0.50 Thu 21 Oct 2010
 	- Major upgrade, not backward compatible in all cases.
