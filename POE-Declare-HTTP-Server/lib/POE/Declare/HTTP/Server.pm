@@ -6,6 +6,9 @@ package POE::Declare::HTTP::Server;
 
 POE::Declare::HTTP::Server - A simple HTTP server based on POE::Declare
 
+=head1 SYNOPSIS
+
+  
 =head1 DESCRIPTION
 
 This module demonstrates a simple HTTP server based on L<POE::Declare>.
@@ -28,12 +31,26 @@ use POE::Wheel::SocketFactory ();
 
 our $VERSION = '0.01';
 
+use POE::Declare 0.50 {
+	Hostname => 'Param',
+	Port     => 'Param',
+	Handler  => 'Param',
+	server   => 'Internal',
+	socket   => 'Internal',
+};
+
 
 
 
 
 ######################################################################
 # Constructor and Accessors
+
+=pod
+
+=head2 new
+
+=cut
 
 sub new {
 	my $self = shift->SUPER::new(@_);
@@ -51,14 +68,6 @@ sub new {
 
 	return $self;
 }
-
-use POE::Declare 0.50 {
-	Hostname => 'Param',
-	Port     => 'Param',
-	Handler  => 'Param',
-	server   => 'Internal',
-	socket   => 'Internal',
-};
 
 
 
