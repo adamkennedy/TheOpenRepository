@@ -10,7 +10,7 @@ use Class::Inspector ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.14';
+	$VERSION = '1.15';
 }
 
 
@@ -214,7 +214,11 @@ sub _tar {
 
 	# Get the output
 	my $string = $Archive->write;
-	$string ? \$string : undef;
+
+	# Free up some memory
+	$Archive->clear;
+
+	return $string ? \$string : undef;
 }
 
 sub _tar_gz {

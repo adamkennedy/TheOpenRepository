@@ -11,7 +11,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.14';
+	$VERSION = '1.15';
 }
 
 
