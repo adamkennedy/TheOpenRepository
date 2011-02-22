@@ -8,3 +8,5 @@ glob:Makefile.PL
 glob:README
 glob:MYMETA.*
 glob:META.*
+glob:.build/*
+glob:WiX3-*
