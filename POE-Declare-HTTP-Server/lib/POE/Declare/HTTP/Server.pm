@@ -8,10 +8,27 @@ POE::Declare::HTTP::Server - A simple HTTP server based on POE::Declare
 
 =head1 SYNOPSIS
 
-  
+    # Create the web server
+    my $server = POE::Declare::HTTP::Server->new(
+        Hostname => '127.0.0.1',
+        Port     => '8010',
+        Handler  => sub {
+            my $request  = shift;
+            my $response = shift;
+    
+            # Your webby stuff here...
+    
+            return;
+        },
+    );
+    
+    # Control with methods
+    $server->start;
+    $server->stop;
+
 =head1 DESCRIPTION
 
-This module demonstrates a simple HTTP server based on L<POE::Declare>.
+This module allows creation of a simple HTTP server based on L<POE::Declare>.
 
 =head1 METHODS
 
@@ -31,14 +48,6 @@ use POE::Wheel::SocketFactory ();
 
 our $VERSION = '0.01';
 
-use POE::Declare 0.50 {
-	Hostname => 'Param',
-	Port     => 'Param',
-	Handler  => 'Param',
-	server   => 'Internal',
-	socket   => 'Internal',
-};
-
 
 
 
@@ -49,6 +58,22 @@ use POE::Declare 0.50 {
 =pod
 
 =head2 new
+
+    my $server = POE::Declare::HTTP::Server->new(
+        Hostname => '127.0.0.1',
+        Port     => '8010',
+        Handler  => \&content,
+    );
+
+The C<new> constructor sets up a reusable HTTP server that can be enabled
+and disabled repeatedly as needed.
+
+It takes three required parameters parameters. C<Hostname>, C<Port> and
+C<Handler>.
+
+The C<Handler> parameter should be a C<CODE> reference that will be passed
+a L<HTTP::Request> object and a L<HTTP::Response> object. Your code should
+examine the request object, and fill the provided response object.
 
 =cut
 
@@ -69,12 +94,51 @@ sub new {
 	return $self;
 }
 
+=pod
+
+=head2 Hostname
+
+The C<Hostname> accessor returns the server to bind to, as originally
+provided to the constructor.
+
+=head2 Port
+
+The C<Port> accessor returns the port number to bind to, as originally
+provided to the constructor.
+
+=head2 Handler
+
+The C<Handler> accessor returns the C<CODE> reference that requests
+will be passed to, as provided to the constructor.
+
+=cut
+
+use POE::Declare 0.50 {
+	Hostname => 'Param',
+	Port     => 'Param',
+	Handler  => 'Param',
+	server   => 'Internal',
+	socket   => 'Internal',
+};
+
 
 
 
 
 ######################################################################
 # Control Methods
+
+=pod
+
+=head2 start
+
+The C<start> method enables the web server. If the server is already running,
+this method will shortcut and do nothing.
+
+If called before L<POE> has been started, the web server will start
+immediately once L<POE> is running.
+
+=cut
 
 sub start {
 	my $self = shift;
@@ -84,6 +148,15 @@ sub start {
 	}
 	return 1;
 }
+
+=pod
+
+=head2 stop
+
+The C<stop> method disables the web server. If the server is not running,
+this method will shortcut and do nothing.
+
+=cut
 
 sub stop {
 	my $self = shift;
