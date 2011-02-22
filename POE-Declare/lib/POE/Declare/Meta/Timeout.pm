@@ -14,13 +14,13 @@ POE::Declare::Meta::Timeout - A named timeout with generated support methods
       $_[SELF]->{handle}->put('something');
   }
   
-  # Recieved a response
+  # Received a response
   sub response : Event {
       if ( $_[ARG0] eq 'keepalive' ) {
           $_[SELF]->request_timeout_restart;
           return;
       }
-
+  
       $_[SELF]->request_timeout_stop;
       $_[SELF]->{parent}->post('child_response', $_[ARG0]);
   }
@@ -63,7 +63,7 @@ use Class::XSAccessor {
 #####################################################################
 # Main Methods
 
-sub _compile {
+sub as_perl {
 	my $name  = $_[0]->{name};
 	my $delay = $_[0]->{delay};
 	return <<"END_PERL";

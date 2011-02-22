@@ -449,8 +449,8 @@ sub compile () {
 		$meta->{attr}->{$name} = $ATTR{$pkg}->{$name};
 	}
 
-	# Compile the individual parts
-	$meta->_compile;
+	# Attempt to compile all the individual parts
+	$meta->as_perl;
 }
 
 # Get the meta-object for a class.

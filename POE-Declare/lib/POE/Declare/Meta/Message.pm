@@ -40,7 +40,7 @@ BEGIN {
 	@ISA     = 'POE::Declare::Meta::Param';
 }
 
-sub _compile { <<"END_PERL" }
+sub as_perl { <<"END_PERL" }
 sub $_[0]->{name} {
 	\$_[0]->{$_[0]->{name}} or return '';
 	\$_[0]->{$_[0]->{name}}->( \$_[0]->{Alias}, \@_[1..\$#_] );

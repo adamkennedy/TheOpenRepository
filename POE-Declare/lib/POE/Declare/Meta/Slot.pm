@@ -57,7 +57,7 @@ use Class::XSAccessor {
 };
 
 # By default, a slot contains nothing
-sub _compile { '' }
+sub as_perl { '' }
 
 1;
 

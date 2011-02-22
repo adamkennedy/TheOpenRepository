@@ -226,7 +226,7 @@ sub attrs {
 #####################################################################
 # Compilation
 
-sub _compile {
+sub as_perl {
 	my $self = shift;
 	my $name = $self->name;
 	my $attr = $self->{attr};
@@ -260,7 +260,7 @@ sub _compile {
 		"package " . $self->name . ";",
 		"sub meta () { \$POE::Declare::META{'$name'} }",
 		map {
-			$attr->{$_}->_compile
+			$attr->{$_}->as_perl
 		} sort keys %$attr
 	);
 

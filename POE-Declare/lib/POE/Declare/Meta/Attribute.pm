@@ -43,7 +43,7 @@ BEGIN {
 #####################################################################
 # Main Methods
 
-sub _compile { <<"END_PERL" }
+sub as_perl { <<"END_PERL" }
 use Class::XSAccessor {
 	getters => {
 		$_[0]->{name} => '$_[0]->{name}',
