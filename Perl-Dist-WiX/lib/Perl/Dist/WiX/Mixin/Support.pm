@@ -783,7 +783,7 @@ sub make_relocation_file {
 	my $batch_contents;
 	my $match_string =
 	  q(eval [ ] 'exec [ ] )
-	  . quotemeta $self->image_dir()->file('perl\bin\perl.exe')
+	  . quotemeta $self->image_dir()->file('perl\\bin\\perl.exe')
 	  ->stringify();
 	foreach my $batch_file ( sort { $a cmp $b } keys %batch_files ) {
 		$self->trace_line( 5,

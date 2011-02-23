@@ -137,8 +137,10 @@ sub install_cpan_upgrades {
 			'Cannot install CPAN modules yet, perl is not installed');
 	}
 
-    my $sources_dir = $self->image_dir()->subdir(qw(cpan sources authors));
-    $self->make_path($sources_dir) if not -d $sources_dir;
+	my $sources_dir = $self->image_dir()->subdir(qw(cpan sources authors));
+	if ( not -d $sources_dir ) {
+		$self->make_path($sources_dir);
+	}
 
 	# Get list of modules to be upgraded.
 	# (The list is saved as a Storable arrayref of CPAN::Module objects.)
@@ -211,7 +213,7 @@ sub install_cpan_upgrades {
 					$self->_install_location(1),
 					$self->_force_flag($default_force),
 				);
-			} ## end when ( m{Unicode-Collate-0 [.] (5[3-9]|6\d) })
+			} ## end when ( m{Unicode-Collate-0 [.] (\d\d) })
 
 			when (
 				/Unicode-Normalize-1 [.] (\d\d)-withoutworldwriteables/msx)
@@ -573,6 +575,7 @@ sub _create_perl_toolchain { ## no critic(ProhibitUnusedPrivateSubroutines)
 		$force = { 'Pod::Text' => 'RRA/podlators-2.4.0.tar.gz' };
 	}
 	if ( $self->perl_version =~ m/\A5101/ms ) {
+
 		# CPAN needs installed on 5.10.1, as well.
 		$force = { 'CPAN' => 'DAGOLDEN/CPAN-1.94_64.tar.gz' };
 	}
@@ -683,7 +686,7 @@ sub install_perl_toolchain {
 			}
 			when (/CPAN-1 [.] 9402/msx) {
 
-				# Alias agrees that we include 1.94_51 (or the 
+				# Alias agrees that we include 1.94_51 (or the
 				# current dev version past it) because of the fix
 				# for the Win32 file:// bug.
 				$dist = 'DAGOLDEN/CPAN-1.94_64.tar.gz';

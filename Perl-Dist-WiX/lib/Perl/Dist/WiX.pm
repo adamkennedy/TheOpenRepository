@@ -1297,7 +1297,7 @@ has 'git_location' => (
 );
 
 sub _build_git_location {
-	my $file = 'C:\Program Files\Git\bin\git.exe';
+	my $file = 'C:\\Program Files\\Git\\bin\\git.exe';
 
 	if ( -f $file ) {
 		return $file;
@@ -2500,7 +2500,7 @@ EOF
 	# Add environment variables.
 	# We use YAML as the backend because we have it.
 	$self->add_env( 'TERM',              'dumb' );
-	$self->add_env( 'FTP_PASSIVE',       '1'    );
+	$self->add_env( 'FTP_PASSIVE',       '1' );
 	$self->add_env( 'PERL_YAML_BACKEND', 'YAML' );
 
 	# Blow away the directory cache for a new build.
@@ -2758,7 +2758,8 @@ sub install_portable {
 		install_to => 'portableshell.bat',
 	);
 
-	$self->get_directory_tree()->get_directory_object('INSTALLDIR')->add_directories_id( 'Data', 'data' );
+	$self->get_directory_tree()->get_directory_object('INSTALLDIR')
+	  ->add_directories_id( 'Data', 'data' );
 	$self->_add_fragment(
 		'DataFolder',
 		Perl::Dist::WiX::Fragment::CreateFolder->new(
