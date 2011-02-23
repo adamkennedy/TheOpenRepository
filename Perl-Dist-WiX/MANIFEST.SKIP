@@ -24,7 +24,7 @@
 \bBuild$
 \bBuild\.bat$
 \b_build/
-\b\.build/
+\B\.build/
 
 # Avoid temp and backup files.
 ~$
