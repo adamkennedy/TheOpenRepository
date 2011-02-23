@@ -1,5 +1,9 @@
 Revision history for Perl extension Archive-Builder
 
+1.16 Wed Feb 23 2011
+	- Added missing requires_from statement to Makefile.PL
+	- Added support for retaining the executable bit in the archives
+
 1.15 Wed Feb 23 2011
 	- Updating to Module::Install::DSL 1.00
 	- Removing Test::ClassAPI test to reduce dependencies

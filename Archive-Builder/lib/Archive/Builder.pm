@@ -5,16 +5,14 @@ package Archive::Builder;
 
 use 5.005;
 use strict;
-use Scalar::Util     ();
-use List::Util   1.15 ();
-use File::Spec  0.80 ();
-use File::Spec::Unix ();
-use Params::Util 0.22 ('_INSTANCE', '_STRING');
+use Scalar::Util          ();
+use List::Util       1.15 ();
+use File::Spec       0.80 ();
+use File::Spec::Unix      ();
+use Params::Util     0.22 ('_INSTANCE', '_STRING');
 use Class::Inspector 1.12 ();
-use IO::String     1.08 ();
-
-# Autoload anything any of our children might need
-use Class::Autouse 1.27 ('File::Flat');
+use IO::String       1.08 ();
+use Class::Autouse   1.27 ('File::Flat');
 
 # Load the rest of the classes;
 use Archive::Builder::Section    ();
@@ -25,7 +23,7 @@ use Archive::Builder::Generators ();
 # Version
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.15';
+	$VERSION = '1.16';
 	$errstr  = '';
 }
 
@@ -84,6 +82,23 @@ sub _archive_content {
 	foreach my $Section ( $self->section_list ) {
 		my $subtree = $Section->_archive_content or return undef;
 		my $path = $Section->path;
+		foreach ( keys %$subtree ) {
+			my $full = File::Spec::Unix->catfile( $path, $_ );
+			$tree{$full} = $subtree->{$_};
+		}
+	}
+
+	\%tree;
+}
+
+sub _archive_mode {
+	my $self = shift;
+
+	# Collect a list of permission modes to apply
+	my %tree = ();
+	foreach my $Section ( $self->section_list ) {
+		my $subtree = $Section->_archive_mode or return undef;
+		my $path    = $Section->path;
 		foreach ( keys %$subtree ) {
 			my $full = File::Spec::Unix->catfile( $path, $_ );
 			$tree{$full} = $subtree->{$_};

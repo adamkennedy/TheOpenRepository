@@ -10,7 +10,7 @@ use Class::Inspector ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.15';
+	$VERSION = '1.16';
 }
 
 
@@ -69,13 +69,21 @@ sub new {
 	return $class->_error(
 		"Error generating content to create archive: "
 		. $Source->errstr || 'Unknown Error'
-		) unless $files;
+	) unless $files;
+
+	# Find any special modes we need to set
+	my $modes = $Source->_archive_mode;
+	return $class->_error(
+		"Error generated permissions to create archive: "
+		. $Source->errstr || 'Unknown Error'
+	) unless $modes;
 
 	# Create the object
 	my $self = bless {
 		type  => $type,
 		files => $files,
-		}, $class;
+		modes => $modes,
+	}, $class;
 
 	$self;
 }
@@ -85,9 +93,14 @@ sub type {
 	$_[0]->{type};
 }
 
-# Get the file hahs
+# Get the file hash
 sub files {
 	$_[0]->{files};
+}
+
+# Get the mode hash
+sub modes {
+	$_[0]->{modes};
 }
 
 # Get them in the special sorted order
@@ -185,9 +198,17 @@ sub _zip {
 	my $Archive = Archive::Zip->new;
 
 	# Add each file to it
-	foreach my $path ( keys %{ $self->{files} } ) {
-		my $member = $Archive->addString( ${ $self->{files}->{$path} }, $path );
-		$member->desiredCompressionMethod( Archive::Zip::COMPRESSION_DEFLATED() );
+	my $files = $self->{files};
+	my $modes = $self->{modes};
+	foreach my $path ( keys %$files ) {
+		my $content = $files->{$path};
+		my $member  = $Archive->addString( $$content, $path );
+		$member->desiredCompressionMethod(
+			Archive::Zip::COMPRESSION_DEFLATED()
+		);
+		if ( $modes->{$path} ) {
+			$member->unixFileAttributes( $modes->{$path} );
+		}
 	}
 
 	# Now stringify the Archive and return it
@@ -208,8 +229,14 @@ sub _tar {
 	}
 
 	# Add each file to it
+	my $files = $self->{files};
+	my $modes = $self->{modes};
 	foreach my $path ( $self->sorted_files ) {
-		$Archive->add_data( $path, ${ $self->{files}->{$path} } );
+		my $content = $files->{$path};
+		my $member  = $Archive->add_data( $path, $$content );
+		if ( $modes->{$path} ) {
+			$member->mode( $modes->{$path} );
+		}
 	}
 
 	# Get the output

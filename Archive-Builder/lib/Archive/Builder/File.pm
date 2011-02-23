@@ -3,13 +3,13 @@ package Archive::Builder::File;
 # This package represents a single file in the Archive::Builder structure
 
 use strict;
-use Scalar::Util ();
-use Params::Util '_SCALAR0';
+use Scalar::Util     ();
+use Params::Util     ('_SCALAR0');
 use Archive::Builder ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '1.15';
+	$VERSION = '1.16';
 	%_PARENT = ();
 }
 
@@ -38,7 +38,7 @@ sub new {
 		path      => $path,
 		generator => $generator,
 		arguments => @_ ? [ @_ ] : 0,
-		}, $class;
+	}, $class;
 }
 
 # Accessor methods

@@ -10,7 +10,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '1.15';
+	$VERSION = '1.16';
 	%_PARENT = ();
 }
 
@@ -133,6 +133,20 @@ sub _archive_content {
 	foreach my $File ( $self->file_list ) {
 		my $contents = $File->contents or return undef;
 		$tree{$File->path} = $contents;
+	}
+
+	\%tree;
+}
+
+# Get the archive mode hash
+sub _archive_mode {
+	my $self = shift;
+
+	# Add for each file that needs an executable bit
+	my %tree = ();
+	foreach my $File ( $self->file_list ) {
+		next unless $File->{executable};
+		$tree{$File->path} = 0755;
 	}
 
 	\%tree;
