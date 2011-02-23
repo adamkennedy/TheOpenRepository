@@ -33,9 +33,9 @@ my $server = POE::Declare::HTTP::Server->new(
 	Hostname => '127.0.0.1',
 	Port     => '8010',
 	Handler  => sub {
-		my $request  = shift;
 		my $response = shift;
 
+		$response->code( 200 );
 		$response->header( 'Content-Type' => 'text/plain' );
 		$response->content( 'Hello World!' );
 

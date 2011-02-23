@@ -60,9 +60,13 @@ our $VERSION = '0.01';
 =head2 new
 
     my $server = POE::Declare::HTTP::Server->new(
-        Hostname => '127.0.0.1',
-        Port     => '8010',
-        Handler  => \&content,
+        Hostname      => '127.0.0.1',
+        Port          => '8010',
+        Handler       => \&content,
+
+        StartupEvent  => \&startup_done,
+        StartupError  => \&startup_failed,
+        ShutdownEvent => \&shutdown_done,
     );
 
 The C<new> constructor sets up a reusable HTTP server that can be enabled
@@ -74,6 +78,20 @@ C<Handler>.
 The C<Handler> parameter should be a C<CODE> reference that will be passed
 a L<HTTP::Request> object and a L<HTTP::Response> object. Your code should
 examine the request object, and fill the provided response object.
+
+The server supports three messages you can register callbacks for.
+
+The C<StartupEvent> message fires after the server socket has been bound and is
+available for clients to make requests, and before any connections have been
+made from clients.
+
+The C<StartupError> message fires if the server fails to bind to the port, or
+has some other error during the socket setup process.
+
+The C<ShutdownEvent> message fires on the completion of a controlled shutdown.
+
+There is currently no C<ShutdownError> event for unexpected server termination,
+as this should not occur. An error of this type may, however, be added later.
 
 =cut
 
@@ -90,6 +108,12 @@ sub new {
 	unless ( Params::Util::_CODE($self->Handler) ) {
 		die "Missing or invalid Handler param";
 	}
+
+	# The listening socket
+	$self->{server} = undef;
+
+	# The active session (we only support one at a time at the moment)
+	$self->{client} = undef;
 
 	return $self;
 }
@@ -114,11 +138,17 @@ will be passed to, as provided to the constructor.
 =cut
 
 use POE::Declare 0.50 {
-	Hostname => 'Param',
-	Port     => 'Param',
-	Handler  => 'Param',
-	server   => 'Internal',
-	socket   => 'Internal',
+	Hostname      => 'Param',
+	Port          => 'Param',
+	Handler       => 'Param',
+
+	StartupEvent  => 'Message',
+	StartupError  => 'Message',
+	ShutdownEvent => 'Message',
+	ShutdownError => 'Message',
+
+	server        => 'Internal',
+	client        => 'Internal',
 };
 
 
@@ -181,70 +211,93 @@ sub startup : Event {
 		BindPort     => $_[SELF]->Port,
 		SuccessEvent => 'connect',
 		FailureEvent => 'error',
-	) or die 'Failed to create socket factory';
+	);
 
-	return;
+	# If the server survives long enough for this event to fire,
+	# it has been started successfully.
+	$_[SELF]->post('started');
+}
+
+# Signal the successful startup
+sub started : Event {
+	# If the FailureEvent fired before us, so abort this event
+	$_[SELF]->{server} or return;
+
+	# Failure didn't fire, so we must have bound successfully
+	$_[SELF]->StartupEvent;
+}
+
+# Clean up and signal failure
+sub error : Event {
+	$_[SELF]->finish;
+	$_[SELF]->StartupError;
 }
 
 sub connect : Event {
-	# We can only deal with one request at a time.
+	# This initial implementation only deals with one request at a time.
+	# It has the side effect of allowing the request handler to block for
+	# a fairly long period of time without too much of an issue.
 	$_[SELF]->{server}->pause_accept;
 
 	# Create the socket
-	$_[SELF]->{socket} = POE::Wheel::ReadWrite->new(
+	$_[SELF]->{client} = POE::Wheel::ReadWrite->new(
 		Filter       => POE::Filter::HTTPD->new,
 		Handle       => $_[ARG0],
 		InputEvent   => 'request',
-		FlushedEvent => 'flushed',
-		ErrorEvent   => 'dropped',
+		FlushedEvent => 'disconnect',
+		ErrorEvent   => 'disconnect',
 	);
-
-	return;
 }
 
 sub request : Event {
 
-	# Create the default response
-	my $response = HTTP::Response->new( 200 );
+	# Create the default response.
+	# We default to a server error so that the appropriate return is used
+	# if the Handler fails or somehow does nothing to the response.
+	my $response = HTTP::Response->new( 500 );
+	$response->request( $_[ARG0] );
 
-	# Pass the request for processing
-	$_[SELF]->Handler->( $_[ARG0], $response );
+	# Pass the response (and the request within it) to the handler.
+	# Prevent an exception in the handler crashing the entire server.
+	eval {
+		$_[SELF]->Handler->( $response );
+	};
 
-	# Send the response back to the client
-	$_[SELF]->{socket}->put( $response );
-
-	# Return and wait for the socket to flush
-	return;
+	# Send the response back to the client.
+	# The just wait for the socket to flush
+	$_[SELF]->{client}->put( $response );
 }
 
-sub flushed : Event {
+sub disconnect : Event {
+	# Handle stray events arriving after intentional shutdown
+	$_[SELF]->{server} or return;
 
-	# Clean up and prepare for the next request
-	$_[SELF]->{socket} = undef;
-	if ( $_[SELF]->{server} ) {
-		$_[SELF]->{server}->resume_accept;
-	}
-
-	return;
-}
-
-sub dropped : Event {
-
-	# Clean up and prepare for the next request
-	$_[SELF]->{socket} = undef;
-	if ( $_[SELF]->{server} ) {
-		$_[SELF]->{server}->resume_accept;
-	}
-
-	return;
+	# Clean up the current request, and open up for the next one
+	$_[SELF]->{client} = undef;
+	$_[SELF]->{server}->resume_accept;
 }
 
 sub shutdown : Event {
+	$_[SELF]->finish;
+	$_[SELF]->ShutdownEvent;
+}
 
-	# Shut down the server and any active connection
-	$_[SELF]->{server} = undef;
-	$_[SELF]->{socket} = undef;
 
+
+
+
+######################################################################
+# POE::Declare::Object Methods
+
+sub finish {
+	my $self = shift;
+
+	# Clear out the server and any active connection
+	$self->{server} = undef;
+	$self->{client} = undef;
+
+	# Call parent method to clean out other things
+	$self->SUPER::finish(@_);
 }
 
 compile;
