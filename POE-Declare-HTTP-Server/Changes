@@ -1,5 +1,8 @@
 Changes for Perl extension POE-Declare-HTTP-Server
 
+0.03 Wed 23 Feb 2011
+	- Reduce the quantity and aggressiveness of dependencies
+
 0.02 Wed 23 Feb 2011
 	- Adding callback messages
 	- Adding proper handling for errors

@@ -13,10 +13,15 @@ POE::Declare::HTTP::Server - A simple HTTP server based on POE::Declare
         Hostname => '127.0.0.1',
         Port     => '8010',
         Handler  => sub {
-            my $request  = shift;
             my $response = shift;
     
-            # Your webby stuff here...
+            # The request is not passed to you but is available if needed
+            my $request = $response->request;
+    
+            # Webby content generation stuff here
+            $response->code( 200 );
+            $response->header( 'Content-Type' => 'text/plain' );
+            $response->content( "Hello World!" );
     
             return;
         },
@@ -28,7 +33,10 @@ POE::Declare::HTTP::Server - A simple HTTP server based on POE::Declare
 
 =head1 DESCRIPTION
 
-This module allows creation of a simple HTTP server based on L<POE::Declare>.
+This module provides a simple HTTP server based on L<POE::Declare>.
+
+The implemenetation is intentionally minimalist, making this module an ideal
+choice for creating specialised web servers embedded into larger applications.
 
 =head1 METHODS
 
@@ -38,15 +46,14 @@ use 5.008;
 use strict;
 use warnings;
 use Params::Util         1.00 ();
-use HTTP::Headers       5.835 ();
 use HTTP::Request       5.827 ();
-use HTTP::Response      5.836 ();
+use HTTP::Response      5.830 ();
 use POE                 1.299 ();
-use POE::Filter::HTTPD  1.299 ();
+use POE::Filter::HTTPD        ();
 use POE::Wheel::ReadWrite     ();
 use POE::Wheel::SocketFactory ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 
 
