@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 7;
+use Test::More tests => 9;
 use Test::NoWarnings;
 use POE::Declare::HTTP::Server ();
 use POE;
@@ -41,6 +41,15 @@ my $server = POE::Declare::HTTP::Server->new(
 
 		return 1;
 	},
+
+	StartupEvent => sub {
+		order( 1, 'Fired StartupEvent message' );
+	},
+
+	ShutdownEvent => sub {
+		order( 3, 'Fired ShutdownEvent' );
+	},
+
 );
 isa_ok( $server, 'POE::Declare::HTTP::Server' );
 
@@ -65,12 +74,12 @@ POE::Session->create(
 		},
 
 		timeout => sub {
-			order( 1, 'Fired main::timeout' );
+			order( 2, 'Fired main::timeout' );
 			ok( $server->stop, '->stop ok' );
 		},
 
 		_stop => sub {
-			order( 2, 'Fired main::_stop' );
+			order( 4, 'Fired main::_stop' );
 		},
 
 	},

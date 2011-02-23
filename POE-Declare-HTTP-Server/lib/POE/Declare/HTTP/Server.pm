@@ -46,7 +46,7 @@ use POE::Filter::HTTPD  1.299 ();
 use POE::Wheel::ReadWrite     ();
 use POE::Wheel::SocketFactory ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 
 
