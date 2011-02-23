@@ -4,8 +4,8 @@ package Archive::Builder::Section;
 
 use 5.005;
 use strict;
-use Scalar::Util 'refaddr';
-use Params::Util '_INSTANCE';
+use Scalar::Util     ('refaddr');
+use Params::Util     ('_INSTANCE');
 use Archive::Builder ();
 
 use vars qw{$VERSION %_PARENT};
@@ -145,8 +145,7 @@ sub _archive_mode {
 	# Add for each file that needs an executable bit
 	my %tree = ();
 	foreach my $File ( $self->file_list ) {
-		next unless $File->{executable};
-		$tree{$File->path} = 0755;
+		$tree{$File->path} = $File->{executable} ? 0755 : 0644;
 	}
 
 	\%tree;

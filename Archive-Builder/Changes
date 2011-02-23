@@ -2,7 +2,10 @@ Revision history for Perl extension Archive-Builder
 
 1.16 Wed Feb 23 2011
 	- Added missing requires_from statement to Makefile.PL
-	- Added support for retaining the executable bit in the archives
+	- Files are now added to archives with 0644 mode instead of allowing
+	  the defaults to introduce world-writable files.
+	- Added support for retaining the executable bit in the archives by
+	  writing them with 0755 mode.
 
 1.15 Wed Feb 23 2011
 	- Updating to Module::Install::DSL 1.00

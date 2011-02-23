@@ -4,7 +4,7 @@ package Archive::Builder::Archive;
 
 use strict;
 use Scalar::Util     ();
-use Params::Util     '_STRING';
+use Params::Util     ('_STRING');
 use Archive::Builder ();
 use Class::Inspector ();
 

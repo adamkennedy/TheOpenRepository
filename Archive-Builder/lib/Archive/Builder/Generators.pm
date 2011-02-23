@@ -4,9 +4,7 @@ package Archive::Builder::Generators;
 # for the most common cases.
 
 use strict;
-use Params::Util '_INSTANCE',
-                 '_SCALAR0',
-                 '_HASH0';
+use Params::Util     qw{ _INSTANCE _SCALAR0 _HASH0 };
 use Archive::Builder ();
 
 use vars qw{$VERSION};
