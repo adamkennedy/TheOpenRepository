@@ -12,7 +12,7 @@ use POE::Component::Server::SimpleHTTP    ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.43';
+	$VERSION = '0.50';
 	@ISA     = 'Process';
 }
 
