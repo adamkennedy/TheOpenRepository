@@ -16,7 +16,7 @@ BEGIN {
 };
 use LWP::UserAgent;
 use IO::Socket::INET;
-use PITA::POE::SupportServer ();
+use PITA::SupportServer ();
 
 my $port;
 
@@ -30,7 +30,7 @@ SCOPE: {
 	$port = $listen->sockport;
 }
 
-my $server = PITA::POE::SupportServer->new(
+my $server = PITA::SupportServer->new(
 	http_local_addr       => '127.0.0.1',
 	http_local_port       => $port,
 	http_startup_timeout  => 10,

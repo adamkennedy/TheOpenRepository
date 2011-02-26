@@ -15,9 +15,9 @@ BEGIN {
 	}
 };
 
-use PITA::POE::SupportServer;
+use PITA::SupportServer;
 
-my $server = PITA::POE::SupportServer->new(
+my $server = PITA::SupportServer->new(
 	http_local_addr      => '127.0.0.1',
 	http_local_port      => 0,
 	http_startup_timeout => 10,
@@ -26,7 +26,7 @@ my $server = PITA::POE::SupportServer->new(
 		sub { sleep 60; },
 	],
 );
-isa_ok( $server, 'PITA::POE::SupportServer' );
+isa_ok( $server, 'PITA::SupportServer' );
 
 $server->prepare or die $server->{errstr};
 
