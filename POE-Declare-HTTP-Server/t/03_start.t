@@ -4,7 +4,7 @@
 
 use strict;
 BEGIN {
-	$| = 1;
+	$|  = 1;
 	$^W = 1;
 }
 
@@ -33,6 +33,7 @@ my $server = POE::Declare::HTTP::Server->new(
 	Hostname => '127.0.0.1',
 	Port     => '8010',
 	Handler  => sub {
+		my $server   = shift;
 		my $response = shift;
 
 		$response->code( 200 );

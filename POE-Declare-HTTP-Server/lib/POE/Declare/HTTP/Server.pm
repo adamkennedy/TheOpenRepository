@@ -9,10 +9,11 @@ POE::Declare::HTTP::Server - A simple HTTP server based on POE::Declare
 =head1 SYNOPSIS
 
     # Create the web server
-    my $server = POE::Declare::HTTP::Server->new(
+    my $http = POE::Declare::HTTP::Server->new(
         Hostname => '127.0.0.1',
         Port     => '8010',
         Handler  => sub {
+            my $server   = shift;
             my $response = shift;
     
             # The request is not passed to you but is available if needed
@@ -28,15 +29,15 @@ POE::Declare::HTTP::Server - A simple HTTP server based on POE::Declare
     );
     
     # Control with methods
-    $server->start;
-    $server->stop;
+    $http->start;
+    $http->stop;
 
 =head1 DESCRIPTION
 
 This module provides a simple HTTP server based on L<POE::Declare>.
 
 The implemenetation is intentionally minimalist, making this module an ideal
-choice for creating specialised web servers embedded into larger applications.
+choice for creating specialised web servers embedded in larger applications.
 
 =head1 METHODS
 
@@ -53,7 +54,7 @@ use POE::Filter::HTTPD        ();
 use POE::Wheel::ReadWrite     ();
 use POE::Wheel::SocketFactory ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 
 
@@ -83,8 +84,10 @@ It takes three required parameters parameters. C<Hostname>, C<Port> and
 C<Handler>.
 
 The C<Handler> parameter should be a C<CODE> reference that will be passed
-a L<HTTP::Request> object and a L<HTTP::Response> object. Your code should
-examine the request object, and fill the provided response object.
+the server object and a L<HTTP::Response> object. Your code should
+fill the provided response object, which will be sent to the client when the
+function ends. If your content will change based on the request, you can obtain
+the request from the L<HTTP::Response/"request"> method.
 
 The server supports three messages you can register callbacks for.
 
@@ -267,7 +270,7 @@ sub request : Event {
 	# Pass the response (and the request within it) to the handler.
 	# Prevent an exception in the handler crashing the entire server.
 	eval {
-		$_[SELF]->Handler->( $response );
+		$_[SELF]->Handler->( $_[SELF], $response );
 	};
 
 	# Send the response back to the client.
