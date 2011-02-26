@@ -70,9 +70,8 @@ SCOPE: {
 
 	# Should have set the data value
 	is( $process->{somedata},  undef, '->data not set' );
-	like(
-		$process->{errstr},
-		qr/You wanted me to die/,
+	ok(
+		$process->{errstr} =~ /You wanted me to die/,
 		'Got error message',
 	);
 }

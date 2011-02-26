@@ -1,5 +1,10 @@
 Revision history for Perl extension Process
 
+0.28 Sat 26 Feb 2011
+	- Updating to Module::Install::DSL 1.00
+	- Moving Perl::MinimumVersion test to xt and fixing 5.006 dependency
+	- Updating copyright year
+
 0.27 Thu 25 Jun 2009
 	- Updating to Module::Install::DSL 0.91
 	- Explicitly close the temporary filehandles in ->delegate (they leak)

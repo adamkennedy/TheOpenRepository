@@ -44,16 +44,16 @@ SCOPE: {
 	# A file name
 	ok( $object->serialize( $filename ), '->serialize(filename) returns ok' );
 	ok( -f $filename, '->serialize(filename) created a file' );
-	ok( open( FILE, '<', $filename ), 'Opened file to read it back in' );
+	ok( open( FILE, $filename ), 'Opened file to read it back in' );
 	my $file = <FILE>;
 	ok( $file, 'Read file back in'  );
 	ok( close(FILE), 'Closed file' );
 
 	# A file handle
-	ok( open( HANDLE, '>', $filehandle ), 'Opened filehandle' );
+	ok( open( HANDLE, ">$filehandle" ), 'Opened filehandle' );
 	ok( $object->serialize( \*HANDLE ), '->serialize(filehandle) returns ok' );
 	ok( close( HANDLE ), 'Closed filehandle' );
-	ok( open( HANDLE, '<', $filehandle ), 'Opened filehandle up again' );
+	ok( open( HANDLE, $filehandle ), 'Opened filehandle up again' );
 	my $fhstring = <HANDLE>;
 	ok( $fhstring, 'Read handle back in' );
 	ok( close(HANDLE), 'Closed handle' );
@@ -71,7 +71,7 @@ SCOPE: {
 	is( $string, $string2,  'serialize(string) matches serialize(iohandle)'   );
 
 	# Now deserialize from the various things
-	ok( open( HANDLE, '<', $filehandle ), 'Opened filehandle' );
+	ok( open( HANDLE, $filehandle ), 'Opened filehandle' );
 	ok( $iohandle->seek(0,0), 'Seeked to (0,0)' );
 	my $thawed1 = t::lib::MyStorableProcess->deserialize( \$string  );
 	my $thawed2 = t::lib::MyStorableProcess->deserialize( $filename );
