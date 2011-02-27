@@ -16,10 +16,12 @@ use Class::XSAccessor
 
 sub _par_loader_hint {
   require Perl::APIReference::Generator;
-  require Perl::APIReference::V5_012_001;
+  require Perl::APIReference::V5_012_003;
 }
 
 our %Perls = (
+  5.012003 => 'V5_012_003',
+  5.012002 => 'V5_012_002',
   5.012001 => 'V5_012_001',
   5.012000 => 'V5_012_000',
   5.011002 => 'V5_011_002',
@@ -42,8 +44,8 @@ our %Perls = (
   5.006    => 'V5_006_000',
 );
 
-our $NewestAPI       = '5.012000';
-our $NewestStableAPI = '5.012000';
+our $NewestAPI       = '5.012003';
+our $NewestStableAPI = '5.012003';
 
 $Perls{'5.012000'} = $Perls{5.012};
 $Perls{'5.011000'} = $Perls{5.011};
