@@ -20,6 +20,7 @@ sub _par_loader_hint {
 }
 
 our %Perls = (
+  5.01301  => 'V5_013_010',
   5.012003 => 'V5_012_003',
   5.012002 => 'V5_012_002',
   5.012001 => 'V5_012_001',
@@ -44,9 +45,10 @@ our %Perls = (
   5.006    => 'V5_006_000',
 );
 
-our $NewestAPI       = '5.012003';
+our $NewestAPI       = '5.013010';
 our $NewestStableAPI = '5.012003';
 
+$Perls{'5.013010'} = $Perls{5.01301};
 $Perls{'5.012000'} = $Perls{5.012};
 $Perls{'5.011000'} = $Perls{5.011};
 $Perls{'5.010000'} = $Perls{5.01};
@@ -156,7 +158,7 @@ Perl::APIReference - Programmatically query the perlapi
 =head1 SYNOPSIS
 
   use Perl::APIReference;
-  my $api = Perl::APIReference->new(perl_version => '5.10.0');
+  my $api = Perl::APIReference->new(perl_version => '5.12.3');
   my $api_index_hash = $api->index;
 
 =head1 DESCRIPTION
@@ -169,8 +171,9 @@ are supported. To add support for another release, simply send me the
 release's F<perlapi.pod> via email or via an RT ticket and I'll add it
 in the next release.
 
-Additionally, the development releases 5.11.0-2 are included, but these may
-be dropped at any time.
+Additionally, the development releases 5.13.10, and 5.11.0-2 are included,
+but these may be dropped at any time. The general policy on this is to try
+and ship the APIs for the newest development release.
 
 =head1 METHODS
 
