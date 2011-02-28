@@ -1,5 +1,8 @@
 Changes for Perl extension FBP
 
+0.18 Mon 28 Feb 2011
+	- Added FBP::SplitterWindow::permission attribute
+
 0.17 Mon 28 Feb 2011
 	- Updating copyright year
 	- Added FBP::Listbook       class

@@ -12,7 +12,7 @@ FBP::Object - Base class for all wxFormBuilder objects
 
 use Mouse;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 =pod
 

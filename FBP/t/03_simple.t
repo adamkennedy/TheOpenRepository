@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 86;
+use Test::More tests => 87;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -163,6 +163,7 @@ is( $splitterwindow->sashpos, '0', '->sashpos ok' );
 is( $splitterwindow->sashsize, '-1', '->sashsize ok' );
 is( $splitterwindow->sashgravity, '0.0', '->sashgravity ok' );
 is( $splitterwindow->min_pane_size, '0', '->min_pane_size ok' );
+is( $splitterwindow->permission, 'protected', '->permission ok' );
 
 # SplitterItem properties
 my $splitteritem = $object->find_first(
