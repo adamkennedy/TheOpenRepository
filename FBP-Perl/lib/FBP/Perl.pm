@@ -22,7 +22,7 @@ use 5.008005;
 use strict;
 use warnings;
 use Mouse         0.61;
-use FBP           0.16 ();
+use FBP           0.18 ();
 use Data::Dumper 2.122 ();
 
 our $VERSION = '0.17';
@@ -223,6 +223,8 @@ sub window_create {
 		$lines = $self->listctrl_create($window);
 	} elsif ( $window->isa('FBP::Panel') ) {
 		$lines = $self->panel_create($window);
+	} elsif ( $window->isa('FBP::SplitterWindow') ) {
+		$lines = $self->splitterwindow_create($window);
 	} elsif ( $window->isa('FBP::StaticLine') ) {
 		$lines = $self->staticline_create($window);
 	} elsif ( $window->isa('FBP::StaticText') ) {
@@ -425,6 +427,25 @@ sub panel_create {
 	);
 }
 
+sub splitterwindow_create {
+	my $self    = shift;
+	my $window  = shift;
+	my $id       = $self->wx( $window->id );
+	my $position = $self->object_position($window);
+	my $size     = $self->object_size($window);
+	my $style    = $self->wx( $window->styles );
+
+	return $self->nested(
+		$self->window_new($window),
+		"\$self,",
+		"$id,",
+		"$position,",
+		"$size,",
+		( $style ? "$style," : () ),
+		");",
+	);
+}
+
 sub statictext_create {
 	my $self    = shift;
 	my $control = shift;
@@ -504,6 +525,8 @@ sub children_pack {
 			push @children, $self->flexgridsizer_pack($child);
 		} elsif ( $child->isa('FBP::GridSizer') ) {
 			push @children, $self->gridsizer_pack($child);
+		} elsif ( $child->isa('FBP::SplitterWindow') ) {
+			push @children, $self->splitterwindow_pack($child);
 		} elsif ( $child->isa('FBP::StaticBoxSizer') ) {
 			push @children, $self->staticboxsizer_pack($child);
 		} elsif ( $child->isa('FBP::BoxSizer') ) {
@@ -556,6 +579,49 @@ sub boxsizer_pack {
 	}
 
 	return ( @children, \@lines );
+}
+
+sub splitterwindow_pack {
+	my $self     = shift;
+	my $window   = shift;
+	my $variable = $self->object_variable($window);
+	my @windows  = map { $_->children->[0] } @{$window->children};
+
+	# Add the content for all our child sizers
+	my @children = $self->children_pack($window);
+
+	if ( @windows == 1 ) {
+		# One child window
+		my $window1 = $self->object_variable($windows[0]);
+		return (
+			@children,
+			[
+				"$variable->Initialize(",
+				"\t$window1,",
+			],
+		);
+	}
+
+	if ( @windows == 2 ) {
+		# Two child windows
+		my $sashpos = $window->sashpos;
+		my $window1 = $self->object_variable($windows[0]);
+		my $window2 = $self->object_variable($windows[1]);
+		my $method  = $window->splitmode eq 'wxVERTICAL'
+		            ? 'SplitHorizontally'
+		            : 'SplitVertically';
+		return (
+			@children,
+			[
+				"$variable->$method(",
+				"\t$window1,",
+				"\t$window2,",
+				$sashpos ? ( "\t$sashpos," ) : (),
+			],
+		);
+	}
+
+	die "Unexpected number of splitterwindow children";
 }
 
 sub staticboxsizer_pack {

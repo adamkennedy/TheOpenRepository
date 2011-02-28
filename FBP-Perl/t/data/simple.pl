@@ -61,6 +61,22 @@ sub new {
 		Wx::wxLI_HORIZONTAL | Wx::wxNO_BORDER,
 	);
 
+	$self->{m_splitter1} = Wx::SplitterWindow->new(
+		$self,
+		-1,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxSP_3D,
+	);
+
+	$self->{m_panel3} = Wx::Panel->new(
+		$self,
+		-1,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxTAB_TRAVERSAL,
+	);
+
 	$self->{m_choice1} = Wx::Choice->new(
 		$self,
 		-1,
@@ -121,6 +137,14 @@ sub new {
 		sub {
 			shift->list_item_selected(@_);
 		},
+	);
+
+	$self->{m_panel4} = Wx::Panel->new(
+		$self,
+		-1,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxTAB_TRAVERSAL,
 	);
 
 	$self->{m_htmlWin1} = Wx::HtmlWindow->new(
@@ -199,6 +223,11 @@ sub new {
 		"This is a test",
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
+	);
+
+	$self->{m_splitter1}->SplitVertically(
+		$self->{m_panel3},
+		$self->{m_panel4},
 	);
 
 	my $fgSizer1 = Wx::FlexGridSizer->new( 1, 2, 3, 4 );
