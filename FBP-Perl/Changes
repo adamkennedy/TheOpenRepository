@@ -1,5 +1,9 @@
 Changes for Perl extension FBP-Perl
 
+0.18 Mon 28 Feb 2011
+	- Dynamically select the Wx parent object so that objects nest
+	  properly and sizers position things properly.
+
 0.17 Mon 28 Feb 2011
 	- Improved sizer generation code to support arbitrary nesting
 	  of both sizer and non-sizer parent objects.

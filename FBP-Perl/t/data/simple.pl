@@ -68,9 +68,10 @@ sub new {
 		Wx::wxDefaultSize,
 		Wx::wxSP_3D,
 	);
+	$self->{m_splitter1}->SetMinimumPaneSize(50);
 
 	$self->{m_panel3} = Wx::Panel->new(
-		$self,
+		$self->{m_splitter1},
 		-1,
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
@@ -78,7 +79,7 @@ sub new {
 	);
 
 	$self->{m_choice1} = Wx::Choice->new(
-		$self,
+		$self->{m_panel3},
 		-1,
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
@@ -86,7 +87,7 @@ sub new {
 	);
 
 	$self->{m_comboBox1} = Wx::ComboBox->new(
-		$self,
+		$self->{m_panel3},
 		-1,
 		"Combo!",
 		Wx::wxDefaultPosition,
@@ -100,7 +101,7 @@ sub new {
 	);
 
 	$self->{m_listBox1} = Wx::ListBox->new(
-		$self,
+		$self->{m_panel3},
 		-1,
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
@@ -108,7 +109,7 @@ sub new {
 	);
 
 	$self->{m_listCtrl1} = Wx::ListCtrl->new(
-		$self,
+		$self->{m_panel3},
 		-1,
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
@@ -140,7 +141,7 @@ sub new {
 	);
 
 	$self->{m_panel4} = Wx::Panel->new(
-		$self,
+		$self->{m_splitter1},
 		-1,
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
@@ -148,7 +149,7 @@ sub new {
 	);
 
 	$self->{m_htmlWin1} = Wx::HtmlWindow->new(
-		$self,
+		$self->{m_panel4},
 		-1,
 		Wx::wxDefaultPosition,
 		[ 200, 200 ],
@@ -196,7 +197,7 @@ sub new {
 	);
 
 	$self->{m_panel1} = Wx::Panel->new(
-		$self,
+		$self->{m_listbook1},
 		-1,
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
@@ -204,13 +205,13 @@ sub new {
 	);
 
 	$self->{m_staticText2} = Wx::StaticText->new(
-		$self,
+		$self->{m_panel1},
 		-1,
 		Wx::gettext("This is a test"),
 	);
 
 	$self->{m_panel2} = Wx::Panel->new(
-		$self,
+		$self->{m_listbook1},
 		-1,
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
@@ -218,7 +219,7 @@ sub new {
 	);
 
 	$self->{m_textCtrl2} = Wx::TextCtrl->new(
-		$self,
+		$self->{m_panel2},
 		-1,
 		"This is a test",
 		Wx::wxDefaultPosition,

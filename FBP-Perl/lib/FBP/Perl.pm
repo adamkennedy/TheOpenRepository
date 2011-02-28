@@ -25,7 +25,7 @@ use Mouse         0.61;
 use FBP           0.18 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 has project => (
 	is       => 'ro',
@@ -108,6 +108,11 @@ sub dialog_new {
 		"",
 		$super,
 		"",
+		# "\$self->SetSizeHints(",
+		# "\tWx::wxDefaultSize,",
+		# "\tWx::wxDefaultSize,",
+		# ");",
+		# "",
 		@windows,
 		( map { @$_, "" } @sizers ),
 		"return \$self;",
@@ -138,13 +143,12 @@ sub dialog_super {
 	);
 }
 
+# Recurse down the object tree
 sub dialog_windows {
-	my $self   = shift;
-	my $dialog = shift;
-
-	return map {
-		$self->window_create($_), ""
-	} $dialog->find( isa => 'FBP::Window' );
+	my $self    = shift;
+	my $dialog  = shift;
+	my @windows = $self->children_create($dialog);
+	return map { @$_, "" } @windows;
 }
 
 sub dialog_sizers {
@@ -201,36 +205,59 @@ sub dialog_isa {
 ######################################################################
 # Window and Control Generators
 
+sub children_create {
+	my $self    = shift;
+	my $object  = shift;
+	my $parent  = shift;
+	my @windows = ();
+
+	foreach my $child ( @{$object->children} ) {
+		if ( $child->isa('FBP::Window') ) {
+			push @windows, $self->window_create($child, $parent);
+		}
+		next unless $child->does('FBP::Children');
+		if ( $object->isa('FBP::Window') ) {
+			push @windows, $self->children_create($child, $object);
+		} else {
+			push @windows, $self->children_create($child, $parent);
+		}
+	}
+
+	return @windows;
+}
+
 sub window_create {
 	my $self   = shift;
 	my $window = shift;
+	my $parent = shift;
 	my $lines  = undef;
+
 	if ( $window->isa('FBP::Button') ) {
-		$lines = $self->button_create($window);
+		$lines = $self->button_create($window, $parent);
 	} elsif ( $window->isa('FBP::CheckBox') ) {
-		$lines = $self->checkbox_create($window);
+		$lines = $self->checkbox_create($window, $parent);
 	} elsif ( $window->isa('FBP::Choice') ) {
-		$lines = $self->choice_create($window);
+		$lines = $self->choice_create($window, $parent);
 	} elsif ( $window->isa('FBP::ComboBox') ) {
-		$lines = $self->combobox_create($window);
+		$lines = $self->combobox_create($window, $parent);
 	} elsif ( $window->isa('FBP::HtmlWindow') ) {
-		$lines = $self->htmlwindow_create($window);
+		$lines = $self->htmlwindow_create($window, $parent);
 	} elsif ( $window->isa('FBP::Listbook') ) {
-		$lines = $self->listbook_create($window);
+		$lines = $self->listbook_create($window, $parent);
 	} elsif ( $window->isa('FBP::ListBox') ) {
-		$lines = $self->listbox_create($window);
+		$lines = $self->listbox_create($window, $parent);
 	} elsif ( $window->isa('FBP::ListCtrl') ) {
-		$lines = $self->listctrl_create($window);
+		$lines = $self->listctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::Panel') ) {
-		$lines = $self->panel_create($window);
+		$lines = $self->panel_create($window, $parent);
 	} elsif ( $window->isa('FBP::SplitterWindow') ) {
-		$lines = $self->splitterwindow_create($window);
+		$lines = $self->splitterwindow_create($window, $parent);
 	} elsif ( $window->isa('FBP::StaticLine') ) {
-		$lines = $self->staticline_create($window);
+		$lines = $self->staticline_create($window, $parent);
 	} elsif ( $window->isa('FBP::StaticText') ) {
-		$lines = $self->statictext_create($window);
+		$lines = $self->statictext_create($window, $parent);
 	} elsif ( $window->isa('FBP::TextCtrl') ) {
-		$lines = $self->textctrl_create($window);
+		$lines = $self->textctrl_create($window, $parent);
 	} else {
 		die 'Cannot create constructor code for ' . ref($window);
 	}
@@ -245,13 +272,14 @@ sub window_create {
 sub button_create {
 	my $self     = shift;
 	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
 	my $id       = $self->wx( $control->id );
 	my $label    = $self->object_label($control);
 	my $variable = $self->object_variable($control);
 
 	my $lines = $self->nested(
 		$self->window_new($control),
-		"\$self,",
+		"$parent,",
 		"$id,",
 		"$label,",
 		");",
@@ -270,6 +298,7 @@ sub button_create {
 sub checkbox_create {
 	my $self     = shift;
 	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
 	my $id       = $self->wx( $control->id );
 	my $label    = $self->object_label($control);
 	my $position = $self->object_position($control);
@@ -278,7 +307,7 @@ sub checkbox_create {
 
 	return $self->nested(
 		$self->window_new($control),
-		"\$self,",
+		"$parent,",
 		"$id,",
 		"$label,",
 		"$position,",
@@ -291,6 +320,7 @@ sub checkbox_create {
 sub choice_create {
 	my $self     = shift;
 	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
 	my $id       = $self->wx( $control->id );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_size($control);
@@ -298,7 +328,7 @@ sub choice_create {
 
 	return $self->nested(
 		$self->window_new($control),
-		"\$self,",
+		"$parent,",
 		"$id,",
 		"$position,",
 		"$size,",
@@ -310,6 +340,7 @@ sub choice_create {
 sub combobox_create {
 	my $self     = shift;
 	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
 	my $id       = $self->wx( $control->id );
 	my $value    = $self->quote( $control->value );
 	my $position = $self->object_position($control);
@@ -319,7 +350,7 @@ sub combobox_create {
 
 	return $self->nested(
 		$self->window_new($control),
-		"\$self,",
+		"$parent,",
 		"$id,",
 		"$value,",
 		"$position,",
@@ -333,6 +364,7 @@ sub combobox_create {
 sub htmlwindow_create {
 	my $self     = shift;
 	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
 	my $id       = $self->wx( $control->id );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_size($control);
@@ -340,7 +372,7 @@ sub htmlwindow_create {
 
 	return $self->nested(
 		$self->window_new($control),
-		"\$self,",
+		"$parent,",
 		"$id,",
 		"$position,",
 		"$size,",
@@ -352,6 +384,7 @@ sub htmlwindow_create {
 sub listbook_create {
 	my $self     = shift;
 	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
 	my $id       = $self->wx( $control->id );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_size($control);
@@ -359,7 +392,7 @@ sub listbook_create {
 
 	return $self->nested(
 		$self->window_new($control),
-		"\$self,",
+		"$parent,",
 		"$id,",
 		"$position,",
 		"$size,",
@@ -371,6 +404,7 @@ sub listbook_create {
 sub listbox_create {
 	my $self     = shift;
 	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
 	my $id       = $self->wx( $control->id );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_size($control);
@@ -379,7 +413,7 @@ sub listbox_create {
 
 	return $self->nested(
 		$self->window_new($control),
-		"\$self,",
+		"$parent,",
 		"$id,",
 		"$position,",
 		"$size,",
@@ -392,6 +426,7 @@ sub listbox_create {
 sub listctrl_create {
 	my $self     = shift;
 	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
 	my $id       = $self->wx( $control->id );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_size($control);
@@ -399,7 +434,7 @@ sub listctrl_create {
 
 	return $self->nested(
 		$self->window_new($control),
-		"\$self,",
+		"$parent,",
 		"$id,",
 		"$position,",
 		"$size,",
@@ -411,6 +446,7 @@ sub listctrl_create {
 sub panel_create {
 	my $self     = shift;
 	my $window   = shift;
+	my $parent   = $self->object_parent(@_);
 	my $id       = $self->wx( $window->id );
 	my $position = $self->object_position($window);
 	my $size     = $self->object_size($window);
@@ -418,7 +454,7 @@ sub panel_create {
 
 	return $self->nested(
 		$self->window_new($window),
-		"\$self,",
+		"$parent,",
 		"$id,",
 		"$position,",
 		"$size,",
@@ -428,33 +464,42 @@ sub panel_create {
 }
 
 sub splitterwindow_create {
-	my $self    = shift;
-	my $window  = shift;
+	my $self     = shift;
+	my $window   = shift;
+	my $parent   = $self->object_parent(@_);
 	my $id       = $self->wx( $window->id );
 	my $position = $self->object_position($window);
 	my $size     = $self->object_size($window);
 	my $style    = $self->wx( $window->styles );
 
-	return $self->nested(
+	my $lines = $self->nested(
 		$self->window_new($window),
-		"\$self,",
+		"$parent,",
 		"$id,",
 		"$position,",
 		"$size,",
 		( $style ? "$style," : () ),
 		");",
 	);
+	if ( $window->min_pane_size ) {
+		my $variable = $self->object_variable($window);
+		my $minimum  = $window->min_pane_size;
+		push @$lines, "$variable->SetMinimumPaneSize($minimum);";
+	}
+
+	return $lines;
 }
 
 sub statictext_create {
 	my $self    = shift;
 	my $control = shift;
+	my $parent  = $self->object_parent(@_);
 	my $id      = $self->wx( $control->id );
 	my $label   = $self->object_label($control);
 
 	return $self->nested(
 		$self->window_new($control),
-		"\$self,",
+		"$parent,",
 		"$id,",
 		"$label,",
 		");",
@@ -464,6 +509,7 @@ sub statictext_create {
 sub staticline_create {
 	my $self     = shift;
 	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
 	my $id       = $self->wx( $control->id );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_size($control);
@@ -471,7 +517,7 @@ sub staticline_create {
 
 	return $self->nested(
 		$self->window_new($control),
-		"\$self,",
+		"$parent,",
 		"$id,",
 		"$position,",
 		"$size,",
@@ -483,6 +529,7 @@ sub staticline_create {
 sub textctrl_create {
 	my $self      = shift;
 	my $control   = shift;
+	my $parent    = $self->object_parent(@_);
 	my $id        = $self->wx( $control->id );
 	my $value     = $self->quote( $control->value );
 	my $position  = $self->object_position($control);
@@ -492,7 +539,7 @@ sub textctrl_create {
 
 	my $lines = $self->nested(
 		$self->window_new($control),
-		"\$self,",
+		"$parent,",
 		"$id,",
 		"$value,",
 		"$position,",
@@ -832,7 +879,7 @@ sub splitterwindow_pack {
 				"$variable->$method(",
 				"\t$window1,",
 				"\t$window2,",
-				$sashpos ? ( "\t$sashpos," ) : (),
+				( $sashpos ? "\t$sashpos," : () ),
 				");",
 			],
 		);
@@ -1052,6 +1099,16 @@ sub object_variable {
 		return '$' . $object->name;
 	} else {
 		return '$self->{' . $object->name . '}';
+	}
+}
+
+sub object_parent {
+	my $self   = shift;
+	my $object = shift;
+	if ( $object and not $object->isa('FBP::Dialog') ) {
+		return $self->object_variable($object);
+	} else {
+		return '$self';
 	}
 }
 

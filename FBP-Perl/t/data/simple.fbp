@@ -344,7 +344,7 @@
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
                                 <property name="maximum_size"></property>
-                                <property name="min_pane_size">0</property>
+                                <property name="min_pane_size">50</property>
                                 <property name="minimum_size"></property>
                                 <property name="name">m_splitter1</property>
                                 <property name="permission">protected</property>
