@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 75;
+use Test::More tests => 86;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -67,7 +67,7 @@ isa_ok( $dialog4[0], 'FBP::Dialog' );
 
 # Multiple-search query with multiple results
 my @window = $project->find( isa => 'FBP::Window' );
-is( scalar(@window), 20, '->find(multiple) ok' );
+is( scalar(@window), 23, '->find(multiple) ok' );
 foreach ( @window ) {
 	isa_ok( $_, 'FBP::Window' );
 }
@@ -151,3 +151,21 @@ my $listbook = $object->find_first(
 );
 isa_ok( $listbook, 'FBP::Listbook' );
 is( $listbook->style, 'wxLB_DEFAULT', '->style ok' );
+
+# SplitterWindow properties
+my $splitterwindow = $object->find_first(
+	isa => 'FBP::SplitterWindow',
+);
+isa_ok( $splitterwindow, 'FBP::SplitterWindow' );
+is( $splitterwindow->style, 'wxSP_3D', '->style ok' );
+is( $splitterwindow->splitmode, 'wxSPLIT_VERTICAL', '->splitmode ok' );
+is( $splitterwindow->sashpos, '0', '->sashpos ok' );
+is( $splitterwindow->sashsize, '-1', '->sashsize ok' );
+is( $splitterwindow->sashgravity, '0.0', '->sashgravity ok' );
+is( $splitterwindow->min_pane_size, '0', '->min_pane_size ok' );
+
+# SplitterItem properties
+my $splitteritem = $object->find_first(
+	isa => 'FBP::SplitterItem',
+);
+isa_ok( $splitteritem, 'FBP::SplitterItem' );

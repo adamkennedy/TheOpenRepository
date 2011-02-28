@@ -61,6 +61,8 @@ use FBP::ListCtrl       ();
 use FBP::Panel          ();
 use FBP::SizerItem      ();
 use FBP::Spacer         ();
+use FBP::SplitterItem   ();
+use FBP::SplitterWindow ();
 use FBP::StaticBoxSizer ();
 use FBP::StaticText     ();
 use FBP::StaticLine     ();

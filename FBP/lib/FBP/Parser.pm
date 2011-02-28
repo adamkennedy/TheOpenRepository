@@ -28,6 +28,7 @@ my %OBJECT_CLASS = (
 	wxListBox        => 'FBP::ListBox',
 	wxListCtrl       => 'FBP::ListCtrl',
 	wxPanel          => 'FBP::Panel',
+	wxSplitterWindow => 'FBP::SplitterWindow',
 	wxStaticBoxSizer => 'FBP::StaticBoxSizer',
 	wxStaticText     => 'FBP::StaticText',
 	wxStaticLine     => 'FBP::StaticLine',
@@ -37,6 +38,7 @@ my %OBJECT_CLASS = (
 	listbookpage     => 'FBP::ListbookPage',
 	sizeritem        => 'FBP::SizerItem',
 	spacer           => 'FBP::Spacer',
+	splitteritem     => 'FBP::SplitterItem',
 );
 
 
