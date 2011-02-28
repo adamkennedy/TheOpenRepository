@@ -1,6 +1,6 @@
 Changes for Perl extension FBP
 
-0.17 Tue 25 Jan 2011
+0.17 Mon 28 Feb 2011
 	- Updating copyright year
 	- Added FBP::Listbook       class
 	- Added FBP::ListbookPage   class
