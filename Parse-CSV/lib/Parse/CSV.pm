@@ -433,18 +433,18 @@ sub fields {
 
 =pod
 
-=head2 setcolnames
+=head2 colnames
 
-  @colnames = $csv->setcolnames("fn1","fn2") # sets colnames
+  @colnames = $csv->colnames("fn1","fn2") # sets colnames
                   or
-  @colnames = $csv->setcolnames; # gets colnames
+  @colnames = $csv->colnames; # gets colnames
 
-The C<setcolnames> method sets or gets colnames (=C<fields>-param)
+The C<colnames> method sets or gets colnames (=C<fields>-param)
 So you can rename the colnames (hash-keys in L<Parse::CSV> object).
 
 =cut
 
-sub setcolnames {
+sub colnames {
 	my $self=shift;
 	@{$self->{fields}}=@_ if(@_);
 	return @{$self->{fields}};
@@ -456,7 +456,7 @@ sub setcolnames {
 
   @colnames = $csv->addcolnames("fn1","fn2") 
 
-The C<addcolnames> method adds colnames at the end of $csv->setcolnames (=C<fields>-param).
+The C<addcolnames> method adds colnames at the end of $csv->colnames (=C<fields>-param).
 You can do that if the filter-method adds some new fields at the end of fields-array in L<Parse::CSV> object .
 Please consider that these colnames or fields are not 
 in the underlying L<Text::CSV_XS> object.

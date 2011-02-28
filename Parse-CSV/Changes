@@ -1,4 +1,7 @@
 Revision history for Perl extension Parse::CSV
+1.02 Sun 27 Feb 2011
+	- renaming method setcolnames to colnames. So everybody knows that this is a getter/setter pair 
+
 1.02 Wed 24 Nov 2010
 	- POD Change
 

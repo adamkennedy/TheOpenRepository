@@ -93,10 +93,10 @@ SCOPE: {
 	is( $csv->row,    3,  '->row returns 3' );
 	is( $csv->errstr, '', '->errstr returns ""' );
 
-	is_deeply( [ $csv->setcolnames ], [ qw{a b c d e} ], '->setcolnames() (get) returns as expected' );
+	is_deeply( [ $csv->colnames ], [ qw{a b c d e} ], '->colnames() (get) returns as expected' );
 	is_deeply( [ $csv->addcolnames("fext") ], [ qw{a b c d e fext} ], '->addcolnames() returns as expected' );
-	is_deeply( [ $csv->setcolnames ], [ qw{a b c d e fext} ], '->setcolnames() after addcolumns() returns as expected' );
-	is_deeply( [ $csv->setcolnames(qw{aa b c d e fext}) ], [ qw{aa b c d e fext} ], '->setcolnames() (set) returns as expected' );
+	is_deeply( [ $csv->colnames ], [ qw{a b c d e fext} ], '->colnames() after addcolumns() returns as expected' );
+	is_deeply( [ $csv->colnames(qw{aa b c d e fext}) ], [ qw{aa b c d e fext} ], '->colnames() (set) returns as expected' );
 
 	# Get the line after the end
 	my $fetch3 = $csv->fetch;
