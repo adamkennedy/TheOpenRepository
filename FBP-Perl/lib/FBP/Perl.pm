@@ -25,7 +25,7 @@ use Mouse         0.61;
 use FBP           0.18 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 has project => (
 	is       => 'ro',
@@ -318,15 +318,15 @@ sub checkbox_create {
 }
 
 sub choice_create {
-	my $self     = shift;
-	my $control  = shift;
-	my $parent   = $self->object_parent(@_);
-	my $id       = $self->wx( $control->id );
-	my $position = $self->object_position($control);
-	my $size     = $self->object_size($control);
-	my $items    = $self->control_items($control);
+	my $self      = shift;
+	my $control   = shift;
+	my $parent    = $self->object_parent(@_);
+	my $id        = $self->wx( $control->id );
+	my $position  = $self->object_position($control);
+	my $size      = $self->object_size($control);
+	my $items     = $self->control_items($control);
 
-	return $self->nested(
+	my $lines = $self->nested(
 		$self->window_new($control),
 		"$parent,",
 		"$id,",
@@ -335,6 +335,14 @@ sub choice_create {
 		$items,
 		");",
 	);
+
+	if ( length $control->selection ) {
+		my $variable  = $self->object_variable($control);
+		my $selection = $control->selection;
+		push @$lines, "$variable->SetSelection($selection);";
+	}
+
+	return $lines;
 }
 
 sub combobox_create {
@@ -897,85 +905,91 @@ sub splitterwindow_pack {
 
 my %EVENT = (
 	# wxActivateEvent
-	OnActivate             => [ 'EVT_ACTIVATE'               ],
-	OnActivateApp          => [ 'EVT_ACTIVATE_APP'           ],
+	OnActivate                => [ 'EVT_ACTIVATE'                   ],
+	OnActivateApp             => [ 'EVT_ACTIVATE_APP'               ],
 
 	# wxCommandEvent
-	OnButtonClick          => [ 'EVT_BUTTON'                 ],
-	OnCheckBox             => [ 'EVT_CHECKBOX'               ],
-	OnChoice               => [ 'EVT_CHOICE'                 ],
-	OnCombobox             => [ 'EVT_COMBOBOX'               ],
-	OnListBox              => [ 'EVT_LISTBOX'                ],
-	OnListBoxDClick        => [ 'EVT_LISTBOX_DCLICK'         ],
-	OnText                 => [ 'EVT_TEXT'                   ],
-	OnTextEnter            => [ 'EVT_TEXT_ENTER'             ],
-	OnMenu                 => [ 'EVT_MENU'                   ],
-	OnMenuRange            => [ 'EVT_MENU_RANGE'             ],
+	OnButtonClick             => [ 'EVT_BUTTON'                     ],
+	OnCheckBox                => [ 'EVT_CHECKBOX'                   ],
+	OnChoice                  => [ 'EVT_CHOICE'                     ],
+	OnCombobox                => [ 'EVT_COMBOBOX'                   ],
+	OnListBox                 => [ 'EVT_LISTBOX'                    ],
+	OnListBoxDClick           => [ 'EVT_LISTBOX_DCLICK'             ],
+	OnText                    => [ 'EVT_TEXT'                       ],
+	OnTextEnter               => [ 'EVT_TEXT_ENTER'                 ],
+	OnMenu                    => [ 'EVT_MENU'                       ],
+	OnMenuRange               => [ 'EVT_MENU_RANGE'                 ],
 
 	# wxCloseEvent
-	OnClose                => [ 'EVT_CLOSE'                  ],
+	OnClose                   => [ 'EVT_CLOSE'                      ],
 
 	# wxEraseEvent
-	OnEraseBackground      => [ ''                           ],
+	OnEraseBackground         => [ ''                               ],
 
 	# wxFocusEvent
-	OnKillFocus            => [ 'EVT_KILL_FOCUS'             ],
-	OnSetFocus             => [ 'EVT_SET_FOCUS'              ],
+	OnKillFocus               => [ 'EVT_KILL_FOCUS'                 ],
+	OnSetFocus                => [ 'EVT_SET_FOCUS'                  ],
 
 	# wxIdleEvent
-	OnIdle                 => [ 'EVT_IDLE'                   ],
+	OnIdle                    => [ 'EVT_IDLE'                       ],
 
 	# wxKeyEvent
-	OnChar                 => [ 'EVT_CHAR'                   ],
-	OnKeyDown              => [ 'EVT_KEY_DOWN'               ],
-	OnKeyUp                => [ 'EVT_KEY_UP'                 ],
+	OnChar                    => [ 'EVT_CHAR'                       ],
+	OnKeyDown                 => [ 'EVT_KEY_DOWN'                   ],
+	OnKeyUp                   => [ 'EVT_KEY_UP'                     ],
 
 	# wxHtmlWindow
-	OnHtmlCellClicked      => [ 'EVT_HTML_CELL_CLICKED'      ],
-	OnHtmlCellHover        => [ 'EVT_HTML_CELL_HOVER'        ],
-	OnHtmlLinkClicked      => [ 'EVT_HTML_LINK_CLICKED'      ],
+	OnHtmlCellClicked         => [ 'EVT_HTML_CELL_CLICKED'          ],
+	OnHtmlCellHover           => [ 'EVT_HTML_CELL_HOVER'            ],
+	OnHtmlLinkClicked         => [ 'EVT_HTML_LINK_CLICKED'          ],
 
 	# wxListEvent
-	OnListBeginDrag        => [ 'EVT_LIST_BEGIN_DRAG'        ],
-	OnListBeginRDrag       => [ 'EVT_LIST_BEGIN_RDRAG'       ],
-	OnListBeginLabelEdit   => [ 'EVT_LIST_BEGIN_LABEL_EDIT'  ],
-	OnListCacheHint        => [ 'EVT_LIST_CACHE_HINT'        ],
-	OnListEndLabelEdit     => [ 'EVT_LIST_END_LABEL_EDIT'    ],
-	OnListDeleteItem       => [ 'EVT_LIST_DELETE_ITEM'       ],
-	OnListDeleteAllItems   => [ 'EVT_LIST_DELETE_ALL_ITEMS'  ],
-	OnListInsertItem       => [ 'EVT_LIST_INSERT_ITEM'       ],
-	OnListItemActivated    => [ 'EVT_LIST_ITEM_ACTIVATED'    ],
-	OnListItemSelected     => [ 'EVT_LIST_ITEM_SELECTED'     ],
-	OnListItemDeselected   => [ 'EVT_LIST_ITEM_DESELECTED'   ],
-	OnListItemFocused      => [ 'EVT_LIST_ITEM_FOCUSED'      ],
-	OnListItemMiddleClick  => [ 'EVT_LIST_MIDDLE_CLICK'      ],
-	OnListItemRightClick   => [ 'EVT_LIST_RIGHT_CLICK'       ],
-	OnListKeyDown          => [ 'EVT_LIST_KEY_DOWN'          ],
-	OnListColClick         => [ 'EVT_LIST_COL_CLICK'         ],
-	OnListColRightClick    => [ 'EVT_LIST_COL_RIGHT_CLICK'   ],
-	OnListColBeginDrag     => [ 'EVT_LIST_COL_BEGIN_DRAG'    ],
-	OnListColDragging      => [ 'EVT_LIST_COL_DRAGGING'      ],
-	OnListColEndDrag       => [ 'EVT_LIST_COL_END_DRAG'      ],
+	OnListBeginDrag           => [ 'EVT_LIST_BEGIN_DRAG'            ],
+	OnListBeginRDrag          => [ 'EVT_LIST_BEGIN_RDRAG'           ],
+	OnListBeginLabelEdit      => [ 'EVT_LIST_BEGIN_LABEL_EDIT'      ],
+	OnListCacheHint           => [ 'EVT_LIST_CACHE_HINT'            ],
+	OnListEndLabelEdit        => [ 'EVT_LIST_END_LABEL_EDIT'        ],
+	OnListDeleteItem          => [ 'EVT_LIST_DELETE_ITEM'           ],
+	OnListDeleteAllItems      => [ 'EVT_LIST_DELETE_ALL_ITEMS'      ],
+	OnListInsertItem          => [ 'EVT_LIST_INSERT_ITEM'           ],
+	OnListItemActivated       => [ 'EVT_LIST_ITEM_ACTIVATED'        ],
+	OnListItemSelected        => [ 'EVT_LIST_ITEM_SELECTED'         ],
+	OnListItemDeselected      => [ 'EVT_LIST_ITEM_DESELECTED'       ],
+	OnListItemFocused         => [ 'EVT_LIST_ITEM_FOCUSED'          ],
+	OnListItemMiddleClick     => [ 'EVT_LIST_MIDDLE_CLICK'          ],
+	OnListItemRightClick      => [ 'EVT_LIST_RIGHT_CLICK'           ],
+	OnListKeyDown             => [ 'EVT_LIST_KEY_DOWN'              ],
+	OnListColClick            => [ 'EVT_LIST_COL_CLICK'             ],
+	OnListColRightClick       => [ 'EVT_LIST_COL_RIGHT_CLICK'       ],
+	OnListColBeginDrag        => [ 'EVT_LIST_COL_BEGIN_DRAG'        ],
+	OnListColDragging         => [ 'EVT_LIST_COL_DRAGGING'          ],
+	OnListColEndDrag          => [ 'EVT_LIST_COL_END_DRAG'          ],
 
 	# wxMouseEvent
-	OnEnterWindow          => [ 'EVT_ENTER_WINDOW'           ],
-	OnLeaveWindow          => [ 'EVT_LEAVE_WINDOW'           ],
-	OnLeftDClick           => [ 'EVT_LEFT_DCLICK'            ],
-	OnLeftDown             => [ 'EVT_LEFT_DOWN'              ],
-	OnLeftUp               => [ 'EVT_LEFT_UP'                ],
-	OnMiddleClick          => [ 'EVT_MIDDLE_CLICK'           ],
-	OnMiddleDown           => [ 'EVT_MIDDLE_DOWN'            ],
-	OnMiddleUp             => [ 'EVT_MIDDLE_UP'              ],
-	OnMotion               => [ 'EVT_MOTION'                 ],
-	OnMouseEvents          => [ 'EVT_MOUSE_EVENTS'           ],
-	OnMouseWheel           => [ 'EVT_MOUSE_WHEEL'            ],
-	OnRightDClick          => [ 'EVT_RIGHT_DCLICK'           ],
-	OnRightDown            => [ 'EVT_RIGHT_DOWN'             ],
-	OnRightUp              => [ 'EVT_RIGHT_UP'               ],
+	OnEnterWindow             => [ 'EVT_ENTER_WINDOW'               ],
+	OnLeaveWindow             => [ 'EVT_LEAVE_WINDOW'               ],
+	OnLeftDClick              => [ 'EVT_LEFT_DCLICK'                ],
+	OnLeftDown                => [ 'EVT_LEFT_DOWN'                  ],
+	OnLeftUp                  => [ 'EVT_LEFT_UP'                    ],
+	OnMiddleClick             => [ 'EVT_MIDDLE_CLICK'               ],
+	OnMiddleDown              => [ 'EVT_MIDDLE_DOWN'                ],
+	OnMiddleUp                => [ 'EVT_MIDDLE_UP'                  ],
+	OnMotion                  => [ 'EVT_MOTION'                     ],
+	OnMouseEvents             => [ 'EVT_MOUSE_EVENTS'               ],
+	OnMouseWheel              => [ 'EVT_MOUSE_WHEEL'                ],
+	OnRightDClick             => [ 'EVT_RIGHT_DCLICK'               ],
+	OnRightDown               => [ 'EVT_RIGHT_DOWN'                 ],
+	OnRightUp                 => [ 'EVT_RIGHT_UP'                   ],
 
 	# wxNotebookEvent
-	OnNotebookPageChanging => [ 'EVT_NOTEBOOK_PAGE_CHANGING' ],
-	OnNotebookPageChanged  => [ 'EVT_NOTEBOOK_PAGE_CHANGED'  ],
+	OnNotebookPageChanging    => [ 'EVT_NOTEBOOK_PAGE_CHANGING'     ],
+	OnNotebookPageChanged     => [ 'EVT_NOTEBOOK_PAGE_CHANGED'      ],
+
+	# wxSplitterEvent
+	OnSplitterSashPosChanging => [ 'EVT_SPLITTER_SASH_POS_CHANGING' ],
+	OnSplitterSashPosChanged  => [ 'EVT_SPLITTER_SASH_POS_CHANGED'  ],
+	OnSplitterUnsplit         => [ 'EVT_SPLITTER_UNSPLIT'           ],
+	OnSplitterDClick          => [ 'EVT_SPLITTER_DCLICK'            ],
 );
 
 sub window_bindings {

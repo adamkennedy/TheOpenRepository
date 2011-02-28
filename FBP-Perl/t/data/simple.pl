@@ -85,6 +85,7 @@ sub new {
 		Wx::wxDefaultSize,
 		[ ],
 	);
+	$self->{m_choice1}->SetSelection(0);
 
 	$self->{m_comboBox1} = Wx::ComboBox->new(
 		$self->{m_panel3},

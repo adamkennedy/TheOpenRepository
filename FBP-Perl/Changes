@@ -1,5 +1,9 @@
 Changes for Perl extension FBP-Perl
 
+0.19 Mon 28 Feb 2011
+	- wxChoice objects now ->SetSelection properly
+	- Added support for Wx::SplitterEvent events
+
 0.18 Mon 28 Feb 2011
 	- Dynamically select the Wx parent object so that objects nest
 	  properly and sizers position things properly.
