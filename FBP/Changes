@@ -2,6 +2,8 @@ Changes for Perl extension FBP
 
 0.18 Mon 28 Feb 2011
 	- Added FBP::SplitterWindow::permission attribute
+	- Added FBP::HtmlWindow::permission     attribute
+	- FBP::HtmlWindow is no longer a FBP::Panel subclass
 
 0.17 Mon 28 Feb 2011
 	- Updating copyright year

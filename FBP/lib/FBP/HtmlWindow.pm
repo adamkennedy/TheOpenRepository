@@ -4,7 +4,13 @@ use Mouse;
 
 our $VERSION = '0.18';
 
-extends 'FBP::Panel';
+extends 'FBP::Window';
+
+has permission => (
+	is  => 'ro',
+	isa => 'Str',
+	required => 1,
+);
 
 has style => (
 	is  => 'ro',
