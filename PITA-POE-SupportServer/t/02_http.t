@@ -9,12 +9,19 @@ BEGIN {
 }
 
 use Test::More tests => 1;
+use File::Spec::Functions ':ALL';
 use PITA::SupportServer::HTTP ();
+
+my $minicpan = rel2abs( catdir( 't', 'minicpan' ), );
+ok( -d $minicpan, 'Found minicpan directory' );
 
 # Create the web server
 my $server = PITA::SupportServer::HTTP->new(
 	Hostname => '127.0.0.1',
 	Port     => 12345,
+	Mirrors  => {
+		'/cpan/' => $minicpan,
+	},
 );
 isa_ok( $server, 'PITA::SupportServer::HTTP' );
 

@@ -83,11 +83,22 @@ sub handler {
 			my $root = $self->Mirrors->{$route};
 			my $file = File::Spec->catfile( $root, $path );
 			if ( -f $file and -r $file ) {
-				# Load and return the file
-				die "CODE INCOMPLETE";
+				# Load the file
+				local $/ = undef;
+				my $io = IO::File->new($file, 'r') or die "open: $file";
+				$io->binmode;
+				my $blob = $io->getline;
+
+				# Send the file
+				$response->code(200);
+				$response->header( 'Content-Type'   => 'application/x-gzip' );
+				$response->header( 'Content-Length' => length $blob         );
+				$response->content( $blob );
+				return;
 			} else {
 				$response->code(404);
-				$response->content('File not found');
+				$response->header( 'Content-Type' => 'text/plain' );
+				$response->content('404 - File Not Found');
 				return
 			}
 		}
