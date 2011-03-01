@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 87;
+use Test::More tests => 113;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -67,7 +67,7 @@ isa_ok( $dialog4[0], 'FBP::Dialog' );
 
 # Multiple-search query with multiple results
 my @window = $project->find( isa => 'FBP::Window' );
-is( scalar(@window), 23, '->find(multiple) ok' );
+is( scalar(@window), 29, '->find(multiple) ok' );
 foreach ( @window ) {
 	isa_ok( $_, 'FBP::Window' );
 }
@@ -82,6 +82,7 @@ is( $text->name,       'm_staticText1',  '->name ok'       );
 is( $text->permission, 'protected',      '->permission ok' );
 is( $text->subclass,   'My::Class;',     '->subclass ok'   );
 is( $text->wxclass,    'My::Class',      '->class ok'      );
+is( $text->wrap,       '-1',             '->wrap ok'       );
 is(
 	$text->label,
 	'Michael "Killer" O\'Reilly <michael@localhost>',
@@ -170,3 +171,47 @@ my $splitteritem = $object->find_first(
 	isa => 'FBP::SplitterItem',
 );
 isa_ok( $splitteritem, 'FBP::SplitterItem' );
+
+# ColourPickerCtrl properties
+my @colourpickerctrl = $object->find(
+	isa => 'FBP::ColourPickerCtrl',
+);
+isa_ok( $colourpickerctrl[0], 'FBP::ColourPickerCtrl' );
+isa_ok( $colourpickerctrl[1], 'FBP::ColourPickerCtrl' );
+is( $colourpickerctrl[0]->colour, '255,0,0', '->colour ok' );
+is( $colourpickerctrl[1]->colour, 'wxSYS_COLOUR_INFOBK', '->colour ok' );
+
+# FontPickerCtrl properties
+my $fontpickerctrl = $object->find_first(
+	isa => 'FBP::FontPickerCtrl',
+);
+isa_ok( $fontpickerctrl, 'FBP::FontPickerCtrl' );
+is( $fontpickerctrl->value, 'Times New Roman,90,92,10,74,0', '->value ok' );
+is( $fontpickerctrl->max_point_size, 100, '->max_point_size ok' );
+
+# FilePickerCtrl properties
+my $filepickerctrl = $object->find_first(
+	isa => 'FBP::FilePickerCtrl',
+);
+isa_ok( $filepickerctrl, 'FBP::FilePickerCtrl' );
+is( $filepickerctrl->value, '', '->value ok' );
+is( $filepickerctrl->message, 'Select a file', '->message ok' );
+is( $filepickerctrl->wildcard, '*.*', '->wildcard ok' );
+
+# DirPickerCtrl properties
+my $dirpickerctrl = $object->find_first(
+	isa => 'FBP::DirPickerCtrl',
+);
+isa_ok( $dirpickerctrl, 'FBP::DirPickerCtrl' );
+is( $dirpickerctrl->value, '', '->value ok' );
+is( $dirpickerctrl->message, 'Select a folder', '->message ok' );
+
+# SpinCtrl properties
+my $spinctrl = $object->find_first(
+	isa => 'FBP::SpinCtrl',
+);
+isa_ok( $spinctrl, 'FBP::SpinCtrl' );
+is( $spinctrl->value,   '',   '->value ok'   );
+is( $spinctrl->min,     '0',  '->min ok'     );
+is( $spinctrl->max,     '10', '->max ok'     );
+is( $spinctrl->initial, '5',  '->initial ok' );

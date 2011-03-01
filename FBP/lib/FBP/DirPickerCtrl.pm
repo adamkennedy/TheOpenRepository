@@ -1,4 +1,4 @@
-package FBP::CheckBox;
+package FBP::DirPickerCtrl;
 
 use Mouse;
 
@@ -6,12 +6,17 @@ our $VERSION = '0.19';
 
 extends 'FBP::Control';
 
-has label => (
+has value => (
 	is  => 'ro',
 	isa => 'Str',
 );
 
-has OnCheckBox => (
+has message => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+has OnDirChanged => (
 	is  => 'ro',
 	isa => 'Str',
 );

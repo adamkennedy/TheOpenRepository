@@ -1,4 +1,4 @@
-package FBP::CheckBox;
+package FBP::ColourPickerCtrl;
 
 use Mouse;
 
@@ -6,12 +6,12 @@ our $VERSION = '0.19';
 
 extends 'FBP::Control';
 
-has label => (
+has colour => (
 	is  => 'ro',
 	isa => 'Str',
 );
 
-has OnCheckBox => (
+has OnColourChanged => (
 	is  => 'ro',
 	isa => 'Str',
 );

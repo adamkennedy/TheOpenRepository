@@ -12,7 +12,7 @@ FBP::Object - Base class for all wxFormBuilder objects
 
 use Mouse;
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 =pod
 
@@ -32,6 +32,26 @@ of the C<property> tags in the original XML document.
 has raw => (
 	is  => 'ro',
 	isa => 'Any',
+);
+
+=pod
+
+=head2 permission
+
+The C<permission> flag, present on the vast majority of wxFormBuilder objects,
+influences the code structure used to create and store any resulting Perl
+GUI objects.
+
+This property is normally used to control attribute privacy under C++, but is
+repurposed for usage in Perl code generators such as L<FBP::Perl>.
+
+=cut
+
+has permission => (
+	is       => 'ro',
+	isa      => 'Str',
+	required => 1,
+	default  => 'none',
 );
 
 1;

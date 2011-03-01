@@ -2,7 +2,7 @@ package FBP::StaticText;
 
 use Mouse;
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 extends 'FBP::Control';
 
@@ -11,10 +11,10 @@ has label => (
 	isa => 'Str',
 );
 
-has permission => (
+has wrap => (
 	is       => 'ro',
 	isa      => 'Str',
-	required => 1,
+	default  => '-1',
 );
 
 1;

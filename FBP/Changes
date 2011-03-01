@@ -1,5 +1,14 @@
 Changes for Perl extension FBP
 
+0.19 Tue 29 Feb 2011
+	- Added FBP::SpinCtrl         class
+	- Added FBP::FontPickerCtrl   class
+	- Added FBP::ColourPickerCtrl class
+	- Added FBP::FilePickerCtrl   class
+	- Added FBP::DirPickerCtrl    class
+	- Added FBP::StaticText::wrap attribute
+	- Moved permissions attribute to FBP::Object
+
 0.18 Mon 28 Feb 2011
 	- Added FBP::SplitterWindow::permission attribute
 	- Added FBP::HtmlWindow::permission     attribute

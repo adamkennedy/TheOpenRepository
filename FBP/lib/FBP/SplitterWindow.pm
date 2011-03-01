@@ -2,7 +2,7 @@ package FBP::SplitterWindow;
 
 use Mouse;
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 extends 'FBP::Window';
 
@@ -36,12 +36,6 @@ has sashsize => (
 );
 
 has min_pane_size => (
-	is       => 'ro',
-	isa      => 'Str',
-	required => 1,
-);
-
-has permission => (
 	is       => 'ro',
 	isa      => 'Str',
 	required => 1,

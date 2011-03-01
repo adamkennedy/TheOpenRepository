@@ -7,38 +7,43 @@ use Params::Util   ();
 use XML::SAX::Base ();
 use FBP            ();
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 our @ISA     = 'XML::SAX::Base';
 
 # Object XML class to Perl class mapping
 my %OBJECT_CLASS = (
-	Project          => 'FBP::Project',
-	Dialog           => 'FBP::Dialog',
+	Project            => 'FBP::Project',
+	Dialog             => 'FBP::Dialog',
 
 	# Direct Mappings
-	wxBoxSizer       => 'FBP::BoxSizer',
-	wxButton         => 'FBP::Button',
-	wxCheckBox       => 'FBP::CheckBox',
-	wxChoice         => 'FBP::Choice',
-	wxComboBox       => 'FBP::ComboBox',
-	wxFlexGridSizer  => 'FBP::FlexGridSizer',
-	wxGridSizer      => 'FBP::GridSizer',
-	wxHtmlWindow     => 'FBP::HtmlWindow',
-	wxListbook       => 'FBP::Listbook',
-	wxListBox        => 'FBP::ListBox',
-	wxListCtrl       => 'FBP::ListCtrl',
-	wxPanel          => 'FBP::Panel',
-	wxSplitterWindow => 'FBP::SplitterWindow',
-	wxStaticBoxSizer => 'FBP::StaticBoxSizer',
-	wxStaticText     => 'FBP::StaticText',
-	wxStaticLine     => 'FBP::StaticLine',
-	wxTextCtrl       => 'FBP::TextCtrl',
+	wxBoxSizer         => 'FBP::BoxSizer',
+	wxButton           => 'FBP::Button',
+	wxCheckBox         => 'FBP::CheckBox',
+	wxChoice           => 'FBP::Choice',
+	wxComboBox         => 'FBP::ComboBox',
+	wxColourPickerCtrl => 'FBP::ColourPickerCtrl',
+	wxDirPickerCtrl    => 'FBP::DirPickerCtrl',
+	wxFilePickerCtrl   => 'FBP::FilePickerCtrl',
+	wxFlexGridSizer    => 'FBP::FlexGridSizer',
+	wxFontPickerCtrl   => 'FBP::FontPickerCtrl',
+	wxGridSizer        => 'FBP::GridSizer',
+	wxHtmlWindow       => 'FBP::HtmlWindow',
+	wxListbook         => 'FBP::Listbook',
+	wxListBox          => 'FBP::ListBox',
+	wxListCtrl         => 'FBP::ListCtrl',
+	wxPanel            => 'FBP::Panel',
+	wxSpinCtrl         => 'FBP::SpinCtrl',
+	wxSplitterWindow   => 'FBP::SplitterWindow',
+	wxStaticBoxSizer   => 'FBP::StaticBoxSizer',
+	wxStaticText       => 'FBP::StaticText',
+	wxStaticLine       => 'FBP::StaticLine',
+	wxTextCtrl         => 'FBP::TextCtrl',
 
 	# Special Mappings
-	listbookpage     => 'FBP::ListbookPage',
-	sizeritem        => 'FBP::SizerItem',
-	spacer           => 'FBP::Spacer',
-	splitteritem     => 'FBP::SplitterItem',
+	listbookpage       => 'FBP::ListbookPage',
+	sizeritem          => 'FBP::SizerItem',
+	spacer             => 'FBP::Spacer',
+	splitteritem       => 'FBP::SplitterItem',
 );
 
 

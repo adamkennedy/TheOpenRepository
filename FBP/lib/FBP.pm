@@ -39,36 +39,41 @@ The C<new> constructor takes no arguments and creates a new parser/model object.
 =cut
 
 use 5.008005;
-use Mouse          0.61;
-use Params::Util   1.00 ();
-use IO::File       1.14 ();
-use XML::SAX       0.96 ();
-use FBP::Parser         ();
-use FBP::Project        ();
-use FBP::Dialog         ();
-use FBP::BoxSizer       ();
-use FBP::Button         ();
-use FBP::CheckBox       ();
-use FBP::Choice         ();
-use FBP::ComboBox       ();
-use FBP::FlexGridSizer  ();
-use FBP::GridSizer      ();
-use FBP::HtmlWindow     ();
-use FBP::Listbook       ();
-use FBP::ListbookPage   ();
-use FBP::ListBox        ();
-use FBP::ListCtrl       ();
-use FBP::Panel          ();
-use FBP::SizerItem      ();
-use FBP::Spacer         ();
-use FBP::SplitterItem   ();
-use FBP::SplitterWindow ();
-use FBP::StaticBoxSizer ();
-use FBP::StaticText     ();
-use FBP::StaticLine     ();
-use FBP::TextCtrl       ();
+use Mouse            0.61;
+use Params::Util     1.00 ();
+use IO::File         1.14 ();
+use XML::SAX         0.96 ();
+use FBP::Parser           ();
+use FBP::Project          ();
+use FBP::Dialog           ();
+use FBP::BoxSizer         ();
+use FBP::Button           ();
+use FBP::CheckBox         ();
+use FBP::Choice           ();
+use FBP::ComboBox         ();
+use FBP::ColourPickerCtrl ();
+use FBP::DirPickerCtrl    ();
+use FBP::FilePickerCtrl   ();
+use FBP::FlexGridSizer    ();
+use FBP::FontPickerCtrl   ();
+use FBP::GridSizer        ();
+use FBP::HtmlWindow       ();
+use FBP::Listbook         ();
+use FBP::ListbookPage     ();
+use FBP::ListBox          ();
+use FBP::ListCtrl         ();
+use FBP::Panel            ();
+use FBP::SizerItem        ();
+use FBP::Spacer           ();
+use FBP::SpinCtrl         ();
+use FBP::SplitterItem     ();
+use FBP::SplitterWindow   ();
+use FBP::StaticBoxSizer   ();
+use FBP::StaticText       ();
+use FBP::StaticLine       ();
+use FBP::TextCtrl         ();
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 extends 'FBP::Object';
 with    'FBP::Children';
@@ -118,6 +123,8 @@ sub dialog {
 # Parsing Code
 
 =pod
+
+=head2 parse_file
 
   my $ok = $fbp->parse_file('foo/bar.fbp');
 
