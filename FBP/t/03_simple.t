@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 113;
+use Test::More tests => 121;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -89,19 +89,32 @@ is(
 	'->label ok',
 );
 
+# TextCtrl properties
+my $textctrl = $object->find_first(
+	isa => 'FBP::TextCtrl',
+);
+isa_ok( $textctrl, 'FBP::TextCtrl' );
+is( $textctrl->value, 'This is also a test', '->value ok' );
+is( $textctrl->maxlength, '50',        '->maxlength ok' );
+is( $textctrl->fg,        '',          '->fg ok'        );
+is( $textctrl->bg,        '255,128,0', '->bg ok'        );
+
 # Button properties
 my $button = $object->find_first(
 	isa => 'FBP::Button',
 );
 isa_ok( $button, 'FBP::Button' );
-is( $button->id,            'wxID_ANY',   '->id ok'            );
-is( $button->name,          'm_button1',  '->name ok'          );
-is( $button->label,         'MyButton',   '->label ok'         );
-is( $button->default,       '1',          '->default ok'       );
-is( $button->subclass,      '',           '->subclass ok'      );
-is( $button->wxclass,       'Wx::Button', '->wxclass ok'       );
-is( $button->permission,    'protected',  '->permission ok'    );
-is( $button->OnButtonClick, 'm_button1',  '->OnButtonClick ok' );
+is( $button->id,            'wxID_ANY',    '->id ok'            );
+is( $button->name,          'm_button1',   '->name ok'          );
+is( $button->label,         'MyButton',    '->label ok'         );
+is( $button->default,       '1',           '->default ok'       );
+is( $button->subclass,      '',            '->subclass ok'      );
+is( $button->wxclass,       'Wx::Button',  '->wxclass ok'       );
+is( $button->permission,    'protected',   '->permission ok'    );
+is( $button->fg,            '',            '->fg ok'            );
+is( $button->bg,            '',            '->bg ok'            );
+is( $button->tooltip, 'This is a tooltip', '->tooltip ok'       );
+is( $button->OnButtonClick, 'm_button1',   '->OnButtonClick ok' );
 
 # Combo properties
 my $combo = $object->find_first(

@@ -2,7 +2,7 @@ package FBP::Dialog;
 
 use Mouse;
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 
 extends 'FBP::Window';
 

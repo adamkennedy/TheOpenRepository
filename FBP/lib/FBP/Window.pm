@@ -11,7 +11,7 @@ FBP::Window - Base class for all graphical wxWindow objects
 use Mouse;
 use Scalar::Util ();
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 
 extends 'FBP::Object';
 with    'FBP::Children';
@@ -106,6 +106,47 @@ strict size.
 =cut
 
 has size => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+=pod
+
+=head fg
+
+The C<fg> method returns a colour string for any custom foreground colour
+that should be applied to the window.
+
+=cut
+
+has fg => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+=pod
+
+=head bg
+
+The C<bg> method returns a colour string for any custom background colour
+that should be applied to the window.
+
+=cut
+
+has bg => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+=pod
+
+=head2 tooltip
+
+The C<tooltip> method returns a tooltip string for the window, if it has one.
+
+=cut
+
+has tooltip => (
 	is  => 'ro',
 	isa => 'Str',
 );

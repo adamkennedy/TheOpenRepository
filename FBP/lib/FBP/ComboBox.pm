@@ -2,7 +2,7 @@ package FBP::ComboBox;
 
 use Mouse;
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 
 extends 'FBP::ControlWithItems';
 
