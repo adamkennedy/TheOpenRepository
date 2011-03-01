@@ -112,7 +112,7 @@ has size => (
 
 =pod
 
-=head fg
+=head2 fg
 
 The C<fg> method returns a colour string for any custom foreground colour
 that should be applied to the window.
