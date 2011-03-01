@@ -126,7 +126,7 @@ has fg => (
 
 =pod
 
-=head bg
+=head2 bg
 
 The C<bg> method returns a colour string for any custom background colour
 that should be applied to the window.
