@@ -25,7 +25,7 @@ use Mouse         0.61;
 use FBP           0.18 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.21';
+our $VERSION = '0.20';
 
 has project => (
 	is       => 'ro',
