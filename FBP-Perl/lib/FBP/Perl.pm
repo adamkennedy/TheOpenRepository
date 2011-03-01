@@ -25,7 +25,7 @@ use Mouse         0.61;
 use FBP           0.18 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.19';
+our $VERSION = '0.21';
 
 has project => (
 	is       => 'ro',
@@ -240,6 +240,14 @@ sub window_create {
 		$lines = $self->choice_create($window, $parent);
 	} elsif ( $window->isa('FBP::ComboBox') ) {
 		$lines = $self->combobox_create($window, $parent);
+	} elsif ( $window->isa('FBP::ColourPickerCtrl') ) {
+		$lines = $self->colourpickerctrl_create($window, $parent);
+	} elsif ( $window->isa('FBP::DirPickerCtrl') ) {
+		$lines = $self->dirpickerctrl_create($window, $parent);
+	} elsif ( $window->isa('FBP::FilePickerCtrl') ) {
+		$lines = $self->filepickerctrl_create($window, $parent);
+	} elsif ( $window->isa('FBP::FontPickerCtrl') ) {
+		$lines = $self->fontpickerctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::HtmlWindow') ) {
 		$lines = $self->htmlwindow_create($window, $parent);
 	} elsif ( $window->isa('FBP::Listbook') ) {
@@ -250,6 +258,8 @@ sub window_create {
 		$lines = $self->listctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::Panel') ) {
 		$lines = $self->panel_create($window, $parent);
+	} elsif ( $window->isa('FBP::SpinCtrl') ) {
+		$lines = $self->spinctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::SplitterWindow') ) {
 		$lines = $self->splitterwindow_create($window, $parent);
 	} elsif ( $window->isa('FBP::StaticLine') ) {
@@ -261,6 +271,24 @@ sub window_create {
 	} else {
 		die 'Cannot create constructor code for ' . ref($window);
 	}
+
+	# Add common modifications
+	if ( $window->fg ) {
+		my $variable = $self->object_variable($window);
+		my $colour   = $self->colour( $window->fg );
+		push @$lines,
+			"$variable->SetForegroundColour(",
+			"\t$colour",
+			");";
+	};
+	if ( $window->bg ) {
+		my $variable = $self->object_variable($window);
+		my $colour   = $self->colour( $window->bg );
+		push @$lines,
+			"$variable->SetBackgroundColour(",
+			"\t$colour",
+			");";
+	};
 
 	# Add the bindings the window
 	my $bindings = $self->window_bindings($window);
@@ -369,6 +397,108 @@ sub combobox_create {
 	);
 }
 
+sub colourpickerctrl_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->wx( $control->id );
+	my $colour   = $self->colour( $control->colour );
+	my $position = $self->object_position($control);
+	my $size     = $self->object_size($control);
+	my $style    = $self->wx( $control->styles );
+
+	return $self->nested(
+		$self->window_new($control),
+		"$parent,",
+		"$id,",
+		"$colour,",
+		"$position,",
+		"$size,",
+		( $style ? "$style," : () ),
+		");",
+	);
+}
+
+sub dirpickerctrl_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->wx( $control->id );
+	my $value    = $self->quote( $control->value );
+	my $message  = $self->quote( $control->message );
+	my $position = $self->object_position($control);
+	my $size     = $self->object_size($control);
+	my $style    = $self->wx( $control->styles );
+
+	return $self->nested(
+		$self->window_new($control),
+		"$parent,",
+		"$id,",
+		"$value,",
+		"$message,",
+		"$position,",
+		"$size,",
+		( $style ? "$style," : () ),
+		");",
+	);
+}
+
+sub filepickerctrl_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->wx( $control->id );
+	my $value    = $self->quote( $control->value );
+	my $message  = $self->quote( $control->message );
+	my $wildcard = $self->quote( $control->wildcard );
+	my $position = $self->object_position($control);
+	my $size     = $self->object_size($control);
+	my $style    = $self->wx( $control->styles );
+
+	return $self->nested(
+		$self->window_new($control),
+		"$parent,",
+		"$id,",
+		"$value,",
+		"$message,",
+		"$wildcard,",
+		"$position,",
+		"$size,",
+		( $style ? "$style," : () ),
+		");",
+	);
+}
+
+sub fontpickerctrl_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $variable = $self->object_variable($control);
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->wx( $control->id );
+	my $font     = $self->font( $control->value );
+	my $position = $self->object_position($control);
+	my $size     = $self->object_size($control);
+	my $style    = $self->wx( $control->styles );
+
+	my $lines = $self->nested(
+		$self->window_new($control),
+		"$parent,",
+		"$id,",
+		"$font,",
+		"$position,",
+		"$size,",
+		( $style ? "$style," : () ),
+		");",
+	);
+
+	my $max_point_size = $control->max_point_size;
+	if ( $max_point_size ) {
+		push @$lines, "$variable->SetMaxPointSize($max_point_size);";
+	}
+
+	return $lines;
+}
+
 sub htmlwindow_create {
 	my $self     = shift;
 	my $control  = shift;
@@ -471,15 +601,46 @@ sub panel_create {
 	);
 }
 
+sub spinctrl_create {
+	my $self     = shift;
+	my $control   = shift;
+	my $variable = $self->object_variable($control);
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->wx( $control->id );
+	my $value    = $self->quote( $control->value );
+	my $position = $self->object_position($control);
+	my $size     = $self->object_size($control);
+	my $style    = $self->wx( $control->styles );
+	my $min      = $control->min;
+	my $max      = $control->max;
+	my $initial  = $control->initial;
+
+	return $self->nested(
+		$self->window_new($control),
+		"$parent,",
+		"$id,",
+		"$value,",
+		"$position,",
+		"$size,",
+		"$style,",
+		"$min,",
+		"$max,",
+		"$initial,",
+		");",
+	);
+}
+
 sub splitterwindow_create {
 	my $self     = shift;
 	my $window   = shift;
+	my $variable = $self->object_variable($window);
 	my $parent   = $self->object_parent(@_);
 	my $id       = $self->wx( $window->id );
 	my $position = $self->object_position($window);
 	my $size     = $self->object_size($window);
 	my $style    = $self->wx( $window->styles );
 
+	# Object constructor
 	my $lines = $self->nested(
 		$self->window_new($window),
 		"$parent,",
@@ -489,10 +650,19 @@ sub splitterwindow_create {
 		( $style ? "$style," : () ),
 		");",
 	);
-	if ( $window->min_pane_size ) {
-		my $variable = $self->object_variable($window);
-		my $minimum  = $window->min_pane_size;
-		push @$lines, "$variable->SetMinimumPaneSize($minimum);";
+
+	# Optional settings
+	my $sashsize      = $window->sashsize;
+	my $sashgravity   = $window->sashgravity;
+	my $min_pane_size = $window->min_pane_size;
+	if ( $sashgravity > 0 ) {
+		push @$lines, "$variable->SetSashGravity($sashgravity);";
+	}
+	if ( $sashsize >= 0 ) {
+		push @$lines, "$variable->SetSashSize($sashsize);";
+	}
+	if ( $min_pane_size ) {
+		push @$lines, "$variable->SetMinimumPaneSize($min_pane_size);";
 	}
 
 	return $lines;
@@ -809,6 +979,9 @@ sub listbook_pack {
 	my $book     = shift;
 	my $variable = $self->object_variable($book);
 
+	# Generate fragments for our child panels
+	my @children = $self->children_pack($book);
+
 	# Add each of our child pages
 	my @lines = ();
 	foreach my $item ( @{$book->children} ) {
@@ -827,7 +1000,7 @@ sub listbook_pack {
 		}
 	}
 
-	return \@lines;
+	return ( @children, \@lines );
 }
 
 sub panel_pack {
@@ -1257,6 +1430,41 @@ sub quote {
 	# Trim off the trailing space it will add.
 	$code =~ s/\s+\z//;
 	return $code;
+}
+
+sub colour {
+	my $self   = shift;
+	my $string = shift;
+
+	# Default colour
+	unless ( length $string ) {
+		return 'undef';
+	}
+
+	# Explicit colour
+	if ( $string =~ /^\d/ ) {
+		$string =~ s/,(\d)/, $1/g; # Space the numbers a bit
+		return "Wx::Colour->new($string)";
+	}
+
+	# System colour
+	if ( $string =~ /^wx/ ) {
+		return "Wx::SystemSettings::GetColour( Wx::$string )";
+	}
+
+	die "Invalid or unsupported colour '$string'";
+}
+
+sub font {
+	my $self   = shift;
+	my $string = shift;
+
+	# Default font
+	unless ( length $string ) {
+		return 'Wx::wxNullFont';
+	}
+
+	die "Invalid or unsupported font '$string'";
 }
 
 sub indent {

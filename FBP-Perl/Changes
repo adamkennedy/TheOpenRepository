@@ -1,5 +1,16 @@
 Changes for Perl extension FBP-Perl
 
+0.20 Tue 29 Feb 2011
+	- Added support for Wx::SpinCtrl
+	- Added support for Wx::ColourPickerCtrl
+	- Added support for Wx::FontPickerCtrl
+	- Added support for Wx::FilePickerCtrl
+	- Added support for Wx::DirPickerCtrl
+	- Added support for SetForegroundColour to Wx::Window
+	- Added support for SetBackgroundColour to Wx::Window
+	- Added support for SetSashSize to Wx::SplitterWindow
+	- Added support for SetSashGravity to Wx::SplitterWindow
+
 0.19 Mon 28 Feb 2011
 	- wxChoice objects now ->SetSelection properly
 	- Added support for Wx::SplitterEvent events
