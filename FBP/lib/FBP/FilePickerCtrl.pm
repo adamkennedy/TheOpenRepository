@@ -2,7 +2,7 @@ package FBP::FilePickerCtrl;
 
 use Mouse;
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 extends 'FBP::Control';
 
@@ -17,6 +17,11 @@ has message => (
 );
 
 has wildcard => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+has style => (
 	is  => 'ro',
 	isa => 'Str',
 );

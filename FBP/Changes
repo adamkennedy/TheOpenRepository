@@ -1,5 +1,8 @@
 Changes for Perl extension FBP
 
+0.21 Tue 1 Mar 2011
+	- Added a number of missing style attributes
+
 0.20 Tue 1 Mar 2011
 	- Added FBP::Window::fg attribute
 	- Added FBP::Window::bg attribute

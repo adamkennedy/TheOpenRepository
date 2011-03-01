@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 121;
+use Test::More tests => 126;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -191,6 +191,7 @@ my @colourpickerctrl = $object->find(
 );
 isa_ok( $colourpickerctrl[0], 'FBP::ColourPickerCtrl' );
 isa_ok( $colourpickerctrl[1], 'FBP::ColourPickerCtrl' );
+is( $colourpickerctrl[0]->style, 'wxCLRP_DEFAULT_STYLE', '->style ok' );
 is( $colourpickerctrl[0]->colour, '255,0,0', '->colour ok' );
 is( $colourpickerctrl[1]->colour, 'wxSYS_COLOUR_INFOBK', '->colour ok' );
 
@@ -201,6 +202,7 @@ my $fontpickerctrl = $object->find_first(
 isa_ok( $fontpickerctrl, 'FBP::FontPickerCtrl' );
 is( $fontpickerctrl->value, 'Times New Roman,90,92,10,74,0', '->value ok' );
 is( $fontpickerctrl->max_point_size, 100, '->max_point_size ok' );
+is( $fontpickerctrl->style, 'wxFNTP_DEFAULT_STYLE', '->stlye ok' );
 
 # FilePickerCtrl properties
 my $filepickerctrl = $object->find_first(
@@ -210,6 +212,7 @@ isa_ok( $filepickerctrl, 'FBP::FilePickerCtrl' );
 is( $filepickerctrl->value, '', '->value ok' );
 is( $filepickerctrl->message, 'Select a file', '->message ok' );
 is( $filepickerctrl->wildcard, '*.*', '->wildcard ok' );
+is( $filepickerctrl->style, 'wxFLP_DEFAULT_STYLE', '->stlye ok' );
 
 # DirPickerCtrl properties
 my $dirpickerctrl = $object->find_first(
@@ -218,6 +221,7 @@ my $dirpickerctrl = $object->find_first(
 isa_ok( $dirpickerctrl, 'FBP::DirPickerCtrl' );
 is( $dirpickerctrl->value, '', '->value ok' );
 is( $dirpickerctrl->message, 'Select a folder', '->message ok' );
+is( $dirpickerctrl->style, 'wxDIRP_DEFAULT_STYLE', '->style ok' );
 
 # SpinCtrl properties
 my $spinctrl = $object->find_first(
@@ -228,3 +232,4 @@ is( $spinctrl->value,   '',   '->value ok'   );
 is( $spinctrl->min,     '0',  '->min ok'     );
 is( $spinctrl->max,     '10', '->max ok'     );
 is( $spinctrl->initial, '5',  '->initial ok' );
+is( $spinctrl->style, 'wxSP_ARROW_KEYS', '->style ok' );

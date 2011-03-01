@@ -2,7 +2,7 @@ package FBP::FontPickerCtrl;
 
 use Mouse;
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 extends 'FBP::Control';
 
@@ -12,6 +12,11 @@ has value => (
 );
 
 has max_point_size => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+has style => (
 	is  => 'ro',
 	isa => 'Str',
 );

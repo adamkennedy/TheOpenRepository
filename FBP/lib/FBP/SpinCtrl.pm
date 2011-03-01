@@ -2,7 +2,7 @@ package FBP::SpinCtrl;
 
 use Mouse;
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 extends 'FBP::Control';
 
@@ -22,6 +22,11 @@ has max => (
 );
 
 has initial => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+has style => (
 	is  => 'ro',
 	isa => 'Str',
 );
