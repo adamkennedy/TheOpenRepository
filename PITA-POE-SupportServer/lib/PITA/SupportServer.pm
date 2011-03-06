@@ -17,12 +17,7 @@ our $VERSION = '0.50';
 # Constructor and Accessors
 
 sub new {
-	my $self = shift->SUPER::new(
-		StartupTimeout  => 30,
-		ActivityTimeout => 3600,
-		ShutdownTimeout => 60,
-		@_,
-	);
+	my $self = shift->SUPER::new(@_);
 
 	# Check params
 	unless ( Params::Util::_ARRAY($self->Execute) ) {
@@ -36,22 +31,23 @@ sub new {
 		StartupEvent  => $self->lookback('http_startup_event'),
 		StartupError  => $self->lookback('http_startup_error'),
 		ShutdownEvent => $self->lookback('http_shutdown_event'),
+		PingEvent     => $self->lookback('http_ping'),
+		MirrorEvent   => $self->lookback('http_mirror'),
+		UploadEvent   => $self->lookback('http_upload'),
 	) or die "Failed to create HTTP server";
 
 	return $self;
 }
 
 use POE::Declare 0.50 {
-	Hostname        => 'Param',
-	Port            => 'Param',
-	Program         => 'Param',
-	StartupTimeout  => 'Param',
-	ActivityTimeout => 'Param',
-	ShutdownTimeout => 'Param',
-	StartupEvent    => 'Message',
-	ShutdownEvent   => 'Message',
-	http            => 'Internal',
-	execute         => 'Internal',
+	Hostname      => 'Param',
+	Port          => 'Param',
+	Program       => 'Param',
+	Files         => 'Param',
+	StartupEvent  => 'Message',
+	ShutdownEvent => 'Message',
+	http          => 'Internal',
+	execute       => 'Internal',
 }
 
 
@@ -93,7 +89,7 @@ sub stop {
 
 sub startup : Event {
 	# Kick off the blanket startup timeout
-	$_[SELF]->startup_timeout_start( $_[SELF]->StartupTimeout );
+	$_[SELF]->startup_timeout_start;
 	$_[SELF]->post('http_startup');
 }
 
@@ -109,6 +105,26 @@ sub http_startup_error : Event {
 	die "Failed to start the web server";
 }
 
+sub http_ping : Event {
+	$_[SELF]->startup_timeout_stop;
+	$_[SELF]->activity_timeout_start;
+}
+
+sub http_mirror : Event {
+	$_[SELF]->activity_timeout_start;	
+}
+
+sub http_upload : Event {
+	$_[SELF]->activity_timeout_start;
+	$_[SELF]->{Files}->{$_[ARG1]} = $_[ARG2];
+
+	# Do we have everything?
+	unless ( grep { not defined $_ } values %{$_[SELF]} ) {
+		$_[SELF]->activity_timeout_stop;
+		$_[SELF]->post('execute_shutdown');
+	}
+}
+
 sub execute_startup : Event {
 	$_[SELF]->{execute} = POE::Wheel::Run->new(
 		Program    => $_[SELF]->Program,
@@ -116,15 +132,23 @@ sub execute_startup : Event {
 	) or die "Failed to create POE::Wheel::Run";
 }
 
-sub startup_timeout : Timeout {
+sub execute_shutdown : Event {
+	$_[SELF]->shutdown_timeout_start;
+}
+
+sub execute_close : Event {
+	
+}
+
+sub startup_timeout : Timeout(30) {
 
 }
 
-sub activity_timeout : Timeout {
+sub activity_timeout : Timeout(3600) {
 
 }
 
-sub shutdown_timeout : Timeout {
+sub shutdown_timeout : Timeout(60) {
 
 }
 
