@@ -1,16 +1,13 @@
 #!/usr/bin/perl
 
-# Tests for the HTTP server component of the support server only
-
 use strict;
 BEGIN {
 	$|  = 1;
 	$^W = 1;
 }
 
-use Test::More tests => 7;
-use File::Spec::Functions ':ALL';
-use PITA::SupportServer::HTTP ();
+use Test::More tests => 3;
+use PITA::SupportServer ();
 use POE;
 
 # Test event firing order
@@ -21,18 +18,17 @@ sub order {
 	is( $order++, $position, "$message ($position)" );
 }
 
-my $minicpan = rel2abs( catdir( 't', 'minicpan' ), );
-ok( -d $minicpan, 'Found minicpan directory' );
-
-# Create the web server
-my $server = PITA::SupportServer::HTTP->new(
+my $server = PITA::SupportServer->new(
 	Hostname => '127.0.0.1',
 	Port     => 12345,
 	Mirrors  => {
-		'/cpan/' => $minicpan,
+		'/cpan.' => '.',
 	},
+	Program  => [
+		sub { sleep 60; },
+	],
 );
-isa_ok( $server, 'PITA::SupportServer::HTTP' );
+isa_ok( $server, 'PITA::SupportServer' );
 
 # Set up the test session
 POE::Session->create(
@@ -59,5 +55,11 @@ POE::Session->create(
 	},
 );
 
-# Run the web server
-$server->run;
+$server->prepare or die "->prepare failed";
+ok( 1, 'Server ->prepare ok' );
+
+$server->run or die "->run failed";
+ok( 1, 'Server ->run ok' );
+
+$server->finish or die "->finish failed";
+ok( 1, 'Server ->finish ok' );

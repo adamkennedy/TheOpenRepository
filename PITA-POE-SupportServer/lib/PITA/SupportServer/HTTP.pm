@@ -10,6 +10,13 @@ use POE::Declare::HTTP::Server ();
 our $VERSION = '0.50';
 our @ISA     = 'POE::Declare::HTTP::Server';
 
+use POE::Declare {
+	Mirrors     => 'Param',
+	PingEvent   => 'Message',
+	MirrorEvent => 'Message',
+	UploadEvent => 'Message',
+};
+
 
 
 
@@ -40,13 +47,6 @@ sub new {
 	return $self;
 }
 
-use POE::Declare 0.50 {
-	Mirrors     => 'Param',
-	PingEvent   => 'Message',
-	MirrorEvent => 'Message',
-	UploadEvent => 'Message',
-};
-
 
 
 
@@ -54,6 +54,7 @@ use POE::Declare 0.50 {
 ######################################################################
 # Main Methods
 
+# Sort of half-assed Process compatibility for testing purposes
 sub run {
 	$_[0]->start;
 	POE::Kernel->run;
