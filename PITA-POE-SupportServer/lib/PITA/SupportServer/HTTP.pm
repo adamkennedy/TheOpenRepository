@@ -15,7 +15,7 @@ our @ISA     = 'POE::Declare::HTTP::Server';
 
 
 ######################################################################
-# Constructor or Accessor
+# Constructor and Accessors
 
 sub new {
 	my $self = shift->SUPER::new(
@@ -26,9 +26,6 @@ sub new {
 			$_[0]->handler( $_[1]->request, $_[1] );
 		},
 	);
-
-	# Set up the file storage
-	$self->{Files} = { };
 
 	# Check params
 	unless ( Params::Util::_HASH0($self->Mirrors) ) {
@@ -43,10 +40,8 @@ sub new {
 	return $self;
 }
 
-# Register feedback messages
-use POE::Declare {
+use POE::Declare 0.50 {
 	Mirrors     => 'Param',
-	Files       => 'Attribute',
 	PingEvent   => 'Message',
 	MirrorEvent => 'Message',
 	UploadEvent => 'Message',
