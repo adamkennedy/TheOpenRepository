@@ -45,11 +45,11 @@ sub new {
 
 # Register feedback messages
 use POE::Declare {
-	Mirrors    => 'Param',
-	Files      => 'Attribute',
-	PingEvent  => 'Message',
-	FileEvent  => 'Message',
-	GuestEvent => 'Message',
+	Mirrors     => 'Param',
+	Files       => 'Attribute',
+	PingEvent   => 'Message',
+	MirrorEvent => 'Message',
+	UploadEvent => 'Message',
 };
 
 
@@ -73,9 +73,9 @@ sub handler {
 	if ( $request->method eq 'GET' ) {
 		# Handle a ping
 		if ( $request->uri eq '/' ) {
-			$self->PingEvent;
 			$response->code( 200 );
 			$response->content('PONG');
+			$self->PingEvent;
 			return;
 		}
 
@@ -98,6 +98,8 @@ sub handler {
 				$response->header( 'Content-Type'   => 'application/x-gzip' );
 				$response->header( 'Content-Length' => length $blob         );
 				$response->content( $blob );
+
+				$self->MirrorEvent( $route, $path );
 				return;
 			} else {
 				$response->code(404);
@@ -112,12 +114,14 @@ sub handler {
 		# Save the uploaded content
 		my $path = $request->uri->as_string;
 		my $blob = \( $request->content );
-		$self->{Files}->{$path} = $blob;
 
 		# Send an ok to the client
 		$response->code(200);
 		$response->header( 'Content-Type' => 'text/plain' );
 		$response->content( "$path OK" );
+
+		# Send the upload message
+		$self->UploadEvent( $path, $blob );
 		return;
 	}
 
