@@ -3,7 +3,6 @@ package PITA::SupportServer;
 use 5.008;
 use strict;
 use warnings;
-use Process                    0.28 ();
 use Params::Util               1.00 ();
 use POE::Wheel::Run           1.299 ();
 use POE::Declare::HTTP::Server 0.03 ();
@@ -69,24 +68,6 @@ sub new {
 
 
 
-######################################################################
-# Process Compatibility
-
-use asa 1.03 'Process';
-
-sub prepare {
-	return 1;
-}
-
-sub run {
-	$_[0]->start;
-	POE::Kernel->run;
-	return 1;
-}
-
-sub finish {
-	return 1;
-}
 
 
 
@@ -94,6 +75,13 @@ sub finish {
 
 ######################################################################
 # Main Methods
+
+# Sort of half-assed Process compatibility for testing purposes
+sub run {
+	$_[0]->start;
+	POE::Kernel->run;
+	return 1;
+}
 
 sub start {
 	my $self = shift;
@@ -127,11 +115,11 @@ sub startup : Event {
 }
 
 sub http_startup : Event {
-	$_[SELF]->{http}->startup;
+	$_[SELF]->{http}->start;
 }
 
 sub http_startup_event : Event {
-	$_[SELF]->execute_startup;
+	$_[SELF]->post('execute_startup');
 }
 
 sub http_startup_error : Event {
@@ -166,9 +154,19 @@ sub http_upload : Event {
 
 sub execute_startup : Event {
 	$_[SELF]->{execute} = POE::Wheel::Run->new(
-		Program    => $_[SELF]->Program,
-		CloseEvent => $_[SELF]->lookback('execute_close'),
+		Program     => $_[SELF]->Program,
+		StdoutEvent => $_[SELF]->lookback('execute_stdout'),
+		StderrEvent => $_[SELF]->lookback('execute_stderr'),
+		CloseEvent  => $_[SELF]->lookback('execute_close'),
 	) or die "Failed to create POE::Wheel::Run";
+}
+
+sub execute_stdout : Event {
+	# Do nothing for now
+}
+
+sub execute_stderr : Event {
+	# Do nothing for now
 }
 
 sub execute_close : Event {
@@ -190,6 +188,29 @@ sub shutdown_timeout : Timeout(60) {
 sub shutdown : Event {
 	$_[SELF]->finish;
 	$_[SELF]->ShutdownEvent;
+}
+
+
+
+
+
+######################################################################
+# Support Methods
+
+sub finish {
+	my $self = shift;
+
+	# Clean up our children
+	if ( $self->{execute} ) {
+		$self->{execute}->kill(9);
+		$self->{execute} = undef;
+	}
+	if ( $self->{http}->spawned ) {
+		$self->{http}->call('shutdown');
+	}
+
+	# Call parent method to clean out other things
+	$self->SUPER::finish(@_);
 }
 
 compile;

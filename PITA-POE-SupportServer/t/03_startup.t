@@ -6,7 +6,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 3;
+use Test::More tests => 8;
+use Test::POE::Stopping;
 use PITA::SupportServer ();
 use POE;
 
@@ -25,7 +26,9 @@ my $server = PITA::SupportServer->new(
 		'/cpan.' => '.',
 	},
 	Program  => [
-		sub { sleep 60; },
+		$^X,
+		'-e',
+		'sleep 10;',
 	],
 );
 isa_ok( $server, 'PITA::SupportServer' );
@@ -40,7 +43,8 @@ POE::Session->create(
 			ok( $server->start, '->start ok' );
 
 			# Start the timeout
-			$_[KERNEL]->delay_set( timeout => 2 );
+			$_[KERNEL]->delay_set( timeout  => 2 );
+			$_[KERNEL]->delay_set( finished => 5 );
 		},
 
 		timeout => sub {
@@ -48,18 +52,13 @@ POE::Session->create(
 			ok( $server->stop, '->stop ok' );
 		},
 
-		_stop => sub {
-			order( 2, 'Fired main::_stop' );
+		finished => sub {
+			order( 2, 'Fired main::finished' );
+			poe_stopping();
 		},
 
 	},
 );
 
-$server->prepare or die "->prepare failed";
-ok( 1, 'Server ->prepare ok' );
-
 $server->run or die "->run failed";
 ok( 1, 'Server ->run ok' );
-
-$server->finish or die "->finish failed";
-ok( 1, 'Server ->finish ok' );
