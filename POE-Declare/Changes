@@ -4,6 +4,7 @@ Changes for Perl extension POE-Declare
 	- Adding check for event declaration on finalised class
 	- Adding check for use of an uncompiled class
 	- Moved dependency version checks into module code
+	- Removing apparently redundant IO::File dependency
 
 0.51 Wed 23 Feb 2011
 	- Renaming _compile to as_perl
