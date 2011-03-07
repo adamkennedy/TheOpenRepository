@@ -170,7 +170,8 @@ sub execute_stderr : Event {
 }
 
 sub execute_close : Event {
-	
+	print "Program terminated";
+	$_[SELF]->post('shutdown');
 }
 
 sub startup_timeout : Timeout(30) {
