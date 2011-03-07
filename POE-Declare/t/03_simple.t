@@ -5,11 +5,11 @@
 use strict;
 use warnings;
 BEGIN {
-	$|  = 1;
+	$| = 1;
 	# $POE::Declare::Meta::DEBUG = 1;
 }
 
-use Test::More tests => 57;
+use Test::More tests => 59;
 use Test::NoWarnings;
 use Test::Exception;
 
@@ -61,6 +61,23 @@ SCOPE: {
 SCOPE: {
 	# There should be no meta-object for the Foo class initially
 	is( POE::Declare::meta('Foo'), undef, 'meta(Foo) is undef' );
+
+	# Attempting to use a class before it is compiled should throw
+	# an exception instead of silently succeeding.
+	throws_ok(
+		sub {
+			my $meta = Foo->meta;
+		},
+		qr/has not called compile/,
+		'Premature ->meta throws an exception',
+	);
+	throws_ok(
+		sub {
+			my $foo = Foo->new;
+		},
+		qr/has not called compile/,
+		'Premature ->new throws an exception',
+	);
 
 	# Compile the class
 	SCOPE: {

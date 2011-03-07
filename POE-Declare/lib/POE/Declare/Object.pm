@@ -31,7 +31,7 @@ use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.51';
+	$VERSION = '0.52';
 }
 
 # Inside-out storage of internal values
@@ -50,6 +50,11 @@ POE::Declare::declare( Alias => 'Param' );
 # Only events are supported for now
 sub MODIFY_CODE_ATTRIBUTES {
 	my ($class, $code, $name, @params) = @_;
+
+	# Can't declare events for classes that are already compiled
+	if ( $POE::Declare::META{$class} ) {
+		Carp::croak("Can't declare event for finalized class $class");
+	}
 
 	# Register an event
 	if ( $name eq 'Event' ) {

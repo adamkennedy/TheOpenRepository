@@ -22,16 +22,16 @@ C<meta> function.
 use 5.008007;
 use strict;
 use warnings;
-use Carp             ();
-use File::Temp       ();
-use Scalar::Util     ();
-use Params::Util     ();
-use Class::ISA       ();
-use Class::Inspector ();
+use Carp                  ();
+use File::Temp            ();
+use Scalar::Util     1.19 ();
+use Params::Util     1.00 ();
+use Class::ISA       0.33 ();
+use Class::Inspector 1.22 ();
 
 use vars qw{$VERSION $DEBUG};
 BEGIN {
-	$VERSION = '0.51';
+	$VERSION = '0.52';
 	$DEBUG   = !! $DEBUG;
 }
 
@@ -45,7 +45,7 @@ use POE::Declare::Meta::Attribute ();
 use POE::Declare::Meta::Internal  ();
 use POE::Declare::Meta::Param     ();
 
-use Class::XSAccessor {
+use Class::XSAccessor 1.05 {
 	getters => {
 		name     => 'name',
 		alias    => 'alias',
@@ -257,7 +257,14 @@ sub as_perl {
 
 	# Get all the package fragments
 	my $code = join "\n", (
-		"package " . $self->name . ";",
+		"package $name;",
+		"",
+		"BEGIN {",
+		"    no strict 'refs';",
+		"    delete \${\"\${name}::\"}{'meta'};",
+		"    use strict;",
+		"}",
+		"",
 		"sub meta () { \$POE::Declare::META{'$name'} }",
 		map {
 			$attr->{$_}->as_perl

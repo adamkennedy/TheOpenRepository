@@ -240,14 +240,13 @@ implementation and comment.
 use 5.008007;
 use strict;
 use warnings;
-use Carp               ();
-use Exporter           ();
-use List::Util         ();
-use Params::Util       ();
-use Class::Inspector   ();
-use POE;
-use POE::Session       ();
-use POE::Declare::Meta ();
+use Carp                  ();
+use Exporter              ();
+use List::Util       1.19 ();
+use Params::Util     1.00 ();
+use POE::Session          ();
+use POE::Declare::Meta    ();
+use POE 1.293;
 
 # The base class requires POE::Declare to be fully compiled,
 # so load it in post-BEGIN with a require rather than at
@@ -259,7 +258,7 @@ use constant SELF => HEAP;
 
 use vars qw{$VERSION @ISA @EXPORT %ATTR %EVENT %META};
 BEGIN {
-	$VERSION = '0.51';
+	$VERSION = '0.52';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{ SELF declare compile };
 
@@ -294,8 +293,15 @@ sub import {
 		}
 	} else {
 		# Set @ISA for the package, which does most of the work
+		# We have to set this early, otherwise attribute declaration
+		# won't work.
 		@{"$callpkg\::ISA"} = qw{ POE::Declare::Object };
 	}
+
+	# Set a temporary meta function that will throw an exception
+	*{"$callpkg\::meta"} = sub {
+		Carp::croak("POE::Declare class $callpkg has not called compile()");
+	};
 
 	# Export the symbols
 	local $Exporter::ExportLevel += 1;

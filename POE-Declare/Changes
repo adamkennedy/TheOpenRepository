@@ -1,4 +1,9 @@
-Revision history for Perl extension POE-Declare
+Changes for Perl extension POE-Declare
+
+0.52 Mon 7 Mar 2011
+	- Adding check for event declaration on finalised class
+	- Adding check for use of an uncompiled class
+	- Moved dependency version checks into module code
 
 0.51 Wed 23 Feb 2011
 	- Renaming _compile to as_perl
