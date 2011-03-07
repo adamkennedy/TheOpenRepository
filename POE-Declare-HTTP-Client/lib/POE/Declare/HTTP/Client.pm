@@ -46,15 +46,26 @@ choice for creating specialised web clients embedded in larger applications.
 use 5.008;
 use strict;
 use warnings;
-use Params::Util         1.00 ();
-use HTTP::Request       5.827 ();
-use HTTP::Response      5.830 ();
-use POE                 1.299 ();
-use POE::Filter::HTTP::Parser ();
-use POE::Wheel::ReadWrite     ();
-use POE::Wheel::SocketFactory ();
+use Scalar::Util              1.19 ();
+use Params::Util              1.00 ();
+use HTTP::Request            5.827 ();
+use HTTP::Request::Common          ();
+use HTTP::Response           5.830 ();
+use POE                      1.299 ();
+use POE::Filter::HTTP::Parser 1.04 ();
+use POE::Wheel::ReadWrite          ();
+use POE::Wheel::SocketFactory      ();
 
 our $VERSION = '0.01';
+
+use POE::Declare 0.50 {
+	Timeout         => 'Param',
+	ResponseHandler => 'Param',
+
+	request         => 'Internal',
+	factory         => 'Internal',
+	socket          => 'Internal',
+};
 
 
 
@@ -79,12 +90,13 @@ and disabled repeatedly as needed.
 sub new {
 	my $self = shift->SUPER::new(@_);
 
+	# Processing state
+	$self->{request} = { };
+	$self->{factory} = { };
+	$self->{socket}  = { };
+
 	return $self;
 }
-
-use POE::Declare 0.50 {
-	ResponseHandler => 'Param',
-};
 
 
 
@@ -109,7 +121,6 @@ sub start {
 	my $self = shift;
 	unless ( $self->spawned ) {
 		$self->spawn;
-		$self->post('startup');
 	}
 	return 1;
 }
@@ -131,6 +142,68 @@ sub stop {
 	return 1;
 }
 
+=pod
+
+=head2 get
+
+    $client->get('http://www.cpan.org/');
+
+The C<get> method fetches a named URL via an HTTP GET.
+
+=cut
+
+sub GET {
+	shift->request(
+		HTTP::Request::Common::GET(@_)
+	);
+}
+
+=pod
+
+=head2 post
+
+    $client->post('http://www.cpan.org/');
+
+The C<get> method fetches a named URL via an HTTP POST.
+
+=cut
+
+sub POST {
+	shift->request(
+		HTTP::Request::Common::POST(@_)
+	);
+}
+
+=pod
+
+=head2 request
+
+    $client->request( $request_object );
+
+=cut
+
+sub request {
+	my $self    = shift;
+	my $request = shift;
+	unless ( Params::Util::_INSTANCE($request, 'HTTP::Request') ) {
+		die "Missing or invalid HTTP::Request object";
+	}
+
+	# Are we already processing this request
+	my $addr = Scalar::Util::refaddr($request);
+	if ( $self->{request}->{$addr} ) {
+		die "The request is already being processed";
+	} else {
+		$self->{request}->{$addr} = $request;
+	}
+
+	# Hand off to the event that starts the request
+	$self->post( connect => $addr );
+}
+
+
+
+
 
 
 
@@ -138,28 +211,14 @@ sub stop {
 ######################################################################
 # Event Methods
 
-sub startup : Event {
+sub connect {
+	my $addr    = $_[ARG0];
+	my $request = $_[SELF]->{request}->{$addr} or return;
+	my $host    = $request->uri->host          or return;
+	my $port    = $request->uri->port || 80;
 
-	# Create the socket factory
-	$_[SELF]->{server} = POE::Wheel::SocketFactory->new(
-		Reuse        => 1,
-		BindPort     => $_[SELF]->Port,
-		SuccessEvent => 'connect',
-		FailureEvent => 'error',
-	);
-
-	# If the server survives long enough for this event to fire,
-	# it has been started successfully.
-	$_[SELF]->post('started');
-}
-
-# Signal the successful startup
-sub started : Event {
-	# If the FailureEvent fired before us, so abort this event
-	$_[SELF]->{server} or return;
-
-	# Failure didn't fire, so we must have bound successfully
-	$_[SELF]->StartupEvent;
+	# Create the socket factory for the request
+	
 }
 
 # Clean up and signal failure
