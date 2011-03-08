@@ -6,7 +6,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 15;
+use Test::More tests => 16;
+use Test::NoWarnings;
 use Test::POE::Stopping;
 use POE::Declare::HTTP::Client;
 use POE;
