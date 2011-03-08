@@ -5,7 +5,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.03';
+	$VERSION = '1.04';
 }
 
 1;
@@ -52,7 +52,7 @@ To get around that for this module, it will do a few dirty tricks.
 
 If L<Scalar::Util> is not available at all, it will issue a normal
 dependency on the module. However, if L<Scalar::Util> is relatively
-new ( it is >= 1.19 ) and the module does B<not> have weaken, the
+new ( it is E<gt>= 1.19 ) and the module does B<not> have weaken, the
 install will bail out altogether with a long error encouraging the
 user to seek support from their vendor (this problem happens most
 often in vendor-packaged Perl versions).

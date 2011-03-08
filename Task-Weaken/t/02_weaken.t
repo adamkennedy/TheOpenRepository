@@ -14,8 +14,8 @@ use Scalar::Util ();
 
 # Ensure we can import weaken and isweak
 BEGIN {
-	Scalar::Util->import( 'weaken' );
-	Scalar::Util->import( 'isweak' );
+	Scalar::Util->import('weaken');
+	Scalar::Util->import('isweak');
 }
 ok( defined(&weaken), '->import(weaken) worked' );
 ok( defined(&isweak), '->import(isweak) worked' );

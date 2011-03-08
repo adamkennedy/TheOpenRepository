@@ -39,8 +39,7 @@
 #
 # Adam K
 
-use strict;
-use inc::Module::Install 0.91;
+use inc::Module::Install 1.00;
 
 all_from      'lib/Task/Weaken.pm';
 test_requires 'Test::More' => '0.42';
@@ -79,9 +78,9 @@ sub check_scalar_util {
 		return;
 	}
 
-	my $latest_scalar_util=1.21;
-	$latest_scalar_util=1.19 if $]<5.006;
-	#will not work of course - CPAN automatically installs only latest version
+	my $latest_scalar_util = 1.21;
+	$latest_scalar_util = 1.19 if $] < 5.006;
+	# will not work of course - CPAN automatically installs only latest version
         
 	# Broken Scalar::Util
 	# That is, it does NOT contain the weaken function
