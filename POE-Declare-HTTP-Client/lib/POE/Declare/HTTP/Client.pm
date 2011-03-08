@@ -48,23 +48,24 @@ use strict;
 use warnings;
 use Scalar::Util              1.19 ();
 use Params::Util              1.00 ();
+use HTTP::Status                   ();
 use HTTP::Request            5.827 ();
 use HTTP::Request::Common          ();
 use HTTP::Response           5.830 ();
-use POE                      1.299 ();
-use POE::Filter::HTTP::Parser 1.04 ();
+use POE                      1.293 ();
+use POE::Filter::HTTP::Parser 1.06 ();
 use POE::Wheel::ReadWrite          ();
 use POE::Wheel::SocketFactory      ();
 
 our $VERSION = '0.01';
 
-use POE::Declare 0.50 {
-	Timeout         => 'Param',
-	ResponseHandler => 'Param',
-
-	request         => 'Internal',
-	factory         => 'Internal',
-	socket          => 'Internal',
+use POE::Declare 0.52 {
+	Timeout       => 'Param',
+	ResponseEvent => 'Message',
+	ShutdownEvent => 'Message',
+	request       => 'Internal',
+	factory       => 'Internal',
+	socket        => 'Internal',
 };
 
 
@@ -79,24 +80,14 @@ use POE::Declare 0.50 {
 =head2 new
 
     my $server = POE::Declare::HTTP::Client->new(
-        ResponseHandler => \&on_response,
+        ResponseEvent => \&on_response,
+        ShutdownEvent => \&on_shutdown,
     );
 
 The C<new> constructor sets up a reusable HTTP client that can be enabled
 and disabled repeatedly as needed.
 
 =cut
-
-sub new {
-	my $self = shift->SUPER::new(@_);
-
-	# Processing state
-	$self->{request} = { };
-	$self->{factory} = { };
-	$self->{socket}  = { };
-
-	return $self;
-}
 
 
 
@@ -189,19 +180,16 @@ sub request {
 		die "Missing or invalid HTTP::Request object";
 	}
 
-	# Are we already processing this request
-	my $addr = Scalar::Util::refaddr($request);
-	if ( $self->{request}->{$addr} ) {
-		die "The request is already being processed";
+	# Save the request object
+	if ( $self->{request} ) {
+		die "HTTP Client is already processing a request";
 	} else {
-		$self->{request}->{$addr} = $request;
+		$self->{request} = $request;
 	}
 
 	# Hand off to the event that starts the request
-	$self->post( connect => $addr );
+	$self->post('connect');
 }
-
-
 
 
 
@@ -211,64 +199,89 @@ sub request {
 ######################################################################
 # Event Methods
 
-sub connect {
+sub connect : Event {
 	my $addr    = $_[ARG0];
-	my $request = $_[SELF]->{request}->{$addr} or return;
-	my $host    = $request->uri->host          or return;
+	my $request = $_[SELF]->{request} or return;
+	my $host    = $request->uri->host or return;
 	my $port    = $request->uri->port || 80;
 
+	# Start the request timeout
+	$_[SELF]->timeout_start;
+
 	# Create the socket factory for the request
-	
-}
-
-# Clean up and signal failure
-sub error : Event {
-	$_[SELF]->finish;
-	$_[SELF]->StartupError;
-}
-
-sub connect : Event {
-	# This initial implementation only deals with one request at a time.
-	# It has the side effect of allowing the request handler to block for
-	# a fairly long period of time without too much of an issue.
-	$_[SELF]->{server}->pause_accept;
-
-	# Create the socket
-	$_[SELF]->{client} = POE::Wheel::ReadWrite->new(
-		Filter       => POE::Filter::HTTPD->new,
-		Handle       => $_[ARG0],
-		InputEvent   => 'request',
-		FlushedEvent => 'disconnect',
-		ErrorEvent   => 'disconnect',
+	$_[SELF]->{factory} = POE::Wheel::SocketFactory->new(
+		RemoteAddress => $host,
+		RemotePort    => $port,
+		SuccessEvent  => 'connect_success',
+		FailureEvent  => 'connect_failure',
 	);
 }
 
-sub request : Event {
+sub timeout : Timeout(30) {
+	return unless $_[SELF]->{request};
 
-	# Create the default response.
-	# We default to a server error so that the appropriate return is used
-	# if the Handler fails or somehow does nothing to the response.
-	my $response = HTTP::Response->new( 500 );
-	$response->request( $_[ARG0] );
+	if ( $_[SELF]->{factory} ) {
+		# Timeout during connect
+		$_[SELF]->{factory} = undef;
+		$_[SELF]->call( response => 500 );
 
-	# Pass the response (and the request within it) to the handler.
-	# Prevent an exception in the handler crashing the entire server.
-	eval {
-		$_[SELF]->Handler->( $_[SELF], $response );
-	};
+	} elsif ( $_[SELF]->{socket} ) {
+		# Timeout during send, processing or response
+		$_[SELF]->{socket} = undef;
+		$_[SELF]->call( response => 500 );
 
-	# Send the response back to the client.
-	# The just wait for the socket to flush
-	$_[SELF]->{client}->put( $response );
+	} elsif ( $_[SELF]->{request} ) {
+		# Unexpected timeout during active request
+		$_[SELF]->call( response => 500 );
+
+	}
 }
 
-sub disconnect : Event {
-	# Handle stray events arriving after intentional shutdown
-	$_[SELF]->{server} or return;
+sub connect_failure : Event {
+	$_[SELF]->timeout_stop;
+	$_[SELF]->{factory} = undef;
+	$_[SELF]->post( response => 500 );
+}
 
-	# Clean up the current request, and open up for the next one
-	$_[SELF]->{client} = undef;
-	$_[SELF]->{server}->resume_accept;
+sub connect_success : Event {
+	$_[SELF]->{factory} = undef;
+	$_[SELF]->{socket}  = POE::Wheel::ReadWrite->new(
+		Filter     => POE::Filter::HTTP::Parser->new( type => 'client' ),
+		Handle     => $_[ARG0],
+		InputEvent => 'socket_response',
+		ErrorEvent => 'socket_error',
+	);
+	$_[SELF]->{socket}->put( $_[SELF]->{request} );
+}
+
+sub socket_error : Event {
+	$_[SELF]->timeout_stop;
+	$_[SELF]->{socket} = undef;
+	$_[SELF]->post( response => 500 );
+}
+
+
+sub socket_response : Event {
+	$_[SELF]->timeout_stop;
+	$_[SELF]->{socket} = undef;
+	$_[SELF]->post( response => $_[ARG0] );
+}
+
+sub response : Event {
+	return unless $_[SELF]->{request};
+
+	# Check or create the response
+	my $response = $_[ARG0];
+	unless ( Params::Util::_INSTANCE($response, 'HTTP::Response') ) {
+		$response = HTTP::Response->new( $_[ARG0], $_[ARG1] );
+	}
+
+	# Associate the response with the original request
+	$response->request(
+		delete $_[SELF]->{request}
+	);
+
+	$_[SELF]->ResponseEvent( $response );
 }
 
 sub shutdown : Event {
@@ -286,11 +299,12 @@ sub shutdown : Event {
 sub finish {
 	my $self = shift;
 
-	# Clear out the server and any active connection
-	$self->{server} = undef;
-	$self->{client} = undef;
+	# Clear out our stuff
+	$self->{request} = undef;
+	$self->{factory} = undef;
+	$self->{socket}  = undef;
 
-	# Call parent method to clean out other things
+	# Clear out the normal POE stuff
 	$self->SUPER::finish(@_);
 }
 
