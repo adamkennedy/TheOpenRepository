@@ -8,8 +8,9 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 9;
+use Test::More tests => 11;
 use Test::NoWarnings;
+use Test::POE::Stopping;
 use POE::Declare::HTTP::Server ();
 use POE;
 
@@ -44,11 +45,11 @@ my $server = POE::Declare::HTTP::Server->new(
 	},
 
 	StartupEvent => sub {
-		order( 1, 'Fired StartupEvent message' );
+		order( 2, 'Fired StartupEvent message' );
 	},
 
 	ShutdownEvent => sub {
-		order( 3, 'Fired ShutdownEvent' );
+		order( 4, 'Fired ShutdownEvent' );
 	},
 
 );
@@ -68,21 +69,30 @@ POE::Session->create(
 		_start => sub {
 			# Start the server
 			order( 0, 'Fired main::_start' );
-			ok( $server->start, '->start ok' );
 
 			# Start the timeout
-			$_[KERNEL]->delay_set( timeout => 2 );
+			$_[KERNEL]->delay_set( startup  => 1 );
+			$_[KERNEL]->delay_set( shutdown => 2 );
+			$_[KERNEL]->delay_set( timeotu  => 3 );
 		},
 
-		timeout => sub {
-			order( 2, 'Fired main::timeout' );
+		startup => sub {
+			order( 1, 'Fired main::startup' );
+			ok( ! $server->spawned, 'Server is not spawned' );
+			ok( $server->start, '->start ok' );
+		},
+
+		shutdown => sub {
+			order( 3, 'Fired main::shutdown' );
+			ok( $server->spawned, 'Server is spawned' );
 			ok( $server->stop, '->stop ok' );
 		},
 
-		_stop => sub {
-			order( 4, 'Fired main::_stop' );
+		timeout => sub {
+			order( 5, 'Fired main::timeout' );
+			ok( $server->stop, '->stop ok' );
+			poe_stopping();
 		},
-
 	},
 );
 

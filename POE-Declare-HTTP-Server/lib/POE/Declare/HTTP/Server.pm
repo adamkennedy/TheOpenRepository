@@ -49,12 +49,12 @@ use warnings;
 use Params::Util         1.00 ();
 use HTTP::Request       5.827 ();
 use HTTP::Response      5.830 ();
-use POE                 1.299 ();
+use POE                 1.293 ();
 use POE::Filter::HTTPD        ();
 use POE::Wheel::ReadWrite     ();
 use POE::Wheel::SocketFactory ();
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 
 

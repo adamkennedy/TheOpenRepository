@@ -1,5 +1,8 @@
 Changes for Perl extension POE-Declare-HTTP-Server
 
+0.05 Tue Mar 8 2011
+	- Improved tests to use Test::POE::Stopping
+
 0.04 Sun 27 Feb 2011
 	- Changed Handler call to take ( server, response )
 
