@@ -65,6 +65,14 @@ your L<Module::Install>-based F<Makefile.PL> (or equivalent).
 
   requires 'Task::Weaken' => 0;
 
+=head1 SUPPORT
+
+Bugs should be always be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Task-Weaken>
+
+For other issues,contact the author.
+
 =head1 AUTHOR
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
