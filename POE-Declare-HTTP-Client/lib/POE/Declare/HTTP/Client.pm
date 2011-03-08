@@ -191,6 +191,19 @@ sub request {
 	$self->post('connect');
 }
 
+=pod
+
+=head2 running
+
+The boolean C<running> method returns true if the client is both spawned and
+processing a request, or false if not. Note that it does not distinguish
+between running and idle, and stopped entirely.
+
+=cut
+
+sub running {
+	defined $_[0]->{request};
+}
 
 
 
