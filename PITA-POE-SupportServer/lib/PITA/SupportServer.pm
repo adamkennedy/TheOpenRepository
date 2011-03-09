@@ -20,7 +20,8 @@ use POE::Declare 0.51 {
 	ShutdownEvent => 'Message',
 	status        => 'Internal',
 	http          => 'Internal',
-	execute       => 'Internal',
+	child         => 'Internal',
+	pinged        => 'Internal',
 };
 
 use constant {
@@ -59,7 +60,7 @@ sub new {
 		PingEvent     => $self->lookback('http_ping'),
 		MirrorEvent   => $self->lookback('http_mirror'),
 		UploadEvent   => $self->lookback('http_upload'),
-	) or die "Failed to create HTTP server";
+	);
 
 	return $self;
 }
@@ -119,7 +120,7 @@ sub http_startup : Event {
 }
 
 sub http_startup_event : Event {
-	$_[SELF]->post('execute_startup');
+	$_[SELF]->post('child_startup');
 }
 
 sub http_startup_error : Event {
@@ -127,7 +128,7 @@ sub http_startup_error : Event {
 }
 
 sub http_shutdown_event : Event {
-
+	# Nothing to do?
 }
 
 sub http_ping : Event {
@@ -152,26 +153,42 @@ sub http_upload : Event {
 	}
 }
 
-sub execute_startup : Event {
-	$_[SELF]->{execute} = POE::Wheel::Run->new(
+sub child_startup : Event {
+	# Spawn the program
+	$_[SELF]->{child} = POE::Wheel::Run->new(
 		Program     => $_[SELF]->Program,
-		StdoutEvent => $_[SELF]->lookback('execute_stdout'),
-		StderrEvent => $_[SELF]->lookback('execute_stderr'),
-		CloseEvent  => $_[SELF]->lookback('execute_close'),
-	) or die "Failed to create POE::Wheel::Run";
+		StdoutEvent => 'child_stdout',
+		StderrEvent => 'child_stderr',
+		CloseEvent  => 'child_close',
+	);
+
+	# Trap signals from the child as well
+	$_[KERNEL]->sig_child( $_[SELF]->{child}->PID => 'child_signal' );
 }
 
-sub execute_stdout : Event {
+sub child_stdout : Event {
 	# Do nothing for now
+	# print STDERR "# CHILD STDOUT $_[ARG0]\n";
 }
 
-sub execute_stderr : Event {
+sub child_stderr : Event {
 	# Do nothing for now
+	# print STDERR "# CHILD STDERR $_[ARG0]\n";
 }
 
-sub execute_close : Event {
-	print "Program terminated";
-	$_[SELF]->post('shutdown');
+sub child_close : Event {
+	# print STDERR "# CHILD CLOSE\n";
+	if ( $_[SELF]->{child} ) {
+		$_[KERNEL]->sig_child( $_[SELF]->{child}->PID );
+		$_[SELF]->post('shutdown');
+	}
+}
+
+sub child_signal : Event {
+	print STDERR "# CHILD SIGCHILD $_[ARG2]\n";
+	if ( $_[SELF]->{child} ) {
+		$_[SELF]->post('shutdown');
+	}
 }
 
 sub startup_timeout : Timeout(30) {
@@ -189,6 +206,7 @@ sub shutdown_timeout : Timeout(60) {
 sub shutdown : Event {
 	$_[SELF]->finish;
 	$_[SELF]->ShutdownEvent;
+	$_[SELF]->{status} = STOPPED;
 }
 
 
@@ -202,9 +220,8 @@ sub finish {
 	my $self = shift;
 
 	# Clean up our children
-	if ( $self->{execute} ) {
-		$self->{execute}->kill(9);
-		$self->{execute} = undef;
+	if ( $self->{child} ) {
+		$self->{child} = undef;
 	}
 	if ( $self->{http}->spawned ) {
 		$self->{http}->call('shutdown');

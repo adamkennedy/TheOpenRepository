@@ -7,4 +7,5 @@ requires      POE::Declare::HTTP::Server 0.03
 test_requires Test::More                 0.47
 test_requires Test::NoWarnings           1.00
 test_requires Test::POE::Stopping        1.07
+test_requires HTTP::Tiny                 0.010
 test_requires POE::Declare::HTTP::Client 0.02
