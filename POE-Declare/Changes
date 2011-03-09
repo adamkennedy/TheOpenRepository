@@ -1,7 +1,10 @@
 Changes for Perl extension POE-Declare
 
-0.53 to be released
+0.53 Wed 9 Mar 2011
 	- Fixed #51697: [Patch] POD nit (FWIE)
+	- Upgrade Class::XSAccessor dependency to 1.10 to fix some crashes
+	  that occur during END in certain circumstances. Use of POE::Wheel::Run
+	  seems to be a particular culprit (maybe).
 
 0.52 Mon 7 Mar 2011
 	- Adding check for event declaration on finalised class
