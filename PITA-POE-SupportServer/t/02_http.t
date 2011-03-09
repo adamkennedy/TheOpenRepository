@@ -8,7 +8,9 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 7;
+use Test::More tests => 38;
+use Test::NoWarnings;
+use Test::POE::Stopping;
 use File::Spec::Functions ':ALL';
 use PITA::SupportServer::HTTP ();
 use POE::Declare::HTTP::Client ();
@@ -42,28 +44,32 @@ $client = POE::Declare::HTTP::Client->new(
 			is( $_[1]->code, '200', 'Got a 200 response' );
 
 			# Request a mirror file
-			ok( $client->GET('http://127.0.0.1:12345/cpan/Config-Tiny-2.12.tar.gz'), '->GET ok' );
+			ok( $client->GET('http://127.0.0.1:12345/cpan/Config-Tiny-2.13.tar.gz'), '->GET ok' );
 
 		} elsif ( $responses == 2 ) {
-			order( 5, "Client ResponseEvent $responses" );
+			order( 6, "Client ResponseEvent $responses" );
 
 			# Check the get response
 			isa_ok( $_[1], 'HTTP::Response' );
 			ok( $_[1]->is_success, 'Response successful' );
 			is( $_[1]->code, '200', 'Got a 200 response' );
-			is( length($_[1]->content), 1234, '->content length is correct' );
+			is(
+				length($_[1]->content),
+				16778,
+				'->content length is correct',
+			);
 
 			# Upload the file
 			ok(
 				$client->PUT(
 					'http://127.0.0.1:12345/file.txt',
-					'This is content',
+					Content => 'This is content',
 				),
 				'->PUT ok',
 			);
 
 		} elsif ( $responses == 3 ) {
-			order( 6, "Client ResponseEvent $responses" );
+			order( 8, "Client ResponseEvent $responses" );
 
 			# Check the get response
 			isa_ok( $_[1], 'HTTP::Response' );
@@ -77,8 +83,9 @@ $client = POE::Declare::HTTP::Client->new(
 			die "Unexpected response";
 		}
 	},
+
 	ShutdownEvent => sub {
-		order( 7, "Client ShutdownEvent" );
+		order( 9, "Client ShutdownEvent" );
 
 		# Close down the server now
 		ok( $server->stop, 'Server ->stop ok' );
@@ -93,20 +100,30 @@ $server = PITA::SupportServer::HTTP->new(
 	Mirrors  => {
 		'/cpan/' => $minicpan,
 	},
+
 	StartupEvent => sub {
 		order( 2, 'Server StartupEvent' );
 		ok( $client->start, '->start ok' );
 		ok( $client->GET('http://127.0.0.1:12345/'), '->GET ok' );
 	},
+
 	PingEvent => sub {
 		order( 3, 'Server PingEvent' );
 	},
+
 	MirrorEvent => sub {
-		order( 0, 'Server MirrorEvent' );
+		order( 5, 'Server MirrorEvent' );
+		is( $_[1], '/cpan/', 'Got route' );
+		is( $_[2], 'Config-Tiny-2.13.tar.gz', 'Got file' );
 	},
+
 	UploadEvent => sub {
-		order( 0, 'Server UploadEvent' );
+		order( 7, 'Server UploadEvent' );
 	},
+
+	ShutdownEvent => [
+		test => 'shutdown',
+	],
 );
 isa_ok( $server, 'PITA::SupportServer::HTTP' );
 
@@ -118,9 +135,12 @@ POE::Session->create(
 			# Start the server
 			order( 0, 'Fired main::_start' );
 
+			# Register the session
+			$_[KERNEL]->alias_set('test');
+
 			# Start the timeout
 			$_[KERNEL]->delay_set( startup => 1 );
-			$_[KERNEL]->delay_set( timeout => 2 );
+			$_[KERNEL]->delay_set( timeout => 5 );
 		},
 
 		startup => sub {
@@ -130,15 +150,24 @@ POE::Session->create(
 			ok( $server->start, '->start ok' );
 		},
 
+		shutdown => sub {
+			order( 10, 'Server ShutdownEvent' );
+
+			# We're done now
+			$_[KERNEL]->alias_remove('test');
+			$_[KERNEL]->alarm_remove_all;
+			$_[KERNEL]->yield('done');
+		},
+
+		done => sub {
+			order( 11, 'Test session shutdown' );
+			poe_stopping();
+		},
+
 		timeout => sub {
-			order( 1, 'Fired main::timeout' );
 			ok( $server->stop, '->stop ok' );
+			poe_stopping();
 		},
-
-		_stop => sub {
-			order( 2, 'Fired main::_stop' );
-		},
-
 	},
 );
 

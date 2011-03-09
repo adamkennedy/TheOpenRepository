@@ -71,10 +71,10 @@ sub handler {
 
 	# Add content length for all responses
 	if ( defined $response->content ) {
-		unless ( $response->header('Content-Length') ) {
-			my $bytes = length $response->content;
-			$response->header( 'Content-Length' => $bytes );
-		}
+		# unless ( $response->header('Content-Length') ) {
+			# my $bytes = length $response->content;
+			# $response->header( 'Content-Length' => $bytes );
+		# }
 	}
 
 	return;
@@ -84,57 +84,60 @@ sub _handler {
 	my $self     = shift;
 	my $request  = shift;
 	my $response = shift;
+	my $path     = $request->uri->path;
 
 	if ( $request->method eq 'GET' ) {
 		# Handle a ping
-		if ( $request->uri->path eq '/' ) {
+		if ( $path eq '/' ) {
 			$response->code(200);
-			$response->content('PONG');
+			$response->header( 'Content-Type' => 'text/plain' );
+			$response->content('200 - PONG');
 			$self->PingEvent;
 			return;
 		}
 
 		# Handle a mirror file fetch
-		foreach my $route ( sort keys %{$self->Mirrors} ) {
+		my $Mirrors = $self->Mirrors;
+		foreach my $route ( sort keys %$Mirrors ) {
 			my $escaped = quotemeta $route;
-			next unless $request->uri =~ /^$escaped(.+)$/;
-			my $path = $1;
-			my $root = $self->Mirrors->{$route};
-			my $file = File::Spec->catfile( $root, $path );
-			if ( -f $file and -r $file ) {
+			next unless $path =~ /^$escaped(.+)$/;
+			my $file = $1;
+			my $root = $Mirrors->{$route};
+			my $full = File::Spec->catfile( $root, $file );
+			if ( -f $full and -r _ ) {
 				# Load the file
 				local $/ = undef;
-				my $io = IO::File->new($file, 'r') or die "open: $file";
+				my $io = IO::File->new($full, 'r') or die "open: $full";
 				$io->binmode;
 				my $blob = $io->getline;
 
 				# Send the file
 				$response->code(200);
-				$response->header( 'Content-Type'   => 'application/x-gzip' );
-				$response->content( $blob );
+				$response->header('Content-Type' => 'application/x-gzip');
+				$response->content($blob);
 
-				$self->MirrorEvent( $route, $path );
+				# Report the mirror event
+				$self->MirrorEvent( $route, $file );
+
 				return;
 			} else {
 				$response->code(404);
-				$response->header( 'Content-Type' => 'text/plain' );
+				$response->header('Content-Type' => 'text/plain');
 				$response->content('404 - File Not Found');
+
 				return;
 			}
 		}
 	}
 
 	if ( $request->method eq 'PUT' ) {
-		# Save the uploaded content
-		my $path = $request->uri->as_string;
-		my $blob = \( $request->content );
-
-		# Send an ok to the client
-		$response->code(204);
-		$response->message("Upload received");
-
 		# Send the upload message
-		$self->UploadEvent( $path, $blob );
+		$self->UploadEvent( $path => \( $request->content ) );
+
+		# Send a content-less ok to the client
+		$response->code(204);
+		$response->message('Upload received');
+
 		return;
 	}
 
