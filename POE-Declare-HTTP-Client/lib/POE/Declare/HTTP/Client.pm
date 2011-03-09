@@ -271,8 +271,9 @@ sub running {
 sub connect : Event {
 	my $addr    = $_[ARG0];
 	my $request = $_[SELF]->{request} or return;
-	my $host    = $request->uri->host or return;
-	my $port    = $request->uri->port || 80;
+	my $uri     = $request->uri;
+	my $host    = $uri->host or return;
+	my $port    = $uri->port || 80;
 
 	# Start the request timeout
 	$_[SELF]->timeout_start;
@@ -292,16 +293,22 @@ sub timeout : Timeout(30) {
 	if ( $_[SELF]->{factory} ) {
 		# Timeout during connect
 		$_[SELF]->{factory} = undef;
-		$_[SELF]->call( response => 500 );
+		$_[SELF]->call(
+			response => HTTP::Status::HTTP_INTERNAL_SERVER_ERROR
+		);
 
 	} elsif ( $_[SELF]->{socket} ) {
 		# Timeout during send, processing or response
 		$_[SELF]->{socket} = undef;
-		$_[SELF]->call( response => 500 );
+		$_[SELF]->call(
+			response => HTTP::Status::HTTP_INTERNAL_SERVER_ERROR
+		);
 
-	} elsif ( $_[SELF]->{request} ) {
+	} else {
 		# Unexpected timeout during active request
-		$_[SELF]->call( response => 500 );
+		$_[SELF]->call(
+			response => HTTP::Status::HTTP_INTERNAL_SERVER_ERROR
+		);
 
 	}
 }
@@ -309,13 +316,15 @@ sub timeout : Timeout(30) {
 sub connect_failure : Event {
 	$_[SELF]->timeout_stop;
 	$_[SELF]->{factory} = undef;
-	$_[SELF]->post( response => 500 );
+	$_[SELF]->post(
+		response => HTTP::Status::HTTP_INTERNAL_SERVER_ERROR
+	);
 }
 
 sub connect_success : Event {
 	$_[SELF]->{factory} = undef;
 	$_[SELF]->{socket}  = POE::Wheel::ReadWrite->new(
-		Filter     => POE::Filter::HTTP::Parser->new( type => 'client' ),
+		Filter     => POE::Filter::HTTP::Parser->new,
 		Handle     => $_[ARG0],
 		InputEvent => 'socket_response',
 		ErrorEvent => 'socket_error',
@@ -324,36 +333,34 @@ sub connect_success : Event {
 }
 
 sub socket_error : Event {
-	$_[SELF]->timeout_stop;
+	return unless $_[SELF]->{request};
 
 	# If the HTTP filter has a response in it's buffer that does not have
 	# a fixed content length, consider it complete and trigger an event.
+	my $response = HTTP::Status::HTTP_INTERNAL_SERVER_ERROR;
 	if ( $_[SELF]->{socket} ) {
 		my $socket  = $_[SELF]->{socket};
 		my $filter  = $socket->get_input_filter;
 		my $parser  = $filter->{parser};
 		if ( $parser->{no_content_length} ) {
-			my $pending = $filter->{parser}->object;
-			if ( Params::Util::_INSTANCE($pending, 'HTTP::Response') ) {
-				$self->call( socket_response => $pending );
-			}
+			$response = Params::Util::_INSTANCE(
+				$filter->{parser}->object, 'HTTP::Response',
+			);
 		}
 	}
 
-	$_[SELF]->{socket} = undef;
-	$_[SELF]->post( response => 500 );
+	$_[SELF]->post( socket_response => $response );
 }
 
-
 sub socket_response : Event {
+	return unless $_[SELF]->{request};
+
 	$_[SELF]->timeout_stop;
 	$_[SELF]->{socket} = undef;
 	$_[SELF]->post( response => $_[ARG0] );
 }
 
 sub response : Event {
-	return unless $_[SELF]->{request};
-
 	# Check or create the response
 	my $response = $_[ARG0];
 	unless ( Params::Util::_INSTANCE($response, 'HTTP::Response') ) {
@@ -414,7 +421,7 @@ L<POE>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2011 Adam Kennedy.
+Copyright 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
