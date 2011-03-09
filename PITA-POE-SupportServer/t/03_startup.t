@@ -6,8 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 9;
-use Test::NoWarnings;
+use Test::More tests => 8;
 use Test::POE::Stopping;
 use File::Spec::Functions ':ALL';
 use PITA::SupportServer ();

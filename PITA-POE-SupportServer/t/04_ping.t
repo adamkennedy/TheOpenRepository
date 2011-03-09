@@ -6,10 +6,14 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 3;
+use Test::More tests => 8;
 use Test::POE::Stopping;
+use File::Spec::Functions ':ALL';
 use PITA::SupportServer ();
 use POE;
+
+my $ping = catfile( qw{ t mock ping.pl } );
+ok( -f $ping, "Found $ping" );
 
 # Test event firing order
 my $order = 0;
@@ -20,44 +24,52 @@ sub order {
 }
 
 my $server = PITA::SupportServer->new(
-	Hostname  => '127.0.0.1',
-	Port      => 12345,
-	Mirrors   => {},
-	Program   => [
-		$^X,
-		'-MLWP::UserAgent',
-		'-e',
-		'LWP::UserAgent->new->get("http://127.0.0.1:12345/"); exit(0);',
-	],
-	ShutdownEvent => \&shutdown,
+	Hostname      => '127.0.0.1',
+	Port          => 12345,
+	Mirrors       => { '/cpan.' => '.' },
+	Program       => [ 'perl', $ping ],
+	StartupEvent  => [ test => 'started'  ],
+	ShutdownEvent => [ test => 'shutdown' ],
 );
 isa_ok( $server, 'PITA::SupportServer' );
 
 # Set up the test session
 POE::Session->create(
 	inline_states => {
-
 		_start => sub {
-			# Start the server
 			order( 0, 'Fired main::_start' );
-			ok( $server->start, '->start ok' );
-
-			# Start the timeout
-			$_[KERNEL]->delay_set( failure => 5 );
+			$_[KERNEL]->alias_set('test');
+			$_[KERNEL]->delay_set( timeout => 5 );
+			$_[KERNEL]->yield('startup');
 		},
 
-		failure => sub {
-			order( 3, 'Fired main::finished' );
+		startup => sub {
+			order( 1, 'Fired main::startup' );
+
+			# Start the server
+			ok( $server->start, '->start ok' );
+		},
+
+		started => sub {
+			order( 2, 'Server StartupEvent' );
+		},
+
+		shutdown => sub {
+			order( 2, 'Server ShutdownEvent' );
+			$_[KERNEL]->alias_remove('test');
+			$_[KERNEL]->alarm_remove_all;
+			$_[KERNEL]->yield('done');
+		},
+
+		done => sub {
+			order( 3, 'main::done' );
 			poe_stopping();
 		},
 
+		timeout => sub {
+			poe_stopping();
+		},
 	},
 );
 
-sub shutdown {
-	order( 2, 'Fired main::shutdown' );
-	ok( $server->stop, '->stop ok' );
-}
-
-$server->run or die "->run failed";
-ok( 1, 'Server ->run ok' );
+$server->run

@@ -1,10 +1,22 @@
 #!/usr/bin/perl
 
 use strict;
-use HTTP::Tiny ();
+use POE::Declare::HTTP::Client ();
 
-HTTP::Tiny->new->get($ARGV[0]);
+my $client = POE::Declare::HTTP::Client->new(
+	ResponseEvent => \&response,
+	ShutdownEvent => \&shutdown,
+);
+$client->start;
+print "GET $ARGV[0]\n";
+$client->GET($ARGV[0]);
+sub response {
+	print $_[1]->code . ' ' . $_[1]->message . "\n";
+	$client->stop;
+}
+sub shutdown {
+	sleep 1;
+	exit(0);
+}
 
-sleep 1;
-
-exit(0);
+POE::Kernel->run;

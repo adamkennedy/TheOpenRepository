@@ -180,6 +180,7 @@ sub child_close : Event {
 	# print STDERR "# CHILD CLOSE\n";
 	if ( $_[SELF]->{child} ) {
 		$_[KERNEL]->sig_child( $_[SELF]->{child}->PID );
+		# waitpid( $_[SELF]->{child}->PID );
 		$_[SELF]->post('shutdown');
 	}
 }
@@ -221,6 +222,7 @@ sub finish {
 
 	# Clean up our children
 	if ( $self->{child} ) {
+		$self->{child}->kill(9);
 		$self->{child} = undef;
 	}
 	if ( $self->{http}->spawned ) {

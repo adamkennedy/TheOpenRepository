@@ -8,8 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 38;
-use Test::NoWarnings;
+use Test::More tests => 37;
 use Test::POE::Stopping;
 use File::Spec::Functions ':ALL';
 use PITA::SupportServer::HTTP ();
