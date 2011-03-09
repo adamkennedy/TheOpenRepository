@@ -269,6 +269,13 @@ sub connect_success : Event {
 
 sub socket_error : Event {
 	$_[SELF]->timeout_stop;
+
+	# If the HTTP filter has a response in it's buffer that does not have
+	# a fixed content length, consider it complete and trigger an event.
+	if ( $_[SELF]->{socket} ) {
+		die "CODE INCOMPLETE";
+	}
+
 	$_[SELF]->{socket} = undef;
 	$_[SELF]->post( response => 500 );
 }
