@@ -36,7 +36,7 @@ use POE::Declare::Meta::Param ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.52';
+	$VERSION = '0.53';
 	@ISA     = 'POE::Declare::Meta::Param';
 }
 

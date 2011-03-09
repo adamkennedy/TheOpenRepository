@@ -1,5 +1,8 @@
 Changes for Perl extension POE-Declare
 
+0.53 to be released
+	- Fixed #51697: [Patch] POD nit (FWIE)
+
 0.52 Mon 7 Mar 2011
 	- Adding check for event declaration on finalised class
 	- Adding check for use of an uncompiled class

@@ -31,7 +31,7 @@ use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.52';
+	$VERSION = '0.53';
 }
 
 # Inside-out storage of internal values
@@ -419,7 +419,7 @@ sub callback {
       ...
   }
 
-The C<lookback> method is a safe alias for C< [ $self->Alias, 'event_name' ] >.
+The C<lookback> method is a safe alias for C< [ $self-E<gt>Alias, 'event_name' ] >.
 
 When creating the lookback, the name will be double checked to verify that
 the handler actually exists and is registered.
