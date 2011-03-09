@@ -57,7 +57,7 @@ use POE::Filter::HTTP::Parser 1.06 ();
 use POE::Wheel::ReadWrite          ();
 use POE::Wheel::SocketFactory      ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use POE::Declare 0.52 {
 	Timeout       => 'Param',
@@ -135,11 +135,11 @@ sub stop {
 
 =pod
 
-=head2 get
+=head2 GET
 
-    $client->get('http://www.cpan.org/');
+    $client->GET('http://www.cpan.org/');
 
-The C<get> method fetches a named URL via an HTTP GET.
+The C<GET> method fetches a named URL via a HTTP GET request.
 
 =cut
 
@@ -151,11 +151,27 @@ sub GET {
 
 =pod
 
-=head2 post
+=head2 HEAD
 
-    $client->post('http://www.cpan.org/');
+    $client->HEAD('http://www.cpan.org/');
 
-The C<get> method fetches a named URL via an HTTP POST.
+The C<HEAD> method fetches headers for a named URL via a HTTP HEAD request.
+
+=cut
+
+sub HEAD {
+	shift->request(
+		HTTP::Request::Common::HEAD(@_)
+	);
+}
+
+=pod
+
+=head2 POST
+
+    $client->POST('http://www.cpan.org/');
+
+The C<POST> method fetches a named URL via a HTTP POST request.
 
 =cut
 
@@ -167,9 +183,49 @@ sub POST {
 
 =pod
 
+=head2 PUT
+
+    $client->PUT(
+        'http://127.0.0.1:12345/upload.txt',
+        Content => 'This is the file content',
+    );
+
+The C<PUT> method uploads content to a named URL via a HTTP PUT request.
+
+=cut
+
+sub PUT {
+	shift->request(
+		HTTP::Request::Common::PUT(@_)
+	);
+}
+
+=pod
+
+=head2 DELETE
+
+    $client->DELETE('http://www.cpan.org/');
+
+The C<DELETE> method deletes a resource at a URL via a HTTP DELETE request.
+
+=cut
+
+sub DELETE {
+	shift->request(
+		HTTP::Request::Common::DELETE(@_)
+	);
+}
+
+=pod
+
 =head2 request
 
-    $client->request( $request_object );
+    $client->request( $HTTP_Request );
+
+The C<request> method triggers an arbitrary HTTP request.
+
+It takes any L<HTTP::Request> object, and will respond with an L<HTTP::Response>
+object to the C<ResponseEvent> message handler once it is completed.
 
 =cut
 
@@ -273,7 +329,15 @@ sub socket_error : Event {
 	# If the HTTP filter has a response in it's buffer that does not have
 	# a fixed content length, consider it complete and trigger an event.
 	if ( $_[SELF]->{socket} ) {
-		die "CODE INCOMPLETE";
+		my $socket  = $_[SELF]->{socket};
+		my $filter  = $socket->get_input_filter;
+		my $parser  = $filter->{parser};
+		if ( $parser->{no_content_length} ) {
+			my $pending = $filter->{parser}->object;
+			if ( Params::Util::_INSTANCE($pending, 'HTTP::Response') ) {
+				$self->call( socket_response => $pending );
+			}
+		}
 	}
 
 	$_[SELF]->{socket} = undef;
