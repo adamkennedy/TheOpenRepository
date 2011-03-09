@@ -29,6 +29,8 @@ ok( -d $minicpan, 'Found minicpan directory' );
 my $client = POE::Declare::HTTP::Client->new(
 	ResponseEvent => sub {
 		order( 4, 'Client ResponseEvent' );
+		isa_ok( $_[1], 'HTTP::Response' );
+		is( $_[1]->code, '200', 'Got a 200 response' );
 	},
 	ShutdownEvent => sub {
 		

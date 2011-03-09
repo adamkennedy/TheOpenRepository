@@ -61,15 +61,34 @@ sub run {
 	return 1;
 }
 
+# Wrapper for doing cleansing of the response
 sub handler {
+	my $self     = shift;
+	my $response = $_[1];
+
+	# Call the main handler
+	$self->_handler(@_);
+
+	# Add content length for all responses
+	if ( defined $response->content ) {
+		unless ( $response->header('Content-Length') ) {
+			my $bytes = length $response->content;
+			$response->header( 'Content-Length' => $bytes );
+		}
+	}
+
+	return;
+}
+
+sub _handler {
 	my $self     = shift;
 	my $request  = shift;
 	my $response = shift;
 
 	if ( $request->method eq 'GET' ) {
 		# Handle a ping
-		if ( $request->uri eq '/' ) {
-			$response->code( 200 );
+		if ( $request->uri->path eq '/' ) {
+			$response->code(200);
 			$response->content('PONG');
 			$self->PingEvent;
 			return;
@@ -92,7 +111,6 @@ sub handler {
 				# Send the file
 				$response->code(200);
 				$response->header( 'Content-Type'   => 'application/x-gzip' );
-				$response->header( 'Content-Length' => length $blob         );
 				$response->content( $blob );
 
 				$self->MirrorEvent( $route, $path );
@@ -112,9 +130,8 @@ sub handler {
 		my $blob = \( $request->content );
 
 		# Send an ok to the client
-		$response->code(200);
-		$response->header( 'Content-Type' => 'text/plain' );
-		$response->content( "$path OK" );
+		$response->code(204);
+		$response->message("Upload received");
 
 		# Send the upload message
 		$self->UploadEvent( $path, $blob );
