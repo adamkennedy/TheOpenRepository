@@ -56,6 +56,13 @@ POE::Session->create(
 
 		shutdown => sub {
 			order( 2, 'Server ShutdownEvent' );
+			is( $_[ARG1], 1, 'pinged ok' );
+			is_deeply( $_[ARG2], [ ], 'mirrored is null' );
+			is_deeply(
+				$_[ARG3],
+				[ 'response.xml' => \"This is my response" ],
+				'uploaded expected file',
+			);
 			$_[KERNEL]->alias_remove('test');
 			$_[KERNEL]->alarm_remove_all;
 			$_[KERNEL]->yield('done');

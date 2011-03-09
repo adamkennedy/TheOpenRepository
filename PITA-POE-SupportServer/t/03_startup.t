@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 8;
+use Test::More tests => 14;
 use Test::POE::Stopping;
 use File::Spec::Functions ':ALL';
 use PITA::SupportServer ();
@@ -56,6 +56,12 @@ POE::Session->create(
 
 		shutdown => sub {
 			order( 2, 'Server ShutdownEvent' );
+			is( $_[ARG1], 0, 'pinged is 0' );
+			is( $server->pinged, 0, '->pinged is 0' );
+			is_deeply( $_[ARG2], [ ], 'mirrored is [ ]' );
+			is_deeply( $server->mirrored, [ ], '->mirrored is [ ]' );
+			is_deeply( $_[ARG3], [ ], 'uploaded is [ ]' );
+			is_deeply( $server->uploaded, [ ], '->uploaded is [ ]' );
 			$_[KERNEL]->alias_remove('test');
 			$_[KERNEL]->alarm_remove_all;
 			$_[KERNEL]->yield('done');

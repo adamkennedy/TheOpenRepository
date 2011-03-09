@@ -14,14 +14,16 @@ use POE::Declare 0.51 {
 	Hostname      => 'Param',
 	Port          => 'Param',
 	Program       => 'Param',
-	Files         => 'Param',
+	Uploads       => 'Param',
 	Mirrors       => 'Param',
 	StartupEvent  => 'Message',
 	ShutdownEvent => 'Message',
+	pinged        => 'Attribute',
+	uploaded      => 'Attribute',
+	mirrored      => 'Attribute',
 	status        => 'Internal',
 	http          => 'Internal',
 	child         => 'Internal',
-	pinged        => 'Internal',
 };
 
 use constant {
@@ -42,7 +44,10 @@ sub new {
 	my $self = shift->SUPER::new(@_);
 
 	# Set up tracking variables
-	$self->{status} = STOPPED;
+	$self->{status}   = STOPPED;
+	$self->{pinged}   = 0;
+	$self->{mirrored} = [ ];
+	$self->{uploaded} = [ ];
 
 	# Check params
 	unless ( Params::Util::_ARRAY($self->Program) ) {
@@ -132,18 +137,21 @@ sub http_shutdown_event : Event {
 }
 
 sub http_ping : Event {
-	$_[SELF]->{status} = RUNNING;
 	$_[SELF]->startup_timeout_stop;
 	$_[SELF]->activity_timeout_start;
+	$_[SELF]->{status} = RUNNING;
+	$_[SELF]->{pinged} = 1;
+	$_[SELF]->StartupEvent;
 }
 
 sub http_mirror : Event {
 	$_[SELF]->activity_timeout_start;
+	push @{$_[SELF]->{mirrored}}, [ $_[ARG1], $_[ARG2] ];
 }
 
 sub http_upload : Event {
 	$_[SELF]->activity_timeout_start;
-	$_[SELF]->{Files}->{$_[ARG1]} = $_[ARG2];
+	push @{$_[SELF]->{uploaded}}, [ $_[ARG1], $_[ARG2] ];
 
 	# Do we have everything?
 	unless ( grep { not defined $_ } values %{$_[SELF]} ) {
@@ -162,7 +170,8 @@ sub child_startup : Event {
 		CloseEvent  => 'child_close',
 	);
 
-	# Trap signals from the child as well
+	# Trap signals from the child as well.
+	# NOTE: This needs to be brought under the management of POE::Declare.
 	$_[KERNEL]->sig_child( $_[SELF]->{child}->PID => 'child_signal' );
 }
 
@@ -193,20 +202,24 @@ sub child_signal : Event {
 }
 
 sub startup_timeout : Timeout(30) {
-
+	$_[SELF]->post('shutdown');
 }
 
 sub activity_timeout : Timeout(3600) {
-
+	$_[SELF]->post('shutdown');
 }
 
 sub shutdown_timeout : Timeout(60) {
-
+	$_[SELF]->post('shutdown');
 }
 
 sub shutdown : Event {
 	$_[SELF]->finish;
-	$_[SELF]->ShutdownEvent;
+	$_[SELF]->ShutdownEvent(
+		$_[SELF]->pinged,
+		$_[SELF]->mirrored,
+		$_[SELF]->uploaded,
+	);
 	$_[SELF]->{status} = STOPPED;
 }
 

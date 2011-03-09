@@ -8,7 +8,6 @@ my $client = POE::Declare::HTTP::Client->new(
 	ShutdownEvent => \&shutdown,
 );
 $client->start;
-print "GET $ARGV[0]\n";
 $client->GET($ARGV[0]);
 sub response {
 	print $_[1]->code . ' ' . $_[1]->message . "\n";

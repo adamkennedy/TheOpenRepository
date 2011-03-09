@@ -7,13 +7,24 @@ my $client = POE::Declare::HTTP::Client->new(
 	ResponseEvent => \&response,
 	ShutdownEvent => \&shutdown,
 );
+
+# Startup, ping the server to let them know we are running
 $client->start;
-print "GET $ARGV[0]\n";
 $client->GET($ARGV[0]);
+
+my $response = 0;
 sub response {
-	print $_[1]->code . ' ' . $_[1]->message . "\n";
+	if ( ++$response == 1 ) {
+		# Upload the content file
+		$client->PUT(
+			"$ARGV[0]response.xml",
+			Content => 'This is my response',
+		);
+		print $_[1]->code . ' ' . $_[1]->message . "\n";
+	}
 	$client->stop;
 }
+
 sub shutdown {
 	sleep 1;
 	exit(0);
