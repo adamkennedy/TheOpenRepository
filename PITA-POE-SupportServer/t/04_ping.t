@@ -6,11 +6,14 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 11;
+use Test::More tests => 12;
 use Test::POE::Stopping;
 use File::Spec::Functions ':ALL';
 use PITA::SupportServer ();
 use POE;
+
+my $HOSTNAME = '127.0.0.1';
+my $PORT     = 12345;
 
 my $ping = catfile( qw{ t mock ping.pl } );
 ok( -f $ping, "Found $ping" );
@@ -27,7 +30,7 @@ my $server = PITA::SupportServer->new(
 	Hostname      => '127.0.0.1',
 	Port          => 12345,
 	Mirrors       => { '/cpan.' => '.' },
-	Program       => [ 'perl', $ping ],
+	Program       => [ 'perl', $ping, "http://$HOSTNAME:$PORT/" ],
 	StartupEvent  => [ test => 'started'  ],
 	ShutdownEvent => [ test => 'shutdown' ],
 );

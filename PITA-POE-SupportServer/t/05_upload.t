@@ -12,6 +12,9 @@ use File::Spec::Functions ':ALL';
 use PITA::SupportServer ();
 use POE;
 
+my $HOSTNAME = '127.0.0.1';
+my $PORT     = 12345;
+
 my $upload = catfile( qw{ t mock upload.pl } );
 ok( -f $upload, "Found $upload" );
 
@@ -27,7 +30,7 @@ my $server = PITA::SupportServer->new(
 	Hostname      => '127.0.0.1',
 	Port          => 12345,
 	Mirrors       => { '/cpan.' => '.' },
-	Program       => [ 'perl', $upload ],
+	Program       => [ 'perl', $upload, "http://$HOSTNAME:$PORT/" ],
 	StartupEvent  => [ test => 'started'  ],
 	ShutdownEvent => [ test => 'shutdown' ],
 );
@@ -55,7 +58,7 @@ POE::Session->create(
 		},
 
 		shutdown => sub {
-			order( 2, 'Server ShutdownEvent' );
+			order( 3, 'Server ShutdownEvent' );
 			is( $_[ARG1], 1, 'pinged ok' );
 			is_deeply( $_[ARG2], [ ], 'mirrored is null' );
 			is_deeply(
@@ -69,7 +72,7 @@ POE::Session->create(
 		},
 
 		done => sub {
-			order( 3, 'main::done' );
+			order( 4, 'main::done' );
 			poe_stopping();
 		},
 

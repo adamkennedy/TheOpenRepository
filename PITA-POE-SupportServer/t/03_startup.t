@@ -12,6 +12,9 @@ use File::Spec::Functions ':ALL';
 use PITA::SupportServer ();
 use POE;
 
+my $HOSTNAME = '127.0.0.1';
+my $PORT     = 12345;
+
 my $fail = catfile( qw{ t mock fail.pl } );
 ok( -f $fail, "Found $fail" );
 
@@ -24,10 +27,10 @@ sub order {
 }
 
 my $server = PITA::SupportServer->new(
-	Hostname      => '127.0.0.1',
-	Port          => 12345,
+	Hostname      => $HOSTNAME,
+	Port          => $PORT,
 	Mirrors       => { '/cpan.' => '.' },
-	Program       => [ 'perl', $fail ],
+	Program       => [ 'perl', $fail, "http://$HOSTNAME:$PORT/" ],
 	StartupEvent  => [ test => 'started'  ],
 	ShutdownEvent => [ test => 'shutdown' ],
 );

@@ -177,12 +177,12 @@ sub child_startup : Event {
 
 sub child_stdout : Event {
 	# Do nothing for now
-	# print STDERR "# CHILD STDOUT $_[ARG0]\n";
+	print STDERR "# CHILD STDOUT $_[ARG0]\n";
 }
 
 sub child_stderr : Event {
 	# Do nothing for now
-	# print STDERR "# CHILD STDERR $_[ARG0]\n";
+	print STDERR "# CHILD STDERR $_[ARG0]\n";
 }
 
 sub child_close : Event {

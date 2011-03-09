@@ -16,11 +16,12 @@ my $response = 0;
 sub response {
 	if ( ++$response == 1 ) {
 		# Upload the content file
+		print STDERR "# PUT $ARGV[0]response.xml\n";
 		$client->PUT(
 			"$ARGV[0]response.xml",
 			Content => 'This is my response',
 		);
-		print $_[1]->code . ' ' . $_[1]->message . "\n";
+		# print $_[1]->code . ' ' . $_[1]->message . "\n";
 	}
 	$client->stop;
 }
