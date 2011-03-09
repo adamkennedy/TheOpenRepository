@@ -25,21 +25,69 @@ sub order {
 my $minicpan = rel2abs( catdir( 't', 'minicpan' ), );
 ok( -d $minicpan, 'Found minicpan directory' );
 
+# Preallocate variables so anonymous subs can refer to them
+my $client    = undef;
+my $server    = undef;
+my $responses = 0;
+
 # Create the test client
-my $client = POE::Declare::HTTP::Client->new(
+$client = POE::Declare::HTTP::Client->new(
 	ResponseEvent => sub {
-		order( 4, 'Client ResponseEvent' );
-		isa_ok( $_[1], 'HTTP::Response' );
-		is( $_[1]->code, '200', 'Got a 200 response' );
+		if ( ++$responses == 1 ) {
+			order( 4, "Client ResponseEvent $responses" );
+
+			# Check the ping response
+			isa_ok( $_[1], 'HTTP::Response' );
+			ok( $_[1]->is_success, 'Response successful' );
+			is( $_[1]->code, '200', 'Got a 200 response' );
+
+			# Request a mirror file
+			ok( $client->GET('http://127.0.0.1:12345/cpan/Config-Tiny-2.12.tar.gz'), '->GET ok' );
+
+		} elsif ( $responses == 2 ) {
+			order( 5, "Client ResponseEvent $responses" );
+
+			# Check the get response
+			isa_ok( $_[1], 'HTTP::Response' );
+			ok( $_[1]->is_success, 'Response successful' );
+			is( $_[1]->code, '200', 'Got a 200 response' );
+			is( length($_[1]->content), 1234, '->content length is correct' );
+
+			# Upload the file
+			ok(
+				$client->PUT(
+					'http://127.0.0.1:12345/file.txt',
+					'This is content',
+				),
+				'->PUT ok',
+			);
+
+		} elsif ( $responses == 3 ) {
+			order( 6, "Client ResponseEvent $responses" );
+
+			# Check the get response
+			isa_ok( $_[1], 'HTTP::Response' );
+			ok( $_[1]->is_success, 'Response successful' );
+			is( $_[1]->code, '204', 'Got a 204 response' );
+
+			# We are finished sending all requests now
+			ok( $client->stop, 'Client ->stop ok' );
+
+		} else {
+			die "Unexpected response";
+		}
 	},
 	ShutdownEvent => sub {
-		
+		order( 7, "Client ShutdownEvent" );
+
+		# Close down the server now
+		ok( $server->stop, 'Server ->stop ok' );
 	},
 );
 isa_ok( $client, 'POE::Declare::HTTP::Client' );
 
 # Create the web server
-my $server = PITA::SupportServer::HTTP->new(
+$server = PITA::SupportServer::HTTP->new(
 	Hostname => '127.0.0.1',
 	Port     => 12345,
 	Mirrors  => {
@@ -52,6 +100,12 @@ my $server = PITA::SupportServer::HTTP->new(
 	},
 	PingEvent => sub {
 		order( 3, 'Server PingEvent' );
+	},
+	MirrorEvent => sub {
+		order( 0, 'Server MirrorEvent' );
+	},
+	UploadEvent => sub {
+		order( 0, 'Server UploadEvent' );
 	},
 );
 isa_ok( $server, 'PITA::SupportServer::HTTP' );
