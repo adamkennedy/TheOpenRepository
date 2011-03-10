@@ -174,7 +174,7 @@ if not.
 =cut
 
 sub discovered {
-	$_[0]->guestxml->discovered;	
+	$_[0]->guestxml->discovered;
 }
 
 =pod

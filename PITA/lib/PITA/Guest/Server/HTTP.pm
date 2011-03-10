@@ -73,10 +73,10 @@ sub handler {
 
 	# Add content length for all responses
 	if ( defined $response->content ) {
-		# unless ( $response->header('Content-Length') ) {
-			# my $bytes = length $response->content;
-			# $response->header( 'Content-Length' => $bytes );
-		# }
+		unless ( $response->header('Content-Length') ) {
+			my $bytes = length $response->content;
+			$response->header( 'Content-Length' => $bytes );
+		}
 	}
 
 	return;
@@ -87,7 +87,7 @@ sub _handler {
 	my $request  = shift;
 	my $response = shift;
 	my $path     = $request->uri->path;
-	# print STDERR "# " . $request->uri . "\n";
+	print STDERR "# " . $request->uri . "\n";
 
 	if ( $request->method eq 'GET' ) {
 		# Handle a ping
