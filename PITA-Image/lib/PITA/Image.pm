@@ -93,7 +93,7 @@ use File::Spec::Unix      ();
 use File::Which           ();
 use File::Remove          ();
 use Config::Tiny          ();
-use Params::Util          '_INSTANCE';
+use Params::Util          ();
 use LWP::UserAgent        ();
 use HTTP::Request::Common 'GET', 'PUT';
 use PITA::Image::Platform ();
@@ -209,7 +209,7 @@ sub cleanup {
 }
 
 sub injector {
-	$_[0]->{injector};	
+	$_[0]->{injector};
 }
 
 sub workarea {
@@ -248,7 +248,7 @@ sub add_platform {
 
 sub add_task {
 	my $self = shift;
-	my $task = _INSTANCE($_[0], 'PITA::Image::Task')
+	my $task = Params::Util::_INSTANCE($_[0], 'PITA::Image::Task')
 		or die("Passed bad param to add_task");
 	push @{$self->{tasks}}, $task;
 	1;
@@ -277,7 +277,7 @@ sub prepare {
 	unless ( $self->config ) {
 		$self->{config} = Config::Tiny->read( $self->image_conf );
 	}
-	unless ( _INSTANCE($self->config, 'Config::Tiny') ) {
+	unless ( Params::Util::_INSTANCE($self->config, 'Config::Tiny') ) {
 		Carp::croak("Failed to load scheme.conf config file");
 	}
 
@@ -313,7 +313,7 @@ sub prepare {
 	unless ( $self->server_uri ) {
 		Carp::croak("Missing 'server_uri' param in image.conf");
 	}
-	unless ( _INSTANCE($self->server_uri, 'URI::http') ) {
+	unless ( Params::Util::_INSTANCE($self->server_uri, 'URI::http') ) {
 		Carp::croak("The 'server_uri' is not a HTTP(S) URI");
 	}
 	unless ( $NOSERVER ) {
@@ -359,7 +359,7 @@ sub prepare {
 		Carp::croak("Unknown task.task value in image.conf");
 	}
 
-	$self;	
+	$self;
 }
 
 sub run {
@@ -399,7 +399,7 @@ sub report_task {
 	my $task    = shift;
 	my $agent   = LWP::UserAgent->new;
 	my $request = $self->report_task_request( $task );
-	unless ( _INSTANCE($request, 'HTTP::Request') ) {
+	unless ( Params::Util::_INSTANCE($request, 'HTTP::Request') ) {
 		Carp::croak("Did not generate proper report HTTP::Request");
 	}
 	unless ( $NOSERVER ) {
@@ -413,7 +413,8 @@ sub report_task {
 }
 
 sub report_task_request {
-	my ($self, $task) = @_;	
+	my $self = shift;
+	my $task = shift;
 	unless ( $task->result ) {
 		Carp::croak("No Result Report created to PUT");
 	}
@@ -434,7 +435,8 @@ sub report_task_request {
 
 # The location to put to
 sub report_task_uri {
-	my ($self, $task) = @_;
+	my $self = shift;
+	my $task = shift;
 	my $uri  = $self->server_uri;
 	my $job  = $task->job_id;
 	my $path = File::Spec::Unix->catfile( $uri->path || '/', $job );
@@ -505,5 +507,3 @@ The full text of the license can be found in the
 LICENSE file included with this module.
 
 =cut
-
-1;

@@ -1,26 +1,15 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Check how PITA::Image responds to various config files
 
+
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'lib'),
-			catdir('blib', 'arch'),
-			'lib',
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
-
 use Test::More tests => 35;
-
+use File::Spec::Functions ':ALL';
 use Params::Util ':ALL';
 use File::Temp   ();
 use File::Remove ();
@@ -63,7 +52,7 @@ SCOPE: {
 	my $manager = PITA::Image->new(
 		injector => injector_ok('13_ping'),
 		cleanup  => 1,
-		);
+	);
 	isa_ok( $manager, 'PITA::Image' );
 	is( scalar($manager->tasks), 0, 'Got zero task' );
 	ok( $manager->run, '->run returns ok' );
@@ -80,11 +69,11 @@ SCOPE: {
 	my $manager = PITA::Image->new(
 		injector => injector_ok('14_discover'),
 		cleanup  => 1,
-		);
+	);
 	$manager->add_platform(
 		scheme => 'perl5',
 		path   => $^X,
-		);
+	);
 	isa_ok( $manager, 'PITA::Image' );
 	is( scalar($manager->tasks),     0, 'Got one task' );
 	is( scalar($manager->platforms), 1, 'Got one platform' );
@@ -117,11 +106,11 @@ SCOPE: {
 	my $manager = PITA::Image->new(
 		injector => injector_ok('03_good'),
 		cleanup  => 1,
-		);
+	);
 	$manager->add_platform(
 		scheme => 'perl5',
 		path   => $^X,
-		);
+	);
 	isa_ok( $manager, 'PITA::Image' );
 	is( scalar($manager->tasks),     0, 'Got one task' );
 	is( scalar($manager->platforms), 1, 'Got one platform' );
@@ -141,8 +130,6 @@ SCOPE: {
 
 	# Report the results
 	ok( $manager->report, '->report returns ok' );
-
-	1;
 }
 
 exit(0);
