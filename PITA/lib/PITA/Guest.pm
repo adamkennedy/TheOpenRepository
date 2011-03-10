@@ -17,7 +17,7 @@ This class implements the Guest abstraction.
 
 =cut
 
-use 5.006;
+use 5.008;
 use strict;
 use Process        ();
 use File::Spec     ();
@@ -25,11 +25,8 @@ use File::Basename ();
 use Params::Util   qw{ _STRING _SCALAR _INSTANCE };
 use PITA::XML      ();
 
-use vars qw{$VERSION @ISA};
-BEGIN {
-	$VERSION = '044';
-	@ISA     = 'Process';
-}
+our $VERSION = '0.50';
+our @ISA     = 'Process';
 
 
 

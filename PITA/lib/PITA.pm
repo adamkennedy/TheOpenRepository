@@ -1,16 +1,12 @@
 package PITA;
 
-use 5.006;
+use 5.008;
 use strict;
-
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '044';
-}
-
 use PITA::XML           ();
 use PITA::Guest         ();
 use PITA::Guest::Driver ();
+
+our $VERSION = '0.50';
 
 1;
 

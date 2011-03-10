@@ -21,7 +21,7 @@ Guest image location and searching is done the long way, with no indexing.
 
 =cut
 
-use 5.006;
+use 5.008;
 use strict;
 use Carp                 ();
 use File::Spec           ();
@@ -31,12 +31,9 @@ use Data::GUID           ();
 use PITA::XML::Guest     ();
 use PITA::Guest::Storage ();
 
-use vars qw{$VERSION @ISA $LOCKFILE};
-BEGIN {
-	$VERSION  = '044';
-	@ISA      = 'PITA::Guest::Storage';
-	$LOCKFILE = 'PITA-Guest-Storage-Simple.lock';
-}
+our $VERSION  = '0.50';
+our @ISA      = 'PITA::Guest::Storage';
+our $LOCKFILE = 'PITA-Guest-Storage-Simple.lock';
 
 
 

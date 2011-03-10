@@ -1,6 +1,6 @@
 package PITA::Guest::Driver;
 
-use 5.006;
+use 5.008;
 use strict;
 use Carp         ();
 use File::Temp   ();
@@ -8,10 +8,7 @@ use File::Remove ();
 use Params::Util qw{ _INSTANCE _POSINT _HASH };
 use PITA::XML    ();
 
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '044';
-}
+our $VERSION = '0.50';
 
 
 

@@ -2,16 +2,14 @@ package PITA::Guest;
 
 # A complete abstraction of a Guest
 
-use 5.006;
+use 5.008;
 use strict;
 use Process       ();
 use Process::YAML ();
 use PITA::XML     ();
 
-use vars qw{$VERSION @ISA};
-BEGIN {
-	$VERSION = '044';
-	@ISA     = qw{
+our $VERSION = '0.50';
+our @ISA     = qw{
 		Process::YAML
 		Process
 	};

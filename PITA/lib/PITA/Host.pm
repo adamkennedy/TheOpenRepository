@@ -3,6 +3,7 @@ package PITA::Host;
 # Implements a single PITA Testing Host.
 # Responsible for managing images and processing Requests
 
+use 5.008;
 use strict;
 use Carp             ();
 use File::Spec       ();
@@ -12,10 +13,7 @@ use Archive::Extract ();
 
 use constant FFR => 'File::Find::Rule';
 
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '044';
-}
+our $VERSION = '0.50';
 
 
 

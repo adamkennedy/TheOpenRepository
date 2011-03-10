@@ -12,7 +12,7 @@ The author is an idiot
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
 use version             ();
 use Carp                ();
@@ -27,11 +27,8 @@ use PITA::XML           ();
 use PITA::Scheme        ();
 use PITA::Guest::Driver ();
 
-use vars qw{$VERSION @ISA};
-BEGIN {
-	$VERSION = '044';
-	@ISA     = 'PITA::Guest::Driver';
-}
+our $VERSION = '0.50';
+our @ISA     = 'PITA::Guest::Driver';
 
 # SHOULD be tested, but recheck on load
 my $workarea = File::Spec->tmpdir;

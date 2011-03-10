@@ -18,16 +18,13 @@ image data that is typically stored in a Guest image library.
 
 =cut
 
-use 5.006;
+use 5.008;
 use strict;
 use Carp         ();
 use Data::GUID   ();
 use Params::Util qw{ _INSTANCE _STRING };
 
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '044';
-}
+our $VERSION = '0.50';
 
 
 

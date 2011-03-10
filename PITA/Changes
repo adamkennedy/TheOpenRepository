@@ -1,5 +1,10 @@
 Revision history for Perl extension PITA
 
+0.50 Thu 10 Mar 2011
+	- Rewrote legacy PITA::POE::SupportServer as PITA::Guest::Server
+	- Minimum version of Perl is now 5.008 (because of POE mainly)
+	- Various dependencies were version-bumped with the merge
+
 0.44 Wed  2 Feb 2011
 	- Upgrading to Module::Install::DSL 1.00
 	- Only do file locking with File::Flock on Unix

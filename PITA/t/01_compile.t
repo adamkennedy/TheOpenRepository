@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 22;
+use Test::More tests => 26;
 use Test::Script;
 
 BEGIN {
@@ -22,6 +22,8 @@ BEGIN {
 	use_ok( 'PITA::Guest::Driver::Local'       );
 	use_ok( 'PITA::Guest::Driver::Image'       );
 	use_ok( 'PITA::Guest::Driver::Image::Test' );
+	use_ok( 'PITA::Guest::Server'              );
+	use_ok( 'PITA::Guest::Server::HTTP'        );
 	use_ok( 'PITA::Guest::Storage'             );
 	use_ok( 'PITA::Guest::Storage::Simple'     );
 }
@@ -37,6 +39,8 @@ foreach my $c ( qw{
 	PITA::Guest::Driver::Local
 	PITA::Guest::Driver::Image
 	PITA::Guest::Driver::Image::Test
+	PITA::Guest::Server
+	PITA::Guest::Server::HTTP
 	PITA::Guest::Storage
 	PITA::Guest::Storage::Simple
 } ) {

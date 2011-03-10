@@ -3,7 +3,7 @@ package PITA::Guest::Driver::Image;
 # Provides a base class for PITA Guests that are system images.
 # For example, Qemu, VMWare, etc
 
-use 5.006;
+use 5.008;
 use strict;
 use Carp                     ();
 use File::Path               ();
@@ -18,11 +18,8 @@ use Class::Inspector         ();
 use PITA::Guest::Driver      ();
 use PITA::POE::SupportServer ();
 
-use vars qw{$VERSION @ISA};
-BEGIN {
-	$VERSION = '044';
-	@ISA     = 'PITA::Guest::Driver';
-}
+our $VERSION = '0.50';
+our @ISA     = 'PITA::Guest::Driver';
 
 
 
