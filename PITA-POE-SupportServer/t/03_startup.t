@@ -29,7 +29,7 @@ sub order {
 my $server = PITA::SupportServer->new(
 	Hostname      => $HOSTNAME,
 	Port          => $PORT,
-	Mirrors       => { '/cpan.' => '.' },
+	Mirrors       => { '/cpan/' => catdir('t', 'minicpan') },
 	Program       => [ 'perl', $fail, "http://$HOSTNAME:$PORT/" ],
 	StartupEvent  => [ test => 'started'  ],
 	ShutdownEvent => [ test => 'shutdown' ],

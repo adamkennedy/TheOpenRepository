@@ -146,7 +146,7 @@ sub http_ping : Event {
 
 sub http_mirror : Event {
 	$_[SELF]->activity_timeout_start;
-	push @{$_[SELF]->{mirrored}}, [ $_[ARG1], $_[ARG2] ];
+	push @{$_[SELF]->{mirrored}}, [ $_[ARG1], $_[ARG2], $_[ARG3] ];
 }
 
 sub http_upload : Event {

@@ -15,8 +15,8 @@ use POE;
 my $HOSTNAME = '127.0.0.1';
 my $PORT     = 12345;
 
-my $discover = catfile( qw{ t mock discover.pl } );
-ok( -f $discover, "Found $discover" );
+my $test = catfile( qw{ t mock test.pl } );
+ok( -f $test, "Found $test" );
 
 # Test event firing order
 my $order = 0;
@@ -30,7 +30,7 @@ my $server = PITA::SupportServer->new(
 	Hostname      => '127.0.0.1',
 	Port          => 12345,
 	Mirrors       => { '/cpan/' => catdir('t', 'minicpan') },
-	Program       => [ 'perl', $discover, "http://$HOSTNAME:$PORT/" ],
+	Program       => [ 'perl', $test, "http://$HOSTNAME:$PORT/" ],
 	StartupEvent  => [ test => 'started'  ],
 	ShutdownEvent => [ test => 'shutdown' ],
 );
@@ -42,7 +42,7 @@ POE::Session->create(
 		_start => sub {
 			order( 0, 'Fired main::_start' );
 			$_[KERNEL]->alias_set('test');
-			$_[KERNEL]->delay_set( timeout => 5 );
+			$_[KERNEL]->delay_set( timeout => 20 );
 			$_[KERNEL]->yield('startup');
 		},
 
@@ -60,7 +60,13 @@ POE::Session->create(
 		shutdown => sub {
 			order( 3, 'Server ShutdownEvent' );
 			is( $_[ARG1], 1, 'pinged ok' );
-			is_deeply( $_[ARG2], [ ], 'mirrored is null' );
+			is_deeply(
+				$_[ARG2],
+				[
+					[ '/cpan/', 'Config-Tiny-2.13.tar.gz', 200 ],
+				],
+				'mirrored is null',
+			);
 			is_deeply(
 				$_[ARG3],
 				[

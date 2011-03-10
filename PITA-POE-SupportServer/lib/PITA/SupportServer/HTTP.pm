@@ -5,6 +5,7 @@ package PITA::SupportServer::HTTP;
 use 5.008;
 use strict;
 use warnings;
+use File::Spec                 ();
 use POE::Declare::HTTP::Server ();
 
 our $VERSION = '0.50';
@@ -34,14 +35,16 @@ sub new {
 		},
 	);
 
-	# Check params
+	# Check and normalize
 	unless ( Params::Util::_HASH0($self->Mirrors) ) {
 		die "Missing or invalid Mirrors param";
 	}
 	foreach my $route ( sort keys %{$self->Mirrors} ) {
-		unless ( -d $self->Mirrors->{$route} ) {
-			die "Directory for mirror '$route' does not exist";
+		my $dir = File::Spec->rel2abs( $self->Mirrors->{$route} );
+		unless ( -d $dir ) {
+			die "Directory '$dir' for mirror '$route' does not exist";
 		}
+		$self->Mirrors->{$route} = $dir;
 	}
 
 	return $self;
@@ -116,18 +119,16 @@ sub _handler {
 				$response->code(200);
 				$response->header('Content-Type' => 'application/x-gzip');
 				$response->content($blob);
-
-				# Report the mirror event
-				$self->MirrorEvent( $route, $file );
-
-				return;
 			} else {
 				$response->code(404);
 				$response->header('Content-Type' => 'text/plain');
 				$response->content('404 - File Not Found');
-
-				return;
 			}
+
+			# Report the mirror event
+			$self->MirrorEvent( $route, $file, $response->code );
+
+			return;
 		}
 	}
 
