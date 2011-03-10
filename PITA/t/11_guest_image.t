@@ -102,7 +102,7 @@ SCOPE: {
 	isa_ok( $guest->driver, 'PITA::Guest::Driver'              );
 	isa_ok( $guest->driver, 'PITA::Guest::Driver::Image'       );
 	isa_ok( $guest->driver, 'PITA::Guest::Driver::Image::Test' );
-	isa_ok( $guest->driver->support_server_new, 'PITA::POE::SupportServer' );
+	isa_ok( $guest->driver->support_server_new, 'PITA::Guest::Server' );
 	is( $guest->driver->support_server, undef, 'Not support server when not prepared' );
 	is( scalar($guest->guestxml->platforms),    0,  '->platforms(scalar) returns 0' );
 	is_deeply( [ $guest->guestxml->platforms ], [], '->platforms(list) return ()'   ); 
@@ -117,7 +117,7 @@ SCOPE: {
 
 	# Check that we can prepare for a ping
 	ok( $guest->driver->ping_prepare, '->driver->ping_prepare returns true' );
-	isa_ok( $guest->driver->support_server, 'PITA::POE::SupportServer' );
+	isa_ok( $guest->driver->support_server, 'PITA::Guest::Server' );
 	my $injector = $guest->driver->injector_dir;
 	ok( -d $injector, 'Injector exists' );
 	ok( -f catfile( $injector, 'image.conf' ), 'image.conf file created' );
@@ -134,7 +134,7 @@ SCOPE: {
 
 	# Check that we can prepare for discovery
 	ok( $guest->driver->discover_prepare, '->driver->discover_prepare returns true' );
-	isa_ok( $guest->driver->support_server, 'PITA::POE::SupportServer' );
+	isa_ok( $guest->driver->support_server, 'PITA::Guest::Server' );
 	ok( -d $injector, 'Injector exists' );
 	ok( -f catfile( $injector, 'image.conf' ), 'image.conf file created' );
 	ok( -d catfile( $injector, 'perl5lib' ),   'perl5lib dir not created' );
@@ -151,7 +151,7 @@ SCOPE: {
 
 	# Check that we can prepare for a test
 	ok( $guest->driver->test_prepare($request), '->driver->test_prepare returns true' );
-	isa_ok( $guest->driver->support_server, 'PITA::POE::SupportServer' );
+	isa_ok( $guest->driver->support_server, 'PITA::Guest::Server' );
 	ok( -d $injector, 'Injector exists' );
 	ok( -f catfile( $injector, 'image.conf' ), 'image.conf file created' );
 	ok( -d catfile( $injector, 'perl5lib' ),   'perl5lib dir created' );
