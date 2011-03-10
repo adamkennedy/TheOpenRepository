@@ -1,4 +1,8 @@
-Revision history for Perl extension PITA::XML
+Revision history for Perl extension PITA-XML
+
+0.50 Thu 10 Mar 2011
+	- Temporarily make XML::Validator::Schema validation optional to allow
+	  PITA::XML and PITA as a whole to run on Windows.
 
 0.44 Tue  2 Feb 2011
 	- Fixes to PITA::XML::Guest->driver_available

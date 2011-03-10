@@ -19,11 +19,18 @@ BEGIN {
 }
 use File::ShareDir          ();
 use XML::SAX::ParserFactory ();
-use XML::Validator::Schema  ();
+
+# Optionally load the schema validator
+BEGIN {
+	local $@;
+	eval {
+		require XML::Validator::Schema;
+	};
+}
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.44';
+	$VERSION = '0.50';
 }
 
 # The XML Schema File
@@ -71,6 +78,9 @@ use PITA::XML::SAXDriver ();
 sub validate {
 	my $class = shift;
 	my $fh    = $class->_FH(shift);
+
+	# Make schema validation dependant on module availability
+	$XML::Validator::Schema::VERSION or return 1;
 
 	# Create the validator
 	my $parser = XML::SAX::ParserFactory->parser(

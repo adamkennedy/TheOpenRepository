@@ -29,7 +29,7 @@ use XML::SAX::Base ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.44';
+	$VERSION = '0.50';
 	@ISA     = 'XML::SAX::Base';
 }
 

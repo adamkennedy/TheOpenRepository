@@ -14,7 +14,7 @@ requires      Class::Autouse          1.23
 requires      Data::Digest            0.02
 requires      XML::SAX::Writer        0.44
 requires      XML::SAX::ParserFactory 0.13
-requires      XML::Validator::Schema  1.08
+# requires      XML::Validator::Schema  1.08
 test_requires File::Spec              0.80
 test_requires Test::More              0.47
 test_requires Test::LongString        0
