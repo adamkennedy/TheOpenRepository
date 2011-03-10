@@ -22,7 +22,7 @@ requires      LWP                        5.69
 requires      Params::Util               1.00
 requires      Process                    0.16
 requires      Process::YAML              0
-requires      PITA::XML                  0.44
+requires      PITA::XML                  0.50
 requires      PITA::Scheme               0.43
 requires      PITA::Image                0.43
 requires      POE::Declare               0.53

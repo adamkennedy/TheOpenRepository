@@ -9,7 +9,7 @@ BEGIN {
 }
 
 use File::Spec::Functions ':ALL';
-use PITA::SupportServer::HTTP ();
+use PITA::Guest::Server::HTTP ();
 
 my $minicpan = rel2abs( catdir( 't', 'minicpan' ), );
 unless ( -d $minicpan ) {
@@ -17,7 +17,7 @@ unless ( -d $minicpan ) {
 }
 
 # Create the web server
-my $server = PITA::SupportServer::HTTP->new(
+my $server = PITA::Guest::Server::HTTP->new(
 	Hostname => '127.0.0.1',
 	Port     => 12345,
 	Mirrors  => {

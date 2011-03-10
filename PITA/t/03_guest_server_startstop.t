@@ -9,7 +9,7 @@ BEGIN {
 use Test::More tests => 14;
 use Test::POE::Stopping;
 use File::Spec::Functions ':ALL';
-use PITA::SupportServer ();
+use PITA::Guest::Server ();
 use POE;
 
 my $HOSTNAME = '127.0.0.1';
@@ -26,7 +26,7 @@ sub order {
 	is( $order++, $position, "$message ($position)" );
 }
 
-my $server = PITA::SupportServer->new(
+my $server = PITA::Guest::Server->new(
 	Hostname      => $HOSTNAME,
 	Port          => $PORT,
 	Mirrors       => { '/cpan/' => catdir('t', 'minicpan') },
@@ -34,7 +34,7 @@ my $server = PITA::SupportServer->new(
 	StartupEvent  => [ test => 'started'  ],
 	ShutdownEvent => [ test => 'shutdown' ],
 );
-isa_ok( $server, 'PITA::SupportServer' );
+isa_ok( $server, 'PITA::Guest::Server' );
 
 # Set up the test session
 POE::Session->create(

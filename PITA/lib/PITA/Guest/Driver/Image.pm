@@ -5,18 +5,18 @@ package PITA::Guest::Driver::Image;
 
 use 5.008;
 use strict;
-use Carp                     ();
-use File::Path               ();
-use File::Temp               ();
-use File::Copy               ();
-use File::Remove             ();
-use File::Basename           ();
-use Storable                 ();
-use Params::Util             qw{ _INSTANCE _POSINT _STRING };
-use Config::Tiny             ();
-use Class::Inspector         ();
-use PITA::Guest::Driver      ();
-use PITA::POE::SupportServer ();
+use  Carp                ();
+use  File::Path          ();
+use  File::Temp          ();
+use  File::Copy          ();
+use  File::Remove        ();
+use  File::Basename      ();
+use  Storable            ();
+use  Params::Util        ();
+use  Config::Tiny        ();
+use  Class::Inspector    ();
+use  PITA::Guest::Driver ();
+use  PITA::Guest::Server ();
 
 our $VERSION = '0.50';
 our @ISA     = 'PITA::Guest::Driver';
@@ -51,7 +51,7 @@ sub new {
 
 	# How much memory to use
 	$self->{memory} = 256 unless $self->memory;
-	unless ( _POSINT($self->memory) ) {
+	unless ( Params::Util::_POSINT($self->memory) ) {
 		Carp::croak("Invalid memory amount (in meg) '" . $self->memory . "'");
 	}
 
@@ -219,7 +219,7 @@ sub discover_cleanup {
 
 	# Get the report file contents
 	my $string = $self->support_server->http_result('/1');
-	unless ( _STRING($string) ) {
+	unless ( Params::Util::_STRING($string) ) {
 		Carp::croak("Discovery report was not uploaded to the support server");
 	}
 
@@ -329,13 +329,13 @@ sub prepare_task {
 	}
 
 	# Add the tasks
-	if ( _STRING($task) and $task eq 'ping' ) {
+	if ( Params::Util::_STRING($task) and $task eq 'ping' ) {
 		$image_conf->{task} = {
 			task   => 'Ping',
 			job_id => 1,
 			};
 
-	} elsif ( _STRING($task) and $task eq 'discover' ) {
+	} elsif ( Params::Util::_STRING($task) and $task eq 'discover' ) {
 		# Discovery always uses the job_id 1 (for now)
 		$image_conf->{task} = {
 			task   => 'Discover',
@@ -351,7 +351,7 @@ sub prepare_task {
 
 		# Which testing context will we run in
 		### Don't check for error, we WANT to be undef if not a platform
-		my $platform = _INSTANCE(shift, 'PITA::XML::Platform');
+		my $platform = Params::Util::_INSTANCE(shift, 'PITA::XML::Platform');
 
 		# Set the tarball filename to be relative to current
 		my $filename     = File::Basename::basename( $request->file->filename );

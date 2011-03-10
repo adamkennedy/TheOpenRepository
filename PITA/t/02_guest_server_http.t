@@ -11,7 +11,7 @@ BEGIN {
 use Test::More tests => 37;
 use Test::POE::Stopping;
 use File::Spec::Functions ':ALL';
-use PITA::SupportServer::HTTP ();
+use PITA::Guest::Server::HTTP ();
 use POE::Declare::HTTP::Client ();
 use POE;
 
@@ -93,7 +93,7 @@ $client = POE::Declare::HTTP::Client->new(
 isa_ok( $client, 'POE::Declare::HTTP::Client' );
 
 # Create the web server
-$server = PITA::SupportServer::HTTP->new(
+$server = PITA::Guest::Server::HTTP->new(
 	Hostname => '127.0.0.1',
 	Port     => 12345,
 	Mirrors  => {
@@ -124,7 +124,7 @@ $server = PITA::SupportServer::HTTP->new(
 		test => 'shutdown',
 	],
 );
-isa_ok( $server, 'PITA::SupportServer::HTTP' );
+isa_ok( $server, 'PITA::Guest::Server::HTTP' );
 
 # Set up the test session
 POE::Session->create(
