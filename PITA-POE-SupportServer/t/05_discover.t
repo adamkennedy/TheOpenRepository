@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 8;
+use Test::More tests => 12;
 use Test::POE::Stopping;
 use File::Spec::Functions ':ALL';
 use PITA::SupportServer ();
@@ -63,7 +63,12 @@ POE::Session->create(
 			is_deeply( $_[ARG2], [ ], 'mirrored is null' );
 			is_deeply(
 				$_[ARG3],
-				[ 'response.xml' => \"This is my response" ],
+				[
+					[
+						'/response.xml',
+						\"This is my response",
+					],
+				],
 				'uploaded expected file',
 			);
 			$_[KERNEL]->alias_remove('test');
@@ -82,4 +87,4 @@ POE::Session->create(
 	},
 );
 
-$server->run
+$server->run;

@@ -22,8 +22,9 @@ sub response {
 			Content => 'This is my response',
 		);
 		# print $_[1]->code . ' ' . $_[1]->message . "\n";
+	} else {
+		$client->stop;
 	}
-	$client->stop;
 }
 
 sub shutdown {
