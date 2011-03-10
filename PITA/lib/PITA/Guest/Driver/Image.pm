@@ -5,18 +5,18 @@ package PITA::Guest::Driver::Image;
 
 use 5.008;
 use strict;
-use  Carp                ();
-use  File::Path          ();
-use  File::Temp          ();
-use  File::Copy          ();
-use  File::Remove        ();
-use  File::Basename      ();
-use  Storable            ();
-use  Params::Util        ();
-use  Config::Tiny        ();
-use  Class::Inspector    ();
-use  PITA::Guest::Driver ();
-use  PITA::Guest::Server ();
+use  Carp                         ();
+use  File::Path                   ();
+use  File::Temp                   ();
+use  File::Copy                   ();
+use  File::Remove                 ();
+use  File::Basename               ();
+use  Storable                     ();
+use  Params::Util                 ();
+use  Config::Tiny                 ();
+use  Class::Inspector             ();
+use  PITA::Guest::Driver          ();
+use  PITA::Guest::Server::Process ();
 
 our $VERSION = '0.50';
 our @ISA     = 'PITA::Guest::Driver';
@@ -66,7 +66,9 @@ sub new {
 	}
 
 	# Create the support server result files to expect
-	$self->{support_server_results} = [];
+	$self->{support_server_pinged}   = 0;
+	$self->{support_server_mirrored} = [ ];
+	$self->{support_server_results}  = [ ];
 
 	$self;
 }
@@ -101,6 +103,14 @@ sub support_server_port {
 
 sub support_server_dir {
 	$_[0]->{support_server_dir};
+}
+
+sub support_server_pinged {
+	$_[0]->{support_server_pinged};
+}
+
+sub support_server_mirrored {
+	$_[0]->{support_server_mirrored};
 }
 
 sub support_server_results {
@@ -172,6 +182,12 @@ sub ping_execute {
 sub ping_cleanup {
 	my $self = shift;
 
+	# Capture results from the support server
+	$self->support_server->finish;
+	$self->{support_server_pinged}   = $self->support_server->pinged;
+	$self->{support_server_mirrored} = $self->support_server->mirrored;
+	$self->{support_server_results}  = $self->support_server->uploaded;
+
 	# Delete the support server
 	delete $self->{support_server};
 
@@ -179,10 +195,11 @@ sub ping_cleanup {
 }
 
 sub discover {
-	$_[0]->clean_injector;
-	$_[0]->discover_prepare;
-	$_[0]->discover_execute;
-	$_[0]->discover_cleanup;
+	my $self = shift;
+	$self->clean_injector;
+	$self->discover_prepare;
+	$self->discover_execute;
+	$self->discover_cleanup;
 	return 1;
 }
 
@@ -211,20 +228,26 @@ sub discover_execute {
 	or
 	Carp::croak("Failed to execute support server");
 
-	1;
+	return 1;
 }
 
 sub discover_cleanup {
 	my $self = shift;
 
+	# Capture results from the support server
+	$self->support_server->finish;
+	$self->{support_server_pinged}   = $self->support_server->pinged;
+	$self->{support_server_mirrored} = $self->support_server->mirrored;
+	$self->{support_server_results}  = $self->support_server->uploaded;
+
 	# Get the report file contents
-	my $string = $self->support_server->http_result('/1');
-	unless ( Params::Util::_STRING($string) ) {
+	my $string = $self->support_server->upload('/1');
+	unless ( Params::Util::_SCALAR($string) ) {
 		Carp::croak("Discovery report was not uploaded to the support server");
 	}
 
 	# Parse into a report
-	my $report = PITA::XML::Guest->read(\$string);	
+	my $report = PITA::XML::Guest->read($string);
 	unless ( $report->platforms ) {
 		Carp::croak("Discovery report did not contain any platforms");
 	}
@@ -274,21 +297,27 @@ sub test_execute {
 	or
 	Carp::croak("Failed to execute support server");
 
-	1;
+	return 1;
 }
 
 sub test_cleanup {
 	my $self    = shift;
 	my $request = shift;
 
+	# Capture results from the support server
+	$self->support_server->finish;
+	$self->{support_server_pinged}   = $self->support_server->pinged;
+	$self->{support_server_mirrored} = $self->support_server->mirrored;
+	$self->{support_server_results}  = $self->support_server->uploaded;
+
 	# Get the report
-	my $string = $self->support_server->http_result('/' . $request->id);
+	my $string = $self->support_server->upload('/' . $request->id);
 	unless ( $string ) {
 		Carp::croak("Failed to get report " . $request->id . " from support server");
 	}
 
 	# Parse into a report
-	my $report = PITA::XML::Report->read(\$string);	
+	my $report = PITA::XML::Report->read($string);
 	unless ( $report ) {
 		Carp::croak("Discovery report did not contain any platforms");
 	}
@@ -323,7 +352,7 @@ sub prepare_task {
 		class      => 'PITA::Image',
 		version    => '0.43',
 		server_uri => $self->support_server_uri,
-		};
+	};
 	if ( -d $self->perl5lib_dir ) {
 		$image_conf->{_}->{perl5lib} = 'perl5lib';
 	}
@@ -333,14 +362,14 @@ sub prepare_task {
 		$image_conf->{task} = {
 			task   => 'Ping',
 			job_id => 1,
-			};
+		};
 
 	} elsif ( Params::Util::_STRING($task) and $task eq 'discover' ) {
 		# Discovery always uses the job_id 1 (for now)
 		$image_conf->{task} = {
 			task   => 'Discover',
 			job_id => 1,
-			};
+		};
 
 		# Tell the support server to expect the report
 		$self->{support_server_results} = '/1';
@@ -358,7 +387,7 @@ sub prepare_task {
 		my $tarball_from = $request->file->filename;
 		my $tarball_to   = File::Spec->catfile(
 			$self->injector_dir, $filename,
-			);
+		);
 		$request->file->{filename} = $filename;
 
 		# Copy the tarball into the injector
@@ -378,7 +407,7 @@ sub prepare_task {
 			scheme => $request->scheme,
 			path   => $platform ? $platform->path : '', # '' is default
 			config => $request_file,
-			};
+		};
 
 		# Tell the support server to expect the report
 		$self->{support_server_results} = [ "/" . $request->id ];
@@ -393,7 +422,7 @@ sub prepare_task {
 		Carp::croak("Failed to write config to $image_file");
 	}
 
-	1;
+	return 1;
 }
 
 # Copy in the perl5lib modules
@@ -418,23 +447,26 @@ sub prepare_perl5lib {
 			or die "Failed to copy $from to $to";
 	}
 
-	1;
+	return 1;
 }
 
 sub clean_injector {
-	my $self     = shift;
+	my $self = shift;
+
+	# Scan for stuff in the injector
 	my $injector = $self->injector_dir;
 	opendir( INJECTOR, $injector ) or die "opendir: $!";
 	my @files = readdir( INJECTOR );
 	closedir( INJECTOR );
 
-	# Delete them
+	# Delete it all
 	foreach my $f ( File::Spec->no_upwards(@files) ) {
 		my $path = File::Spec->catfile( $injector, $f );
-		File::Remove::remove( \1, $path ) or die "Failed to remove $f from injector directory";	
+		File::Remove::remove( \1, $path ) and next;
+		die "Failed to remove $f from injector directory";
 	}
 
-	1;
+	return 1;
 }
 
 

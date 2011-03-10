@@ -11,7 +11,7 @@ requires      File::Temp                 0
 requires      File::Path                 0
 requires      File::Copy                 0
 requires      File::Flock                104.111901 unless win32
-requires      File::Remove               0.34
+requires      File::Remove               1.42
 requires      Getopt::Long               0
 requires      Storable                   2.14
 requires      File::Find::Rule           0.30

@@ -10,17 +10,17 @@ BEGIN {
 
 use Test::More tests => 93;
 
-use PITA ();
-use File::Remove 'remove';
+use PITA         ();
+use File::Remove ();
 use File::Spec::Functions ':ALL';
 
 sub compare_guests {
 	my ($left, $right, $message) = @_;
-	delete $left->driver->{injector_dir};
 	delete $left->driver->{workarea};
-	delete $right->driver->{injector_dir};
+	delete $left->driver->{injector_dir};
 	delete $right->driver->{workarea};
-	is_deeply( $left, $right, $message );		
+	delete $right->driver->{injector_dir};
+	is_deeply( $left, $right, $message );
 }
 
 # Find the test guest file
@@ -29,8 +29,7 @@ ok( -f $image_test, 'Found image_test.pita test file' );
 
 # Set up the write test guest file
 my $image_write = rel2abs(catfile( 't', 'guests', 'image_write.pita' ));
-      if ( -f $image_write ) { remove( $image_write ) }
-END { if ( -f $image_write ) { remove( $image_write ) } }
+File::Remove::clear($image_write);
 ok( ! -f $image_write, 'local_write.pita does not exist' );
 
 # Find the test request file
@@ -52,8 +51,8 @@ isa_ok( $request, 'PITA::XML::Request' );
 my $tarball = $request->find_file( $simple_request );
 ok( $tarball, 'Found tarball for request' );
 ok( -f $tarball, 'Confirm that tarball exists' );
-unless ( File::Spec->file_name_is_absolute( $tarball ) ) {
-	$tarball = File::Spec->rel2abs( $tarball );
+unless ( file_name_is_absolute( $tarball ) ) {
+	$tarball = rel2abs( $tarball );
 }
 ok( -f $tarball, 'Confirm that tarball exists (absolute)' );
 $request->file->{filename} = $tarball;
@@ -102,7 +101,7 @@ SCOPE: {
 	isa_ok( $guest->driver, 'PITA::Guest::Driver'              );
 	isa_ok( $guest->driver, 'PITA::Guest::Driver::Image'       );
 	isa_ok( $guest->driver, 'PITA::Guest::Driver::Image::Test' );
-	isa_ok( $guest->driver->support_server_new, 'PITA::Guest::Server' );
+	isa_ok( $guest->driver->support_server_new, 'PITA::Guest::Server::Process' );
 	is( $guest->driver->support_server, undef, 'Not support server when not prepared' );
 	is( scalar($guest->guestxml->platforms),    0,  '->platforms(scalar) returns 0' );
 	is_deeply( [ $guest->guestxml->platforms ], [], '->platforms(list) return ()'   ); 
@@ -117,7 +116,7 @@ SCOPE: {
 
 	# Check that we can prepare for a ping
 	ok( $guest->driver->ping_prepare, '->driver->ping_prepare returns true' );
-	isa_ok( $guest->driver->support_server, 'PITA::Guest::Server' );
+	isa_ok( $guest->driver->support_server, 'PITA::Guest::Server::Process' );
 	my $injector = $guest->driver->injector_dir;
 	ok( -d $injector, 'Injector exists' );
 	ok( -f catfile( $injector, 'image.conf' ), 'image.conf file created' );
@@ -134,7 +133,7 @@ SCOPE: {
 
 	# Check that we can prepare for discovery
 	ok( $guest->driver->discover_prepare, '->driver->discover_prepare returns true' );
-	isa_ok( $guest->driver->support_server, 'PITA::Guest::Server' );
+	isa_ok( $guest->driver->support_server, 'PITA::Guest::Server::Process' );
 	ok( -d $injector, 'Injector exists' );
 	ok( -f catfile( $injector, 'image.conf' ), 'image.conf file created' );
 	ok( -d catfile( $injector, 'perl5lib' ),   'perl5lib dir not created' );
@@ -151,7 +150,7 @@ SCOPE: {
 
 	# Check that we can prepare for a test
 	ok( $guest->driver->test_prepare($request), '->driver->test_prepare returns true' );
-	isa_ok( $guest->driver->support_server, 'PITA::Guest::Server' );
+	isa_ok( $guest->driver->support_server, 'PITA::Guest::Server::Process' );
 	ok( -d $injector, 'Injector exists' );
 	ok( -f catfile( $injector, 'image.conf' ), 'image.conf file created' );
 	ok( -d catfile( $injector, 'perl5lib' ),   'perl5lib dir created' );
@@ -187,13 +186,11 @@ SCOPE: {
 	# Ping the guest
 	ok( $guest->ping, '->ping returns ok' );
 	is( $guest->driver->support_server, undef, 'Support Server cleaned up' );
-	is_deeply(
-		[ $PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER->get_log ],
-		[ 'GET /' ],
-		'->get_log ok',
-	);
+	my $last_server = $PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER;
+	is( $last_server->pinged, 1, '->pinged ok' );
+	is_deeply( $last_server->mirrored, [ ], '->mirrored ok' );
+	is_deeply( $last_server->uploaded, [ ], '->uploaded ok' );
 	$PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER = undef;
-
 }
 
 
@@ -212,11 +209,13 @@ SCOPE: {
 	# Discover the platforms
 	ok( $guest->discover, '->discover returns ok' );
 	is( $guest->driver->support_server, undef, 'Support Server cleaned up' );
-	is_deeply(
-		[ $PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER->get_log ],
-		[ 'GET /', 'PUT /1' ],
-		'->get_log ok',
-	);
+	my $last_server = $PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER;
+	is( $last_server->pinged, 1, '->pinged ok' );
+	is_deeply( $last_server->mirrored, [ ], '->mirrored ok' );
+	my $uploaded = $last_server->uploaded;
+	is( ref($uploaded), 'ARRAY', '->uploaded ok' );
+	is( scalar(@$uploaded), 1, '1 file uploaded' );
+	is( $uploaded->[0]->[0], '/1', 'Uploaded /1' );
 	$PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER = undef;
 
 	# Is the guest now discovered?
@@ -237,11 +236,13 @@ SCOPE: {
 	# Save it
 	ok( $guest->save, '->save returns true' );
 	is( $guest->driver->support_server, undef, 'Support Server cleaned up' );
-	is_deeply(
-		[ $PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER->get_log ],
-		[ 'GET /', 'PUT /1' ],
-		'->get_log ok',
-	);
+	my $last_server = $PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER;
+	is( $last_server->pinged, 1, '->pinged ok' );
+	is_deeply( $last_server->mirrored, [ ], '->mirrored ok' );
+	my $uploaded = $last_server->uploaded;
+	is( ref($uploaded), 'ARRAY', '->uploaded ok' );
+	is( scalar(@$uploaded), 1, '1 file uploaded' );
+	is( $uploaded->[0]->[0], '/1', 'Uploaded /1' );
 	$PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER = undef;
 
 	# Load it again
@@ -269,11 +270,16 @@ SCOPE: {
 
 	# Check results
 	is( $guest->driver->support_server, undef, 'Support Server cleaned up' );
-	is_deeply(
-		[ $PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER->get_log ],
-		[ 'GET /', 'PUT /D7F50D84-7618-11DE-BE94-5E75E19EDF37' ],
-		'->get_log ok',
+	my $last_server = $PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER;
+	is( $last_server->pinged, 1, '->pinged ok' );
+	is_deeply( $last_server->mirrored, [ ], '->mirrored ok' );
+	my $uploaded = $last_server->uploaded;
+	is( ref($uploaded), 'ARRAY', '->uploaded ok' );
+	is( scalar(@$uploaded), 1, '1 file uploaded' );
+	is(
+		$uploaded->[0]->[0],
+		'/D7F50D84-7618-11DE-BE94-5E75E19EDF37',
+		'Uploaded /D7F50D84-7618-11DE-BE94-5E75E19EDF37',
 	);
 	$PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER = undef;
-
 }

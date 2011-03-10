@@ -27,7 +27,7 @@ BEGIN {
 
 sub support_server_new {
 	my $self   = shift;
-	my $server = PITA::Guest::Server->new(
+	my $server = PITA::Guest::Server::Process->new(
 		Program => [
 			Probe::Perl->find_perl_interpreter,
 			$image_bin,
@@ -36,7 +36,7 @@ sub support_server_new {
 		],
 		Hostname    => $self->support_server_addr,
 		Port        => $self->support_server_port,
-		Mirrors     => {},
+		Mirrors     => { },
 		# http_result => $self->support_server_results,
 		# http_startup_timeout  => 30,
 		# http_activity_timeout => 60,
