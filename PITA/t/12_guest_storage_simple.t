@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 10;
+use Test::More tests => 14;
 use PITA                         ();
 use PITA::Guest::Storage::Simple ();
 use File::Remove                 'remove';
