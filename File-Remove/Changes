@@ -1,6 +1,11 @@
 Revision history for Perl extension File-Remove
 
-1.47_01 to be released
+1.48 Fri 11 Mar 2011 - Adam Kennedy
+	- Promoting dev code to production version
+	- Fixed a major bug in the 1.46 logic that works out what to change the
+	  cwd to when deleting while inside a directory.
+
+1.47_01 Fri 18 Feb 2011 - Adam Kennedy
 	- Add test counts to all test scripts
 	- Added a test for space-safe globs
 

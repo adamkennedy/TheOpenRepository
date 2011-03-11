@@ -6,8 +6,8 @@ use strict;
 use vars qw{ $VERSION @ISA @EXPORT_OK };
 use vars qw{ $DEBUG $unlink $rmdir    };
 BEGIN {
-	$VERSION   = '1.47_01';
-	$VERSION   = eval $VERSION;
+	$VERSION   = '1.48';
+	# $VERSION   = eval $VERSION;
 	@ISA       = qw{ Exporter };
 	@EXPORT_OK = qw{ remove rm clear trash };
 }
@@ -226,9 +226,12 @@ sub undelete (@) {
 # Do we need to move to a different directory to delete a directory,
 # and if so which.
 sub _moveto {
+	my $remove = File::Spec->rel2abs(shift);
+	my $cwd    = @_ ? shift : Cwd::cwd();
+
 	# Do everything in absolute terms
-	my $cwd    = Cwd::abs_path( Cwd::cwd() );
-	my $remove = Cwd::abs_path( File::Spec->rel2abs(shift) );
+	$remove = Cwd::abs_path( $remove );
+	$cwd    = Cwd::abs_path( $cwd    );
 
 	# If we are on a different volume we don't need to move
 	my ( $cv, $cd ) = File::Spec->splitpath( $cwd,    1 );
@@ -238,10 +241,9 @@ sub _moveto {
 	# If we have to move, it's to one level above the deletion
 	my @cd = File::Spec->splitdir($cd);
 	my @rd = File::Spec->splitdir($rd);
-	pop @rd;
 
-	# Is the current directory inside of the moveto directory?
-	unless ( @cd > @rd ) {
+	# Is the current directory the same as or inside the remove directory?
+	unless ( @cd >= @rd ) {
 		return '';
 	}
 	foreach ( 0 .. $#rd ) {
@@ -249,6 +251,7 @@ sub _moveto {
 	}
 
 	# Confirmed, the current working dir is in the removal dir
+	pop @rd;
 	return File::Spec->catpath(
 		$rv,
 		File::Spec->catdir(@rd),
