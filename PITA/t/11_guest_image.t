@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 93;
+use Test::More tests => 107;
 
 use PITA         ();
 use File::Remove ();
