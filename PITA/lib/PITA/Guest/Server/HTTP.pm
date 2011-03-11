@@ -87,7 +87,7 @@ sub _handler {
 	my $request  = shift;
 	my $response = shift;
 	my $path     = $request->uri->path;
-	print STDERR "# " . $request->uri . "\n";
+	# print STDERR "# " . $request->uri . "\n";
 
 	if ( $request->method eq 'GET' ) {
 		# Handle a ping

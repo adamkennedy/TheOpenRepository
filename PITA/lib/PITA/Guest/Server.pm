@@ -176,16 +176,16 @@ sub child_startup : Event {
 
 sub child_stdout : Event {
 	# Do nothing for now
-	print STDERR "# CHILD STDOUT $_[ARG0]\n";
+	# print STDERR "# CHILD STDOUT $_[ARG0]\n";
 }
 
 sub child_stderr : Event {
 	# Do nothing for now
-	print STDERR "# CHILD STDERR $_[ARG0]\n";
+	# print STDERR "# CHILD STDERR $_[ARG0]\n";
 }
 
 sub child_close : Event {
-	print STDERR "# CHILD CLOSE\n";
+	# print STDERR "# CHILD CLOSE\n";
 	if ( $_[SELF]->{child} ) {
 		# Wait for a little to give the child time to SIGCHILD us
 		$_[SELF]->child_signal_timeout_start;
@@ -193,7 +193,7 @@ sub child_close : Event {
 }
 
 sub child_signal : Event {
-	print STDERR "# CHILD SIGCHILD $_[ARG2]\n";
+	# print STDERR "# CHILD SIGCHILD $_[ARG2]\n";
 	$_[SELF]->child_signal_timeout_stop;
 	if ( $_[SELF]->{child} ) {
 		$_[SELF]->post('shutdown');

@@ -240,8 +240,8 @@ sub discover_cleanup {
 	$self->{support_server_mirrored} = $self->support_server->mirrored;
 	$self->{support_server_results}  = $self->support_server->uploaded;
 
-	require Devel::Dumpvar;
-	print STDERR Devel::Dumpvar->dump($self->support_server) . "\n";
+	# require Devel::Dumpvar;
+	# print STDERR Devel::Dumpvar->dump($self->support_server) . "\n";
 
 	# Get the report file contents
 	my $string = $self->support_server->upload('/1');
