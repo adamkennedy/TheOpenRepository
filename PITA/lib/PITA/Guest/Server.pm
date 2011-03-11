@@ -187,14 +187,20 @@ sub child_stderr : Event {
 sub child_close : Event {
 	print STDERR "# CHILD CLOSE\n";
 	if ( $_[SELF]->{child} ) {
-		$_[KERNEL]->sig_child( $_[SELF]->{child}->PID );
-		# waitpid( $_[SELF]->{child}->PID );
-		$_[SELF]->post('shutdown');
+		# Wait for a little to give the child time to SIGCHILD us
+		$_[SELF]->child_signal_timeout_start;
 	}
 }
 
 sub child_signal : Event {
 	print STDERR "# CHILD SIGCHILD $_[ARG2]\n";
+	$_[SELF]->child_signal_timeout_stop;
+	if ( $_[SELF]->{child} ) {
+		$_[SELF]->post('shutdown');
+	}
+}
+
+sub child_signal_timeout : Timeout(5) {
 	if ( $_[SELF]->{child} ) {
 		$_[SELF]->post('shutdown');
 	}
