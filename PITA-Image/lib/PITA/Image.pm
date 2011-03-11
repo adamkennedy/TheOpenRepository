@@ -103,7 +103,7 @@ use PITA::Image::Test     ();
 
 use vars qw{$VERSION @ISA $NOSERVER};
 BEGIN {
-	$VERSION = '0.43';
+	$VERSION = '0.50';
 	@ISA     = 'Process';
 }
 
