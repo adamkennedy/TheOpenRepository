@@ -1,5 +1,9 @@
 Revision history for Perl extension File-Remove
 
+1.49 Wed 14 Mar 2011 - Adam Kennedy
+	- Restoring 02_directoreis to no_plan as it runs different test counts
+	  on different systems.
+
 1.48 Fri 11 Mar 2011 - Adam Kennedy
 	- Promoting dev code to production version
 	- Fixed a major bug in the 1.46 logic that works out what to change the
