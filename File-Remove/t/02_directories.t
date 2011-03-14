@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More no_plan => 'Too hard to calculate a plan count';
+use Test::More 'no_plan';
 use File::Remove qw{ remove trash };
 
 
