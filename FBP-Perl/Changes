@@ -1,5 +1,8 @@
 Changes for Perl extension FBP-Perl
 
+0.21 Tue 15 Mar 2011
+	- Fixed crash attempting to generate packing code for empty panels
+
 0.20 Tue 29 Feb 2011
 	- Added support for Wx::SpinCtrl
 	- Added support for Wx::ColourPickerCtrl

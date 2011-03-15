@@ -25,7 +25,7 @@ use Mouse         0.61;
 use FBP           0.18 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 has project => (
 	is       => 'ro',
@@ -1006,11 +1006,11 @@ sub listbook_pack {
 sub panel_pack {
 	my $self     = shift;
 	my $panel    = shift;
-	my $sizer    = $panel->children->[0];
+	my $sizer    = $panel->children->[0] or return ();
 	my $variable = $self->object_variable($panel);
 	my $sizervar = $self->object_variable($sizer);
 
-	# Generate fragments for our child sizer
+	# Generate fragments for our (optional) child sizer
 	my @children = $self->sizer_pack($sizer);
 
 	# Attach the sizer to the panel

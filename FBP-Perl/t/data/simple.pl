@@ -295,6 +295,14 @@ sub new {
 		Wx::wxDIRP_DEFAULT_STYLE,
 	);
 
+	$self->{m_panel5} = Wx::Panel->new(
+		$self->{m_listbook1},
+		-1,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxTAB_TRAVERSAL,
+	);
+
 	my $fgSizer1 = Wx::FlexGridSizer->new( 1, 2, 3, 4 );
 	$fgSizer1->AddGrowableCol( 0 );
 	$fgSizer1->AddGrowableCol( 1 );
@@ -356,6 +364,7 @@ sub new {
 
 	$self->{m_listbook1}->AddPage( $self->{m_panel1}, Wx::gettext("Page One"), 1 );
 	$self->{m_listbook1}->AddPage( $self->{m_panel2}, Wx::gettext("Page Two"), 0 );
+	$self->{m_listbook1}->AddPage( $self->{m_panel5}, Wx::gettext("Page Three"), 0 );
 
 	my $bSizer2 = Wx::BoxSizer->new( Wx::wxVERTICAL );
 	$bSizer2->Add( $self->{m_staticText1}, 0, Wx::wxALL, 5 );
