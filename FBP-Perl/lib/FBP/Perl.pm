@@ -800,7 +800,7 @@ sub boxsizer_pack {
 
 	# Add the content for this sizer
 	my @lines = (
-		"$lexical$variable = Wx::BoxSizer->new( $orient );",
+		"$lexical$variable = Wx::BoxSizer->new($orient);",
 	);
 	foreach my $item ( @{$sizer->children} ) {
 		my $child  = $item->children->[0];

@@ -342,7 +342,7 @@ sub new {
 	$gSizer1->Add( $self->{m_checkBox3}, 0, Wx::wxALL, 5 );
 	$gSizer1->Add( $self->{m_checkBox4}, 0, Wx::wxALL, 5 );
 
-	my $bSizer3 = Wx::BoxSizer->new( Wx::wxVERTICAL );
+	my $bSizer3 = Wx::BoxSizer->new(Wx::wxVERTICAL);
 	$bSizer3->Add( $self->{m_staticText2}, 0, Wx::wxALL, 5 );
 	$bSizer3->Add( $self->{m_spinCtrl1}, 0, Wx::wxALL, 5 );
 
@@ -350,7 +350,7 @@ sub new {
 	$self->{m_panel1}->Layout;
 	$bSizer3->Fit($self->{m_panel1});
 
-	my $bSizer4 = Wx::BoxSizer->new( Wx::wxVERTICAL );
+	my $bSizer4 = Wx::BoxSizer->new(Wx::wxVERTICAL);
 	$bSizer4->Add( $self->{m_textCtrl2}, 0, Wx::wxALL, 5 );
 	$bSizer4->Add( $self->{m_colourPicker1}, 0, Wx::wxALL, 5 );
 	$bSizer4->Add( $self->{m_colourPicker2}, 0, Wx::wxALL, 5 );
@@ -366,7 +366,7 @@ sub new {
 	$self->{m_listbook1}->AddPage( $self->{m_panel2}, Wx::gettext("Page Two"), 0 );
 	$self->{m_listbook1}->AddPage( $self->{m_panel5}, Wx::gettext("Page Three"), 0 );
 
-	my $bSizer2 = Wx::BoxSizer->new( Wx::wxVERTICAL );
+	my $bSizer2 = Wx::BoxSizer->new(Wx::wxVERTICAL);
 	$bSizer2->Add( $self->{m_staticText1}, 0, Wx::wxALL, 5 );
 	$bSizer2->Add( 10, 5, 0, Wx::wxEXPAND, 5 );
 	$bSizer2->Add( $self->{m_textCtrl1}, 0, Wx::wxALL, 5 );
@@ -376,7 +376,7 @@ sub new {
 	$bSizer2->Add( $gSizer1, 0, Wx::wxEXPAND, 5 );
 	$bSizer2->Add( $self->{m_listbook1}, 1, Wx::wxEXPAND | Wx::wxALL, 5 );
 
-	my $bSizer1 = Wx::BoxSizer->new( Wx::wxHORIZONTAL );
+	my $bSizer1 = Wx::BoxSizer->new(Wx::wxHORIZONTAL);
 	$bSizer1->Add( $bSizer2, 1, Wx::wxEXPAND, 5 );
 
 	$self->SetSizer($bSizer1);
