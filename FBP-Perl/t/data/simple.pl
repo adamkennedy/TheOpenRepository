@@ -87,7 +87,7 @@ sub new {
 		-1,
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
-		[ ],
+		[],
 	);
 	$self->{m_choice1}->SetSelection(0);
 
@@ -110,7 +110,7 @@ sub new {
 		-1,
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
-		[ ],
+		[],
 	);
 
 	$self->{m_listCtrl1} = Wx::ListCtrl->new(
@@ -304,10 +304,10 @@ sub new {
 	);
 
 	my $fgSizer1 = Wx::FlexGridSizer->new( 1, 2, 3, 4 );
-	$fgSizer1->AddGrowableCol( 0 );
-	$fgSizer1->AddGrowableCol( 1 );
-	$fgSizer1->SetFlexibleDirection( Wx::wxBOTH );
-	$fgSizer1->SetNonFlexibleGrowMode( Wx::wxFLEX_GROWMODE_SPECIFIED );
+	$fgSizer1->AddGrowableCol(0);
+	$fgSizer1->AddGrowableCol(1);
+	$fgSizer1->SetFlexibleDirection(Wx::wxBOTH);
+	$fgSizer1->SetNonFlexibleGrowMode(Wx::wxFLEX_GROWMODE_SPECIFIED);
 	$fgSizer1->Add( $self->{m_choice1}, 0, Wx::wxALL, 5 );
 	$fgSizer1->Add( $self->{m_comboBox1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
 	$fgSizer1->Add( $self->{m_listBox1}, 0, Wx::wxALL, 5 );

@@ -25,7 +25,7 @@ use Mouse         0.61;
 use FBP           0.18 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.23';
+our $VERSION = '0.24';
 
 has project => (
 	is       => 'ro',
@@ -946,13 +946,13 @@ sub flexgridsizer_pack {
 		"$lexical$variable = Wx::FlexGridSizer->new( $params );",
 	);
 	foreach my $row ( split /,/, $sizer->growablerows ) {
-		push @lines, "$variable->AddGrowableRow( $row );";
+		push @lines, "$variable->AddGrowableRow($row);";
 	}
 	foreach my $col ( split /,/, $sizer->growablecols ) {
-		push @lines, "$variable->AddGrowableCol( $col );";
+		push @lines, "$variable->AddGrowableCol($col);";
 	}
-	push @lines, "$variable->SetFlexibleDirection( $direction );";
-	push @lines, "$variable->SetNonFlexibleGrowMode( $growmode );";
+	push @lines, "$variable->SetFlexibleDirection($direction);";
+	push @lines, "$variable->SetNonFlexibleGrowMode($growmode);";
 	foreach my $item ( @{$sizer->children} ) {
 		my $child  = $item->children->[0];
 		if ( $child->isa('FBP::Spacer') ) {
@@ -1339,7 +1339,7 @@ sub control_items {
 	my $control = shift;
 	my @items   = $control->items;
 	unless ( @items ) {
-		return '[ ],';
+		return '[],';
 	}
 
 	return $self->nested(
@@ -1448,7 +1448,7 @@ sub colour {
 	# Explicit colour
 	if ( $string =~ /^\d/ ) {
 		$string =~ s/,(\d)/, $1/g; # Space the numbers a bit
-		return "Wx::Colour->new($string)";
+		return "Wx::Colour->new( $string )";
 	}
 
 	# System colour
