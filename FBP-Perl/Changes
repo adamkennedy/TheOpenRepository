@@ -1,5 +1,8 @@
 Changes for Perl extension FBP-Perl
 
+0.23 Wed 16 Mar 2011
+	- Use a more compact and descriptive event handler stub
+
 0.22 Wed 16 Mar 2011
 	- Wx::ColourPickerCtrl segfaults if not provided with a colour,
 	  contrary to the documentation. Default to an explicit black.

@@ -392,31 +392,19 @@ sub m_htmlWin1 {
 }
 
 sub m_button1 {
-	my $self  = shift;
-	my $event = shift;
-
-	die 'EVENT HANDLER NOT IMPLEMENTED';
+	die 'Handler method m_button1 for event m_button1.OnButtonClick not implemented';
 }
 
 sub list_col_click {
-	my $self  = shift;
-	my $event = shift;
-
-	die 'EVENT HANDLER NOT IMPLEMENTED';
+	die 'Handler method list_col_click for event m_listCtrl1.OnListColClick not implemented';
 }
 
 sub list_item_activated {
-	my $self  = shift;
-	my $event = shift;
-
-	die 'EVENT HANDLER NOT IMPLEMENTED';
+	die 'Handler method list_item_activated for event m_listCtrl1.OnListItemActivated not implemented';
 }
 
 sub list_item_selected {
-	my $self  = shift;
-	my $event = shift;
-
-	die 'EVENT HANDLER NOT IMPLEMENTED';
+	die 'Handler method list_item_selected for event m_listCtrl1.OnListItemSelected not implemented';
 }
 
 1;
