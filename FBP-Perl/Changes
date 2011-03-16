@@ -1,5 +1,9 @@
 Changes for Perl extension FBP-Perl
 
+0.22 Wed 16 Mar 2011
+	- Wx::ColourPickerCtrl segfaults if not provided with a colour,
+	  contrary to the documentation. Default to an explicit black.
+
 0.21 Tue 15 Mar 2011
 	- Fixed crash attempting to generate packing code for empty panels
 

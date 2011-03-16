@@ -25,7 +25,7 @@ use Mouse         0.61;
 use FBP           0.18 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 
 has project => (
 	is       => 'ro',
@@ -406,6 +406,12 @@ sub colourpickerctrl_create {
 	my $position = $self->object_position($control);
 	my $size     = $self->object_size($control);
 	my $style    = $self->wx( $control->styles );
+
+	# Wx::ColourPickerCtrl does not support defaulting null colours.
+	# Use an explicit black instead until we find a better option.
+	if ( $colour eq 'undef' ) {
+		$colour = $self->colour('0,0,0');
+	}
 
 	return $self->nested(
 		$self->window_new($control),
