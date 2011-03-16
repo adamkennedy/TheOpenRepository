@@ -36,9 +36,9 @@ sub new {
 		Wx::wxDefaultSize,
 		Wx::wxTE_CENTRE,
 	);
-	$self->{m_textCtrl1}->SetMaxLength( 50 );
+	$self->{m_textCtrl1}->SetMaxLength(50);
 	$self->{m_textCtrl1}->SetBackgroundColour(
-		Wx::Colour->new(255, 128, 0)
+		Wx::Colour->new( 255, 128, 0 )
 	);
 
 	$self->{m_button1} = Wx::Button->new(
@@ -249,7 +249,7 @@ sub new {
 	$self->{m_colourPicker1} = Wx::ColourPickerCtrl->new(
 		$self->{m_panel2},
 		-1,
-		Wx::Colour->new(255, 0, 0),
+		Wx::Colour->new( 255, 0, 0 ),
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
 		Wx::wxCLRP_DEFAULT_STYLE,

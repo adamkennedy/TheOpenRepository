@@ -733,7 +733,7 @@ sub textctrl_create {
 	);
 	if ( $maxlength ) {
 		my $variable = $self->object_variable($control);
-		push @$lines, "$variable->SetMaxLength( $maxlength );";
+		push @$lines, "$variable->SetMaxLength($maxlength);";
 	}
 
 	return $lines;
