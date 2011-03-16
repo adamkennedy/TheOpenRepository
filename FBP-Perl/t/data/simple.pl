@@ -215,7 +215,7 @@ sub new {
 		Wx::gettext("This is a test"),
 	);
 	$self->{m_staticText2}->SetForegroundColour(
-		Wx::Colour->new(0, 0, 255)
+		Wx::Colour->new( 0, 0, 255 )
 	);
 
 	$self->{m_spinCtrl1} = Wx::SpinCtrl->new(
