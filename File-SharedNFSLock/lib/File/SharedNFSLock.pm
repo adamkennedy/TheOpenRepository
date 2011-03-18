@@ -92,27 +92,48 @@ an existing lock file, after which this alien lock file is to be considered stal
 A stale lock will be removed and replaced with our own lock (watch out!).
 Default: 5 minutes. Set this to 0 to disable the feature.
 
+I<unique_token> is an optional parameter that will uniquely identify
+the lock. If you want to attempt locking the same file from
+the same process in different locations, they must set
+a unique token (process id and hostname are used additionally).
+Set this to C<1> to have a random token auto-generated.
+
 =cut
 
-sub new {
-  my $class = shift;
-  my %args = @_;
-  croak("Need 'file' argument!")
-    if not defined $args{file};
-  my $self = bless {
-    poll_interval   => 1., # seconds
-    timeout_acquire => 60., # seconds
-    timeout_stale   => 5*60., # seconds
-    %args,
-    hostname => Sys::Hostname::hostname(),
-  } => $class;
-  if (DEBUG) {
-    print "New lock for file '$self->{file}' (not acquired yet).\n"
-         ."Time out for acquisition: $self->{timeout_acquire}\n"
-         ."Time out for stale locks: $self->{timeout_stale}\n";
+SCOPE: {
+  my @chars = ('a'..'z', 'A'..'Z', 0..9);
+  sub new {
+    my $class = shift;
+    my %args = @_;
+    croak("Need 'file' argument!")
+      if not defined $args{file};
+
+    my $uniquetoken = delete $args{unique_token};
+    if (defined $uniquetoken) {
+      if ($uniquetoken eq '1') {
+        $args{token} = join '', map $chars[rand @chars], (1..20);
+      }
+      else {
+        $args{token} = $uniquetoken;
+      }
+    }
+
+    my $self = bless {
+      poll_interval   => 1., # seconds
+      timeout_acquire => 60., # seconds
+      timeout_stale   => 5*60., # seconds
+      token           => '',
+      %args,
+      hostname => Sys::Hostname::hostname(),
+    } => $class;
+    if (DEBUG) {
+      warn "New lock for file '$self->{file}' (not acquired yet).\n"
+           ."Time out for acquisition: $self->{timeout_acquire}\n"
+           ."Time out for stale locks: $self->{timeout_stale}";
+    }
+    return $self;
   }
-  return $self;
-}
+} # end SCOPE
 
 =head2 lock
 
@@ -123,7 +144,10 @@ Returns 1 on success, 0 on failure (time out).
 
 sub lock {
   my $self = shift;
+  warn "Getting lock on " . $self->{file} if DEBUG;
+
   return if $self->locked;
+  warn "It's not locked already... " . $self->{file} if DEBUG;
 
   my $before_time = Time::HiRes::time();
   while (1) {
@@ -146,7 +170,7 @@ sub lock {
           return 0;
         }
 
-        Time::HiRes::sleep($self->{poll_interval});
+        Time::HiRes::sleep($self->{poll_interval}) if $self->{poll_interval};
       }
     }
   } # end while(1)
@@ -178,11 +202,11 @@ sub locked {
   # check whether somebody else timed out the lock
   my @stat = stat($self->_unique_lock_file);
   if (defined($stat[STAT_NLINKS]) and $stat[STAT_NLINKS] == 2) {
-    print "locked: LOCKED\n" if DEBUG;
+    warn "locked: LOCKED with " . $self->_unique_lock_file if DEBUG;
     return 1;
   }
   else {
-    print "locked: NOT LOCKED\n" if DEBUG;
+    warn "locked: NOT LOCKED with " . $self->_unique_lock_file if DEBUG;
     return 0;
   }
 }
@@ -195,10 +219,10 @@ sub DESTROY {
 sub _unlink_lock_file {
   my $self = shift;
   if ($self->locked) {
-    print "_unlink_lock_file: locked, removing main lock file\n" if DEBUG;
+    warn "_unlink_lock_file: locked, removing main lock file" if DEBUG;
     unlink($self->_lock_file);
   }
-  print "_unlink_lock_file: removing unique lock file\n" if DEBUG;
+  warn "_unlink_lock_file: removing unique lock file" if DEBUG;
   unlink($self->_unique_lock_file);
 }
 
@@ -216,7 +240,7 @@ sub _write_lock_file {
   link($unique_lock_file, $lock_file);
   my @stat = stat($unique_lock_file);
   if ($stat[STAT_NLINKS] == 2) {
-    print "_write_lock_file: HAVE LOCK!\n" if DEBUG;
+    warn "_write_lock_file: HAVE LOCK!" if DEBUG;
     return 1;
   }
   return 0;
@@ -226,7 +250,7 @@ sub _unique_lock_file {
   my $self = shift;
   return $self->{unique_lock_file} if defined $self->{unique_lock_file};
   my $lock_file = $self->_lock_file;
-  my $unique_lock_file = "$lock_file." . $self->{hostname} . ".$$";
+  my $unique_lock_file = "$lock_file." . $self->{hostname} . ".$$." . $self->{token};
   $self->{unique_lock_file} = $unique_lock_file;
   return $self->{unique_lock_file};
 }
