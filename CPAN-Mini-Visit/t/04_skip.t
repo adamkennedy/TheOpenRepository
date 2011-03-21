@@ -26,9 +26,9 @@ my $visit = new_ok( 'CPAN::Mini::Visit' => [
 	callback => sub {
 		push @data, { %{ $_[0] } };
 	},
-	callback_before_extract => sub {
-	        return 0 if $_[0]->{'author'} eq 'ADAMK';
-	        return 1;
+	skip => sub {
+	        return 1 if $_[0]->{'author'} eq 'ADAMK';
+	        return 0;
 	},
 ] );
 

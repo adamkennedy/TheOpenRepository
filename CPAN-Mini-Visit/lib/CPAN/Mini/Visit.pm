@@ -83,7 +83,7 @@ use Object::Tiny 1.06 qw{
 	minicpan
 	authors
 	callback
-	callback_before_extract
+	skip
 	acme
 	author
 	ignore
@@ -107,10 +107,10 @@ reference containing the tarball location in the C<archive> key, the location
 of the temporary directory in the C<tempdir> key, the canonical CPAN
 distribution name in the C<dist> key, and the author id in the C<author> key.
 
-The optional C<callback_before_extract> param should be a C<CODE> reference
+The optional C<skip> param should be a C<CODE> reference
 that will be called for each visit before extracting dist. The first
 parameter passed to the callback will be a C<HASH> reference with C<archive>,
-C<dist> and C<author> keys. Callback should return 1 if dist should be processed
+C<dist> and C<author> keys. Callback should return 1 if dist should be skipped
 and 0 otherwise.
 
 The C<acme> param (true by default) can be set to false to exclude any
@@ -251,16 +251,16 @@ sub run {
 			next if $path =~ /\bAlien-MeCab\b/;
 		}
 
-		my $continue=1;
-		if ($self->callback_before_extract) {
+		my $skip = 0;
+		if ($self->skip) {
 			# Invoke the callback
-			$continue=$self->callback_before_extract->( {
+			$skip = $self->skip->( {
 				archive => $path,
 				dist    => $dist,
 				author  => $author,
 			} );
 		}
-		next unless $continue;
+		next if $skip;
 
 		# Extract the archive
 		local $Archive::Extract::WARN       = !! ($self->warnings > 1);
