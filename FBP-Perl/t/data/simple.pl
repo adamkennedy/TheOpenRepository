@@ -303,6 +303,41 @@ sub new {
 		Wx::wxTAB_TRAVERSAL,
 	);
 
+	$self->{m_listbook2} = Wx::Treebook->new(
+		$self,
+		-1,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+	);
+
+	$self->{m_panel6} = Wx::Panel->new(
+		$self->{m_listbook2},
+		-1,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxTAB_TRAVERSAL,
+	);
+
+	$self->{m_button2} = Wx::Button->new(
+		$self->{m_panel6},
+		-1,
+		Wx::gettext("MyButton"),
+	);
+
+	$self->{m_panel7} = Wx::Panel->new(
+		$self->{m_listbook2},
+		-1,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxTAB_TRAVERSAL,
+	);
+
+	$self->{m_staticText3} = Wx::StaticText->new(
+		$self->{m_panel7},
+		-1,
+		Wx::gettext("MyLabel"),
+	);
+
 	my $fgSizer1 = Wx::FlexGridSizer->new( 1, 2, 3, 4 );
 	$fgSizer1->AddGrowableCol(0);
 	$fgSizer1->AddGrowableCol(1);
@@ -366,6 +401,23 @@ sub new {
 	$self->{m_listbook1}->AddPage( $self->{m_panel2}, Wx::gettext("Page Two"), 0 );
 	$self->{m_listbook1}->AddPage( $self->{m_panel5}, Wx::gettext("Page Three"), 0 );
 
+	my $bSizer5 = Wx::BoxSizer->new(Wx::wxVERTICAL);
+	$bSizer5->Add( $self->{m_button2}, 0, Wx::wxALL, 5 );
+
+	$self->{m_panel6}->SetSizer($bSizer5);
+	$self->{m_panel6}->Layout;
+	$bSizer5->Fit($self->{m_panel6});
+
+	my $bSizer6 = Wx::BoxSizer->new(Wx::wxVERTICAL);
+	$bSizer6->Add( $self->{m_staticText3}, 0, Wx::wxALL, 5 );
+
+	$self->{m_panel7}->SetSizer($bSizer6);
+	$self->{m_panel7}->Layout;
+	$bSizer6->Fit($self->{m_panel7});
+
+	$self->{m_listbook2}->AddPage( $self->{m_panel6}, Wx::gettext("Page One"), 0 );
+	$self->{m_listbook2}->AddPage( $self->{m_panel7}, Wx::gettext("Page Two"), 1 );
+
 	my $bSizer2 = Wx::BoxSizer->new(Wx::wxVERTICAL);
 	$bSizer2->Add( $self->{m_staticText1}, 0, Wx::wxALL, 5 );
 	$bSizer2->Add( 10, 5, 0, Wx::wxEXPAND, 5 );
@@ -375,6 +427,7 @@ sub new {
 	$bSizer2->Add( $self->{m_splitter1}, 1, Wx::wxEXPAND, 5 );
 	$bSizer2->Add( $gSizer1, 0, Wx::wxEXPAND, 5 );
 	$bSizer2->Add( $self->{m_listbook1}, 1, Wx::wxEXPAND | Wx::wxALL, 5 );
+	$bSizer2->Add( $self->{m_listbook2}, 1, Wx::wxEXPAND | Wx::wxALL, 5 );
 
 	my $bSizer1 = Wx::BoxSizer->new(Wx::wxHORIZONTAL);
 	$bSizer1->Add( $bSizer2, 1, Wx::wxEXPAND, 5 );

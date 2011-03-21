@@ -1,5 +1,11 @@
 Changes for Perl extension FBP-Perl
 
+0.25 Mon 21 Mar 2011
+	- Bump FBP dependency to 0.22 for FBP::Window::header support
+	- Added support for Wx::Treebook (via Wx::Listbook subclass)
+	- Differentiate between use of a subclass and the FBP::Window::header
+	  method for the constructor vs what to "use" when loading modules.
+
 0.24 Wed 16 Mar 2011
 	- Minor whitespace tweaks so a bit less tidying is required
 

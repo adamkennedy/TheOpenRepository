@@ -22,10 +22,10 @@ use 5.008005;
 use strict;
 use warnings;
 use Mouse         0.61;
-use FBP           0.18 ();
+use FBP           0.22 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.24';
+our $VERSION = '0.25';
 
 has project => (
 	is       => 'ro',
@@ -108,11 +108,6 @@ sub dialog_new {
 		"",
 		$super,
 		"",
-		# "\$self->SetSizeHints(",
-		# "\tWx::wxDefaultSize,",
-		# "\tWx::wxDefaultSize,",
-		# ");",
-		# "",
 		@windows,
 		( map { @$_, "" } @sizers ),
 		"return \$self;",
@@ -251,7 +246,12 @@ sub window_create {
 	} elsif ( $window->isa('FBP::HtmlWindow') ) {
 		$lines = $self->htmlwindow_create($window, $parent);
 	} elsif ( $window->isa('FBP::Listbook') ) {
-		$lines = $self->listbook_create($window, $parent);
+		# We emulate the creation of simple listbooks via treebooks
+		if ( $window->wxclass eq 'Wx::Treebook' ) {
+			$lines = $self->treebook_create($window, $parent);
+		} else {
+			$lines = $self->listbook_create($window, $parent);
+		}
 	} elsif ( $window->isa('FBP::ListBox') ) {
 		$lines = $self->listbox_create($window, $parent);
 	} elsif ( $window->isa('FBP::ListCtrl') ) {
@@ -737,6 +737,29 @@ sub textctrl_create {
 	}
 
 	return $lines;
+}
+
+sub treebook_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->wx( $control->id );
+	my $position = $self->object_position($control);
+	my $size     = $self->object_size($control);
+	my $style    = $self->wx(
+		# Strip listbook-specific styles
+		join ' | ', grep { ! /^wxLB_/ } split /\s*\|\s*/, $control->styles
+	);
+
+	return $self->nested(
+		$self->window_new($control),
+		"$parent,",
+		"$id,",
+		"$position,",
+		"$size,",
+		( $style ? "$style," : () ),
+		");",
+	);
 }
 
 
@@ -1261,20 +1284,7 @@ sub dialog_methods {
 ######################################################################
 # Common Fragment Generators
 
-my %OBJECT_UNLEXICAL = (
-	'FBP::Button'     => 1,
-	'FBP::CheckBox'   => 1,
-	'FBP::Choice'     => 1,
-	'FBP::ComboBox'   => 1,
-	'FBP::HtmlWindow' => 1,
-	'FBP::ListBox'    => 1,
-	'FBP::ListCtrl'   => 1,
-);
-
 sub object_lexical {
-	unless ( $_[1] and $_[1]->can('permission') ) {
-		$DB::single = 1;
-	}
 	$_[1]->permission !~ /^(?:protected|public)\z/;
 }
 
@@ -1349,6 +1359,44 @@ sub control_items {
 	);
 }
 
+sub control_params {
+	my $self   = shift;
+	my @params = @_;
+
+	# Trim params off the end if the Wx defaults are valid
+	while ( @params >= 2 ) {
+		my $value = pop @params;
+		my $key   = pop @params;
+		if ( $key eq 'style' ) {
+			next unless $value;
+		} elsif ( $key eq 'size' ) {
+			next if $value eq 'Wx::wxDefaultSize';
+		} elsif ( $key eq 'position' ) {
+			next if $value eq 'Wx::wxDefaultPosition';
+		} elsif ( $key eq 'id' ) {
+			next if $value eq '-1';
+		}
+
+		# We want to keep these, and everything else before it
+		push @params, $key, $value;
+		last;
+	}
+
+	# Turn the remaining params into a list
+	my @list = ();
+	while ( @params ) {
+		my $key   = shift @params;
+		my $value = shift @params;
+		if ( @params ) {
+			push @list, "$value,";
+		} else {
+			push @list, $value;
+		}
+	}
+
+	return @list;
+}
+
 
 
 
@@ -1386,9 +1434,7 @@ sub use_more {
 		} sort grep {
 			not $seen{$_}++
 		} map {
-			$_->wxclass
-		} grep {
-			$_->subclass =~ /^[^;]/
+			$_->header
 		} $object->find( isa => 'FBP::Window' )
 	];
 }
