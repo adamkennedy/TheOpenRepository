@@ -1,5 +1,9 @@
 Changes for Perl extension FBP
 
+0.22 Mon 21 Mar 2011
+	- Added FBP::Window::header attribute
+	- Added missing tests for FBP::Window::wxclass
+
 0.21 Tue 1 Mar 2011
 	- Added a number of missing style attributes
 

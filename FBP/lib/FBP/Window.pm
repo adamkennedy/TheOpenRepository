@@ -11,7 +11,7 @@ FBP::Window - Base class for all graphical wxWindow objects
 use Mouse;
 use Scalar::Util ();
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 
 extends 'FBP::Object';
 with    'FBP::Children';
@@ -197,10 +197,12 @@ sub styles {
 
 =head2 wxclass
 
-The C<wxclass> method determines the Perl class that should be used to
+The C<wxclass> method determines the class that should be used to
 instantiate this window. Most of the time this will be a standard class,
 but it may be different if a custom C<subclass> property has been set.
 
+Note this class is only used as part of the constructor, and does not assume
+that this is also the value that any program should load. That value is con
 =cut
 
 sub wxclass {
@@ -209,7 +211,7 @@ sub wxclass {
 	# If a custom class is defined, use it literally
 	my $subclass = $self->subclass;
 	if ( length $subclass ) {
-		my ($wxclass, $header) = split /;/, $subclass;
+		my ($wxclass, $header) = split /\s*;\s*/, $subclass;
 		if ( defined $wxclass and length $wxclass ) {
 			return $wxclass;
 		}
@@ -224,6 +226,32 @@ sub wxclass {
 
 	# No idea what to do at this point...
 	die 'Failed to derive Wx class from FBP class';
+}
+
+=pod
+
+=head2 header
+
+The C<header> method returns the header file (or in the Perl world, module)
+that needs to be loaded in order to make use of a custom subclass window class
+for an element.
+
+=cut
+
+sub header {
+	my $self = shift;
+
+	# If a custom class is defined, use it literally
+	my $subclass = $self->subclass;
+	if ( length $subclass ) {
+		my ($wxclass, $header) = split /\s*;\s*/, $subclass;
+		if ( defined $header and length $header ) {
+			return $header;
+		}
+	}
+
+	# If there is no explicit header to load, don't load anything
+	return;
 }
 
 1;

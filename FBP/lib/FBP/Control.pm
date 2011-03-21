@@ -2,7 +2,7 @@ package FBP::Control;
 
 use Mouse;
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 
 extends 'FBP::Window';
 

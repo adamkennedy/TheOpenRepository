@@ -2,7 +2,7 @@ package FBP::ListCtrl;
 
 use Mouse;
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 
 extends 'FBP::Control';
 

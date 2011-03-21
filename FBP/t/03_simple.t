@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 126;
+use Test::More tests => 133;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -116,14 +116,26 @@ is( $button->bg,            '',            '->bg ok'            );
 is( $button->tooltip, 'This is a tooltip', '->tooltip ok'       );
 is( $button->OnButtonClick, 'm_button1',   '->OnButtonClick ok' );
 
+# Choice box properties
+my $choice = $object->find_first(
+	isa => 'FBP::Choice',
+);
+isa_ok( $choice, 'FBP::Choice' );
+is( $choice->id,      'wxID_ANY',  '->id ok'      );
+is( $choice->name,    'm_choice1', '->name ok'    );
+is( $choice->wxclass, 'Wx::Foo',   '->wxclass ok' );
+is( scalar($choice->header), undef, '->header ok' );
+
 # Combo properties
 my $combo = $object->find_first(
 	isa => 'FBP::ComboBox',
 );
 isa_ok( $combo, 'FBP::ComboBox' );
-is( $combo->id,      'wxID_ANY',    '->id ok'    );
-is( $combo->name,    'm_comboBox1', '->name ok'  );
-is( $combo->value,   'Combo!',      '->value ok' );
+is( $combo->id,      'wxID_ANY',    '->id ok'      );
+is( $combo->name,    'm_comboBox1', '->name ok'    );
+is( $combo->value,   'Combo!',      '->value ok'   );
+is( $combo->wxclass, 'Wx::Bar',     '->wxclass ok' );
+is( scalar($combo->header), 'Wx::Bar', '->header ok' );
 is(
 	$combo->choices,
 	'"one" "two" "a\'b" "c\\"d \\\\\\""',
