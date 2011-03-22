@@ -1,5 +1,9 @@
 Revision history for Perl extension Object-Tiny
 
+1.08 Wed 23 Mar 2011
+	- No functional changes
+	- Makefile.PL contains the wrong abstract
+
 1.07 Tue 22 Mar 2011
 	- No functional changes
 	- Updated Module::Install and author tests

@@ -2,13 +2,13 @@ use strict;
 use vars qw{$VERSION};
 BEGIN {
 	require 5.003_96;
-	$VERSION = '1.07';
+	$VERSION = '1.08';
 }
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
 	NAME      => 'Object::Tiny',
-	ABSTRACT  => 'A date object with as little code as possible',
+	ABSTRACT  => 'Class building as simple as it gets',
 	VERSION   => $VERSION,
 	PREREQ_PM => {
 		# Skip on Windows to avoid breaking ActivePerl PPMs
