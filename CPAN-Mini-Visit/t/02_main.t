@@ -1,12 +1,12 @@
 #!/usr/bin/perl
 
 use strict;
-use warnings 'all';
 BEGIN {
 	$|  = 1;
+	$^W = 1;
 }
 
-use Test::More tests => 23;
+use Test::More tests => 27;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use CPAN::Mini::Visit ();
@@ -63,3 +63,7 @@ my $author = new_ok( 'CPAN::Mini::Visit' => [
 ] );
 ok( $author->run, 'Author ->run ok' );
 is( scalar(@data), 9, 'Author triggered two visits' );
+is( ref($data[0]), 'HASH', 'Found a HASH result' );
+is( $data[0]->{counter}, 1, 'Got expected counter value' );
+is( $data[0]->{dist}, 'ADAMK/CSS-Tiny-1.15.tar.gz', 'Got expected dist' );
+is( $data[0]->{author}, 'ADAMK', 'Got expected author' );

@@ -2,9 +2,9 @@
 
 use 5.008;
 use strict;
-use warnings 'all';
 BEGIN {
 	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More        0.86 tests => 2;
