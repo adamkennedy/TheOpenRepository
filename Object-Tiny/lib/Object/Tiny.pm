@@ -3,7 +3,7 @@ package Object::Tiny;
 use strict 'vars', 'subs';
 BEGIN {
 	require 5.004;
-	$Object::Tiny::VERSION = '1.06';
+	$Object::Tiny::VERSION = '1.07';
 }
 
 sub import {
@@ -94,7 +94,7 @@ For a large list, I lay it out like this...
       seperator_font_color
       seperator_font_size
       seperator_text_content
-      };
+  };
 
 This will create a bunch of simple accessors, and set the inheritance to
 be the child of Object::Tiny.
@@ -148,7 +148,7 @@ is the most comparable member of the Class::Accessor::* family.
 
 B<Object::Tiny is 93% smaller than Class::Accessor::Fast>
 
-Class::Accessor::Fast requires about 125k of memory to load.
+L<Class::Accessor::Fast> requires about 125k of memory to load.
 
 Object::Tiny requires about 8k of memory to load.
 
@@ -311,7 +311,7 @@ L<Config::Tiny>
 
 =head1 COPYRIGHT
 
-Copyright 2007 - 2008 Adam Kennedy.
+Copyright 2007 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

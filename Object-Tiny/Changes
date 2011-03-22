@@ -1,5 +1,9 @@
 Revision history for Perl extension Object-Tiny
 
+1.07 Tue 22 Mar 2011
+	- No functional changes
+	- Updated Module::Install and author tests
+
 1.06 Fri  4 Jul 2008
 	- No functional changes
 	- Using strict.pm all the time
