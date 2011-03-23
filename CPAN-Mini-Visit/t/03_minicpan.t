@@ -22,6 +22,7 @@ ok( -d $minicpan->{local}, "Found root minicpan '$minicpan->{local}'" );
 my @data  = ();
 my $visit = new_ok( 'CPAN::Mini::Visit' => [
 	minicpan => $minicpan,
+	acme     => 0,
 	ignore   => [ qr/\bFile\b/ ],
 	callback => sub {
 		push @data, { %{ $_[0] } };
@@ -61,6 +62,7 @@ is( scalar(@data), 7, 'Acme triggered four visits' );
 my $author = new_ok( 'CPAN::Mini::Visit' => [
 	minicpan => $minicpan,
 	author   => 'ADAMK',
+	acme     => 0,
 	callback => sub {
 		push @data, { %{ $_[0] } };
 	},

@@ -26,10 +26,12 @@ my $visit = new_ok( 'CPAN::Mini::Visit' => [
 	callback => sub {
 		push @data, { %{ $_[0] } };
 	},
-	skip => sub {
-	        return 1 if $_[0]->{'author'} eq 'ADAMK';
-	        return 0;
-	},
+	ignore => [
+		sub {
+			return 1 if $_[0]->{'author'} eq 'ADAMK';
+			return 0;
+		}
+	],
 ] );
 
 # Kick off the visit

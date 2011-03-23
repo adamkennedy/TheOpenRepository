@@ -12,7 +12,6 @@ unless ( $ARGV[0] and -d $ARGV[0] ) {
 
 CPAN::Mini::Visit->new(
 	minicpan => $ARGV[0],
-	acme     => 1,
 	callback => sub {
 		print "$_[0]->{counter} - $_[0]->{dist}\n";
 	},

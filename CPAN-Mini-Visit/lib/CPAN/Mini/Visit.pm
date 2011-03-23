@@ -156,11 +156,29 @@ sub new {
 	unless ( Params::Util::_CODELIKE($self->callback) ) {
 		Carp::croak("Missing or invalid 'callback' param");
 	}
-	unless ( defined $self->ignore ) {
+	if ( defined $self->ignore ) {
+		unless ( Params::Util::_ARRAYLIKE($self->ignore) ) {
+			Carp::croak("Invalid 'ignore' param");
+		}
+		# Clone the array so we can prepend more things
+		$self->{ignore} = [ @{ $self->ignore } ];
+	} else {
 		$self->{ignore} = [];
 	}
-	unless ( Params::Util::_ARRAYLIKE($self->ignore) ) {
-		Carp::croak("Invalid 'ignore' param");
+
+	# Apply the optional author setting
+	my $author = Params::Util::_STRING($self->author);
+	if ( defined $author ) {
+		unshift @{$self->ignore}, sub {
+			$_[0]->{author} ne $author;
+		};
+	}
+
+	# Clean and apply the acme setting
+	$self->{acme} = 1 unless defined $self->{acme};
+	$self->{acme} = !! $self->{acme};
+	unless ( $self->{acme} ) {
+		unshift @{$self->ignore}, qr/\bAcme\b/;
 	}
 
 	# Derive the authors directory
@@ -170,17 +188,6 @@ sub new {
 	}
 
 	return $self;
-}
-
-sub _sort {
-	my $self = shift;
-	my $files = shift;
-
-	# Randomise if needed
-	if ( $self->random ) {
-		@$files = sort { rand() <=> rand() } @$files;
-	}
-
 }
 
 =pod
@@ -207,39 +214,45 @@ sub run {
 	# Search for the files
 	my $find  = File::Find::Rule->name('*.tar.gz', '*.tgz', '*.zip', '*.bz2')->file->relative;
 	my @files = sort $find->in( $self->authors );
-	unless ( $self->acme ) {
-		@files = grep { ! /\bAcme\b/ } @files;
-	}
-	foreach my $filter ( @{$self->ignore} ) {
-		if ( defined Params::Util::_STRING($filter) ) {
-			$filter = quotemeta $filter;
-			$filter = qr/$filter/;
-		}
-		if ( Params::Util::_REGEX($filter) ) {
-			@files = grep { ! /$filter/ } @files;
-		} elsif ( Params::Util::_CODELIKE($filter) ) {
-			@files = grep { ! $filter->($_) } @files;
-		} else {
-			Carp::croak("Missing or invalid filter");
-		}
-	}
 
-	$self->_sort(\@files);
+	# Randomise if applicable
+	if ( $self->random ) {
+		@files = sort { rand() <=> rand() } @files;
+	}
 
 	# Extract the archive
 	my $counter = 0;
 	foreach my $path ( @files ) {
 		# Derive the main file properties
 		my $archive = File::Spec->catfile( $self->authors, $path );
-		my $dist = $path;
+		my $dist    = $path;
 		$dist =~ s|^[A-Z]/[A-Z][A-Z]/|| or die "Bad distpath for $path";
 		unless ( $dist =~ /^([A-Z]+)/ ) {
 			die "Bad author for $path";
 		}
 		my $author = "$1";
-		if ( $self->author and $self->author ne $author ) {
-			next;
+
+		# Apply the ignore filters
+		my $skip = 0;
+		foreach my $filter ( @{$self->ignore} ) {
+			if ( defined Params::Util::_STRING($filter) ) {
+				$filter = quotemeta $filter;
+				$filter = qr/$filter/;
+			}
+			if ( Params::Util::_REGEX($filter) ) {
+				$skip = 1 if $dist =~ $filter;
+			} elsif ( Params::Util::_CODELIKE($filter) ) {
+				$skip = 1 if $filter->( {
+					counter => $counter,
+					archive => $archive,
+					dist    => $dist,
+					author  => $author,
+				} );
+			} else {
+				Carp::croak("Missing or invalid filter");
+			}
 		}
+		next if $skip;
 
 		# Explicitly ignore some damaging distributions
 		# if we are using Perl extraction
@@ -248,16 +261,6 @@ sub run {
 			next if $dist =~ /\bText-SenseClusters\b/;
 			next if $dist =~ /\bBio-Affymetrix\b/;
 			next if $dist =~ /\bAlien-MeCab\b/;
-		}
-
-		if ( $self->skip ) {
-			# Invoke the skip callback
-			next if $self->skip->( {
-				counter => $counter,
-				archive => $archive,
-				dist    => $dist,
-				author  => $author,
-			} );
 		}
 
 		# Extract the archive
