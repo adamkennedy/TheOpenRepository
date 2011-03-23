@@ -52,7 +52,6 @@ maintainer while doing so.
 
 use 5.006;
 use strict;
-use base 'CPAN::Mini';
 use Carp                   ();
 use File::Spec             ();
 use File::Basename         ();
@@ -65,13 +64,15 @@ use URI::file              ();
 use IO::File               ();
 use IO::Uncompress::Gunzip ();
 use Archive::Tar           ();
-use Params::Util           qw{ _CODELIKE _INSTANCE _ARRAY0 };
+use Params::Util           ();
 use LWP::Online            ();
 use File::Find::Rule       ();
+use CPAN::Mini             ();
 
-our $VERSION;
+use vars qw{$VERSION @ISA};
 BEGIN {
-        $VERSION = '1.20';
+	$VERSION = '1.21';
+	@ISA     = 'CPAN::Mini';
 }
 
 
@@ -169,32 +170,32 @@ Returns a new C<CPAN::Mini::Extract> object, or dies on error.
 sub new {
 	my $class = shift;
 
-        # Use the CPAN::Mini settings as defaults, and add any
+	# Use the CPAN::Mini settings as defaults, and add any
 	# additional explicit params.
-        my %config = ( CPAN::Mini->read_config, @_ );
+	my %config = ( CPAN::Mini->read_config, @_ );
 
-        # Unless provided auto-detect offline mode
+	# Unless provided auto-detect offline mode
 	unless ( defined $config{offline} ) {
 		$config{offline} = LWP::Online::offline();
 	}
 
-        # Fake a remote URI if CPAN::Mini can't handle offline mode
-        my %fake = ();
-        if ( $config{offline} and $CPAN::Mini::VERSION < 0.570 ) {
-                my $tempdir   = File::Temp::tempdir();
-                my $tempuri   = URI::file->new( $tempdir )->as_string;
-                $fake{remote} = $tempuri;
-        }
+	# Fake a remote URI if CPAN::Mini can't handle offline mode
+	my %fake = ();
+	if ( $config{offline} and $CPAN::Mini::VERSION < 0.570 ) {
+		my $tempdir   = File::Temp::tempdir();
+		my $tempuri   = URI::file->new( $tempdir )->as_string;
+		$fake{remote} = $tempuri;
+	}
 
-        # Use a default local path if none provided
-        unless ( defined $config{local} ) {
-                my $local = File::Spec->catdir(
+	# Use a default local path if none provided
+	unless ( defined $config{local} ) {
+		my $local = File::Spec->catdir(
 			File::HomeDir->my_data, 'minicpan',
 		);
-        }
+	}
 
-        # Call our superclass to create the object
-        my $self = $class->SUPER::new( %config, %fake );
+	# Call our superclass to create the object
+	my $self = $class->SUPER::new( %config, %fake );
 
 	# Check the extract param
 	$self->{extract} or Carp::croak(
@@ -280,15 +281,15 @@ sub run {
 	}
 
 	$changes ||= 0;
-        if ( $self->{extract_check} or $self->{extract_force} ) {
+	if ( $self->{extract_check} or $self->{extract_force} ) {
 		# Expansion checking is enabled, and we didn't do a normal
 		# forced check, so find the full list of files to check.
 		$self->trace("Tarball expansion checking enabled\n");
 		my @files = File::Find::Rule->new
-		                            ->name('*.tar.gz')
-		                            ->file
-		                            ->relative
-		                            ->in( $self->{local} );
+					    ->name('*.tar.gz')
+					    ->file
+					    ->relative
+					    ->in( $self->{local} );
 
 		# Filter to just those we need to extract
 		$self->trace("Checking " . scalar(@files) . " tarballs\n");
@@ -400,15 +401,15 @@ sub _compile_filter {
 	return 1 unless $self->{$name};
 
 	# If the filter is already a code ref, shortcut
-	return 1 if _CODELIKE($self->{$name});
+	return 1 if Params::Util::_CODELIKE($self->{$name});
 
 	# Allow a single Regexp object for the filter
-	if ( _INSTANCE($self->{$name}, 'Regexp') ) {
+	if ( Params::Util::_INSTANCE($self->{$name}, 'Regexp') ) {
 		$self->{$name} = [ $self->{$name} ];
 	}
 
 	# Check for bad cases
-	_ARRAY0($self->{$name}) or Carp::croak(
+	Params::Util::_ARRAY0($self->{$name}) or Carp::croak(
 		"$name is not an ARRAY reference"
 		);
 	unless ( @{$self->{$name}} ) {
@@ -418,7 +419,7 @@ sub _compile_filter {
 
 	# Check we only got Regexp objects
 	my @filters = @{$self->{$name}};
-	if ( scalar grep { ! _INSTANCE($_, 'Regexp') } @filters ) {
+	if ( scalar grep { ! Params::Util::_INSTANCE($_, 'Regexp') } @filters ) {
 		return $self->_error("$name can only contains Regexp filters");
 	}
 
@@ -558,15 +559,15 @@ For other issues, contact the maintainer
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
-Funding provided by The Perl Foundation.
-
 =head1 SEE ALSO
 
 L<CPAN::Mini>
 
 =head1 COPYRIGHT
 
-Copyright 2005 - 2008 Adam Kennedy.
+Funding provided by The Perl Foundation.
+
+Copyright 2005 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
