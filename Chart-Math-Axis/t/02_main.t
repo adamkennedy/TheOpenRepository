@@ -134,45 +134,46 @@ ok( Chart::Math::Axis->_reduce_interval( 0.1 ) == 0.05, '->_reduce_interval( 0.1
 
 #####################################################################
 # Test the constructor and basic access methods
-my $Axis = Chart::Math::Axis->new();
-isa_ok( $Axis, 'Chart::Math::Axis' );
-ok( ! defined $Axis->max, '->max returns undef for empty object' );
-ok( ! defined $Axis->min, '->min returns undef for empty object' );
-ok( ! defined $Axis->top, '->top returns undef for empty object' );
-ok( ! defined $Axis->bottom, '->bottom returns undef for empty object' );
-ok( ! defined $Axis->interval_size, '->interval_size returns undef for empty object' );
-ok( ! defined $Axis->ticks, '->ticks returns undef for empty object' );
+
+my $axis = Chart::Math::Axis->new();
+isa_ok( $axis, 'Chart::Math::Axis' );
+ok( ! defined $axis->max, '->max returns undef for empty object' );
+ok( ! defined $axis->min, '->min returns undef for empty object' );
+ok( ! defined $axis->top, '->top returns undef for empty object' );
+ok( ! defined $axis->bottom, '->bottom returns undef for empty object' );
+ok( ! defined $axis->interval_size, '->interval_size returns undef for empty object' );
+ok( ! defined $axis->ticks, '->ticks returns undef for empty object' );
 
 # Throw a battery of constructor cases at it
-$Axis = Chart::Math::Axis->new( 10, 20 );
-test_this( $Axis, 'new simple case', [ 20, 10, 22, 8, 2, 7 ] );
+$axis = Chart::Math::Axis->new( 10, 20 );
+test_this( $axis, 'new simple case', [ 20, 10, 22, 8, 2, 7 ] );
 
-$Axis = Chart::Math::Axis->new( 20, 10 );
-test_this( $Axis, 'new reversed simple case', [ 20, 10, 22, 8, 2, 7 ] );
+$axis = Chart::Math::Axis->new( 20, 10 );
+test_this( $axis, 'new reversed simple case', [ 20, 10, 22, 8, 2, 7 ] );
 
-$Axis = Chart::Math::Axis->new( 0, -10 );
-test_this( $Axis, 'new negative zero border case', [ 0, -10, 2, -12, 2, 7 ] );
+$axis = Chart::Math::Axis->new( 0, -10 );
+test_this( $axis, 'new negative zero border case', [ 0, -10, 2, -12, 2, 7 ] );
 
-$Axis = Chart::Math::Axis->new( 5, -5 );
-test_this( $Axis, 'zero spanning case', [ 5, -5, 6, -6, 2, 6 ] );
+$axis = Chart::Math::Axis->new( 5, -5 );
+test_this( $axis, 'zero spanning case', [ 5, -5, 6, -6, 2, 6 ] );
 
-$Axis = Chart::Math::Axis->new( 10, 0 );
-test_this( $Axis, 'new positive zero border case', [ 10, 0, 12, 0, 2, 6 ] );
+$axis = Chart::Math::Axis->new( 10, 0 );
+test_this( $axis, 'new positive zero border case', [ 10, 0, 12, 0, 2, 6 ] );
 
-$Axis = Chart::Math::Axis->new( 1.12 );
-test_this( $Axis, 'new single value case', [ 1.12, 1.12, 2, 1, 0.1, 10 ] );
+$axis = Chart::Math::Axis->new( 1.12 );
+test_this( $axis, 'new single value case', [ 1.12, 1.12, 2, 1, 0.1, 10 ] );
 
-$Axis = Chart::Math::Axis->new( 10 );
-test_this( $Axis, 'single value case with 1 digit mantissa', [ 10, 10, 20, 0, 2, 10 ] );
+$axis = Chart::Math::Axis->new( 10 );
+test_this( $axis, 'single value case with 1 digit mantissa', [ 10, 10, 20, 0, 2, 10 ] );
 
-$Axis = Chart::Math::Axis->new( 0 );
-test_this( $Axis, 'single value case of 0', [ 0, 0, 1, 0, 1, 1 ] );
+$axis = Chart::Math::Axis->new( 0 );
+test_this( $axis, 'single value case of 0', [ 0, 0, 1, 0, 1, 1 ] );
 
-$Axis = Chart::Math::Axis->new( -1.12 );
-test_this( $Axis, 'negative single value case', [ -1.12, -1.12, -1, -2, 0.1, 10 ] );
+$axis = Chart::Math::Axis->new( -1.12 );
+test_this( $axis, 'negative single value case', [ -1.12, -1.12, -1, -2, 0.1, 10 ] );
 
-$Axis = Chart::Math::Axis->new( -10 );
-test_this( $Axis, 'negative single value case with 1 digit mantissa', [ -10, -10, 0, -20, 2, 10 ] );
+$axis = Chart::Math::Axis->new( -10 );
+test_this( $axis, 'negative single value case with 1 digit mantissa', [ -10, -10, 0, -20, 2, 10 ] );
 
 
 
@@ -181,27 +182,27 @@ test_this( $Axis, 'negative single value case with 1 digit mantissa', [ -10, -10
 ###############################################################################
 # Test the modification methods
 
-$Axis = Chart::Math::Axis->new( 10 );
-ok( $Axis->add_data( 0 ), "->add_data returns true" );
-ok( all_correct( $Axis, [ 10, 0, 12, 0, 2, 6 ] ), "->add_data changes the Axis correctly" );
+$axis = Chart::Math::Axis->new( 10 );
+ok( $axis->add_data( 0 ), "->add_data returns true" );
+ok( all_correct( $axis, [ 10, 0, 12, 0, 2, 6 ] ), "->add_data changes the Axis correctly" );
 
-$Axis = Chart::Math::Axis->new( 10 );
-ok( $Axis->include_zero, "->include_zero returns true" );
-ok( all_correct( $Axis, [ 10, 0, 12, 0, 2, 6 ] ), "->include_zero changes the Axis correctly" );
+$axis = Chart::Math::Axis->new( 10 );
+ok( $axis->include_zero, "->include_zero returns true" );
+ok( all_correct( $axis, [ 10, 0, 12, 0, 2, 6 ] ), "->include_zero changes the Axis correctly" );
 
-$Axis = Chart::Math::Axis->new( 5, -5 );
-ok( $Axis->include_zero, "->include_zero returns true for zero spanning case" );
-ok( all_correct( $Axis, [ 5, -5, 6, -6, 2, 6 ] ), "->include_zero doesn't affect zero spanning case" );
+$axis = Chart::Math::Axis->new( 5, -5 );
+ok( $axis->include_zero, "->include_zero returns true for zero spanning case" );
+ok( all_correct( $axis, [ 5, -5, 6, -6, 2, 6 ] ), "->include_zero doesn't affect zero spanning case" );
 
-$Axis = Chart::Math::Axis->new( -10 );
-ok( $Axis->include_zero, "->include_zero returns true for negative case" );
-ok( all_correct( $Axis, [ 0, -10, 2, -12, 2, 7 ] ), "->include_zero works for negative case" );
+$axis = Chart::Math::Axis->new( -10 );
+ok( $axis->include_zero, "->include_zero returns true for negative case" );
+ok( all_correct( $axis, [ 0, -10, 2, -12, 2, 7 ] ), "->include_zero works for negative case" );
 
-$Axis = Chart::Math::Axis->new( 10, 0 );
-ok( $Axis->maximum_intervals == 10, "Default maximum_intervals is correct" );
-ok( $Axis->set_maximum_intervals( 13 ), "->set_maximum_intervals returns true" );
-ok( $Axis->maximum_intervals == 13, "->set_maximum_intervals appears to change maximum_intervals" );
-ok( all_correct( $Axis, [ 10, 0, 11, 0, 1, 11 ] ), "->set_maximum_intervals adjust intervals as expected" );
+$axis = Chart::Math::Axis->new( 10, 0 );
+ok( $axis->maximum_intervals == 10, "Default maximum_intervals is correct" );
+ok( $axis->set_maximum_intervals( 13 ), "->set_maximum_intervals returns true" );
+ok( $axis->maximum_intervals == 13, "->set_maximum_intervals appears to change maximum_intervals" );
+ok( all_correct( $axis, [ 10, 0, 11, 0, 1, 11 ] ), "->set_maximum_intervals adjust intervals as expected" );
 
 # Heaps more tests to complete
 ### FINISH ME
@@ -210,48 +211,32 @@ ok( all_correct( $Axis, [ 10, 0, 11, 0, 1, 11 ] ), "->set_maximum_intervals adju
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Function to test the properties of an Axis object
 sub test_this {
-	my $Axis = shift;
+	my $axis        = shift;
 	my $description = shift;
-	my $test = shift;
+	my $test        = shift;
 
-	isa_ok( $Axis, 'Chart::Math::Axis' );
-	ok( $Axis->max == $test->[0], "->max returns correct for $description" );
-	ok( $Axis->min == $test->[1], "->min returns correct for $description" );
-	ok( $Axis->top == $test->[2], "->top returns correct for $description" );
-	ok( $Axis->bottom == $test->[3], "->bottom returns correct for $description" );
-	ok( $Axis->interval_size == $test->[4], "->interval_size returns correct for $description" );
-	ok( $Axis->ticks == $test->[5], "->ticks returns correct for $description" );
+	isa_ok( $axis, 'Chart::Math::Axis' );
+	ok( $axis->max == $test->[0], "->max returns correct for $description" );
+	ok( $axis->min == $test->[1], "->min returns correct for $description" );
+	ok( $axis->top == $test->[2], "->top returns correct for $description" );
+	ok( $axis->bottom == $test->[3], "->bottom returns correct for $description" );
+	ok( $axis->interval_size == $test->[4], "->interval_size returns correct for $description" );
+	ok( $axis->ticks == $test->[5], "->ticks returns correct for $description" );
 }
 
 sub all_correct {
-	my $Axis = shift;
+	my $axis = shift;
 	my $test = shift;
 
-	return undef unless $Axis->isa('Chart::Math::Axis');
-	return undef unless $Axis->max == $test->[0];
-	return undef unless $Axis->min == $test->[1];
-	return undef unless $Axis->top == $test->[2];
-	return undef unless $Axis->bottom == $test->[3];
-	return undef unless $Axis->interval_size == $test->[4];
-	return undef unless $Axis->ticks == $test->[5];
+	return undef unless $axis->isa('Chart::Math::Axis');
+	return undef unless $axis->max == $test->[0];
+	return undef unless $axis->min == $test->[1];
+	return undef unless $axis->top == $test->[2];
+	return undef unless $axis->bottom == $test->[3];
+	return undef unless $axis->interval_size == $test->[4];
+	return undef unless $axis->ticks == $test->[5];
 
 	return 1;
 }
-
-1;

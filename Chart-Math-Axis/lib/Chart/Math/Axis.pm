@@ -7,16 +7,14 @@ package Chart::Math::Axis;
 
 use 5.005;
 use strict;
-
-# Needed for a bunch of the internal math
-use Storable       ();
-use Math::BigInt   ();
-use Math::BigFloat ();
-use Params::Util   qw( _INSTANCE );
+use Storable       2.12 ();
+use Math::BigInt   1.70 ();
+use Math::BigFloat 1.44 (); # Needs bdiv
+use Params::Util   0.15 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.05';
+	$VERSION = '1.06';
 }
 
 
@@ -37,7 +35,7 @@ sub new {
 		bottom            => undef, # Bottom value on the axis
 		maximum_intervals => 10,    # Maximum number of intervals
 		interval_size     => undef, # The interval size		
-		}, shift;
+	}, shift;
 
 	# If we got some argument
 	if ( @_ ) {
@@ -45,7 +43,7 @@ sub new {
 		# ->_add_data will trigger the calculation process.
 		$self->add_data( @_ ) or return undef;
 	}
-	
+
 	$self;
 }
 
@@ -69,7 +67,9 @@ sub ticks {
 }
 
 # Method to force the scale to include the zero line.
-sub include_zero { shift->add_data(0) }
+sub include_zero {
+	$_[0]->add_data(0);
+}
 
 # Method to add additional data elements to the data set
 # The object doesn't need to store all the data elements, 
@@ -116,7 +116,7 @@ sub set_maximum_intervals {
 # Currently only GD::Graph objects are supported.
 sub apply_to {
 	my $self = shift;
-	unless ( _INSTANCE($_[0], 'GD::Graph::axestype') ) {
+	unless ( Params::Util::_INSTANCE($_[0], 'GD::Graph::axestype') ) {
 		die "Tried to apply scale to an unknown graph type";
 	}
 
@@ -124,7 +124,7 @@ sub apply_to {
 		y_max_value   => $self->top,
 		y_min_value   => $self->bottom,
 		y_tick_number => $self->ticks,
-		);
+	);
 
 	1;
 }
@@ -146,7 +146,7 @@ sub _calculate {
 	return undef unless defined $self->{maximum_intervals};
 
 	# Pass off the special max == min case to the dedicated method
-	return $self->_calculate_single() if $self->{max} == $self->{min};
+	return $self->_calculate_single if $self->{max} == $self->{min};
 
 	# Get some math objects for the max and min
 	my $Maximum = Math::BigFloat->new( $self->{max} );
@@ -199,7 +199,7 @@ sub _calculate {
 
 		# Infinite loop protection
 		return undef if ++$loop > 100;
-	}	
+	}
 }
 
 # Handle special calculation case of max == min
@@ -249,13 +249,13 @@ sub _calculate_single {
 
 		# Infinite loop protection
 		return undef if ++$loop > 100;
-	}	
+	}
 }
 
 # For a given interval, work out what the next one down should be
 sub _reduce_interval {
 	my $class    = shift;
-	my $Interval = _INSTANCE($_[0], 'Math::BigFloat')
+	my $Interval = Params::Util::_INSTANCE($_[0], 'Math::BigFloat')
 		? Storable::dclone( shift ) # Don't modify the original
 		: Math::BigFloat->new( shift );
 
@@ -281,8 +281,8 @@ sub _reduce_interval {
 # Find the order of magnitude for a BigFloat.
 # Not the same as exponent.
 sub _order_of_magnitude {
-	my $class = shift;
-	my $BigFloat = _INSTANCE($_[0], 'Math::BigFloat')
+	my $class    = shift;
+	my $BigFloat = Params::Util::_INSTANCE($_[0], 'Math::BigFloat')
 		? Storable::dclone( shift ) # Don't modify the original
 		: Math::BigFloat->new( shift );
 
@@ -294,26 +294,26 @@ sub _order_of_magnitude {
 		+ $BigFloat->exponent - 1;
 	
 	# Return it as a normal perl int
-	$Ordinality->bstr;	
+	$Ordinality->bstr;
 }
 
 # Two rounding methods to handle the special rounding cases we need
 sub _round_top {
-	my $class = shift;
-	my $Number = _INSTANCE($_[0], 'Math::BigFloat')
+	my $class  = shift;
+	my $Number = Params::Util::_INSTANCE($_[0], 'Math::BigFloat')
 		? Storable::dclone( shift ) # Don't modify the original
 		: Math::BigFloat->new( shift );
 	my $Interval = shift;
 
 	# Round up, or go one interval higher if exact
-	$Number = $Number->bdiv( $Interval );  # Divide
-	$Number = $Number->bfloor->binc;       # Round down and add 1
-	$Number = $Number * $Interval;         # Re-multiply
-}	
+	$Number = $Number->bdiv( $Interval ); # Divide
+	$Number = $Number->bfloor->binc;      # Round down and add 1
+	$Number = $Number * $Interval;        # Re-multiply
+}
 
 sub _round_bottom {
-	my $class = shift;
-	my $Number = _INSTANCE($_[0], 'Math::BigFloat')
+	my $class  = shift;
+	my $Number = Params::Util::_INSTANCE($_[0], 'Math::BigFloat')
 		? Storable::dclone( shift ) # Don't modify the original
 		: Math::BigFloat->new( shift );
 	my $Interval = shift;
@@ -324,12 +324,12 @@ sub _round_bottom {
 	return $Number if $Number == 0;
 
 	# Round down, or go one interval lower if exact.
-	$Number = $Number->bdiv( $Interval );  # Divide
-	$Number = $Number->bceil->bdec;        # Round up and subtract 1
-	$Number = $Number * $Interval;         # Re-multiply
+	$Number = $Number->bdiv( $Interval ); # Divide
+	$Number = $Number->bceil->bdec;       # Round up and subtract 1
+	$Number = $Number * $Interval;        # Re-multiply
 }
 
-1;	
+1;
 
 __END__
 
@@ -342,23 +342,23 @@ Chart::Math::Axis - Implements an algorithm to find good values for chart axis
 =head1 SYNOPSIS
 
   # Create a new Axis
-  my $Axis = Chart::Math::Axis->new();
-
+  my $axis = Chart::Math::Axis->new;
+  
   # Provide is some data to calculate on
-  $Axis->add_data( @dataset );
-
+  $axis->add_data( @dataset );
+  
   # Get the values for the axis
-  print "Top of axis: " . $Axis->top . "\n";
-  print "Bottom of axis: " . $Axis->bottom . "\n";
-  print "Tick interval: " . $Axis->interval_size . "\n";
-  print "Number of ticks: " . $Axis->ticks . "\n";
-
+  print "Top of axis: "     . $axis->top           . "\n";
+  print "Bottom of axis: "  . $axis->bottom        . "\n";
+  print "Tick interval: "   . $axis->interval_size . "\n";
+  print "Number of ticks: " . $axis->ticks         . "\n";
+  
   # Apply the axis directly to a GD::Graph.
-  $Axis->apply_to( $Graph );
+  $axis->apply_to( $graph );
 
 =head1 DESCRIPTION
 
-Chart::Math::Axis implements in a generic way an algorithm for finding
+B<Chart::Math::Axis> implements in a generic way an algorithm for finding
 a set of ideal values for an axis. That is, for any given set of
 data, what should the top and bottom of the axis scale be, and what
 should the interval between the ticks be.
@@ -369,30 +369,33 @@ you should think of 'top' as 'right', and 'bottom' as 'left'.
 
 =head1 METHODS
 
-=head2 new( [ @dataset ] )
+=head2 new
+
+  my $null = Chart::Math::Axis->new;
+  my $full = Chart::Math::Axis->new( @dataset );
 
 The C<new> method creates a new C<Chart::Math::Axis> object. Any arguments
 passed to the constructor are used as dataset values. Whenever the object
 has some values on which to work, it will calculate the axis. If the object
 is created with no values, most methods will return undef.
 
-=head2 max()
+=head2 max
 
 Returns the maximum value in the dataset.
 
-=head2 min()
+=head2 min
 
 Returns the minimum value in the dataset.
 
-=head2 top()
+=head2 top
 
 The C<top> method returns the value that should be the top of the axis.
 
-=head2 bottom()
+=head2 bottom
 
 The C<bottom> method returns the value that should be the bottom of the axis.
 
-=head2 maximum_intervals()
+=head2 maximum_intervals
 
 Although Chart::Math::Axis can work out scale and intervals, it doesn't know
 how many pixels you might need, how big labels etc are, so it can
@@ -403,33 +406,39 @@ is allowed to have.
 To change this value, see the C<set_maximum_intervals> method. The default
 for the maximum number of intervals is 10.
 
-=head2 interval_size()
+=head2 interval_size
 
 The C<interval_size> method returns the interval size in dataset terms.
 
-=head2 ticks()
+=head2 ticks
 
 The C<ticks> method returns the number of intervals that the top/bottom/size
 values will result in.
 
-=head2 add_data( @dataset )
+=head2 add_data
+
+  $self->add_data( @dataset );
 
 The C<add_data> method allows you to provide data that the object should be
 aware of when calculating the axis. In fact, you can add additional data
 at any time, and the axis will be updated as needed.
 
-=head2 set_maximum_intervals( $intervals )
+=head2 set_maximum_intervals
+
+  $self->set_maximum_intervals( $intervals );
 
 The C<set_maximum_intervals> method takes an argument and uses it as the
 maximum number of ticks the axis is allowed to have.
 
-=head2 include_zero()
+=head2 include_zero
 
 If you have a dataset something like ( 10, 11, 12 ) the bottom of the axis
 will probably be somewhere around 9 or 8. That is, it won't show the zero 
 axis. If you want to force the axis to include zero, use this method to do so.
 
-=head2 apply_to( $gd_graph_object )
+=head2 apply_to
+
+  $self->apply_to( $gd_graph_object )
 
 The C<apply_to> method is intended to provide a series of shortcuts for 
 automatically applying an axis to a graph of a know type. At the present,
@@ -455,7 +464,7 @@ L<GD::Graph>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2002 - 2008 Adam Kennedy.
+Copyright 2002 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

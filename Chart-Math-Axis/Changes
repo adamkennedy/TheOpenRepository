@@ -1,5 +1,10 @@
 Revision history for Perl extension Chart-Math-Axis.
 
+1.06 Thu 24 Mar 2011
+	- Upgrading to Module::Install::DSL 1.00
+	- Removing some imports
+	- Moved dependencies from Makefile.PL to Chart.pm
+
 1.05 Tue  3 Jun 2008
 	- Upgrading to Module::Install 0.75
 	- Switched from Clone to Storable::dclone
