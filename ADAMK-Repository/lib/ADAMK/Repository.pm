@@ -13,6 +13,7 @@ use strict;
 use warnings;
 use Carp                          ();
 use List::Util               1.18 ();
+use List::MoreUtils          0.26 ();
 use Params::Util             0.35 qw{ _REGEX _INSTANCE };
 use File::Spec               3.29 ();
 use File::Temp               0.21 ();

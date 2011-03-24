@@ -3,6 +3,7 @@ package ADAMK::Shell;
 use 5.008;
 use strict;
 use warnings;
+use List::MoreUtils   ();
 use Getopt::Long      ();
 use CPAN::Version     ();
 use Class::Inspector  ();
@@ -118,18 +119,22 @@ sub module {
 # Araxis Merge Commands
 
 sub compare_tarball_latest {
+	@_ > 1 or die 'Did not provide a distribution';
 	shift->repository->compare_tarball_latest(@_);
 }
 
 sub compare_tarball_stable {
+	@_ > 1 or die 'Did not provide a distribution';
 	shift->repository->compare_tarball_stable(@_);
 }
 
 sub compare_export_latest {
+	@_ > 1 or die 'Did not provide a distribution';
 	shift->repository->compare_export_latest(@_);
 }
 
 sub compare_export_stable {
+	@_ > 1 or die 'Did not provide a distribution';
 	shift->repository->compare_export_stable(@_);
 }
 
@@ -233,19 +238,24 @@ sub report_changed_versions {
 			next unless $NOCOMMITS;
 		}
 
+		# Get the list of committers
+		my @authors = List::MoreUtils::uniq map {
+			$_->author
+		} @external;
+
 		push @rows, [
 			$dist->name,
 			$trunk,
 			$release,
 			scalar(@entries),
 			scalar(@external),
-			$info->author,
+			join( ', ', sort @authors ) || '',
 		];
 	}
 
 	# Generate the table
 	print ADAMK::Util::table(
-		[ 'Name', 'Trunk', 'Release', 'Changes', 'External', 'Last Commit By' ],
+		[ 'Name', 'Trunk', 'Release', 'Changes', 'External', 'External Authors' ],
 		@rows,
 	);
 }

@@ -39,10 +39,10 @@ SCOPE: {
 	isa_ok( $release, 'ADAMK::Release' );
 	ok( -d $release->directory, '->directory ok' );
 	is( $release->distname, 'Archive-Zip', '->distribution ok' );
-	is( $release->file, 'Archive-Zip-1.30.tar.gz', '->file ok' );
+	is( $release->file, 'Archive-Zip-1.31_02.tar.gz', '->file ok' );
 	ok( -f $release->path, "->path exists at " . $release->path );
 	isa_ok( $release->repository, 'ADAMK::Repository' );
-	is( $release->version, '1.30', '->version ok' );
+	is( $release->version, '1.31_02', '->version ok' );
 
 	# Extract it for examination
 	my $extract = $release->extract;

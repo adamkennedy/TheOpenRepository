@@ -61,7 +61,7 @@ SCOPE: {
 	ok( -f catfile($distribution->path, 'Makefile'),    'Created Makefile'    );
 	ok( -f catfile($distribution->path, 'MYMETA.json'), 'Created MYMETA.json' );
 	is( ref($meta), 'HASH', '->run_makefile_pl returns a MYMETA hash' );
-	is( $meta->{version}, '1.05', '->{version} ok' );
+	is( $meta->{version}, '1.06', '->{version} ok' );
 	is( $meta->{license}, 'perl', '->{license} ok' );
 	is( $meta->{name}, 'Devel-Dumpvar', '->{name} ok' );
 

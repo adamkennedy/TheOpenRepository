@@ -1,5 +1,9 @@
 Changes for Perl extension ADAMK-Repository
 
+0.13 Mon 29 Nov 2010
+	- Updating test values
+	- report_changed_versions now lists all authors that have committed
+
 0.12 Sun  3 Jan 2010
 	- Adding support for C:\cpan
 
