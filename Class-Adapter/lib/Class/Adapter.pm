@@ -64,12 +64,12 @@ underlying object.
 
 use 5.005;
 use strict;
-use Carp         ();
-use Scalar::Util ();
+use Carp              ();
+use Scalar::Util 1.10 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.07';
+	$VERSION = '1.08';
 }
 
 
@@ -146,7 +146,7 @@ L<Class::Adapter::Clear>, L<Class::Adapter::Builder>, L<Class::Decorator>
 
 =head1 COPYRIGHT
 
-Copyright 2005 - 2010 Adam Kennedy.
+Copyright 2005 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

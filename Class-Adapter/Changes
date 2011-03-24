@@ -1,5 +1,9 @@
 Revision history for Perl extension Class-Adapter
 
+1.08 Thu 24 Mar 2011
+	- Upgrading to Module::Install 1.00
+	- Fixed #56492: [PATCH] Fix spelling error
+
 1.07 Mon 12 Apr 2010
 	- Upgrading to Module::Install 0.95
 	- I accidentally deleted Class::Adapter from the CPAN. erk!

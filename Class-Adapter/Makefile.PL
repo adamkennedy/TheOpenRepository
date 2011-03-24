@@ -1,5 +1,5 @@
-use inc::Module::Install::DSL 0.91;
+use inc::Module::Install::DSL 1.00;
 
 all_from      lib/Class/Adapter.pm
-requires      Scalar::Util 1.10
+requires_from lib/Class/Adapter.pm
 test_requires Test::More   0.47
