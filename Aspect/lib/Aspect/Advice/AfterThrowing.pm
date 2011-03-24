@@ -79,7 +79,6 @@ sub _install {
 				return \@\$return unless \$\@;
 
 				local \$_ = bless {
-					type         => 'after_throwing',
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					params       => \\\@_,
@@ -110,7 +109,6 @@ sub _install {
 				return \$return unless \$\@;
 
 				local \$_ = bless {
-					type         => 'after_throwing',
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					params       => \\\@_,
@@ -140,7 +138,6 @@ sub _install {
 				return unless \$\@;
 
 				local \$_ = bless {
-					type         => 'after_throwing',
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					params       => \\\@_,

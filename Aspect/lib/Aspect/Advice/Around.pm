@@ -69,12 +69,11 @@ sub _install {
 			# Apply any runtime-specific context checks
 			my \$wantarray = wantarray;
 			local \$_ = bless {
-				type         => 'around',
 				sub_name     => \$name,
 				wantarray    => \$wantarray,
 				params       => \\\@_,
 				return_value => \$wantarray ? [ ] : undef,
-				exception    => undef,
+				exception    => '',
 				pointcut     => \$pointcut,
 				original     => \$original,
 			}, 'Aspect::Point::Around';

@@ -110,43 +110,38 @@ sub run_original {
 
 sub return_value {
 	my $self = shift;
-	if ( @_ ) {
-		if ( $self->{wantarray} ) {
-			# Normalise list-wise return behaviour
-			# at mutation time, rather than everywhere else.
-			# NOTE: Reuse the current array reference. This
-			# causes the original return values to be cleaned
-			# up immediately, and allows for a small
-			# optimisation in the surrounding advice hook code.
-			$self->{return_value} = \@_;
-		} else {
-			$self->{return_value} = shift;
-		}
-		if ( defined $self->{exception} ) {
-			$self->{exception} = '';
-		}
-		$self->{proceed} = 0;
-	}
-	my $return_value = $self->get_value('return_value');
-	return (CORE::wantarray && ref $return_value eq 'ARRAY')
-		? @$return_value
-		: $return_value;
-}
 
-sub get_value {
-	my ($self, $key) = @_;
-	Carp::croak "Key does not exist: [$key]" unless exists $self->{$key};
-	my $value = $self->{$key};
-	return (CORE::wantarray && ref $value eq 'ARRAY')
-		? @$value
-		: $value;
+	if ( $self->{wantarray} ) {
+		return @{$self->{return_value}} unless @_;
+
+		# Normalise list-wise return behaviour
+		# at mutation time, rather than everywhere else.
+		# NOTE: Reuse the current array reference. This
+		# causes the original return values to be cleaned
+		# up immediately, and allows for a small
+		# optimisation in the surrounding advice hook code.
+		$self->{return_value} = \@_;
+		$self->{exception}    = '';
+		$self->{proceed}      = 0;
+		return @_;
+	}
+
+	return $self->{return_value} unless @_;
+
+	$self->{exception}    = '';
+	$self->{proceed}      = 0;
+	$self->{return_value} = shift;
 }
 
 sub AUTOLOAD {
 	my $self = shift;
 	my $key  = our $AUTOLOAD;
 	$key =~ s/^.*:://;
-	return $self->get_value($key);
+	Carp::croak "Key does not exist: [$key]" unless exists $self->{$key};
+	my $value = $self->{$key};
+	return $value unless CORE::wantarray;
+	return $value unless ref $value eq 'ARRAY';
+	return @$value;
 }
 
 # Improves performance by not having to send DESTROY calls

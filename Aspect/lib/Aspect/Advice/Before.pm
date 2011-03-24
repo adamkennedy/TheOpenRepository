@@ -75,7 +75,6 @@ sub _install {
 			# Apply any runtime-specific context checks
 			my \$wantarray = wantarray;
 			local \$_ = bless {
-				type         => 'before',
 				sub_name     => \$name,
 				wantarray    => \$wantarray,
 				params       => \\\@_,

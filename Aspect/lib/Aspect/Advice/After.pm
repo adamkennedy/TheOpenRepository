@@ -78,7 +78,6 @@ sub _install {
 				] };
 
 				local \$_ = bless {
-					type         => 'after',
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					params       => \\\@_,
@@ -111,7 +110,6 @@ sub _install {
 				};
 
 				local \$_ = bless {
-					type         => 'after',
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					params       => \\\@_,
@@ -143,7 +141,6 @@ sub _install {
 				};
 
 				local \$_ = bless {
-					type         => 'after',
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					params       => \\\@_,

@@ -7,6 +7,8 @@ use Aspect::Point ();
 our $VERSION = '0.96';
 our @ISA     = 'Aspect::Point';
 
+sub type { 'after' }
+
 sub exception {
 	my $self = shift;
 	if ( @_ ) {

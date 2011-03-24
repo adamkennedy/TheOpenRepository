@@ -2,7 +2,11 @@ Revision history for Perl extension Aspect
 
 0.96 Thu 24 Mar 2011
 	- Updating copyright year
-	- Moved exception away from a slow generic implementation
+	- Moved exception method away from a slow generic implementation
+	- Moved original method away from slow generic implementation
+	- Moved type method away from slow generic implementation
+	- Rewrote return_value method into a much faster version
+	- Removed get_value method, AUTOLOAD now reads the value directly
 
 0.95 Mon 13 Dec 2010
 	- Fixed #57528 ([PATCH] Fix spelling error
