@@ -63,7 +63,7 @@ SCOPE: {
 
 	use Object::Signature ();
 
-	@Foo::ISA = 'Object::Signature';
+	@Bar::ISA = 'Object::Signature';
 
 	my $bar = 0;
 
