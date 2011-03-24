@@ -1,11 +1,13 @@
 package Object::Signature::File;
 
+use 5.005;
 use strict;
-use base 'Object::Signature';
+use Object::Signature ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.06';
+	$VERSION = '1.07';
+	@ISA     = 'Object::Signature';
 }
 
 

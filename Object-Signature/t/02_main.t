@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Load testing for Object::Signature
 
@@ -28,35 +28,46 @@ isa_ok( $Bar1, 'Bar' );
 isa_ok( $Bar1, 'Object::Signature' );
 ok( $Bar1->signature, '->signature returns true' );
 is( length($Bar1->signature), 32, '->signature returns 32 chars' );
-isnt( $Foo1->signature, $Bar1->signature,
-	'Identical objects of different classes return different signatures' );
+isnt(
+	$Foo1->signature,
+	$Bar1->signature,
+	'Identical objects of different classes return different signatures',
+);
 
 my $Bar2 = Bar->new;
 isa_ok( $Bar2, 'Bar' );
 ok( $Bar2->signature, '->signature returns true' );
 is( length($Bar2->signature), 32, '->signature returns 32 chars' );
-isnt( $Bar1->signature, $Bar2->signature,
-	'Different objects of the same class return different signatures' );
+isnt(
+	$Bar1->signature,
+	$Bar2->signature,
+	'Different objects of the same class return different signatures',
+);
 
 
 
 
 
+SCOPE: {
+	package Foo;
 
-package Foo;
+	use Object::Signature ();
 
-use base 'Object::Signature';
+	@Foo::ISA = 'Object::Signature';
 
-sub new { bless { a => 1 }, 'Foo' };
+	sub new { bless { a => 1 }, 'Foo' };
 
-1;
+	1;
 
-package Bar;
+	package Bar;
 
-use base 'Object::Signature';
+	use Object::Signature ();
 
-my $bar = 0;
+	@Foo::ISA = 'Object::Signature';
 
-sub new { bless { a => ++$bar }, 'Bar' }
+	my $bar = 0;
 
-1;
+	sub new { bless { a => ++$bar }, 'Bar' }
+
+	1;
+}

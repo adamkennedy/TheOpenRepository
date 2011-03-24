@@ -1,5 +1,10 @@
 Revision history for Perl extension Object::Signature
 
+1.07 Thu 24 Mar 2011
+	- Updating to Module::Install::DSL 1.00
+	- Removing the use of prefork as the modules we use are fairly small
+	- Removed -w from test scripts to be compatible with tainting
+
 1.06 Sat  6 Jan 2007
 	- Added the specialised subclass Object::Signature::File
 

@@ -2,19 +2,15 @@ package Object::Signature;
 
 use 5.005;
 use strict;
+use Storable    2.11 ();
+use Digest::MD5 2.00 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.05';
+	$VERSION = '1.07';
 }
 
-# If prefork is installed, use it
-eval "use prefork 'Storable';";
-eval "use prefork 'Digest::MD5';";
-
 sub signature {
-	require Storable;
-	require Digest::MD5;
 	local $Storable::canonical = 1;
 	Digest::MD5::md5_hex(
 		Storable::nfreeze(shift)
@@ -96,7 +92,7 @@ L<Object::Signature::File>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2004 - 2007 Adam Kennedy.
+Copyright 2004 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
