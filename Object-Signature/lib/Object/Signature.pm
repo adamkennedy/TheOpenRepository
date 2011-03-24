@@ -25,7 +25,7 @@ __END__
 
 =head1 NAME
 
-Signature - Generate cryptographic signatures for objects
+Object::Signature - Generate cryptographic signatures for objects
 
 =head1 SYNOPSIS
 
