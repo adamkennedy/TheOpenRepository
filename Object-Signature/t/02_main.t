@@ -48,14 +48,16 @@ isnt(
 
 
 
-SCOPE: {
+BEGIN {
 	package Foo;
 
 	use Object::Signature ();
 
 	@Foo::ISA = 'Object::Signature';
 
-	sub new { bless { a => 1 }, 'Foo' };
+	sub new {
+		bless { a => 1 }, 'Foo'
+	};
 
 	1;
 
@@ -67,7 +69,9 @@ SCOPE: {
 
 	my $bar = 0;
 
-	sub new { bless { a => ++$bar }, 'Bar' }
+	sub new {
+		bless { a => ++$bar }, 'Bar'
+	}
 
 	1;
 }
