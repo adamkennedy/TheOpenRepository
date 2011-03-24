@@ -82,7 +82,6 @@ use Object::Tiny 1.06 qw{
 	minicpan
 	authors
 	callback
-	skip
 	acme
 	author
 	ignore
@@ -105,12 +104,6 @@ for each visit. The first parameter passed to the callback will be a C<HASH>
 reference containing the tarball location in the C<archive> key, the location
 of the temporary directory in the C<tempdir> key, the canonical CPAN
 distribution name in the C<dist> key, and the author id in the C<author> key.
-
-The optional C<skip> param should be a C<CODE> reference
-that will be called for each visit before extracting dist. The first
-parameter passed to the callback will be a C<HASH> reference with C<archive>,
-C<dist> and C<author> keys. Callback should return 1 if dist should be skipped
-and 0 otherwise.
 
 The C<acme> param (true by default) can be set to false to exclude any
 distributions that contain the string "Acme", allowing the visit to ignore
