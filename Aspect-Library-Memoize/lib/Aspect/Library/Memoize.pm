@@ -28,7 +28,8 @@ sub get_advice {
 			# Set the correct return value
 			# NOTE: This seems overly complicated, refactor?
 			$context->return_value(
-				wantarray ? [
+				wantarray
+				? [
 					$wrappers{$name}->($context->params)
 				]
 				: $wrappers{$name}->($context->params)
@@ -110,7 +111,7 @@ distribution.
 
 Copyright 2001 by Marcel GrE<uuml>nauer
 
-Some parts copyright 2009 - 2010 Adam Kennedy.
+Some parts copyright 2009 - 2011 Adam Kennedy.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
