@@ -13,4 +13,8 @@ sub original {
 	$_[0]->{original};
 }
 
+sub proceed {
+	@_ > 1 ? $_[0]->{proceed} = $_[1] : $_[0]->{proceed};
+}
+
 1;

@@ -93,7 +93,7 @@ SCOPE: {
 	} call "My::One::boom";
 	throws_ok(
 		sub { $object->boom },
-		qr/meaningless/,
+		qr/Key does not exist/,
 		'Throws correct error when process is read from',
 	);
 	is( $boom, 6, '->boom is called' );
@@ -106,7 +106,7 @@ SCOPE: {
 	} call "My::One::boom";
 	throws_ok(
 		sub { $object->boom },
-		qr/meaningless/,
+		qr/Key does not exist/,
 		'Throws correct error when process is written to',
 	);
 	is( $boom, 7, '->boom is called' );

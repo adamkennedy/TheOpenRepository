@@ -108,12 +108,12 @@ SCOPE: {
 	} call qr/^My::One::(?:foo|boom)$/;
 	throws_ok(
 		sub { $object->foo },
-		qr/meaningless/,
+		qr/Key does not exist/,
 		'Throws correct error when process is read from',
 	);
 	throws_ok(
 		sub { $object->boom },
-		qr/meaningless/,
+		qr/Key does not exist/,
 		'Throws correct error when process is read from during exception',
 	);
 	is( $foo, 7,  '->foo is called'  );
@@ -127,12 +127,12 @@ SCOPE: {
 	} call qr/^My::One::(?:foo|boom)$/;
 	throws_ok(
 		sub { $object->foo },
-		qr/meaningless/,
+		qr/Key does not exist/,
 		'Throws correct error when process is written to',
 	);
 	throws_ok(
 		sub { $object->boom },
-		qr/meaningless/,
+		qr/Key does not exist/,
 		'Throws correct error when process is read from during exception',
 	);
 	is( $foo,  8, '->foo is called'  );

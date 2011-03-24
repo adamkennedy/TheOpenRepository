@@ -5,6 +5,7 @@ Revision history for Perl extension Aspect
 	  automagic from the AUTOLOAD method.
 	- Some more minor performance tweaks
 	- Removed excessive exception method from begin advice
+	- Moved proceed to the specific method it is used
 
 0.96 Thu 24 Mar 2011
 	- Updating copyright year

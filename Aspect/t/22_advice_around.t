@@ -93,7 +93,7 @@ SCOPE: {
 	} call "My::One::foo";
 	throws_ok(
 		sub { $object->foo },
-		qr/meaningless/,
+		qr/Key does not exist/,
 		'Throws correct error when process is read from',
 	);
 	is( $foo, 6, '->foo is not called' );
@@ -106,7 +106,7 @@ SCOPE: {
 	} call "My::One::foo";
 	throws_ok(
 		sub { $object->foo },
-		qr/meaningless/,
+		qr/Key does not exist/,
 		'Throws correct error when process is written to',
 	);
 	is( $foo, 6, '->foo is not called' );
