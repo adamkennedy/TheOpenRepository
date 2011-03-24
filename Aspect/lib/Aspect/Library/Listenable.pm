@@ -44,7 +44,7 @@ sub get_advice {
 
 			my $always_fire = delete $params{__always_fire};
 			my %old_state = get_listenable_state($listenable, \%params);
-			$context->run_original($context->params);
+			$context->original->( $context->params );
 			my %new_state = get_listenable_state($listenable, \%params);
 
 			return if
@@ -62,7 +62,7 @@ sub get_advice {
 				map {("old_$_" => $old_state{$_})} keys %old_state,
 			);
 
-			fire_event($event);	
+			fire_event($event);
 		},
 	);
 }

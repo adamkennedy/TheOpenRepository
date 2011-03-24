@@ -21,7 +21,7 @@ sub foo {
 # Set up a simple permanent advice
 around {
 	$COUNT += 10;
-	$_[0]->run_original;
+	$_[0]->proceed;
 } call 'main::foo'
 & highest;
 

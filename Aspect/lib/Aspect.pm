@@ -23,19 +23,18 @@ use Aspect::Pointcut::Highest      ();
 use Aspect::Pointcut::Throwing     ();
 use Aspect::Pointcut::Wantarray    ();
 use Aspect::Advice                 ();
-use Aspect::AdviceContext          ();
-use Aspect::Advice::Around         ();
-use Aspect::Advice::Before         ();
 use Aspect::Advice::After          ();
 use Aspect::Advice::AfterReturning ();
 use Aspect::Advice::AfterThrowing  ();
+use Aspect::Advice::Around         ();
+use Aspect::Advice::Before         ();
 use Aspect::AdviceContext          ();
 
 our $VERSION = '0.97';
 
 # Track the location of exported functions so that pointcuts
 # can avoid accidentally binding them.
-our %EXPORTED;
+our %EXPORTED = ();
 
 
 

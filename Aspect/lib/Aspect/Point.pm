@@ -73,34 +73,6 @@ sub short_sub_name {
 	return $1;
 }
 
-sub run_original {
-	my $self = shift;
-	if ( $self->{wantarray} ) {
-		my $rv = [ Sub::Uplevel::uplevel(
-			2,
-			$self->original,
-			$self->params,
-		) ];
-		return $self->return_value(@$rv);
-
-	} elsif ( defined $self->{wantarray} ) {
-		my $rv = Sub::Uplevel::uplevel(
-			2,
-			$self->original,
-			$self->params,
-		);
-		return $self->return_value($rv);
-
-	} else {
-		Sub::Uplevel::uplevel(
-			2,
-			$self->original,
-			$self->params,
-		);
-		return;
-	}
-}
-
 sub return_value {
 	my $self = shift;
 

@@ -7,7 +7,7 @@ our $VERSION = '0.97';
 
 sub new {
 	my $class = shift;
-	return bless { @_ }, $class;
+	bless { @_ }, $class;
 }
 
 sub AUTOLOAD {

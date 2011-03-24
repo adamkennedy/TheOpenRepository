@@ -100,7 +100,7 @@ SCOPE: {
 	my $pointcut = call( qr/^Foo::\w+$/) & ! call( 'Foo::new' );
 	around {
 		$around += 3;
-		$_[0]->run_original;
+		$_[0]->proceed;
 	} $pointcut;
 
 	my $object = Foo->new;
@@ -122,7 +122,7 @@ SCOPE: {
 # Regression test for RT #63781 Could not get the return value
 SCOPE: {
 	around {
-		$_->run_original;
+		$_->proceed;
 		is( $_->return_value, 'James Bond', '->return_value ok' );
 	} call qr/query_person/;
 

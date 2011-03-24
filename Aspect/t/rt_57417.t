@@ -2,7 +2,7 @@
 
 # Replication test for https://rt.cpan.org/Ticket/Display.html?id=57417
 
-# When ->run_original is used in list context, the return list is
+# When ->proceed is used in list context, the return list is
 # accidentally stuffed inside a second ARRAY reference on return.
 
 use strict;
@@ -16,7 +16,7 @@ use Test::NoWarnings;
 use Aspect;
 
 around {
-	shift->run_original;
+	shift->proceed;
 } call qr/^Foo::*/
 | call qr/^Bar::*/;
 

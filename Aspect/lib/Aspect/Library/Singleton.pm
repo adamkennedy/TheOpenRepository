@@ -22,7 +22,7 @@ sub get_advice {
 			if ( exists $CACHE{$class} ) {
 				$_->return_value($CACHE{$class});
 			} else {
-				$_->run_original;
+				$_->proceed;
 				unless ( $_->exception ) {
 					$CACHE{$class} = $_->return_value;
 				}

@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 64;
+use Test::More tests => 60;
 use Test::NoWarnings;
 use Test::Exception;
 use Aspect;
@@ -52,7 +52,7 @@ is( $foo, 2, '->foo is called' );
 # Check that the null pass-through case works properly
 SCOPE: {
 	my $aspect = around {
-		shift->run_original;
+		shift->proceed;
 	} call 'My::One::foo';
 	is( $object->foo, 'foo', 'Pass-through null case returns normally' );
 	is( $foo, 3, '->foo is called' );
@@ -75,7 +75,7 @@ SCOPE: {
 SCOPE: {
 	my $aspect = around {
 		my $c = shift;
-		$c->run_original;
+		$c->proceed;
 		$c->return_value( $c->return_value . 'bar' );
 	} call "My::One::foo";
 	is( $object->foo, 'foobar', 'around changing return_value' );
@@ -86,32 +86,6 @@ SCOPE: {
 is( $object->foo, 'foo', 'foo uninstalled' );
 is( $foo, 6, '->foo is called' );
 
-# Check that proceed fails as expected (reading)
-SCOPE: {
-	my $aspect = around {
-		shift->proceed;
-	} call "My::One::foo";
-	throws_ok(
-		sub { $object->foo },
-		qr/Key does not exist/,
-		'Throws correct error when process is read from',
-	);
-	is( $foo, 6, '->foo is not called' );
-}
-
-# Check that proceed fails as expected (writing)
-SCOPE: {
-	my $aspect = around {
-		shift->proceed(0);
-	} call "My::One::foo";
-	throws_ok(
-		sub { $object->foo },
-		qr/Key does not exist/,
-		'Throws correct error when process is written to',
-	);
-	is( $foo, 6, '->foo is not called' );
-}
-
 # ... and uninstalls properly
 is( $object->foo, 'foo', 'foo uninstalled ok' );
 is( $foo, 7, '->foo is called' );
@@ -121,7 +95,7 @@ SCOPE: {
 	my $aspect = around {
 		my $p = $_[0]->params;
 		splice @$p, 1, 1, $p->[1] + 1;
-		$_[0]->run_original;
+		$_[0]->proceed;
 	} call qr/My::One::inc/;
 	is( $object->inc(2), 4, 'around advice changing params' );
 	is( $inc, 2, '->inc is called' );
@@ -133,17 +107,17 @@ SCOPE: {
 	my $aspect1 = around {
 		my $p = $_[0]->params;
 		splice @$p, 1, 1, $p->[1] + 1;
-		$_[0]->run_original;
+		$_[0]->proceed;
 	} call qr/My::One::inc/;
 	my $aspect2 = around {
 		my $p = $_[0]->params;
 		splice @$p, 1, 1, $p->[1] + 1;
-		$_[0]->run_original;
+		$_[0]->proceed;
 	} call qr/My::One::inc/;
 	my $aspect3 = around {
 		my $p = $_[0]->params;
 		splice @$p, 1, 1, $p->[1] + 1;
-		$_[0]->run_original;
+		$_[0]->proceed;
 	} call qr/My::One::inc/;
 	is( $object->inc(2), 6, 'around advice changing params' );
 	is( $inc, 3, '->inc is called' );
@@ -252,7 +226,7 @@ SCOPE: {
 	# Set up the Aspect
 	my $aspect = around {
 		$AROUND++;
-		$_[0]->run_original;
+		$_[0]->proceed;
 	} call 'My::Three::bar';
 	isa_ok( $aspect, 'Aspect::Advice' );
 	isa_ok( $aspect, 'Aspect::Advice::Around' );
@@ -318,7 +292,7 @@ SCOPE: {
 		} else {
 			push @CONTEXT, 'VOID';
 		}
-		$_[0]->run_original;
+		$_[0]->proceed;
 	} call 'Foo::around';
 
 	# During the aspects
