@@ -1,6 +1,6 @@
 Revision history for Perl extension Aspect
 
-0.97 Thu 24 Mar 2011
+0.97_01 Thu 24 Mar 2011
 	- Now all standard keys have their own methods, remove the weird
 	  automagic from the AUTOLOAD method.
 	- Some more minor performance tweaks

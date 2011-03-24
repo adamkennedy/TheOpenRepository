@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Aspect::Library ();
 
-our $VERSION = '0.97';
+our $VERSION = '0.97_01';
 our @ISA     = 'Aspect::Library';
 
 sub new {

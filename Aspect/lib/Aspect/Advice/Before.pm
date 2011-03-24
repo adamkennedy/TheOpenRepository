@@ -11,7 +11,7 @@ use Aspect::Hook          ();
 use Aspect::Advice        ();
 use Aspect::Point::Before ();
 
-our $VERSION = '0.97';
+our $VERSION = '0.97_01';
 our @ISA     = 'Aspect::Advice';
 
 sub _install {
