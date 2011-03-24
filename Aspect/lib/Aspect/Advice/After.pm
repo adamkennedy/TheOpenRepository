@@ -12,7 +12,7 @@ use Aspect::Hook         ();
 use Aspect::Advice       ();
 use Aspect::Point::After ();
 
-our $VERSION = '0.96';
+our $VERSION = '0.97';
 our @ISA     = 'Aspect::Advice';
 
 # NOTE: To simplify debugging of the generated code, all injected string
@@ -118,6 +118,7 @@ sub _install {
 					pointcut     => \$pointcut,
 					original     => \$original,
 				}, 'Aspect::Point::After';
+
 				unless ( $MATCH_RUN ) {
 					return \$return unless \$_->{exception};
 					die \$_->{exception};
@@ -133,36 +134,36 @@ sub _install {
 				# Return the potentially-modified value
 				return \$_->{return_value};
 
-			} else {
-				eval {
-					Sub::Uplevel::uplevel(
-						2, \$original, \@_,
-					)
-				};
-
-				local \$_ = bless {
-					sub_name     => \$name,
-					wantarray    => \$wantarray,
-					params       => \\\@_,
-					return_value => undef,
-					exception    => \$\@,
-					pointcut     => \$pointcut,
-					original     => \$original,
-				}, 'Aspect::Point::After';
-				unless ( $MATCH_RUN ) {
-					return unless \$_->{exception};
-					die \$_->{exception};
-				}
-
-				# Execute the advice code
-				&\$code(\$_);
-
-				# Throw the same (or modified) exception
-				my \$exception = \$_->exception;
-				die \$exception if \$exception;
-
-				return;
 			}
+
+			eval {
+				Sub::Uplevel::uplevel(
+					2, \$original, \@_,
+				)
+			};
+
+			local \$_ = bless {
+				sub_name     => \$name,
+				wantarray    => \$wantarray,
+				params       => \\\@_,
+				return_value => undef,
+				exception    => \$\@,
+				pointcut     => \$pointcut,
+				original     => \$original,
+			}, 'Aspect::Point::After';
+			unless ( $MATCH_RUN ) {
+				return unless \$_->{exception};
+				die \$_->{exception};
+			}
+
+			# Execute the advice code
+			&\$code(\$_);
+
+			# Throw the same (or modified) exception
+			my \$exception = \$_->exception;
+			die \$exception if \$exception;
+
+			return;
 		};
 END_PERL
 	}

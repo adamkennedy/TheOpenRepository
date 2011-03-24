@@ -40,7 +40,7 @@ use Aspect::Pointcut::Or  ();
 use Aspect::Pointcut::And ();
 use Aspect::Pointcut::Not ();
 
-our $VERSION = '0.96';
+our $VERSION = '0.97';
 
 use overload (
 	# Keep traditional Perl boolification and stringification
@@ -133,7 +133,7 @@ BEGIN {
 
 =head2 match_all
 
-  my @fully_resolved_function_names = $pointcut->match_all();
+  my @fully_resolved_function_names = $pointcut->match_all;
 
 The C<match_all> method is the primary compile-time function called on the
 pointcut model by the core Aspect library.
@@ -224,7 +224,7 @@ sub match_all {
 
 =head2 match_define
 
-  my $should_hook = $pointcut->match_define();
+  my $should_hook = $pointcut->match_define;
 
 At compile time, the only common factor in predicting the future state of
 a function call is the name of the function itself.
@@ -270,6 +270,8 @@ sub compiled_weave {
 	return eval "sub () { $code }";
 }
 
+=pod
+
 =head2 compile_runtime
 
 The C<compile_runtime> method generates a custom function that is used to test
@@ -314,7 +316,7 @@ sub match_contains {
 
 =head2 match_curry
 
-  my $optimized_pointcut = $raw_pointcut->match_curry();
+  my $optimized_pointcut = $raw_pointcut->match_curry;
 
 In a production system, pointcut declarations can result in large and
 complex B<Aspect::Pointcut> object trees.

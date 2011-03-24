@@ -5,7 +5,7 @@ use warnings;
 use Carp         ();
 use Sub::Uplevel ();
 
-our $VERSION = '0.96';
+our $VERSION = '0.97';
 
 
 
@@ -14,10 +14,10 @@ our $VERSION = '0.96';
 ######################################################################
 # Constructor and Built-In Accessors
 
-sub new {
-	my $class = shift;
-	bless { @_ }, $class;
-}
+# sub new {
+	# my $class = shift;
+	# bless { @_ }, $class;
+# }
 
 sub sub_name {
 	$_[0]->{sub_name};
@@ -138,10 +138,7 @@ sub AUTOLOAD {
 	my $key  = our $AUTOLOAD;
 	$key =~ s/^.*:://;
 	Carp::croak "Key does not exist: [$key]" unless exists $self->{$key};
-	my $value = $self->{$key};
-	return $value unless CORE::wantarray;
-	return $value unless ref $value eq 'ARRAY';
-	return @$value;
+	return $self->{$key};
 }
 
 # Improves performance by not having to send DESTROY calls

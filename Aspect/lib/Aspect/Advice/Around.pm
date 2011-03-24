@@ -12,7 +12,7 @@ use Aspect::Hook          ();
 use Aspect::Advice        ();
 use Aspect::Point::Around ();
 
-our $VERSION = '0.96';
+our $VERSION = '0.97';
 our @ISA     = 'Aspect::Advice';
 
 sub _install {
@@ -77,6 +77,7 @@ sub _install {
 				pointcut     => \$pointcut,
 				original     => \$original,
 			}, 'Aspect::Point::Around';
+
 			goto &\$original unless $MATCH_RUN;
 
 			# Array context needs some special return handling

@@ -12,7 +12,7 @@ use Aspect::Hook                 ();
 use Aspect::Advice               ();
 use Aspect::Point::AfterThrowing ();
 
-our $VERSION = '0.96';
+our $VERSION = '0.97';
 our @ISA     = 'Aspect::Advice';
 
 # NOTE: To simplify debugging of the generated code, all injected string
@@ -87,6 +87,7 @@ sub _install {
 					pointcut     => \$pointcut,
 					original     => \$original,
 				}, 'Aspect::Point::AfterThrowing';
+
 				die \$_->{exception} unless $MATCH_RUN;
 
 				# Execute the advice code
@@ -117,6 +118,7 @@ sub _install {
 					pointcut     => \$pointcut,
 					original     => \$original,
 				}, 'Aspect::Point::AfterThrowing';
+
 				die \$_->{exception} unless $MATCH_RUN;
 
 				# Execute the advice code
@@ -146,6 +148,7 @@ sub _install {
 					pointcut     => \$pointcut,
 					original     => \$original,
 				}, 'Aspect::Point::AfterThrowing';
+
 				die \$_->{exception} unless $MATCH_RUN;
 
 				# Execute the advice code

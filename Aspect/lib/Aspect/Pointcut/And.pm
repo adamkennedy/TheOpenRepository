@@ -5,7 +5,7 @@ use warnings;
 use Aspect::Pointcut        ();
 use Aspect::Pointcut::Logic ();
 
-our $VERSION = '0.96';
+our $VERSION = '0.97';
 our @ISA     = qw{
 	Aspect::Pointcut::Logic
 	Aspect::Pointcut
@@ -121,7 +121,7 @@ sub compile_runtime {
 		return 1;
 	};
 }
-	
+
 sub match_contains {
 	my $self = shift;
 	return 1 if $self->isa($_[0]);

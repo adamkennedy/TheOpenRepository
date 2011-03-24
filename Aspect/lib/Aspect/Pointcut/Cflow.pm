@@ -8,7 +8,7 @@ use Aspect::Pointcut       ();
 use Aspect::Pointcut::Call ();
 use Aspect::AdviceContext  ();
 
-our $VERSION = '0.96';
+our $VERSION = '0.97';
 our @ISA     = 'Aspect::Pointcut';
 
 use constant KEY  => 0;
@@ -64,11 +64,11 @@ sub compile_runtime {
 		}
 		return 0 unless $caller;
 		my $class   = (ref $_ or 'Aspect::AdviceContext');
-		my $context = $class->new(
+		my $context = bless {
 			sub_name => $caller->{sub_name},
 			pointcut => $_->{pointcut},
 			params   => $caller->{params},
-		);
+		}, $class;
 		$_->{$self->[KEY]} = $context;
 		return 1;
 	};
@@ -80,11 +80,11 @@ sub caller_info {
 	package DB;
 
 	my %call_info;
-	@call_info{qw(
+	@call_info{ qw(
 		calling_package
 		sub_name
 		has_params
-	)} = (CORE::caller($level))[0, 3, 4];
+	) } = (CORE::caller($level))[0, 3, 4];
 
 	return defined $call_info{calling_package}
 		? {

@@ -4,18 +4,16 @@ use strict;
 use warnings;
 use Aspect::Point ();
 
-our $VERSION = '0.96';
+our $VERSION = '0.97';
 our @ISA     = 'Aspect::Point';
 
-sub type { 'around' }
+use constant type => 'around';
 
 sub exception {
 	my $self = shift;
-	if ( @_ ) {
-		$self->{exception} = shift;
-		$self->{proceed}   = 0;
-	}
-	$self->{exception};
+	return $self->{exception} unless @_;
+	$self->{proceed}   = 0;
+	$self->{exception} = shift;
 }
 
 sub original {

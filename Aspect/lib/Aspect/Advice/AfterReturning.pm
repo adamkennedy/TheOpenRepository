@@ -12,7 +12,7 @@ use Aspect::Hook                  ();
 use Aspect::Advice                ();
 use Aspect::Point::AfterReturning ();
 
-our $VERSION = '0.96';
+our $VERSION = '0.97';
 our @ISA     = 'Aspect::Advice';
 
 # NOTE: To simplify debugging of the generated code, all injected string
@@ -76,6 +76,7 @@ sub _install {
 						1, \$original, \@_,
 					)
 				];
+
 				local \$_ = bless {
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
@@ -85,6 +86,7 @@ sub _install {
 					pointcut     => \$pointcut,
 					original     => \$original,
 				}, 'Aspect::Point::AfterReturning';
+
 				return \@\$return unless $MATCH_RUN;
 
 				# Execute the advice code
@@ -98,6 +100,7 @@ sub _install {
 				my \$return = Sub::Uplevel::uplevel(
 					1, \$original, \@_,
 				);
+
 				local \$_ = bless {
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
@@ -107,6 +110,7 @@ sub _install {
 					pointcut     => \$pointcut,
 					original     => \$original,
 				}, 'Aspect::Point::AfterReturning';
+
 				return \$return unless $MATCH_RUN;
 
 				# Execute the advice code
@@ -117,6 +121,7 @@ sub _install {
 				Sub::Uplevel::uplevel(
 					1, \$original, \@_,
 				);
+
 				local \$_ = bless {
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
@@ -126,6 +131,7 @@ sub _install {
 					pointcut     => \$pointcut,
 					original     => \$original,
 				}, 'Aspect::Point::AfterReturning';
+
 				return unless $MATCH_RUN;
 
 				# Execute the advice code

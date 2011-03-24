@@ -11,7 +11,7 @@ use Aspect::Hook          ();
 use Aspect::Advice        ();
 use Aspect::Point::Before ();
 
-our $VERSION = '0.96';
+our $VERSION = '0.97';
 our @ISA     = 'Aspect::Advice';
 
 sub _install {
@@ -83,6 +83,7 @@ sub _install {
 				original     => \$original,
 				proceed      => 1,
 			}, 'Aspect::Point::Before';
+
 			goto &\$original unless $MATCH_RUN;
 
 			# Array context needs some special return handling
@@ -108,9 +109,7 @@ sub _install {
 			}
 
 			# Do they want to shortcut?
-			unless ( \$_->proceed ) {
-				return \$_->{return_value};
-			}
+			return \$_->{return_value} unless \$_->proceed;
 
 			# Continue onwards to the original function
 			\@_ = \$_->params;

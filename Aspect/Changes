@@ -1,5 +1,11 @@
 Revision history for Perl extension Aspect
 
+0.97 Thu 24 Mar 2011
+	- Now all standard keys have their own methods, remove the weird
+	  automagic from the AUTOLOAD method.
+	- Some more minor performance tweaks
+	- Removed excessive exception method from begin advice
+
 0.96 Thu 24 Mar 2011
 	- Updating copyright year
 	- Moved exception method away from a slow generic implementation
