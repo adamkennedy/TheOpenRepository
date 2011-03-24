@@ -5,7 +5,7 @@ package PITA::XML;
 use 5.006;
 use strict;
 use Carp                    ();
-use Params::Util            ':ALL';
+use Params::Util            ();
 use IO::File                ();
 use IO::String              ();
 BEGIN {
@@ -104,10 +104,10 @@ sub validate {
 sub _FH {
 	my $class = shift;
 	my $file  = shift;
-	if ( _SCALAR($file) ) {
+	if ( Params::Util::_SCALAR($file) ) {
 		$file = IO::String->new( $file );
 	}
-	if ( _INSTANCE($file, 'IO::Handle') ) {
+	if ( Params::Util::_INSTANCE($file, 'IO::Handle') ) {
 		if ( $file->can('seek') ) {
 			# Reset the file handle
 			$file->seek( 0, 0 ) or Carp::croak(
@@ -136,7 +136,7 @@ sub _OUTPUT {
 	# If provided as a param, clean it up
 	if ( exists $object->{$name} ) {
 		# Convert from array to scalar ref
-		if ( _ARRAY0($object->{$name}) ) {
+		if ( Params::Util::_ARRAY0($object->{$name}) ) {
 			# Clean up newlines and merge into SCALAR
 			my $param = $object->{$name};
 			foreach my $i ( 0 .. $#$param ) {
@@ -148,30 +148,30 @@ sub _OUTPUT {
 	}
 
 	# Check for scalarness
-	_SCALAR0($object->$name()) ? 1 : undef;
+	Params::Util::_SCALAR0($object->$name()) ? 1 : undef;
 }
 
 sub _SCHEME {
 	my $class  = shift;
-	my $string = _STRING(shift) or return undef;
+	my $string = Params::Util::_STRING(shift) or return undef;
 	($SCHEMES{$string} or $string =~ /x_/) ? $string : undef;
 }
 
 sub _MD5SUM {
 	my $class  = shift;
-	my $md5sum = _STRING(shift) or return undef;
+	my $md5sum = Params::Util::_STRING(shift) or return undef;
 	($md5sum =~ /^[0-9a-f]{32}$/i) ? lc($md5sum) : undef;
 }
 
 sub _DISTNAME {
 	my $class    = shift;
-	my $distname = _STRING(shift) or return undef;
+	my $distname = Params::Util::_STRING(shift) or return undef;
 	($distname =~ /^[a-z]\w*(?:\-[a-z]\w*)+$/is) ? $distname : undef;
 }
 
 sub _GUID {
 	my $class = shift;
-	my $guid  = _STRING(shift) or return undef;
+	my $guid  = Params::Util::_STRING(shift) or return undef;
 	($guid =~ /^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/) ? $guid : undef;
 }
 
