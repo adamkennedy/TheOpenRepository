@@ -3,7 +3,7 @@ package Aspect::Library::Listenable::Event;
 use strict;
 use warnings;
 
-our $VERSION = '0.95';
+our $VERSION = '0.96';
 
 sub new {
 	my $class = shift;

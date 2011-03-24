@@ -5,7 +5,7 @@ use warnings;
 use Carp         ();
 use Sub::Uplevel ();
 
-our $VERSION = '0.95';
+our $VERSION = '0.96';
 
 
 
@@ -131,15 +131,6 @@ sub return_value {
 	return (CORE::wantarray && ref $return_value eq 'ARRAY')
 		? @$return_value
 		: $return_value;
-}
-
-sub exception {
-	my $self = shift;
-	if ( @_ ) {
-		$self->{exception} = shift;
-		$self->{proceed}   = 0;
-	}
-	return $self->get_value('exception');
 }
 
 sub get_value {
@@ -296,7 +287,7 @@ Ran Eilam E<lt>eilara@cpan.orgE<gt>
 
 Copyright 2001 by Marcel GrE<uuml>nauer
 
-Some parts copyright 2009 - 2010 Adam Kennedy.
+Some parts copyright 2009 - 2011 Adam Kennedy.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

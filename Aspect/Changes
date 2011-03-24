@@ -1,5 +1,9 @@
 Revision history for Perl extension Aspect
 
+0.96 Thu 24 Mar 2011
+	- Updating copyright year
+	- Moved exception away from a slow generic implementation
+
 0.95 Mon 13 Dec 2010
 	- Fixed #57528 ([PATCH] Fix spelling error
 	- Fixed #57417 Bad return value in list context
