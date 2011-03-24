@@ -6,7 +6,7 @@ use warnings;
 use DateTime 0.50 ();
 use ORLite::Statistics 0.03;
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
 my $today = DateTime->today( time_zone => 'UTC' );
 
@@ -16,6 +16,21 @@ my $today = DateTime->today( time_zone => 'UTC' );
 
 ######################################################################
 # DateTime Integration
+
+sub perl_version {
+	my $self = shift;
+	my @rows = CPANDB::Requires->select(
+		'where distribution = ? and module = ? and phase = ?',
+		$self->distribution,
+		'perl',
+		'runtime',
+	);
+	if ( @rows ) {
+		return $rows[0]->version;
+	} else {
+		return undef;
+	}
+}
 
 sub uploaded_datetime {
 	my $self = shift;

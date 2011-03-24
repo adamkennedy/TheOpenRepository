@@ -1,5 +1,8 @@
 Changes for Perl extension CPANDB
 
+0.15 Sat 11 Sep 2010
+	- Added CPAN::Distribution::perl_version method
+
 0.14 Tue 11 May 2010
 	- Updated to Module::Install::DSL 0.96
 	- Updated to ORLite::Pod 0.08
