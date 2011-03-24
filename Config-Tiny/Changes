@@ -1,5 +1,9 @@
 Revision history for Perl extension Config-Tiny
 
+2.14 Thu 24 Mar 2011
+	- Resolved #63080: module can write multiline values but not read them
+	- Removed -w from tests to allow tests with tainting on
+
 2.13 Fri  3 Sep 2010
 	- Resolved #60703: Display glitch in Config::Tiny 2.12 POD
 	- Resolved #40585: member 'set;' doesn't exist
