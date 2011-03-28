@@ -49,7 +49,7 @@ use PITA::XML::Storable ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.50';
+	$VERSION = '0.51';
 	@ISA     = 'PITA::XML::Storable';
 }
 

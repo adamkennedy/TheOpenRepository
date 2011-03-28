@@ -30,7 +30,7 @@ BEGIN {
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.50';
+	$VERSION = '0.51';
 }
 
 # The XML Schema File

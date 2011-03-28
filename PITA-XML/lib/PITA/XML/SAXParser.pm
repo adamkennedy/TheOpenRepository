@@ -34,7 +34,7 @@ use XML::SAX::Base ();
 
 use vars qw{$VERSION @ISA $XML_NAMESPACE @PROPERTIES %TRIM};
 BEGIN {
-	$VERSION = '0.50';
+	$VERSION = '0.51';
 	@ISA     = 'XML::SAX::Base';
 
 	# Define the XML namespace we are a parser for

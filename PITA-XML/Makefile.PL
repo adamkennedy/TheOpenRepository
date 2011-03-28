@@ -2,6 +2,7 @@ use inc::Module::Install::DSL 1.00;
 
 all_from      lib/PITA/XML.pm
 requires      Carp                    0
+requires      Config::Tiny            2.00
 requires      IO::Handle              0
 requires      IO::Seekable            0
 requires      IO::File                0
