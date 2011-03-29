@@ -4,6 +4,7 @@ use 5.008;
 use strict;
 use warnings;
 use Wx ':everything';
+use t::lib::Custom ();
 use t::lib::MyClass ();
 
 our $VERSION = '0.01';
@@ -143,6 +144,11 @@ sub new {
 		sub {
 			shift->list_item_selected(@_);
 		},
+	);
+
+	$self->{m_customControl1} = My::CustomControl->new(
+		$self->{m_panel3},
+		-1,
 	);
 
 	$self->{m_panel4} = Wx::Panel->new(
@@ -347,6 +353,7 @@ sub new {
 	$fgSizer1->Add( $self->{m_comboBox1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
 	$fgSizer1->Add( $self->{m_listBox1}, 0, Wx::wxALL, 5 );
 	$fgSizer1->Add( $self->{m_listCtrl1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
+	$fgSizer1->Add( $self->{m_customControl1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
 
 	$self->{m_panel3}->SetSizer($fgSizer1);
 	$self->{m_panel3}->Layout;

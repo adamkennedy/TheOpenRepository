@@ -1,4 +1,4 @@
-package t::lib::MyClass;
+package My::CustomControl;
 
 use Wx ();
 

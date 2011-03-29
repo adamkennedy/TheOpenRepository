@@ -22,10 +22,10 @@ use 5.008005;
 use strict;
 use warnings;
 use Mouse         0.61;
-use FBP           0.22 ();
+use FBP           0.24 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 
 has project => (
 	is       => 'ro',
@@ -237,6 +237,8 @@ sub window_create {
 		$lines = $self->combobox_create($window, $parent);
 	} elsif ( $window->isa('FBP::ColourPickerCtrl') ) {
 		$lines = $self->colourpickerctrl_create($window, $parent);
+	} elsif ( $window->isa('FBP::CustomControl' ) ) {
+		$lines = $self->customcontrol_create($window, $parent);
 	} elsif ( $window->isa('FBP::DirPickerCtrl') ) {
 		$lines = $self->dirpickerctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::FilePickerCtrl') ) {
@@ -421,6 +423,21 @@ sub colourpickerctrl_create {
 		"$position,",
 		"$size,",
 		( $style ? "$style," : () ),
+		");",
+	);
+}
+
+# Completely generic custom control
+sub customcontrol_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->wx( $control->id );
+
+	return $self->nested(
+		$self->window_new($control),
+		"$parent,",
+		"$id,",
 		");",
 	);
 }
