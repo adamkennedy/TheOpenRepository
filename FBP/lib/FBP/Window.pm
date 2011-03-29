@@ -11,7 +11,7 @@ FBP::Window - Base class for all graphical wxWindow objects
 use Mouse;
 use Scalar::Util ();
 
-our $VERSION = '0.23';
+our $VERSION = '0.24';
 
 extends 'FBP::Object';
 with    'FBP::Children';
@@ -203,6 +203,7 @@ but it may be different if a custom C<subclass> property has been set.
 
 Note this class is only used as part of the constructor, and does not assume
 that this is also the value that any program should load. That value is con
+
 =cut
 
 sub wxclass {

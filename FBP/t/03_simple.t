@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 137;
+use Test::More tests => 139;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -252,4 +252,7 @@ my $custom = $object->find_first(
 );
 isa_ok( $custom, 'FBP::CustomControl' );
 is( $custom->class, 'My::Class' );
+is( $custom->wxclass, 'My::Class' );
 is( $custom->include, 'My::Module' );
+is( $custom->header, 'My::Module' );
+
