@@ -1,0 +1,20 @@
+--- #YAML:1.0
+name: Acme-Currency
+version: 1.00
+author:
+  - |-
+    Steffen Mueller <currency-module at steffen-mueller dot net>
+abstract: There are other currencies beside $$$
+license: perl
+requires:
+  Filter::Simple: 0
+recommends:
+  Test::Pod: 1.0
+  Test::Pod::Coverage: 1.0
+build_requires:
+  Test::More: 0
+provides:
+  Acme::Currency:
+    file: lib/Acme/Currency.pm
+    version: 1.00
+generated_by: Module::Build version 0.2608
