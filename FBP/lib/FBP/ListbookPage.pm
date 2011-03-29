@@ -2,7 +2,7 @@ package FBP::ListbookPage;
 
 use Mouse;
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 
 extends 'FBP::Object';
 with    'FBP::Children';

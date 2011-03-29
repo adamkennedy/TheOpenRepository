@@ -1,32 +1,32 @@
-package FBP::FilePickerCtrl;
+package FBP::CustomControl;
 
 use Mouse;
 
 our $VERSION = '0.23';
 
-extends 'FBP::Control';
+extends 'FBP::Window';
 
-has value => (
+has class => (
 	is  => 'ro',
 	isa => 'Str',
 );
 
-has message => (
+has declaration => (
 	is  => 'ro',
 	isa => 'Str',
 );
 
-has wildcard => (
+has construction => (
 	is  => 'ro',
 	isa => 'Str',
 );
 
-has style => (
+has include => (
 	is  => 'ro',
 	isa => 'Str',
 );
 
-has OnFileChanged => (
+has settings => (
 	is  => 'ro',
 	isa => 'Str',
 );

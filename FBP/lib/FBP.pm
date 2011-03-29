@@ -52,6 +52,7 @@ use FBP::CheckBox         ();
 use FBP::Choice           ();
 use FBP::ComboBox         ();
 use FBP::ColourPickerCtrl ();
+use FBP::CustomControl    ();
 use FBP::DirPickerCtrl    ();
 use FBP::FilePickerCtrl   ();
 use FBP::FlexGridSizer    ();
@@ -73,7 +74,7 @@ use FBP::StaticText       ();
 use FBP::StaticLine       ();
 use FBP::TextCtrl         ();
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 
 extends 'FBP::Object';
 with    'FBP::Children';

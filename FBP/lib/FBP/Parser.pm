@@ -7,7 +7,7 @@ use Params::Util   ();
 use XML::SAX::Base ();
 use FBP            ();
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 our @ISA     = 'XML::SAX::Base';
 
 # Object XML class to Perl class mapping
@@ -44,6 +44,7 @@ my %OBJECT_CLASS = (
 	sizeritem          => 'FBP::SizerItem',
 	spacer             => 'FBP::Spacer',
 	splitteritem       => 'FBP::SplitterItem',
+	CustomControl      => 'FBP::CustomControl',
 );
 
 
@@ -173,14 +174,14 @@ sub start_element_object {
 	}
 
 	# Store the raw hash until the closing tag
-	$attr->{class} = $OBJECT_CLASS{$attr->{class}};
+	$attr->{CLASS} = $OBJECT_CLASS{$attr->{class}};
 	push @{$self->{stack}}, $attr;
 }
 
 sub end_element_object {
 	my $self     = shift;
 	my $attr     = pop @{$self->{stack}};
-	my $class    = delete $attr->{class};
+	my $class    = delete $attr->{CLASS};
 	my $children = delete $attr->{children};
 	my $object   = $class->new(
 		%$attr,

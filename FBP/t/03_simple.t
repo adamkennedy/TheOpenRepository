@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 133;
+use Test::More tests => 137;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -67,7 +67,7 @@ isa_ok( $dialog4[0], 'FBP::Dialog' );
 
 # Multiple-search query with multiple results
 my @window = $project->find( isa => 'FBP::Window' );
-is( scalar(@window), 29, '->find(multiple) ok' );
+is( scalar(@window), 30, '->find(multiple) ok' );
 foreach ( @window ) {
 	isa_ok( $_, 'FBP::Window' );
 }
@@ -245,3 +245,11 @@ is( $spinctrl->min,     '0',  '->min ok'     );
 is( $spinctrl->max,     '10', '->max ok'     );
 is( $spinctrl->initial, '5',  '->initial ok' );
 is( $spinctrl->style, 'wxSP_ARROW_KEYS', '->style ok' );
+
+# CustomControl properties
+my $custom = $object->find_first(
+	isa => 'FBP::CustomControl',
+);
+isa_ok( $custom, 'FBP::CustomControl' );
+is( $custom->class, 'My::Class' );
+is( $custom->include, 'My::Module' );
