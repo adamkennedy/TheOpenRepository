@@ -27,20 +27,20 @@ L<Xtract> - Preparing the SQLite database for distribution
 
 use 5.008005;
 use strict;
-use Carp                    ();
-use File::Spec         3.29 ();
-use File::Path         2.07 ();
-use File::Remove       1.42 ();
-use File::HomeDir      0.86 ();
-use File::Basename        0 ();
-use Module::CoreList   2.17 ();
-use Parse::CPAN::Meta  1.39 ();
-use Params::Util       1.00 ();
-use Getopt::Long       2.34 ();
-use DBI               1.609 ();
-use CPAN::Mini        0.576 ();
-use CPAN::Mini::Visit  0.11 ();
-use Xtract::Publish    0.10 ();
+use Carp                     ();
+use File::Spec          3.29 ();
+use File::Path          2.07 ();
+use File::Remove        1.42 ();
+use File::HomeDir       0.86 ();
+use File::Basename         0 ();
+use Module::CoreList    2.46 ();
+use Parse::CPAN::Meta 1.4200 ();
+use Params::Util        1.00 ();
+use Getopt::Long        2.34 ();
+use DBI                1.609 ();
+use CPAN::Mini         0.576 ();
+use CPAN::Mini::Visit   0.11 ();
+use Xtract::Publish     0.12 ();
 
 our $VERSION = '0.11';
 
