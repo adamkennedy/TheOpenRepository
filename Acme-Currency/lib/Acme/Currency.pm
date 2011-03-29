@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 use vars '$VERSION';
-$VERSION = '@.00';
+$VERSION = '2.00';
 
 use Filter::Simple;
 
