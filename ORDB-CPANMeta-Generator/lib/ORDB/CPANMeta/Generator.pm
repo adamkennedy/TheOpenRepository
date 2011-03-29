@@ -278,15 +278,15 @@ END_SQL
 			}
 			unless ( $@ ) {
 				$dist->{meta}           = 1;
-				$dist->{meta_name}      = $yaml[0]->{name};
-				$dist->{meta_version}   = $yaml[0]->{version};
-				$dist->{meta_abstract}  = $yaml[0]->{abstract};
-				$dist->{meta_generated} = $yaml[0]->{generated_by};
-				$dist->{meta_from}      = $yaml[0]->{version_from};
-				$dist->{meta_license}   = $yaml[0]->{license},
+				$dist->{meta_name}      = $data[0]->{name};
+				$dist->{meta_version}   = $data[0]->{version};
+				$dist->{meta_abstract}  = $data[0]->{abstract};
+				$dist->{meta_generated} = $data[0]->{generated_by};
+				$dist->{meta_from}      = $data[0]->{version_from};
+				$dist->{meta_license}   = $data[0]->{license},
 
 				# Configure-time dependencies
-				my $configure = $yaml[0]->{configure_requires} || {};
+				my $configure = $data[0]->{configure_requires} || {};
 				$configure = {
 					$configure => 0,
 				} unless ref $configure;
@@ -298,7 +298,7 @@ END_SQL
 				} } sort keys %$configure;
 
 				# Build-time dependencies
-				my $build = $yaml[0]->{build_requires} || {};
+				my $build = $data[0]->{build_requires} || {};
 				$build = {
 					$build => 0,
 				} unless ref $build;
@@ -310,7 +310,7 @@ END_SQL
 				} } sort keys %$build;
 
 				# Run-time dependencies
-				my $requires = $yaml[0]->{requires} || {};
+				my $requires = $data[0]->{requires} || {};
 				$requires = {
 					$requires => 0,
 				} unless ref $requires;

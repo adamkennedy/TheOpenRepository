@@ -1,5 +1,8 @@
 Changes for Perl extension ORDB-CPANMeta-Generator
 
+0.11 Tue 29 Mar 2011
+	- Read from either META.json or META.yaml
+
 0.10 Mon 20 Jul 2009
 	- If the dependency is in the core, store the version of the core
 	  that can satisfy the dependency without installing the tarball.
