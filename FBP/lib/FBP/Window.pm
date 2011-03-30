@@ -11,7 +11,7 @@ FBP::Window - Base class for all graphical wxWindow objects
 use Mouse;
 use Scalar::Util ();
 
-our $VERSION = '0.24';
+our $VERSION = '0.25';
 
 extends 'FBP::Object';
 with    'FBP::Children';
@@ -134,6 +134,21 @@ that should be applied to the window.
 =cut
 
 has bg => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+=pod
+
+=head2 font
+
+The C<font> method returns a string containing a comma-separated list of
+wxFont constructor params if the wxWindow uses a custom font, or null if it
+uses the default system font.
+
+=cut
+
+has font => (
 	is  => 'ro',
 	isa => 'Str',
 );

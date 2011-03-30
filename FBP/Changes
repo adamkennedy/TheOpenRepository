@@ -1,5 +1,8 @@
 Changes for Perl extension FBP
 
+0.25 Wed 30 Mar 2011
+	- Added FBP::Window::font method
+
 0.24 Tue 29 Mar 2011
 	- Added FBP::CustomControl::wxclass method
 	- Added FBP::CustomControl::header method
