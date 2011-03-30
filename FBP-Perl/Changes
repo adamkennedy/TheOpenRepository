@@ -1,5 +1,9 @@
 Changes for Perl extension FBP-Perl
 
+0.27 Thu 31 Mar 2011
+	- Bump FBP dependency to 0.24 for FBP::Window::font
+	- Adding support for custom fonts
+
 0.26 Tue 29 Mar 2011
 	- Bump FBP dependency to 0.23 for FBP::CustomControl support
 	- Added support for pure custom controls

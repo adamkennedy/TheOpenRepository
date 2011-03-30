@@ -28,6 +28,9 @@ sub new {
 		-1,
 		Wx::gettext("Michael \"Killer\" O'Reilly <michael\@localhost>"),
 	);
+	$self->{m_staticText1}->SetFont(
+		Wx::Font->new( Wx::wxNORMAL_FONT->GetPointSize, 70, 90, 92, 0, "" )
+	);
 
 	$self->{m_textCtrl1} = Wx::TextCtrl->new(
 		$self,

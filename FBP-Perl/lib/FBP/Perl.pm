@@ -22,10 +22,10 @@ use 5.008005;
 use strict;
 use warnings;
 use Mouse         0.61;
-use FBP           0.24 ();
+use FBP           0.25 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 
 has project => (
 	is       => 'ro',
@@ -291,6 +291,14 @@ sub window_create {
 			"\t$colour",
 			");";
 	};
+	if ( $window->font ) {
+		my $variable = $self->object_variable($window);
+		my $font     = $self->font( $window->font );
+		push @$lines,
+			"$variable->SetFont(",
+			"\t$font",
+			");";
+	}
 
 	# Add the bindings the window
 	my $bindings = $self->window_bindings($window);
@@ -1531,7 +1539,37 @@ sub font {
 		return 'Wx::wxNullFont';
 	}
 
+	# Generate a font from the overcompact FBP format.
+	# It will probably look something like ",90,92,-1,70,0"
+	my @font = split /,/, $string;
+	if ( @font == 6 ) {
+		my $point_size = $font[3];
+		my $family     = $font[4];
+		my $style      = $font[1];
+		my $weight     = $font[2];
+		my $underlined = $font[5];
+		my $face_name  = $font[0];
+		my $params     = join( ', ',
+			$self->points($point_size),
+			$family,
+			$style,
+			$weight,
+			$underlined,
+			$self->quote($face_name),
+		);
+		return "Wx::Font->new( $params )";
+	}
+
 	die "Invalid or unsupported font '$string'";
+}
+
+sub points {
+	my $self = shift;
+	my $size = shift;
+	if ( $size and $size > 0 ) {
+		return $size;
+	}
+	$self->wx('wxNORMAL_FONT') . '->GetPointSize';
 }
 
 sub indent {
