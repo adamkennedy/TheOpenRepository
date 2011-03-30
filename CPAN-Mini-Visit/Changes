@@ -1,6 +1,6 @@
 Changes for Perl extension CPAN-Mini-Visit
 
-NEXT
+0.13 Wed 30 Mar 2011
 	- Clean out mentions of the 'skip' option; this functionality can be 
 	  achieved by passing a sub to the 'ignore' option
 
