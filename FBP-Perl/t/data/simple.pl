@@ -31,6 +31,9 @@ sub new {
 	$self->{m_staticText1}->SetFont(
 		Wx::Font->new( Wx::wxNORMAL_FONT->GetPointSize, 70, 90, 92, 0, "" )
 	);
+	$self->{m_staticText1}->SetTooltip(
+		Wx::gettext("Who is awesome")
+	);
 
 	$self->{m_textCtrl1} = Wx::TextCtrl->new(
 		$self,
@@ -51,6 +54,9 @@ sub new {
 		Wx::gettext("MyButton"),
 	);
 	$self->{m_button1}->SetDefault;
+	$self->{m_button1}->SetTooltip(
+		Wx::gettext("Click to do nothing")
+	);
 
 	Wx::Event::EVT_BUTTON(
 		$self,

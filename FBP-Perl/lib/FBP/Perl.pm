@@ -21,17 +21,27 @@ TO BE COMPLETED
 use 5.008005;
 use strict;
 use warnings;
-use Mouse         0.61;
 use FBP           0.25 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.27';
+our $VERSION = '0.28';
+
+
+
+
+
+######################################################################
+# Class Definition
+
+use Mouse 0.61;
 
 has project => (
 	is       => 'ro',
 	isa      => 'FBP::Project',
 	required => 1,
 );
+
+no Mouse;
 
 
 
@@ -275,28 +285,33 @@ sub window_create {
 	}
 
 	# Add common modifications
+	my $variable = $self->object_variable($window);
 	if ( $window->fg ) {
-		my $variable = $self->object_variable($window);
-		my $colour   = $self->colour( $window->fg );
+		my $colour = $self->colour( $window->fg );
 		push @$lines,
 			"$variable->SetForegroundColour(",
 			"\t$colour",
 			");";
 	};
 	if ( $window->bg ) {
-		my $variable = $self->object_variable($window);
-		my $colour   = $self->colour( $window->bg );
+		my $colour = $self->colour( $window->bg );
 		push @$lines,
 			"$variable->SetBackgroundColour(",
 			"\t$colour",
 			");";
 	};
 	if ( $window->font ) {
-		my $variable = $self->object_variable($window);
-		my $font     = $self->font( $window->font );
+		my $font = $self->font( $window->font );
 		push @$lines,
 			"$variable->SetFont(",
 			"\t$font",
+			");";
+	}
+	if ( $window->tooltip ) {
+		my $tooltip = $self->text( $window->tooltip );
+		push @$lines,
+			"$variable->SetTooltip(",
+			"\t$tooltip",
 			");";
 	}
 

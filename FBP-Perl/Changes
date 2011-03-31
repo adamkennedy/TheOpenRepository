@@ -1,5 +1,8 @@
 Changes for Perl extension FBP-Perl
 
+0.28 Thu 31 Mar 2011
+	- Adding support for tooltips
+
 0.27 Thu 31 Mar 2011
 	- Bump FBP dependency to 0.24 for FBP::Window::font
 	- Adding support for custom fonts
