@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 use vars '$VERSION';
-$VERSION = '3.00';
+$VERSION = '3.01';
 
 use Filter::Simple;
 
@@ -82,7 +82,7 @@ Steffen Mueller, E<lt>currency-module at steffen-mueller dot netE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2003-2005 by Steffen Mueller
+Copyright 2003-205, 2011 by Steffen Mueller
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 
