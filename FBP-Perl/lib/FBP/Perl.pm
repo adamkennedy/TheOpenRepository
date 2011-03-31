@@ -24,7 +24,7 @@ use warnings;
 use FBP           0.25 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 
 
 
@@ -1268,7 +1268,7 @@ sub dialog_methods {
 	my $dialog  = shift;
 	my @windows = $dialog->find( isa => 'FBP::Window' );
 	my %seen    = ();
-	my @lines   = ();
+	my @methods   = ();
 
 	# Add the accessor methods
 	foreach my $window ( @windows ) {
@@ -1282,12 +1282,7 @@ sub dialog_methods {
 			die "Duplicate method '$name' detected";
 		}
 
-		push @lines, (
-			"",
-			"sub $name {",
-			"\t\$_[0]->{$name};",
-			"}",
-		);
+		push @methods, $self->window_accessor($window);
 	}
 
 	# Add the event handler methods
@@ -1305,16 +1300,14 @@ sub dialog_methods {
 				die "Duplicate method '$method' detected";
 			}
 
-			push @lines, (
-				"",
-				"sub $method {",
-				"\tdie 'Handler method $method for event $name.$event not implemented';",
-				"}",
-			);
+			push @methods, $self->window_event($window, $event);
 		}
 	}
 
-	return \@lines;
+	# Convert back to a single block of lines
+	return [
+		map { ( "", @$_ ) } @methods
+	];
 }
 
 
@@ -1382,6 +1375,32 @@ sub window_new {
 	my $variable = $self->object_variable($window);
 	my $wxclass  = $window->wxclass;
 	return "$lexical$variable = $wxclass->new(";
+}
+
+sub window_accessor {
+	my $self   = shift;
+	my $object = shift;
+	my $name   = $object->name;
+
+	return $self->nested(
+		"sub $name {",
+		"\$_[0]->{$name};",
+		"}",
+	);
+}
+
+sub window_event {
+	my $self   = shift;
+	my $window = shift;
+	my $event  = shift;
+	my $name   = $window->name;
+	my $method = $window->$event();
+
+	return $self->nested(
+		"sub $method {",
+		"die 'Handler method $method for event $name.$event not implemented';",
+		"}",
+	);
 }
 
 sub control_items {

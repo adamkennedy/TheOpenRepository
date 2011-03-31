@@ -1,5 +1,8 @@
 Changes for Perl extension FBP-Perl
 
+0.30 Thu 31 Mar 2011
+	- Abstracting out the generation of accessor methods and event stubs
+
 0.29 Thu 31 Mar 2011
 	- Incorrect capitalisation of SetToolTip
 
