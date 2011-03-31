@@ -24,7 +24,7 @@ use warnings;
 use FBP           0.25 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 
 
 
@@ -310,7 +310,7 @@ sub window_create {
 	if ( $window->tooltip ) {
 		my $tooltip = $self->text( $window->tooltip );
 		push @$lines,
-			"$variable->SetTooltip(",
+			"$variable->SetToolTip(",
 			"\t$tooltip",
 			");";
 	}

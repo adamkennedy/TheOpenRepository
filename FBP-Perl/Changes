@@ -1,5 +1,8 @@
 Changes for Perl extension FBP-Perl
 
+0.29 Thu 31 Mar 2011
+	- Incorrect capitalisation of SetToolTip
+
 0.28 Thu 31 Mar 2011
 	- Adding support for tooltips
 
