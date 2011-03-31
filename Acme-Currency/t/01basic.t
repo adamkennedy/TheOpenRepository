@@ -1,8 +1,8 @@
 use strict;
 use warnings;
 
-use Test::More tests => 5;
-BEGIN { use_ok('Acme::Currency') };
+use Test::More tests => 4;
+use Acme::Currency;
 
 my €test = 1;
 ok(€test == 1);
