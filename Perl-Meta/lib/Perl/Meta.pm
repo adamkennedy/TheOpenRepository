@@ -59,6 +59,7 @@ sub __extract_license {
 	my @phrases      = (
 		'(?:under )?the same (?:terms|license) as (?:perl|the perl (?:\d )?programming language)' => 'perl', 1,
 		'(?:under )?the terms of (?:perl|the perl programming language) itself' => 'perl', 1,
+		'under the terms of either the GNU General Public License or the Artistic License' => 'perl', 1,
 		'Artistic and GPL'                   => 'perl',         1,
 		'GNU general public license'         => 'gpl',          1,
 		'GNU public license'                 => 'gpl',          1,

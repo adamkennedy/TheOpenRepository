@@ -6,7 +6,7 @@ BEGIN {
         $^W = 1;
 }
 
-use Test::More tests => 16;
+use Test::More tests => 17;
 
 require_ok( 'Perl::Meta' );
 
@@ -108,6 +108,17 @@ SCOPE: {
 This module is distributed under the same terms as Perl itself.
 
 =cut
+";
+	my $l=Perl::Meta::_extract_license($text);
+		is($l, 'perl', 'Perl license detected',
+	);
+}
+
+SCOPE: {
+        my $text="=head1 COPYRIGHT
+
+You may distribute under the terms of either the GNU General Public
+License or the Artistic License, as specified in the Perl README file.
 ";
 	my $l=Perl::Meta::_extract_license($text);
 		is($l, 'perl', 'Perl license detected',
