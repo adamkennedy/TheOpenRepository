@@ -1,5 +1,9 @@
 Changes for Perl extension FBP-Perl
 
+0.31 Fri 8 Apr 2011
+	- Allow multiple controls to fire the same event handler, while still
+	  preventing clashes between accessors and event handler methods.
+
 0.30 Thu 31 Mar 2011
 	- Abstracting out the generation of accessor methods and event stubs
 

@@ -48,6 +48,14 @@ sub new {
 		Wx::Colour->new( 255, 128, 0 )
 	);
 
+	Wx::Event::EVT_TEXT(
+		$self,
+		$self->{m_textCtrl1},
+		sub {
+			shift->refresh(@_);
+		},
+	);
+
 	$self->{m_button1} = Wx::Button->new(
 		$self,
 		-1,
@@ -101,6 +109,14 @@ sub new {
 	);
 	$self->{m_choice1}->SetSelection(0);
 
+	Wx::Event::EVT_CHOICE(
+		$self,
+		$self->{m_choice1},
+		sub {
+			shift->refresh(@_);
+		},
+	);
+
 	$self->{m_comboBox1} = Wx::ComboBox->new(
 		$self->{m_panel3},
 		-1,
@@ -113,6 +129,14 @@ sub new {
 			"a'b",
 			"c\"d\\\"",
 		],
+	);
+
+	Wx::Event::EVT_TEXT(
+		$self,
+		$self->{m_comboBox1},
+		sub {
+			shift->refresh(@_);
+		},
 	);
 
 	$self->{m_listBox1} = Wx::ListBox->new(
@@ -458,6 +482,10 @@ sub new {
 
 sub m_htmlWin1 {
 	$_[0]->{m_htmlWin1};
+}
+
+sub refresh {
+	die 'Handler method refresh for event m_textCtrl1.OnText not implemented';
 }
 
 sub m_button1 {

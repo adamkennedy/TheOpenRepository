@@ -24,7 +24,7 @@ use warnings;
 use FBP           0.25 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 
 
 
@@ -1268,7 +1268,8 @@ sub dialog_methods {
 	my $dialog  = shift;
 	my @windows = $dialog->find( isa => 'FBP::Window' );
 	my %seen    = ();
-	my @methods   = ();
+	my %done    = ();
+	my @methods = ();
 
 	# Add the accessor methods
 	foreach my $window ( @windows ) {
@@ -1296,9 +1297,10 @@ sub dialog_methods {
 			next unless length $method;
 
 			# Protect against duplicates
-			if ( $seen{$method}++ ) {
+			if ( $seen{$method} ) {
 				die "Duplicate method '$method' detected";
 			}
+			next if $done{$method}++;
 
 			push @methods, $self->window_event($window, $event);
 		}
