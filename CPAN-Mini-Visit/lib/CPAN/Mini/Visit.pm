@@ -220,7 +220,7 @@ sub run {
 		my $archive = File::Spec->catfile( $self->authors, $path );
 		my $dist    = $path;
 		$dist =~ s|^[A-Z]/[A-Z][A-Z]/|| or die "Bad distpath for $path";
-		unless ( $dist =~ /^([A-Z]+)/ ) {
+		unless ( $dist =~ /^([A-Z0-9-]+)/ ) {
 			die "Bad author for $path";
 		}
 		my $author = "$1";

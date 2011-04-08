@@ -3,6 +3,7 @@ Changes for Perl extension CPAN-Mini-Visit
 0.13 Wed 30 Mar 2011
 	- Clean out mentions of the 'skip' option; this functionality can be 
 	  achieved by passing a sub to the 'ignore' option
+    - Allow PAUSE IDs to include dashes and numbers
 
 0.12_01 Wed 23 Mar 2011
 	- Upgrading to Module::Install::DSL 1.00
