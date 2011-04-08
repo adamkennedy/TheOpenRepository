@@ -24,7 +24,7 @@ use warnings;
 use FBP           0.25 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 
 
 
@@ -1162,6 +1162,9 @@ my %EVENT = (
 	OnMenu                    => [ 'EVT_MENU'                       ],
 	OnMenuRange               => [ 'EVT_MENU_RANGE'                 ],
 
+	# wxColourPickerCtrl
+	OnColourChanged           => [ 'EVT_COLOURPICKER_CHANGED'      ],
+
 	# wxCloseEvent
 	OnClose                   => [ 'EVT_CLOSE'                      ],
 
@@ -1171,6 +1174,9 @@ my %EVENT = (
 	# wxFocusEvent
 	OnKillFocus               => [ 'EVT_KILL_FOCUS'                 ],
 	OnSetFocus                => [ 'EVT_SET_FOCUS'                  ],
+
+	# wxFontPickerCtrl
+	OnFontChanged             => [ 'EVT_FONTPICKER_CHANGED'        ],
 
 	# wxIdleEvent
 	OnIdle                    => [ 'EVT_IDLE'                       ],
@@ -1232,6 +1238,7 @@ my %EVENT = (
 	OnSplitterSashPosChanged  => [ 'EVT_SPLITTER_SASH_POS_CHANGED'  ],
 	OnSplitterUnsplit         => [ 'EVT_SPLITTER_UNSPLIT'           ],
 	OnSplitterDClick          => [ 'EVT_SPLITTER_DCLICK'            ],
+
 );
 
 sub window_bindings {
