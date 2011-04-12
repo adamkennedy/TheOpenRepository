@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 8;
+use Test::More tests => 9;
 use File::Spec::Functions;
 use YAML::Tiny::Stream;
 
@@ -29,6 +29,7 @@ isa_ok( $stream, 'YAML::Tiny::Stream' );
 my @yaml = ();
 while ( my $document = $stream->fetch ) {
 	isa_ok( $document, 'YAML::Tiny' );
-	is( scalar(@$document), 'Object contains one document' );
+	is( scalar(@$document), 1, 'Object contains one document' );
+	push @yaml, $document;
 }
 is( scalar(@yaml), 3, 'Found three YAML documents' );
