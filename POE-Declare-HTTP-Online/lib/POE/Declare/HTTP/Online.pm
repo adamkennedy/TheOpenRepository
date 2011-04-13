@@ -8,6 +8,220 @@ POE::Declare::HTTP::Online - Does your POE process have access to the web
 
 =head1 SYNOPSIS
 
+    my $online = POE::Declare::HTTP::Online->new(
+        Timeout      => 10,
+        OnlineEvent  => \&handle_online,
+        OfflineEvent => \&handle_offline,
+        ErrorEvent   => \&handle_unknown,
+    );
+    
+    $online->run;
+
 =head1 DESCRIPTION
+
+This is a port of L<LWP::Online> to L<POE::Declare>. It behaves similarly to
+the original, except that it does not depend on LWP and can execute the HTTP
+probes in parallel.
+
+=cut
+
+use 5.008;
+use strict;
+use Carp                            ();
+use Params::Util               1.00 ();
+use POE::Declare::HTTP::Client 0.02 ();
+
+our $VERSION = '0.01';
+
+use POE::Declare 0.53 {
+	Timeout      => 'Param',
+	Tests        => 'Param',
+	OnlineEvent  => 'Message',
+	OfflineEvent => 'Message',
+	ErrorEvent   => 'Message',
+	client       => 'Internal',
+	result       => 'Internal',
+};
+
+my %DEFAULT = (
+	# These are some initial trivial checks.
+	# The regex are case-sensitive to at least
+	# deal with the "couldn't get site.com case".
+	'http://google.com/' => sub { /About Google/      },
+	'http://yahoo.com/'  => sub { /Yahoo!/            },
+	'http://amazon.com/' => sub { /Amazon/ and /Cart/ },
+	'http://cnn.com/'    => sub { /CNN/               },
+);
+
+
+
+
+
+######################################################################
+# Constructor and Accessors
+
+=pod
+
+=head2 new
+
+    my $online = POE::Declare::HTTP::Online->new(
+        Timeout      => 10,
+        OnlineEvent  => \&handle_online,
+        OfflineEvent => \&handle_offline,
+        ErrorEvent   => \&handle_unknown,
+    );
+
+The C<new> constructor sets up a reusable HTTP online status checker that can
+be run as often as needed.
+
+Unless actively in use, the online detection object will not consume a L<POE>
+session.
+
+=cut
+
+sub new {
+	my $self = shift->SUPER::new(@_);
+
+	unless ( defined $self->Timeout ) {
+		$self->{Timeout} = 10;
+	}
+	unless ( defined $self->Tests ) {
+		$self->{Tests} = \%DEFAULT;
+	}
+	unless ( Params::Util::_HASH($self->Tests) ) {
+		Carp::croak("Missing or invalid 'Test' param");
+	}
+
+	# Pre-generate a client for each request
+	$self->{client} = {};
+	foreach my $url ( keys %{ $self->Tests } ) {
+		$self->{client}->{$url} = POE::Declare::HTTP::Client->new(
+			Timeout       => $self->Timeout - 1,
+			ResponseEvent => $self->lookback('http_response'),
+			ShutdownEvent => $self->lookback('http_shutdown'),
+		);
+	}
+
+	return $self;
+}
+
+sub tests {
+	keys %{ $_[0]->Tests };
+}
+
+
+
+
+
+######################################################################
+# Methods
+
+=pod
+
+=head2 run
+
+The C<run> method starts the online detection process, spawning the L<POE>
+session and initiating HTTP Test to each of the test URLs in parallel.
+
+Once a determination has been made as to our online state (positive, negative
+or unknown) and the reporting event has been fired, the session will be
+terminated immediately.
+
+=cut
+
+sub run {
+	my $self = shift;
+	unless ( $self->spawned ) {
+		$self->spawn;
+	}
+	return 1;
+}
+
+
+
+
+
+######################################################################
+# Event Handlers
+
+sub _start :Event {
+	$_[SELF]->SUPER::_start(@_[1..$#_]);
+
+	# Initialise state variables and boot the HTTP clients
+	foreach my $url ( $_[SELF]->tests ) {
+		$_[SELF]->{client}->{$url}->start;
+	}
+
+	$_[SELF]->post('startup');
+}
+
+sub startup :Event {
+	$_[SELF]->timeout_start($_[SELF]->Timeout);
+	foreach my $url ( $_[SELF]->tests ) {
+		$_[SELF]->{client}->{$url}->GET($url);
+	}
+}
+
+sub timeout :Timeout(10) {
+	$_[SELF]->timeout_stop;
+
+	# Abort any requests still running
+	foreach my $url ( $_[SELF]->tests ) {
+		$_[SELF]->{client}->{$url}->stop;
+	}
+
+	# We're so slow that we should assume we're not online
+	$_[SELF]->call( respond => 0 );
+}
+
+sub http_response :Event {
+	print STDERR "# http_response $_[ARG0]\n";
+}
+
+sub http_shutdown :Event {
+	print STDERR "# http_response $_[ARG0]\n";
+}
+
+sub respond :Event {
+	$_[SELF]->{result} = undef;
+	if ( $_[ARG0] ) {
+		$_[SELF]->OnlineEvent;
+	} elsif ( defined $_[ARG0] ) {
+		$_[SELF]->OfflineEvent;
+	} else {
+		$_[SELF]->ErrorEvent;
+	}
+	$_[SELF]->finish;
+}
+
+compile;
+
+=pod
+
+=head1 SUPPORT
+
+Bugs should be always be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=POE-Declare-HTTP-Client>
+
+For other issues, or commercial enhancement or support, contact the author.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<LWP::Simple>
+
+=head1 COPYRIGHT
+
+Copyright 2011 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
 
 =cut
