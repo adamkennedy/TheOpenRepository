@@ -31,7 +31,7 @@ use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.53';
+	$VERSION = '0.54';
 }
 
 # Inside-out storage of internal values
@@ -73,7 +73,7 @@ sub MODIFY_CODE_ATTRIBUTES {
 		my $delay    = $1;
 		my $variance = 0;
 		if ( defined Params::Util::_STRING($delay) ) {
-			if ( $delay =~ /^(.+?)+-(.+?)\z/ ) {
+			if ( $delay =~ /^(.+?)\+\-(.+?)\z/ ) {
 				$delay    = $1;
 				$variance = $2;
 			}
@@ -316,9 +316,9 @@ sub session_id {
 
 =pod
 
-=head2 session_id
+=head2 session
 
-The C<session_id> accessor finds and returns the internal L<POE::Session>
+The C<session> accessor finds and returns the internal L<POE::Session>
 object for this instance, or C<undef> if the object has not been spawned.
 
 =cut

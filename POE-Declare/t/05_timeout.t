@@ -10,7 +10,7 @@ BEGIN {
 	$|  = 1;
 }
 
-use Test::More tests => 14;
+use Test::More tests => 15;
 # Disabled for now due to POE::Peek::API throwing warnings.
 # use Test::NoWarnings;
 use POE;
@@ -59,10 +59,11 @@ SCOPE: {
 		$_[SELF]->timer1_start;
 		$_[SELF]->timer1_start;
 		$_[SELF]->timer1_restart;
+		$_[SELF]->timer3_start(0.5, 0.1);
 	}
 
 	sub timer1 : Timeout(1) {
-		order( 3, 'Fired Foo::timer1' );
+		order( 4, 'Fired Foo::timer1' );
 		$_[SELF]->timer1_stop;
 		$_[SELF]->timer2_stop;
 		$_[SELF]->timer2_restart;
@@ -74,8 +75,13 @@ SCOPE: {
 		die "The timer2 event should never be fired";
 	}
 
+	sub timer3 : Timeout(30) {
+		# Should be overidable
+		order( 3, 'Fired Foo::timer3' );
+	}
+
 	sub _stop : Event {
-		order( 4, 'Fired Foo::_stop' );
+		order( 5, 'Fired Foo::_stop' );
 		$_[0]->SUPER::_stop(@_[1..$#_]);
 	}
 
@@ -94,6 +100,7 @@ is_deeply(
 		started
 		timer1
 		timer2
+		timer3
 	} ],
 	'->_package_states ok',
 );
@@ -125,11 +132,11 @@ sub _start {
 }
 
 sub _stop {
-	order( 6, 'Fired main::_stop' );
+	order( 7, 'Fired main::_stop' );
 }
 
 sub timeout {
-	order( 5, 'Fired main::timeout' );
+	order( 6, 'Fired main::timeout' );
 }
 
 POE::Kernel->run;

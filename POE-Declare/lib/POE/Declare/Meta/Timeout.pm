@@ -46,7 +46,7 @@ use POE::Declare::Meta::Event ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.53';
+	$VERSION = '0.54';
 	@ISA     = 'POE::Declare::Meta::Event';
 }
 
@@ -67,13 +67,14 @@ use Class::XSAccessor {
 sub as_perl {
 	my $name     = $_[0]->{name};
 	my $delay    = $_[0]->{delay};
-	my $variance = $_[0]->{variance};
-	if ( $variance ) {
-		$delay = "$delay + rand($variance * 2) - $variance";
-	}
+	my $variance = $_[0]->{variance} || 0;
 	return <<"END_PERL";
 sub ${name}_start {
-	\$poe_kernel->delay( '$name' => $delay ) or return;
+	my \$delay    = \@_ > 1 ? defined \$_[1] ? \$_[1] : $delay : $delay;
+	my \$variance = \@_ > 1 ? \$_[2] || $variance : $variance;
+	\$poe_kernel->delay(
+		'$name' => \$delay + rand(\$variance * 2) - \$variance
+	) or return;
 	die("Failed to create timeout for event '$name'");
 }
 

@@ -12,10 +12,10 @@ POE::Declare - A POE abstraction layer for conciseness and simplicity
   
   use strict;
   use POE::Declare {
-	foo      => 'Attribute',
-	bar      => 'Internal',
-	Username => 'Param',
-	Password => 'Param',
+      foo      => 'Attribute',
+      bar      => 'Internal',
+      Username => 'Param',
+      Password => 'Param',
   };
   
   declare TimeoutError => 'Message';
@@ -258,7 +258,7 @@ use constant SELF => HEAP;
 
 use vars qw{$VERSION @ISA @EXPORT %ATTR %EVENT %META};
 BEGIN {
-	$VERSION = '0.53';
+	$VERSION = '0.54';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{ SELF declare compile };
 

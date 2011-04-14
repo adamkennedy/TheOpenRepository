@@ -1,5 +1,10 @@
 Changes for Perl extension POE-Declare
 
+0.54 Fri 15 Apr 2011
+	- Add support for timeout variance both in declaration and overridden
+	  timeout lengths.
+	- Overriding timeout delays were being ignored (major bug fix)
+
 0.53 Wed 9 Mar 2011
 	- Fixed #51697: [Patch] POD nit (FWIE)
 	- Upgrade Class::XSAccessor dependency to 1.10 to fix some crashes
