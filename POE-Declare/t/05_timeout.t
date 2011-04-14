@@ -69,7 +69,7 @@ SCOPE: {
 		$_[SELF]->finish;
 	}
 
-	sub timer2 : Timeout(2) {
+	sub timer2 : Timeout(2+-1) {
 		# Should never be called
 		die "The timer2 event should never be fired";
 	}

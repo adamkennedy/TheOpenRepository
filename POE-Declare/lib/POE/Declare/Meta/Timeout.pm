@@ -52,7 +52,8 @@ BEGIN {
 
 use Class::XSAccessor {
 	getters => {
-		delay => 'delay',
+		delay    => 'delay',
+		variance => 'variance',
 	},
 };
 
@@ -64,8 +65,12 @@ use Class::XSAccessor {
 # Main Methods
 
 sub as_perl {
-	my $name  = $_[0]->{name};
-	my $delay = $_[0]->{delay};
+	my $name     = $_[0]->{name};
+	my $delay    = $_[0]->{delay};
+	my $variance = $_[0]->{variance};
+	if ( $variance ) {
+		$delay = "$delay + rand($variance * 2) - $variance";
+	}
 	return <<"END_PERL";
 sub ${name}_start {
 	\$poe_kernel->delay( '$name' => $delay ) or return;

@@ -70,7 +70,14 @@ sub MODIFY_CODE_ATTRIBUTES {
 		unless ( $name =~ /^Timeout\((.+)\)$/ ) {
 			Carp::croak("Missing or invalid timeout");
 		}
-		my $delay = $1;
+		my $delay    = $1;
+		my $variance = 0;
+		if ( defined Params::Util::_STRING($delay) ) {
+			if ( $delay =~ /^(.+?)+-(.+?)\z/ ) {
+				$delay    = $1;
+				$variance = $2;
+			}
+		}
 		unless ( Params::Util::_POSINT($delay) ) {
 			Carp::croak("Missing or invalid timeout");
 		}
