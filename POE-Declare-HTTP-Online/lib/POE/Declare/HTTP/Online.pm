@@ -264,7 +264,7 @@ compile;
 
 Bugs should be always be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=POE-Declare-HTTP-Client>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=POE-Declare-HTTP-Online>
 
 For other issues, or commercial enhancement or support, contact the author.
 
