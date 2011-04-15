@@ -35,8 +35,86 @@ use POE::Declare::HTTP::Client 0.04 ();
 our $VERSION = '0.01';
 
 use POE::Declare 0.54 {
-	Timeout => 'Param',
+	Timeout  => 'Param',
+	Parallel => 'Param',
+	client   => 'Internal',
+	elapsed  => 'Internal',
 };
+
+
+
+
+
+######################################################################
+# Constructor and Accessors
+
+sub new {
+	my $self = shift->SUPER::new(@_);
+
+	# Check params
+	unless ( Params::Util::_POSINT($self->Parallel) ) {
+		$self->{Parallel} = 20;
+	}
+
+	return $self;
+}
+
+sub select {
+	my $self   = shift;
+	my $mirror = $self->{mirror} = {
+		map {
+			$_ => {
+				url      => $_,
+				age      => undef,
+				speed    => undef,
+				tstart   => undef,
+				tend     => undef,
+				response => undef,
+			}
+		} @_
+	};
+	my $queue = $self->{queue} = [
+		sort { rand() <=> rand() }
+		values %{ $self->{mirror} }
+	];
+	return 1;
+}
+
+
+
+
+
+######################################################################
+# Event Handlers
+
+sub start :Event {
+
+	# Initialise the clients
+	my $client  = $_[SELF]->{client}  = { };
+	my $elapsed = $_[SELF]->{elapsed} = { };
+	foreach ( 1 .. $_[SELF]->Parallel ) {
+		my $http = POE::Declare::HTTP::Client->new(
+			Timeout        => 5,
+			ResponseEvent  => $_[SELF]->lookback('http_response'),
+			ShutdownEvenet => $_[SELF]->lookback('http_shutdown'),
+		);
+		$client->{$http->Alias} = $http;
+		$client->{$http->Alias}->start;
+	}
+
+}
+
+sub http_response :Event {
+	my $queue    = $_[SELF]->{queue};
+	my $alias    = $_[ARG0];
+	my $response = $_[ARG1];
+
+	
+}
+
+sub http_shutdown :Event {
+	
+}
 
 compile;
 
