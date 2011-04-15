@@ -1,5 +1,10 @@
 Changes for Perl extension POE-Declare-HTTP-Client
 
+0.03 Fri 15 Apr 2011
+	- Added support for handling redirect responses
+	- Added useragent header to requests
+	- Requests now sent as HTTP/1.0 instead of default HTTP/0.9
+
 0.02 Wed 9 Mar 2011
 	- Added PUT method
 	- Added HEAD method

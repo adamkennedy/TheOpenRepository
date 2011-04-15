@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 16;
+use Test::More tests => 17;
 use Test::NoWarnings;
 use Test::POE::Stopping;
 use POE::Declare::HTTP::Client;
@@ -20,7 +20,8 @@ sub order {
 	is( $order++, $position, "$message ($position)" );
 }
 
-my $URL = 'http://www.google.com/';
+# This should redirect to http://www.google.com/
+my $URL = 'http://google.com/';
 
 
 
@@ -32,11 +33,19 @@ my $URL = 'http://www.google.com/';
 # Create the client
 my @response = undef;
 my $client   = POE::Declare::HTTP::Client->new(
+	MaxRedirect   => 1,
 	ResponseEvent => sub {
 		order( 3, 'Got response' );
-		isa_ok( $_[1], 'HTTP::Response' );
-		isa_ok( $_[1]->request, 'HTTP::Request' );
-		is( $_[1]->request->uri->as_string, $URL );
+		my $response = $_[1];
+		isa_ok( $response, 'HTTP::Response' );
+		while ( $response->previous ) {
+			$response = $response->previous;
+		}
+		isa_ok( $response, 'HTTP::Response' );
+
+		my $request = $response->request;
+		isa_ok( $request, 'HTTP::Request' );
+		is( $request->uri->as_string, $URL );
 	},
 	ShutdownEvent => sub {
 		order( 5, 'Got client shutdown' );

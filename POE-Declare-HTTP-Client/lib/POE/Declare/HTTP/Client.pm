@@ -10,26 +10,15 @@ POE::Declare::HTTP::Client - A simple HTTP client based on POE::Declare
 
     # Create the web server
     my $http = POE::Declare::HTTP::Client->new(
-        Hostname => '127.0.0.1',
-        Port     => '80',
-        Handler  => sub {
-            my $server   = shift;
-            my $response = shift;
-    
-            # The request is not passed to you but is available if needed
-            my $request = $response->request;
-    
-            # Webby content generation stuff here
-            $response->code( 200 );
-            $response->header( 'Content-Type' => 'text/plain' );
-            $response->content( "Hello World!" );
-    
-            return;
-        },
+        Timeout       => 10,
+        MaxRedirect   => 7,
+        ResponseEvent => \&on_response,
+        ShutdownEvent => \&on_shutdown,
     );
     
     # Control with methods
     $http->start;
+    $http->GET('http://google.com');
     $http->stop;
 
 =head1 DESCRIPTION
@@ -48,6 +37,7 @@ use strict;
 use warnings;
 use Scalar::Util              1.19 ();
 use Params::Util              1.00 ();
+use URI                       1.10 ();
 use HTTP::Status                   ();
 use HTTP::Request            5.827 ();
 use HTTP::Request::Common          ();
@@ -57,15 +47,18 @@ use POE::Filter::HTTP::Parser 1.06 ();
 use POE::Wheel::ReadWrite          ();
 use POE::Wheel::SocketFactory      ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use POE::Declare 0.52 {
 	Timeout       => 'Param',
+	MaxRedirect   => 'Param',
 	ResponseEvent => 'Message',
 	ShutdownEvent => 'Message',
 	request       => 'Internal',
+	previous      => 'Internal',
 	factory       => 'Internal',
 	socket        => 'Internal',
+	redirects     => 'Internal',
 };
 
 
@@ -236,6 +229,9 @@ sub request {
 		die "Missing or invalid HTTP::Request object";
 	}
 
+	# Initialise the redirect count
+	$self->{redirects} = $self->MaxRedirect || 0;
+
 	# Save the request object
 	if ( $self->{request} ) {
 		die "HTTP Client is already processing a request";
@@ -329,6 +325,8 @@ sub connect_success : Event {
 		InputEvent => 'socket_response',
 		ErrorEvent => 'socket_error',
 	);
+	$_[SELF]->{request}->protocol('HTTP/1.0');
+	$_[SELF]->{request}->user_agent("POE::Declare::HTTP::Client/$VERSION");
 	$_[SELF]->{socket}->put( $_[SELF]->{request} );
 }
 
@@ -368,10 +366,41 @@ sub response : Event {
 	}
 
 	# Associate the response with the original request
-	$response->request(
-		delete $_[SELF]->{request}
-	);
+	$response->request( delete $_[SELF]->{request} );
+	if ( $_[SELF]->{previous} ) {
+		$response->previous( delete $_[SELF]->{previous} );
+	}
 
+	# Handle redirects
+	if ( $response->is_redirect ) {
+		# Prepare the redirect
+		my $uri     = URI->new( $response->header('Location') );
+		my $request = $response->request;
+
+		# Validate the redirect against the HTTP 1.1 rules
+		if (
+			$request->method =~ /^(?:GET|HEAD)$/
+			and
+			$uri->scheme ne 'file'
+		) {
+			# Prepare the new request
+			my $referral = $request->clone;
+			$referral->remove_header('Host', 'Cookie');
+			$referral->uri($uri);
+
+			# Bind the new request
+			$_[SELF]->{request}  = $referral;
+			$_[SELF]->{previous} = $response;
+
+			# Initiate the new request
+			return $_[SELF]->post('connect');
+		}
+	}
+
+	# Clean up in preparation for the next request
+	delete $_[SELF]->{redirects};
+
+	# No further actions needed, return normally
 	$_[SELF]->ResponseEvent( $response );
 }
 
