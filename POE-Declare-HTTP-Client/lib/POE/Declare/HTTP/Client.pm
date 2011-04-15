@@ -49,7 +49,7 @@ use POE::Wheel::SocketFactory      ();
 
 our $VERSION = '0.03';
 
-use POE::Declare 0.52 {
+use POE::Declare 0.54 {
 	Timeout       => 'Param',
 	MaxRedirect   => 'Param',
 	ResponseEvent => 'Message',
