@@ -29,11 +29,11 @@ use 5.008;
 use strict;
 use Carp                            ();
 use Params::Util               1.00 ();
-use POE::Declare::HTTP::Client 0.02 ();
+use POE::Declare::HTTP::Client 0.04 ();
 
 our $VERSION = '0.01';
 
-use POE::Declare 0.53 {
+use POE::Declare 0.54 {
 	Timeout      => 'Param',
 	Tests        => 'Param',
 	OnlineEvent  => 'Message',
@@ -47,10 +47,13 @@ my %DEFAULT = (
 	# These are some initial trivial checks.
 	# The regex are case-sensitive to at least
 	# deal with the "couldn't get site.com case".
-	'http://google.com/' => sub { /About Google/      },
-	'http://yahoo.com/'  => sub { /Yahoo!/            },
-	'http://amazon.com/' => sub { /Amazon/ and /Cart/ },
-	'http://cnn.com/'    => sub { /CNN/               },
+	'http://google.com'     => sub { /About Google/                },
+	'http://yahoo.com/'     => sub { /Yahoo!/                      },
+	'http://cnn.com/'       => sub { /CNN/                         },
+	'http://microsoft.com/' => sub { /&#169;(\s+\d+)?\s+Microsoft/ },
+
+	# Generates warnings with HTTP::Parser 0.06
+	# 'http://amazon.com/' => sub { /Amazon/ and /Cart/ },
 );
 
 
@@ -93,8 +96,8 @@ sub new {
 	}
 
 	# Pre-generate a client for each request
-	$self->{client} = {};
-	foreach my $url ( keys %{ $self->Tests } ) {
+	$self->{client} = { };
+	foreach my $url ( $self->urls ) {
 		$self->{client}->{$url} = POE::Declare::HTTP::Client->new(
 			Timeout       => $self->Timeout - 1,
 			ResponseEvent => $self->lookback('http_response'),
@@ -105,8 +108,12 @@ sub new {
 	return $self;
 }
 
-sub tests {
+sub urls {
 	keys %{ $_[0]->Tests };
+}
+
+sub clients {
+	map { $_[0]->{client}->{$_} } $_[0]->urls
 }
 
 
@@ -148,7 +155,12 @@ sub _start :Event {
 	$_[SELF]->SUPER::_start(@_[1..$#_]);
 
 	# Initialise state variables and boot the HTTP clients
-	foreach my $url ( $_[SELF]->tests ) {
+	$_[SELF]->{result} = {
+		online  => 0,
+		offline => 0,
+		unknown => 0,
+	};
+	foreach my $url ( $_[SELF]->urls ) {
 		$_[SELF]->{client}->{$url}->start;
 	}
 
@@ -157,25 +169,66 @@ sub _start :Event {
 
 sub startup :Event {
 	$_[SELF]->timeout_start($_[SELF]->Timeout);
-	foreach my $url ( $_[SELF]->tests ) {
+	foreach my $url ( $_[SELF]->urls ) {
 		$_[SELF]->{client}->{$url}->GET($url);
 	}
 }
 
+# We're so slow that we should assume we're not online
 sub timeout :Timeout(10) {
-	$_[SELF]->timeout_stop;
-
-	# Abort any requests still running
-	foreach my $url ( $_[SELF]->tests ) {
-		$_[SELF]->{client}->{$url}->stop;
-	}
-
-	# We're so slow that we should assume we're not online
 	$_[SELF]->call( respond => 0 );
 }
 
 sub http_response :Event {
-	print STDERR "# http_response $_[ARG0]\n";
+	my $alias    = $_[ARG0];
+	my $response = $_[ARG1];
+	my $result   = $_[SELF]->{result};
+
+	# Check that we have a valid response
+	unless ( Params::Util::_INSTANCE($response, 'HTTP::Response') ) {
+		return $_[SELF]->call( respond => undef );
+	}
+
+	# Find the original request URL
+	foreach my $url ( $_[SELF]->urls ) {
+		my $client = $_[SELF]->{client}->{$url};
+		next unless $client->Alias eq $alias;
+
+		# Got the response for this URL
+		if ( $response->is_success ) {
+			local $_ = $response->content;
+			if ( $_[SELF]->Tests->{$url}->() ) {
+				$result->{online}++;
+			} else {
+				$result->{offline}++;
+			}
+		} else {
+			$result->{offline}++;
+		}
+
+		# Are we online?
+		if ( $result->{online} >= 2 ) {
+			return $_[SELF]->call( respond => 1 );
+		}
+
+		# Are there any active clients left
+		if ( grep { $_->running } $_[SELF]->clients ) {
+			# No definite answer yet
+			return;
+		}
+
+		# We are not online, so far as we can tell
+		return $_[SELF]->call( respond => 0 );
+	}
+
+	# Are there any active clients left
+	if ( grep { $_->running } $_[SELF]->clients ) {
+		# No definite answer yet
+		return;
+	}
+
+	# We are not online, so far as we can tell
+	return $_[SELF]->call( respond => 0 );
 }
 
 sub http_shutdown :Event {
@@ -184,6 +237,13 @@ sub http_shutdown :Event {
 
 sub respond :Event {
 	$_[SELF]->{result} = undef;
+
+	# Abort any requests still running
+	foreach my $url ( $_[SELF]->urls ) {
+		$_[SELF]->{client}->{$url}->stop;
+	}
+
+	# Send the reponse message
 	if ( $_[ARG0] ) {
 		$_[SELF]->OnlineEvent;
 	} elsif ( defined $_[ARG0] ) {
@@ -191,6 +251,8 @@ sub respond :Event {
 	} else {
 		$_[SELF]->ErrorEvent;
 	}
+
+	# Clean up
 	$_[SELF]->finish;
 }
 
