@@ -37,7 +37,6 @@ use strict;
 use warnings;
 use Scalar::Util              1.19 ();
 use Params::Util              1.00 ();
-use URI                       1.10 ();
 use HTTP::Status                   ();
 use HTTP::Request            5.827 ();
 use HTTP::Request::Common          ();
@@ -47,7 +46,7 @@ use POE::Filter::HTTP::Parser 1.06 ();
 use POE::Wheel::ReadWrite          ();
 use POE::Wheel::SocketFactory      ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use POE::Declare 0.54 {
 	Timeout       => 'Param',
@@ -268,8 +267,8 @@ sub connect : Event {
 	my $addr    = $_[ARG0];
 	my $request = $_[SELF]->{request} or return;
 	my $uri     = $request->uri;
-	my $host    = $uri->host or return;
-	my $port    = $uri->port || 80;
+	my $host    = ($uri->can('host') and $uri->host) or return;
+	my $port    = ($uri->can('port') and $uri->port) || 80;
 
 	# Start the request timeout
 	$_[SELF]->timeout_start;
@@ -374,8 +373,13 @@ sub response : Event {
 	# Handle redirects
 	if ( $response->is_redirect ) {
 		# Prepare the redirect
-		my $uri     = URI->new( $response->header('Location') );
-		my $request = $response->request;
+		my $request  = $response->request;
+		my $location = $response->header('Location');
+		my $uri      = do {
+			local $URI::ABS_ALLOW_RELATIVE_SCHEME = 1;
+			my $base = $response->base;
+			$HTTP::URI_CLASS->new($location, $base)->abs($base);
+		};
 
 		# Validate the redirect against the HTTP 1.1 rules
 		if (
