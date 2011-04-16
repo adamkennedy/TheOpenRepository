@@ -1,5 +1,8 @@
 Changes for Perl extension POE-Declare-HTTP-Client
 
+0.05 Sat 16 Apr 2011
+	- The MaxRedirect count is now actually obeyed
+
 0.04 Fri 15 Apr 2011
 	- Move from always using URI to the weird global $HTTP::URI_CLASS
 	- Add support for relative Location: headers by copying LWP::UserAgent

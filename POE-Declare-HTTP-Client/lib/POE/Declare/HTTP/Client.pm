@@ -46,9 +46,9 @@ use POE::Filter::HTTP::Parser 1.06 ();
 use POE::Wheel::ReadWrite          ();
 use POE::Wheel::SocketFactory      ();
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
-use POE::Declare 0.54 {
+use POE::Declare 0.53 {
 	Timeout       => 'Param',
 	MaxRedirect   => 'Param',
 	ResponseEvent => 'Message',
@@ -371,7 +371,7 @@ sub response : Event {
 	}
 
 	# Handle redirects
-	if ( $response->is_redirect ) {
+	if ( $response->is_redirect and $_[SELF]->{redirects}-- ) {
 		# Prepare the redirect
 		my $request  = $response->request;
 		my $location = $response->header('Location');
