@@ -31,9 +31,9 @@ use Carp                            ();
 use Params::Util               1.00 ();
 use POE::Declare::HTTP::Client 0.04 ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
-use POE::Declare 0.54 {
+use POE::Declare 0.53 {
 	Timeout      => 'Param',
 	Tests        => 'Param',
 	OnlineEvent  => 'Message',
@@ -43,17 +43,16 @@ use POE::Declare 0.54 {
 	result       => 'Internal',
 };
 
-my %DEFAULT = (
-	# These are some initial trivial checks.
-	# The regex are case-sensitive to at least
-	# deal with the "couldn't get site.com case".
-	'http://google.com'     => sub { /About Google/                },
-	'http://yahoo.com/'     => sub { /Yahoo!/                      },
-	'http://cnn.com/'       => sub { /CNN/                         },
-	'http://microsoft.com/' => sub { /&#169;(\s+\d+)?\s+Microsoft/ },
-
-	# Generates warnings with HTTP::Parser 0.06
-	# 'http://amazon.com/' => sub { /Amazon/ and /Cart/ },
+# Default test websites, representing major global properties that
+# should not dissapear often in the future. We can tolerate the
+# loss of any 3-4 of these before this module stops working.
+my @DEFAULT = (
+	'http://google.com',
+	'http://yahoo.com/',
+	'http://cnn.com/',
+	'http://microsoft.com/',
+	'http://ibm.com/',
+	'http://amazon.com/',
 );
 
 
@@ -89,31 +88,37 @@ sub new {
 		$self->{Timeout} = 10;
 	}
 	unless ( defined $self->Tests ) {
-		$self->{Tests} = \%DEFAULT;
+		$self->{Tests} = [ @DEFAULT ];
 	}
-	unless ( Params::Util::_HASH($self->Tests) ) {
+	unless ( Params::Util::_ARRAY($self->Tests) ) {
 		Carp::croak("Missing or invalid 'Test' param");
 	}
 
 	# Pre-generate a client for each request
-	$self->{client} = { };
-	foreach my $url ( $self->urls ) {
-		$self->{client}->{$url} = POE::Declare::HTTP::Client->new(
-			Timeout       => $self->Timeout - 1,
-			ResponseEvent => $self->lookback('http_response'),
-			ShutdownEvent => $self->lookback('http_shutdown'),
-		);
-	}
+	$self->{client} = [
+		map {
+			POE::Declare::HTTP::Client->new(
+				Timeout       => $self->Timeout - 1,
+				MaxRedirect   => 0,
+				ResponseEvent => $self->lookback('http_response'),
+				ShutdownEvent => $self->lookback('http_shutdown'),
+			)
+		} $self->urls
+	];
 
 	return $self;
 }
 
 sub urls {
-	keys %{ $_[0]->Tests };
+	@{ $_[0]->Tests };
 }
 
 sub clients {
-	map { $_[0]->{client}->{$_} } $_[0]->urls
+	@{ $_[0]->{client} }
+}
+
+sub running {
+	grep { $_->running } $_[0]->clients;
 }
 
 
@@ -158,10 +163,10 @@ sub _start :Event {
 	$_[SELF]->{result} = {
 		online  => 0,
 		offline => 0,
-		unknown => 0,
+		unknown => scalar($_[SELF]->urls),
 	};
-	foreach my $url ( $_[SELF]->urls ) {
-		$_[SELF]->{client}->{$url}->start;
+	foreach my $client ( $_[SELF]->clients ) {
+		$client->start;
 	}
 
 	$_[SELF]->post('startup');
@@ -169,8 +174,10 @@ sub _start :Event {
 
 sub startup :Event {
 	$_[SELF]->timeout_start($_[SELF]->Timeout);
-	foreach my $url ( $_[SELF]->urls ) {
-		$_[SELF]->{client}->{$url}->GET($url);
+	my @url    = $_[SELF]->urls;
+	my @client = $_[SELF]->clients;
+	foreach ( 0 .. $#client ) {
+		$client[$_]->GET($url[$_]);
 	}
 }
 
@@ -184,45 +191,20 @@ sub http_response :Event {
 	my $response = $_[ARG1];
 	my $result   = $_[SELF]->{result};
 
-	# Check that we have a valid response
-	unless ( Params::Util::_INSTANCE($response, 'HTTP::Response') ) {
-		return $_[SELF]->call( respond => undef );
+	# Do we have a conformant response
+	if ( $_[SELF]->conformant($response) ) {
+		$result->{online}++;
+	} else {
+		$result->{offline}++;
 	}
 
-	# Find the original request URL
-	foreach my $url ( $_[SELF]->urls ) {
-		my $client = $_[SELF]->{client}->{$url};
-		next unless $client->Alias eq $alias;
-
-		# Got the response for this URL
-		if ( $response->is_success ) {
-			local $_ = $response->content;
-			if ( $_[SELF]->Tests->{$url}->() ) {
-				$result->{online}++;
-			} else {
-				$result->{offline}++;
-			}
-		} else {
-			$result->{offline}++;
-		}
-
-		# Are we online?
-		if ( $result->{online} >= 2 ) {
-			return $_[SELF]->call( respond => 1 );
-		}
-
-		# Are there any active clients left
-		if ( grep { $_->running } $_[SELF]->clients ) {
-			# No definite answer yet
-			return;
-		}
-
-		# We are not online, so far as we can tell
-		return $_[SELF]->call( respond => 0 );
+	# Are we online?
+	if ( $result->{online} >= 2 ) {
+		return $_[SELF]->call( respond => 1 );
 	}
 
 	# Are there any active clients left
-	if ( grep { $_->running } $_[SELF]->clients ) {
+	if ( $_[SELF]->running ) {
 		# No definite answer yet
 		return;
 	}
@@ -232,15 +214,22 @@ sub http_response :Event {
 }
 
 sub http_shutdown :Event {
-	print STDERR "# http_response $_[ARG0]\n";
+	# Are there any active clients left
+	if ( $_[SELF]->running ) {
+		# No definite answer yet
+		return;
+	}
+
+	# We are not online, so far as we can tell
+	return $_[SELF]->call( respond => 0 );	
 }
 
 sub respond :Event {
 	$_[SELF]->{result} = undef;
 
 	# Abort any requests still running
-	foreach my $url ( $_[SELF]->urls ) {
-		$_[SELF]->{client}->{$url}->stop;
+	foreach my $client ( $_[SELF]->clients ) {
+		$client->stop;
 	}
 
 	# Send the reponse message
@@ -254,6 +243,42 @@ sub respond :Event {
 
 	# Clean up
 	$_[SELF]->finish;
+}
+
+
+
+
+
+######################################################################
+# Support Methods
+
+sub conformant {
+	my $self = shift;
+
+	# A successful response should result in a redirect.
+	my $response = shift;
+	unless ( Params::Util::_INSTANCE($response, 'HTTP::Response') ) {
+		return 0;
+	}
+	unless ( $response->is_redirect ) {
+		return 0;
+	}
+
+	# Determine the location we are relocating to
+	my $request  = $response->request;
+	my $location = $response->header('Location') or return 0;
+	my $uri      = $HTTP::URI_CLASS->new($location);
+	unless ( Params::Util::_INSTANCE($uri, 'URI') and $uri->can('host') ) {
+		return 0;
+	}
+
+	# It should redirect to the matching www.domain.com for some given domain.com
+	my $original = quotemeta $request->uri->host;
+	unless ( $uri->host =~ /^(?:.+\.)?$original$/ ) {
+		return 0;
+	}
+
+	return 1;
 }
 
 compile;
