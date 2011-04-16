@@ -29,11 +29,11 @@ use 5.008;
 use strict;
 use Carp                            ();
 use Params::Util               1.00 ();
-use POE::Declare::HTTP::Client 0.04 ();
+use POE::Declare::HTTP::Client 0.06 ();
 
 our $VERSION = '0.02';
 
-use POE::Declare 0.53 {
+use POE::Declare 0.54 {
 	Timeout      => 'Param',
 	Tests        => 'Param',
 	OnlineEvent  => 'Message',
