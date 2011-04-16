@@ -46,9 +46,9 @@ use POE::Filter::HTTP::Parser 1.06 ();
 use POE::Wheel::ReadWrite          ();
 use POE::Wheel::SocketFactory      ();
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
-use POE::Declare 0.53 {
+use POE::Declare 0.54 {
 	Timeout       => 'Param',
 	MaxRedirect   => 'Param',
 	ResponseEvent => 'Message',

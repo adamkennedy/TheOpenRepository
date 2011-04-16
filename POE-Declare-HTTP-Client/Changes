@@ -1,5 +1,8 @@
 Changes for Perl extension POE-Declare-HTTP-Client
 
+0.06 Sat 16 Apr 2011
+	- Correcting regressed POE::Declare dependency to 0.54 again
+
 0.05 Sat 16 Apr 2011
 	- The MaxRedirect count is now actually obeyed
 
