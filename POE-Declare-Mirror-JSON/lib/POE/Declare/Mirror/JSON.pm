@@ -25,10 +25,10 @@ probes in parallel.
 
 use 5.008;
 use strict;
-use URI                        1.56 ();
+use URI                        1.54 ();
 use File::Spec                 0.80 ();
 use Time::HiRes              1.9721 ();
-use Time::Local              1.2000 ();
+use Time::Local              1.1901 ();
 use Params::Util               1.00 ();
 use POE::Declare::HTTP::Client 0.04 ();
 
@@ -59,12 +59,22 @@ sub new {
 	return $self;
 }
 
+sub clients {
+	@{ $_[0]->{client} };
+}
+
+
+
+
+
+######################################################################
+# Main Methods
+
 sub select {
 	my $self   = shift;
 	my $mirror = $self->{mirror} = {
 		map {
 			$_ => {
-				url      => $_,
 				age      => undef,
 				speed    => undef,
 				tstart   => undef,
@@ -75,7 +85,7 @@ sub select {
 	};
 	my $queue = $self->{queue} = [
 		sort { rand() <=> rand() }
-		values %{ $self->{mirror} }
+		keys %{ $self->{mirror} }
 	];
 	return 1;
 }
@@ -87,7 +97,8 @@ sub select {
 ######################################################################
 # Event Handlers
 
-sub start :Event {
+sub _start :Event {
+	$_[SELF]->SUPER::_start(@_[1..$#_]);
 
 	# Initialise the clients
 	my $client  = $_[SELF]->{client}  = { };
@@ -102,6 +113,17 @@ sub start :Event {
 		$client->{$http->Alias}->start;
 	}
 
+	# Yield so that the actual requests don't accidentally start before
+	# the kernel is running (_start can fire fairly early)
+	$_[SELF]->post('start');
+}
+
+sub start :Event {
+	# Do the initial fill from the queue
+	foreach my $client ( $_[SELF]->clients ) {
+		my $url    = shift @{ $_[SELF]->{queue} or last;
+		my $mirror = 
+	}
 }
 
 sub http_response :Event {
@@ -113,6 +135,20 @@ sub http_response :Event {
 }
 
 sub http_shutdown :Event {
+	
+}
+
+
+
+
+
+######################################################################
+# Support Methods
+
+sub request {
+	my $self   = shift;
+	my $url    = shift;
+	my $mirror = $self->{mirror}->{$url} or return;
 	
 }
 
