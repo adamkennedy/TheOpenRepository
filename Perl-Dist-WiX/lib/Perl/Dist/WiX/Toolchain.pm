@@ -262,13 +262,32 @@ sub _build_modules {
 	  Term::ReadLine::Perl
 	  Text::Glob
 	  Data::Dumper
+	  Pod::Text
 	  URI
 	  HTML::Tagset
 	  HTML::Parser
 	  LWP::UserAgent
-	  Pod::Text
 	};
-
+=for cmt
+list LWP dependencies for a new version
+Old version should be used because support of https in new version depeds on Net::SSLeay
+which does not work on 64-bit Perl (https://rt.cpan.org/Public/Bug/Display.html?id=53585)
+	 qw{
+	  Encode::Locale
+	  File::Listing
+	  HTTP::Date
+	  URI
+	  HTML::Tagset
+	  HTML::Parser
+	  LWP::MediaTypes
+	  HTTP::Message
+	  HTTP::Cookies
+	  HTTP::Negotiate
+	  Net::HTTP
+	  WWW::RobotRules
+	  LWP::UserAgent
+	};
+=cut
 	my %modules = ( '5.010000' => \@modules_list, );
 	$modules{'5.010001'} = $modules{'5.010000'};
 	$modules{'5.012000'} = $modules{'5.010000'};
