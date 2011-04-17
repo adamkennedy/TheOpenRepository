@@ -266,7 +266,7 @@ sub _build_modules {
 	  URI
 	  HTML::Tagset
 	  HTML::Parser
-	  LWP::UserAgent
+	  LWP
 	};
 =for cmt
 list LWP dependencies for a new version

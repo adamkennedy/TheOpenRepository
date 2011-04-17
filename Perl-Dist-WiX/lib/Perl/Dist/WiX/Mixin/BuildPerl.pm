@@ -579,6 +579,9 @@ sub _create_perl_toolchain { ## no critic(ProhibitUnusedPrivateSubroutines)
 		# CPAN needs installed on 5.10.1, as well.
 		$force = { 'CPAN' => 'DAGOLDEN/CPAN-1.94_64.tar.gz' };
 	}
+	$force->{'LWP'} = 'GAAS/libwww-perl-5.837.tar.gz';
+	#new version creates problems for https on 64 bit systems
+
 	my $toolchain = Perl::Dist::WiX::Toolchain->new(
 		perl_version => $self->perl_version_literal(),
 		cpan         => $cpan->as_string(),
