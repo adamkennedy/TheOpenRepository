@@ -35,10 +35,12 @@ use POE::Declare::HTTP::Client 0.04 ();
 our $VERSION = '0.01';
 
 use POE::Declare 0.54 {
-	Timeout  => 'Param',
-	Parallel => 'Param',
-	client   => 'Internal',
-	elapsed  => 'Internal',
+	Timeout        => 'Param',
+	Parallel       => 'Param',
+	SelectionEvent => 'Message',
+	ErrorEvent     => 'Message',
+	client         => 'Internal',
+	elapsed        => 'Internal',
 };
 
 
@@ -53,7 +55,7 @@ sub new {
 
 	# Check params
 	unless ( Params::Util::_POSINT($self->Parallel) ) {
-		$self->{Parallel} = 20;
+		$self->{Parallel} = 5;
 	}
 
 	return $self;
@@ -70,23 +72,29 @@ sub clients {
 ######################################################################
 # Main Methods
 
-sub select {
-	my $self   = shift;
-	my $mirror = $self->{mirror} = {
+sub run {
+	my $self = shift;
+	unless ( @_ ) {
+		return undef;
+	}
+
+	$self->{mirror} = {
 		map {
 			$_ => {
 				age      => undef,
 				speed    => undef,
 				tstart   => undef,
-				tend     => undef,
+				tstop    => undef,
 				response => undef,
 			}
 		} @_
 	};
-	my $queue = $self->{queue} = [
+
+	$self->{queue} = [
 		sort { rand() <=> rand() }
 		keys %{ $self->{mirror} }
 	];
+
 	return 1;
 }
 
@@ -115,14 +123,14 @@ sub _start :Event {
 
 	# Yield so that the actual requests don't accidentally start before
 	# the kernel is running (_start can fire fairly early)
-	$_[SELF]->post('start');
+	$_[SELF]->post('startup');
 }
 
-sub start :Event {
+sub startup :Event {
 	# Do the initial fill from the queue
 	foreach my $client ( $_[SELF]->clients ) {
-		my $url    = shift @{ $_[SELF]->{queue} or last;
-		my $mirror = 
+		my $uri = shift @{ $_[SELF]->{queue} } or last;
+		$_[SELF]->request($client, $uri);
 	}
 }
 
@@ -147,9 +155,12 @@ sub http_shutdown :Event {
 
 sub request {
 	my $self   = shift;
-	my $url    = shift;
-	my $mirror = $self->{mirror}->{$url} or return;
-	
+	my $client = shift;
+	my $uri    = shift;
+	my $mirror = $self->{mirror}->{$uri} or return;
+	$mirror->{tstart} = Time::HiRes::time();
+	$client->GET($uri);
+	return 1;
 }
 
 compile;
