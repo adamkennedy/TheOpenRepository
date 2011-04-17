@@ -59,22 +59,22 @@ my $builder = $class->new(
 	create_makefile_pl       => 'small',
 	configure_requires       => {
         'Module::Build'      => '0.33',
-	},
+    },
     requires                 => {
         'perl'               => '5.008001',
-		'Perl::Dist::WiX'    => '1.250_001',
+        'Perl::Dist::WiX'    => '1.250_001',
         'Moose::Role'        => '1.09',
         'File::ShareDir'     => '1.02',
     },
-	build_requires           => {
+    build_requires           => {
         'Test::More'         => '0.88',
-	},
+    },
     meta_merge               => {
         resources            => {
             homepage         => 'http://www.no-home-page.invalid/',
             bugtracker       => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Perl-Dist-WiX-BuildPerl-git',
-            repository       => 'http://www.no-source-code-repository.invalid/'
-			IRC              => 'irc://irc.perl.org/#win32',
+            repository       => 'http://www.no-source-code-repository.invalid/',
+            IRC              => 'irc://irc.perl.org/#win32',
 		},
 	},
 	share_dir => {
