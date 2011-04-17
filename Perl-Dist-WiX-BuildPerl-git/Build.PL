@@ -79,7 +79,7 @@ my $builder = $class->new(
 	},
 	share_dir => {
 		module => {
-			Perl::Dist::WiX::BuildPerl::git     => 'share/git',
+			'Perl::Dist::WiX::BuildPerl::git'     => 'share/git',
 		}
 	},
     add_to_cleanup      => [ 'Perl-Dist-WiX-BuildPerl-git-*', ],

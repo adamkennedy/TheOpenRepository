@@ -119,7 +119,7 @@ around '_install_perl_plugin' => sub {
 	$perl->install();
 
 	return 1;
-} ## end sub install_perl_plugin
+}; ## end sub install_perl_plugin
 
 
 
