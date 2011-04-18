@@ -339,6 +339,8 @@ my @expand;
 	]
 } @modulelist;
 
+require Config;
+my $vendorlib=$Config::Config{'installvendorlib'};
 MODULE: for $module (@expand) {
 	my $file = $module->cpan_file;
 	
@@ -351,7 +353,7 @@ MODULE: for $module (@expand) {
 	my $have;
 	my $next_MODULE;
 	eval { # version.pm involved!
-		if ($inst_file) {
+		if ($inst_file and $vendorlib ne substr($inst_file,0,length($vendorlib))) {
 			$have = $module->inst_version;
 			local $^W = 0;
 			++$next_MODULE unless CPAN::Version->vgt($latest, $have);
