@@ -243,6 +243,14 @@ sub install_cpan_upgrades {
 				$self->_install_cpan_module( $module, $default_force );
 			}
 
+			when (m{/\QDevel-DProf-20110228}msx) {
+
+				#errors in tests, and this version does not contains
+				#any useful changes
+				#already patched in repository
+				next
+			}
+
 			default {
 				$self->_install_cpan_module( $module, $default_force );
 			}
