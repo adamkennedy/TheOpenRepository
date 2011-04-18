@@ -255,6 +255,8 @@ sub _build_modules {
 	  Digest::SHA
 	  Module::Metadata
 	  Perl::OSType
+	  Version::Requirements
+	  CPAN::Meta
 	  Module::Build
 	  Term::Cap
 	  CPAN
