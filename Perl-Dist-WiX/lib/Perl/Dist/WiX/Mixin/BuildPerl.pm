@@ -215,6 +215,7 @@ sub install_cpan_upgrades {
 				);
 			} ## end when ( m{Unicode-Collate-0 [.] (\d\d) })
 
+=for cmt
 			when (
 				/Unicode-Normalize-1 [.] (\d\d)-withoutworldwriteables/msx)
 			{
@@ -225,6 +226,7 @@ sub install_cpan_upgrades {
 					$self->_force_flag($default_force),
 				);
 			}
+=cut
 
 			when (m{/ExtUtils-MakeMaker-\d}msx) {
 
