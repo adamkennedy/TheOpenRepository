@@ -398,6 +398,7 @@ sub install {
 	$dist_path =~ s{[.] tar [.] gz}{}msx;   # Take off extensions.
 	$dist_path =~ s{[.] zip}{}msx;
 	$dist_path =~ s{.+\/}{}msx;        # Take off directories.
+	$dist_path =~ s{-withoutworldwriteables$}{}msx;
 	my $unpack_to = catdir( $build_dir, $dist_path );
 
 	# Extract the tarball
