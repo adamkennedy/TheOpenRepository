@@ -109,7 +109,7 @@ sub _binary_file {
 	}
 
 	my $package_file = $PACKAGES{$toolchain}{$package};
-	$self->trace_line( 3, "Pachage $package is in $package_file\n" );
+	$self->trace_line( 3, "Package $package is in $package_file\n" );
 
 	return $package_file;
 } ## end sub _binary_file
