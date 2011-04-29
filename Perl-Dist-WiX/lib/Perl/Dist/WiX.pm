@@ -2993,6 +2993,7 @@ sub remove_waste {
 	$self->_remove_file(qw{ cpan cpandb.sql });
 	$self->_remove_file(qw{ cpan FTPstats.yml });
 	$self->_remove_file(qw{ cpan cpan_sqlite_log.* });
+	$self->_remove_file(qw{ cpan Metadata });
 
 	# Readding the cpan directory.
 	$self->remake_path( catdir( $self->build_dir, 'cpan' ) );
