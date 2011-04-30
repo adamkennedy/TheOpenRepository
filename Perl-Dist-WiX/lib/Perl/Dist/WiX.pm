@@ -1878,23 +1878,6 @@ sub BUILDARGS { ## no critic (ProhibitExcessComplexity)
 	  WiX3::XML::GeneratesGUID::Object->new(
 		_sitename => $params{sitename} );
 
-
-	if ( $params{temp_dir} =~ m{[.]}ms ) {
-		PDWiX::Parameter->throw(
-			parameter => 'temp_dir: Cannot be '
-			  . 'a directory that has a . in the name.',
-			where => '->new'
-		);
-	}
-
-	if ( defined $params{build_dir} && $params{build_dir} =~ m{[.]}ms ) {
-		PDWiX::Parameter->throw(
-			parameter => 'build_dir: Cannot be '
-			  . 'a directory that has a . in the name.',
-			where => '->new'
-		);
-	}
-
 	if ( defined $params{image_dir} ) {
 		my $perl_location = lc Probe::Perl->find_perl_interpreter();
 		$params{_trace_object}
@@ -1907,21 +1890,6 @@ sub BUILDARGS { ## no critic (ProhibitExcessComplexity)
 		if ( $our_perl_location eq $perl_location ) {
 			PDWiX::Parameter->throw(
 				parameter => 'image_dir : attempting to commit suicide',
-				where     => '->new'
-			);
-		}
-
-		if ( $params{image_dir} =~ m{\\\\}ms ) {
-			PDWiX::Parameter->throw(
-				parameter =>
-				  'image_dir : cannot contain two consecutive slashes',
-				where => '->new'
-			);
-		}
-
-		if ( $params{image_dir} =~ /\s/ms ) {
-			PDWiX::Parameter->throw(
-				parameter => 'image_dir: Spaces are not allowed',
 				where     => '->new'
 			);
 		}

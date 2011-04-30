@@ -26,6 +26,7 @@ use 5.010;
 use MooseX::Types -declare => [ qw(
 	  ExistingDirectory ExistingFile TemplateObj
 	  _NoDoubleSlashes _NoSpaces _NoForwardSlashes _NoSlashAtEnd _NotRootDir
+	  _NoDots
 	  ExistingSubdirectory ExistingDirectory_Spaceless
 	  ExistingDirectory_SaneSlashes
 	  DirectoryRef DirectoryTag
@@ -68,29 +69,34 @@ subtype _NoSlashAtEnd,
   where { "$_" !~ m{\\\z}ms },
   message {'Cannot have a slash at the end'};
 
-subtype ExistingDirectory_SaneSlashes, as _NoSlashAtEnd;
+subtype _NoDots,
+  as _NoSlashAtEnd,
+  where { "$_" !~ m{[.]}ms },
+  message {'Cannot have a period'};
+  
+subtype ExistingDirectory_SaneSlashes, as _NoDots;
 
 coerce ExistingDirectory_SaneSlashes,
   from Str,      via { to_Dir($_) },
   from ArrayRef, via { to_Dir($_) };
 
 subtype _NoSpaces,
-  as _NoSlashAtEnd,
+  as _NoDots,
   where { "$_" !~ m{\s}ms },
   message {'Spaces are not allowed'};
 
-subtype ExistingDirectory_Spaceless, as _NoSlashAtEnd;
+subtype ExistingDirectory_Spaceless, as _NoSpaces;
 
 coerce ExistingDirectory_Spaceless,
   from Str,      via { to_Dir($_) },
   from ArrayRef, via { to_Dir($_) };
 
 subtype _NotRootDir,
-  as _NoSlashAtEnd,
+  as _NoDots,
   where { "$_" !~ m{:\z}ms },
   message {'Cannot be a root directory'};
 
-subtype ExistingSubdirectory, as _NoSlashAtEnd;
+subtype ExistingSubdirectory, as _NotRootDir;
 
 coerce ExistingSubdirectory,
   from Str,      via { to_Dir($_) },
