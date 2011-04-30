@@ -470,7 +470,7 @@ sub install {
 	} else {
 		$filelist =
 		  File::List::Object->new()->readdir( $self->_dir('perl') );
-		$filelist->subtract($filelist_sub)->filter( $self->_filters );
+		$filelist->subtract($filelist_sub)->filter( $self->_filters() );
 	}
 
 	my $module_name = $self->get_module_name();

@@ -65,6 +65,8 @@ Readonly my %CORE_MODULE_FIX => (
 Readonly my %CORE_PACKLIST_FIX => (
 	'IO::Compress::Base' => 'IO::Compress',
 	'Pod::Man'           => 'Pod',
+	'Filter::Util::Call' => 'Filter',
+	'Locale::MakeText'   => 'Locale-MakeText',
 );
 
 # List of modules to delay building until last when upgrading all CPAN

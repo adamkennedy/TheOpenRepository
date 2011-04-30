@@ -3082,8 +3082,8 @@ sub verify_msi_file_contents {
 	my @fragment_names = $self->_fragment_keys();
 	foreach my $name (@fragment_names) {
 		my $fragment = $self->get_fragment_object($name);
-		if (defined $fragment and $fragment->can('files')) {
-			push @files, $fragment->files();
+		if (defined $fragment and $fragment->can('_get_files')) {
+			push @files, @{ $fragment->_get_files() };
 		}
 	}
 	my @files_in_imagedir = grep { m/\A\Q$image_dir\E/msx } @files;
@@ -3096,19 +3096,21 @@ sub verify_msi_file_contents {
 	# of File::List::Object. It'll do for now, however.
 	$files_zip->remove_files(
 		( grep { m/\Q.AAA\E\z/msx } $files_zip->_get_files_array() )
-	);
+	)->filter( $self->_filters() );
 
 	my $not_in_msi = File::List::Object->clone($files_zip)->subtract($files_msi);
 	my $not_in_zip = File::List::Object->clone($files_msi)->subtract($files_zip);
 
 	if ($not_in_msi->count()) {
-		$self->trace_line(0, $not_in_msi->as_string());
+		$self->trace_line(0, "Files list:\n");	
+		$self->trace_line(0, $not_in_msi->as_string() . "\n");
 		PDWiX->throw('These files should be installed by the MSI file being '
 		  . 'generated, but will not be.');
 	}
 
 	if ($not_in_zip->count()) {
-		$self->trace_line(0, $not_in_zip->as_string());
+		$self->trace_line(0, "Files list:\n");	
+		$self->trace_line(0, $not_in_zip->as_string() . "\n");
 		PDWiX->throw('These files should be installed by a ZIP file, but '
 		  . 'will not be.');
 	}
