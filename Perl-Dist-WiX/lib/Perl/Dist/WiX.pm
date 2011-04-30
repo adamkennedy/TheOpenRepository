@@ -444,6 +444,9 @@ than overriding routines shown above.
 		# Install additional Perl modules
 		'install_cpan_upgrades',
 
+		# Check for missing files.
+		'verify_msi_file_contents',
+
 		# Apply optional portability support
 		'install_portable',
 
@@ -501,6 +504,9 @@ sub _build_tasklist {
 
 		# Install additional Perl modules
 		'install_cpan_upgrades',
+		
+		# Check for missing files.
+		'verify_msi_file_contents',
 
 		# Apply optional portability support
 		'install_portable',
@@ -2198,6 +2204,13 @@ has '_use_sqlite' => (
 );
 
 
+has '_all_files_object' => (
+	is       => 'ro',
+	isa      => 'File::List::Object',
+	init_arg => undef,
+    lazy     => 1,	
+	default  => sub { File::List::Object->new() },
+);
 
 # This comes from MooseX::Object::Pluggable, and sets up the
 # fact that Perl::Dist::WiX::BuildPerl::* is where plugins happen to be.
@@ -3026,11 +3039,67 @@ sub regenerate_fragments {
 		@fragment_names             = uniq @fragment_names_regenerate;
 		$#fragment_names_regenerate = -1;
 	} ## end while ( 0 != scalar @fragment_names)
-
+	
 	return 1;
 } ## end sub regenerate_fragments
 
+=head3 verify_msi_file_contents
 
+This method is used by L<run()|/run> to verify that all the files that are
+supposed to be in the .msi or .msm are actually in it. ('supposed to be' is 
+defined as 'the files would be in the .zip at this point'.)
+
+This method does not verify anything (start menu options, etc.) that does not
+go in the L<image_dir()|/image_dir>
+
+=cut
+
+sub verify_msi_file_contents {
+	my $self = shift;
+
+	return 1 if not $self->msi();
+
+	my $image_dir = $self->image_dir()->stringify();
+	my $files_msi = $self->_all_files_object();
+
+	# Add files being installed in fragments to the list.
+	my @files;
+	my @fragment_names = $self->_fragment_keys();
+	foreach my $name (@fragment_names) {
+		my $fragment = $self->get_fragment_object($name);
+		if (defined $fragment and $fragment->can('files')) {
+			push @files, $fragment->files();
+		}
+	}
+	my @files_in_imagedir = grep { m/\A\Q$image_dir\E/msx } @files;
+	$files_msi->load_array(@files_in_imagedir);
+		
+	# Now get what the zip would grab.
+	my $files_zip = File::List::Object->new();
+	$files_zip->readdir($image_dir);
+	# TODO: Fix the rest of this routine when releasing the next version
+	# of File::List::Object. It'll do for now, however.
+	$files_zip->remove_files(
+		( grep { m/\Q.AAA\E\z/msx } $files_zip->_get_files_array() )
+	);
+
+	my $not_in_msi = File::List::Object->clone($files_zip)->subtract($files_msi);
+	my $not_in_zip = File::List::Object->clone($files_msi)->subtract($files_zip);
+
+	if ($not_in_msi->count()) {
+		$self->trace_line(0, $not_in_msi->as_string());
+		PDWiX->throw('These files should be installed by the MSI file being '
+		  . 'generated, but will not be.');
+	}
+
+	if ($not_in_zip->count()) {
+		$self->trace_line(0, $not_in_zip->as_string());
+		PDWiX->throw('These files should be installed by a ZIP file, but '
+		  . 'will not be.');
+	}
+
+	return 1;
+}
 
 =head3 write
 
