@@ -8,7 +8,7 @@ Perl::Dist::WiX::Toolchain - Compiles the initial toolchain for a Win32 perl dis
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Toolchain version 1.500.
+This document describes Perl::Dist::WiX::Toolchain version 1.500001.
 
 =head1 SYNOPSIS
 
@@ -64,7 +64,7 @@ use IO::Capture::Stderr qw();
 use vars qw(@DELEGATE);
 use namespace::clean -except => 'meta';
 
-our $VERSION = '1.500';
+our $VERSION = '1.500001';
 $VERSION =~ s/_//ms;
 
 extends qw(

@@ -8,7 +8,7 @@ Perl::Dist::WiX::Asset::Distribution - "Perl Distribution" asset for a Win32 Per
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::Distribution version 1.500.
+This document describes Perl::Dist::WiX::Asset::Distribution version 1.500001.
 
 =head1 SYNOPSIS
 
@@ -56,7 +56,7 @@ use Params::Util qw( _INSTANCE );
 require File::Remove;
 require URI;
 
-our $VERSION = '1.500';
+our $VERSION = '1.500001';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';
@@ -512,7 +512,7 @@ L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>
 
 =head1 COPYRIGHT
 
-Copyright 2009 - 2010 Curtis Jewell.
+Copyright 2009 - 2011 Curtis Jewell.
 
 Copyright 2007 - 2009 Adam Kennedy.
 

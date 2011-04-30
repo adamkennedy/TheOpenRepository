@@ -4,7 +4,7 @@ package Perl::Dist::WiX;
 
 =begin readme text
 
-Perl-Dist-WiX version 1.500
+Perl-Dist-WiX version 1.500001
 
 =end readme
 
@@ -16,7 +16,7 @@ Perl::Dist::WiX - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 1.500.
+This document describes Perl::Dist::WiX version 1.500001.
 
 =for readme continue
 
@@ -110,6 +110,7 @@ use Storable                                qw(
 use File::Spec::Functions                   qw(
 	catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
+use CPAN                             1.9600 qw();
 use File::HomeDir                           qw();
 use File::ShareDir                          qw();
 use File::Copy::Recursive                   qw();
@@ -121,7 +122,7 @@ use IO::Handle                              qw();
 use IPC::Run3                               qw();
 use LWP::UserAgent                          qw();
 use LWP::Online                             qw();
-use Module::CoreList                   2.32 qw();
+use Module::CoreList                   2.46 qw();
 use PAR::Dist                               qw();
 use Path::Class::Dir                        qw();
 use Probe::Perl                             qw();
@@ -153,7 +154,7 @@ use WiX3::Traceable                         qw();
 use namespace::clean  -except => 'meta';
 #>>>
 
-our $VERSION = '1.500';
+our $VERSION = '1.500001';
 $VERSION =~ s/_//ms;
 
 with
@@ -161,9 +162,9 @@ with
   'Perl::Dist::WiX::Role::MultiPlugin' => { -version => 1.500 },
   ;
 extends
-  'Perl::Dist::WiX::Mixin::BuildPerl'    => { -version => 1.500 },
+  'Perl::Dist::WiX::Mixin::BuildPerl'    => { -version => 1.500001 },
   'Perl::Dist::WiX::Mixin::Checkpoint'   => { -version => 1.500 },
-  'Perl::Dist::WiX::Mixin::Libraries'    => { -version => 1.500 },
+  'Perl::Dist::WiX::Mixin::Libraries'    => { -version => 1.500001 },
   'Perl::Dist::WiX::Mixin::Installation' => { -version => 1.500 },
   'Perl::Dist::WiX::Mixin::ReleaseNotes' => { -version => 1.500 },
   'Perl::Dist::WiX::Mixin::Patching'     => { -version => 1.500 },
@@ -2038,6 +2039,7 @@ sub _build_filters {
 	  $self->file( qw{ c    COPYING.LIB } ),
 	  $self->file( qw{ c    bin         gccbug  } ),
 	  $self->file( qw{ c    bin         mingw32-gcc-3.4.5  } ),
+	  $self->file( qw{ cpan FTPstats.yml  } ),
 	  ];
 #>>>
 } ## end sub _build_filters
@@ -2355,7 +2357,6 @@ sub final_initialization {
 	# If we have a file:// url for the CPAN, move the
 	# sources directory out of the way.
 	if ( $self->cpan()->as_string() =~ m{\Afile://}mxsi ) {
-		require CPAN;
 		if ( not $CPAN::Config_loaded++ ) {
 			CPAN::HandleConfig->load();
 		}
@@ -5335,7 +5336,7 @@ L<http://ali.as/>, L<http://csjewell.comyr.com/perl/>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2009 - 2010 Curtis Jewell.
+Copyright 2009 - 2011 Curtis Jewell.
 
 Copyright 2008 - 2009 Adam Kennedy.
 

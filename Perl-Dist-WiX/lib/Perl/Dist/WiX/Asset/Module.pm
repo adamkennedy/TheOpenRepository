@@ -34,7 +34,7 @@ require Perl::Dist::WiX::Exceptions;
 require File::List::Object;
 require IO::File;
 
-our $VERSION = '1.500';
+our $VERSION = '1.500001';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::NonURLAsset';
@@ -195,7 +195,7 @@ sub install {
 	my $internet_available = ( $url =~ m{ \A file://}msx ) ? 1 : 0;
 	my $cpan_string        = <<"END_PERL";
 print "Loading CPAN...\\n";
-use CPAN;
+use CPAN 1.9600;
 CPAN::HandleConfig->load unless \$CPAN::Config_loaded++;
 \$CPAN::Config->{'urllist'} = [ '$url' ];
 \$CPAN::Config->{'use_sqlite'} = q[$use_sqlite];
@@ -330,7 +330,7 @@ L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>
 
 =head1 COPYRIGHT
 
-Copyright 2009 - 2010 Curtis Jewell.
+Copyright 2009 - 2011 Curtis Jewell.
 
 Copyright 2007 - 2009 Adam Kennedy.
 

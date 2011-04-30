@@ -8,7 +8,7 @@ Perl::Dist::WiX::Mixin::BuildPerl - 4th generation Win32 Perl distribution build
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Mixin::BuildPerl version 1.500.
+This document describes Perl::Dist::WiX::Mixin::BuildPerl version 1.500001.
 
 =head1 DESCRIPTION
 
@@ -38,8 +38,9 @@ use Module::CoreList 2.32 qw();
 use Perl::Dist::WiX::Asset::Perl qw();
 use Perl::Dist::WiX::Toolchain qw();
 use File::List::Object qw();
+use CPAN 1.9600 qw();
 
-our $VERSION = '1.500';
+our $VERSION = '1.500001';
 $VERSION =~ s/_//sm;
 
 # Keys are what's in the filename, with - being converted to ::.
@@ -151,7 +152,6 @@ sub install_cpan_upgrades {
 	# Now go through the loop for each module.
 	my $force;
 	my @delayed_modules;
-	require CPAN;
   MODULE:
 
 	for my $module ( @{$module_info} ) {
@@ -315,7 +315,7 @@ sub _get_cpan_upgrades_list {
 	# Generate the CPAN installation script
 	my $cpan_string = <<"END_PERL";
 print "Loading CPAN...\\n";
-use CPAN;
+use CPAN 1.9600;
 CPAN::HandleConfig->load unless \$CPAN::Config_loaded++;
 \$CPAN::Config->{'urllist'} = [ '$url' ];
 END_PERL
@@ -814,7 +814,7 @@ L<http://ali.as/>, L<http://csjewell.comyr.com/perl/>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2009 - 2010 Curtis Jewell.
+Copyright 2009 - 2011 Curtis Jewell.
 
 Copyright 2008 - 2009 Adam Kennedy.
 

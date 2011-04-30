@@ -4,21 +4,21 @@ use Module::Build;
 die "OS unsupported\n" unless 'MSWin32' eq $^O;
 
 # CPAN version test.
-require CPAN;
-if ($CPAN::VERSION < 1.9462) {
-	print <<'EOF';
-To install the rest of the prerequisites, you need to run
-
-	cpan ANDK/CPAN-1.94_62.tar.gz
-
-before installing this. 
-
-If you're already in CPAN or CPANPLUS, replace 'cpan' with 'install'.
-If you're in CPAN, 'reload cpan' afterwards.
-
-EOF
-	die "Please upgrade CPAN as instructed above.\n\n";
-}
+#require CPAN;
+#if ($CPAN::VERSION < 1.9462) {
+#	print <<'EOF';
+#To install the rest of the prerequisites, you need to run
+#
+#	cpan ANDK/CPAN-1.94_62.tar.gz
+#
+#before installing this. 
+#
+#If you're already in CPAN or CPANPLUS, replace 'cpan' with 'install'.
+#If you're in CPAN, 'reload cpan' afterwards.
+#
+#EOF
+#	die "Please upgrade CPAN as instructed above.\n\n";
+#}
 
 # These are the main requirements.
 
@@ -83,7 +83,7 @@ my $builder = $class->new(
 #	sign                => 1,
 	configure_requires => {
 		'Module::Build'             => '0.36',
-		'CPAN'                      => '1.9462',
+		'CPAN'                      => '1.9600',
 		'parent'                    => '0.221',
 	},
 	requires => {
@@ -92,7 +92,7 @@ my $builder = $class->new(
 		'Alien::WiX'                 => '0.300000',
 		'Archive::Tar'               => '1.66',
 		'Archive::Zip'               => '1.26',
-		'CPAN'                       => '1.9462',
+		'CPAN'                       => '1.9600',
 		'Clone'                      => '0.31',
 		'Data::Dump::Streamer'       => '2.08',
 		'Data::UUID'                 => '1.149',
@@ -119,15 +119,17 @@ my $builder = $class->new(
 		'LWP::UserAgent'             => '5.823',
 		'LWP::UserAgent::WithCache'  => '0.06',
 		'LWP::Online'                => '1.07',
-		'Module::CoreList'           => '2.44',
-		'Moose'                      => '1.08',
+		'Module::Build'              => '0.38',
+		'Module::CoreList'           => '2.46',
+		'Moose'                      => '2.00',
 		'MooseX::NonMoose'           => '0.18',
 		'MooseX::Object::Pluggable'  => '0.0011',
-		'MooseX::Singleton'          => '0.24',
-		'MooseX::Types'              => '0',
+		'MooseX::Singleton'          => '0.25',
+		'MooseX::Types'              => '0.19',
 		'MooseX::Types::URI'         => '0.02',
 		'MooseX::Types::Path::Class' => '0.05',
 		'namespace::clean'           => '0.18',
+		'namespace::autoclean'       => '0.12',
 		'PAR::Dist'                  => '0.42',
 		'Params::Util'               => '0.35',
 		'Portable::Dist'             => '0.03',
@@ -169,7 +171,7 @@ my $builder = $class->new(
 		resources => {
 			homepage    => 'http://csjewell.comyr.com/perl/',
 			bugtracker  => 'http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX',
-			repository  => 'http://svn.ali.as/cpan/trunk/Perl-Dist-WiX/',
+			repository  => 'http://hg.curtisjewell.name/Perl-Dist-WiX/',
 			IRC         => 'irc://irc.perl.org/#win32',
 		},
 	},

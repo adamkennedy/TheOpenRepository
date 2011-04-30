@@ -6,7 +6,7 @@ Perl::Dist::WiX::Types - Public types used in Perl::Dist::WiX.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Types version 1.500.
+This document describes Perl::Dist::WiX::Types version 1.500001.
 
 =head1 SYNOPSIS
 
@@ -35,7 +35,7 @@ use MooseX::Types::Moose qw( Str Object ArrayRef );
 use MooseX::Types::Path::Class qw( Dir File );
 use Template qw();
 
-our $VERSION = '1.500';
+our $VERSION = '1.500001';
 $VERSION =~ s/_//ms;
 
 =head2 ExistingDirectory
@@ -158,7 +158,7 @@ Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2009 - 2010 Curtis Jewell.
+Copyright 2009 - 2011 Curtis Jewell.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
