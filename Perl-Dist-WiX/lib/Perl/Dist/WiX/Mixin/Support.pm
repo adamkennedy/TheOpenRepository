@@ -8,7 +8,7 @@ Perl::Dist::WiX::Mixin::Support - Provides support routines for building a Win32
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Mixin::Support version 1.500.
+This document describes Perl::Dist::WiX::Mixin::Support version 1.500001.
 
 =head1 SYNOPSIS
 
@@ -42,7 +42,7 @@ use IO::Compress::Gzip 2.025;
 
 # IO::Uncompress::Xz is tested for later, as it's an 'optional'.
 
-our $VERSION = '1.500';
+our $VERSION = '1.500001';
 $VERSION =~ s/_//ms;
 
 
@@ -390,10 +390,12 @@ sub execute_any {
 	} ## end foreach my $p (@path)
 
 	# Reset the environment
-	local $ENV{LIB}      = undef;
-	local $ENV{INCLUDE}  = undef;
-	local $ENV{PERL5LIB} = undef;
-	local $ENV{PATH} = $self->get_path_string() . q{;} . join q{;}, @keep;
+	local $ENV{'LIB'}               = undef;
+	local $ENV{'INCLUDE'}           = undef;
+	local $ENV{'PERL5LIB'}          = undef;
+	local $ENV{'PERL_YAML_BACKEND'} = undef;
+	local $ENV{'PERL_JSON_BACKEND'} = undef;	
+	local $ENV{'PATH'} = $self->get_path_string() . q{;} . join q{;}, @keep;
 
 	$self->trace_line( 3, "Path during execute_any: $ENV{PATH}\n" );
 
@@ -830,7 +832,7 @@ L<Perl::Dist::WiX|Perl::Dist::WiX>,
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2009 - 2010 Curtis Jewell.
+Copyright 2009 - 2011 Curtis Jewell.
 
 Copyright 2007 - 2009 Adam Kennedy.
 
