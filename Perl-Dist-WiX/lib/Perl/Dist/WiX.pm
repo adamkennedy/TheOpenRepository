@@ -472,6 +472,9 @@ than overriding routines shown above.
 		# Create the distribution list
 		'create_distribution_list',
 
+		# Check for missing files.
+		'verify_msi_file_contents',
+
 		# Regenerate file fragments again.
 		'regenerate_fragments',
 
@@ -532,6 +535,9 @@ sub _build_tasklist {
 
 		# Create the distribution list
 		'create_distribution_list',
+
+		# Check for missing files.
+		'verify_msi_file_contents',
 
 		# Regenerate file fragments again.
 		'regenerate_fragments',
@@ -3075,6 +3081,7 @@ sub verify_msi_file_contents {
 	return 1 if not $self->msi();
 
 	my $image_dir = $self->image_dir()->stringify();
+	my $perllocal = $self->image_dir()->file(qw(perl lib perllocal.pod))->stringify();
 	my $files_msi = $self->_all_files_object();
 
 	# Add files being installed in fragments to the list.
@@ -3088,7 +3095,8 @@ sub verify_msi_file_contents {
 	}
 	my @files_in_imagedir = grep { m/\A\Q$image_dir\E/msx } @files;
 	$files_msi->load_array(@files_in_imagedir);
-		
+	$files_msi->add_file($perllocal) if -e $perllocal;
+
 	# Now get what the zip would grab.
 	my $files_zip = File::List::Object->new();
 	$files_zip->readdir($image_dir);
