@@ -508,7 +508,7 @@ sub _build_tasklist {
 
 		# Install additional Perl modules
 		'install_cpan_upgrades',
-		
+
 		# Check for missing files.
 		'verify_msi_file_contents',
 
@@ -1835,7 +1835,7 @@ has 'checkpoint_stop' => (
 
 
 
-sub BUILDARGS { ## no critic (ProhibitExcessComplexity)
+sub BUILDARGS {
 	my $class = shift;
 	my %params;
 
@@ -2216,7 +2216,7 @@ has '_all_files_object' => (
 	is       => 'ro',
 	isa      => 'File::List::Object',
 	init_arg => undef,
-    lazy     => 1,	
+	lazy     => 1,
 	default  => sub { File::List::Object->new() },
 );
 
@@ -2901,14 +2901,16 @@ sub install_win32_extras {
 		}
 		if ( $self->perl_version_human eq '5.12.3' ) {
 			$self->install_website(
-				name      => 'Perl 5.12.2 Documentation (5.12.3 not available yet)',
+				name =>
+				  'Perl 5.12.2 Documentation (5.12.3 not available yet)',
 				url       => 'http://perldoc.perl.org/5.12.2/',
 				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
 			);
 		}
 		if ( $self->perl_version_human eq '5.14.0' ) {
 			$self->install_website(
-				name      => 'Perl 5.12.2 Documentation (5.14.0 not available yet)',
+				name =>
+				  'Perl 5.12.2 Documentation (5.14.0 not available yet)',
 				url       => 'http://perldoc.perl.org/5.12.2/',
 				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
 			);
@@ -3060,7 +3062,7 @@ sub regenerate_fragments {
 		@fragment_names             = uniq @fragment_names_regenerate;
 		$#fragment_names_regenerate = -1;
 	} ## end while ( 0 != scalar @fragment_names)
-	
+
 	return 1;
 } ## end sub regenerate_fragments
 
@@ -3081,7 +3083,8 @@ sub verify_msi_file_contents {
 	return 1 if not $self->msi();
 
 	my $image_dir = $self->image_dir()->stringify();
-	my $perllocal = $self->image_dir()->file(qw(perl lib perllocal.pod))->stringify();
+	my $perllocal =
+	  $self->image_dir()->file(qw(perl lib perllocal.pod))->stringify();
 	my $files_msi = $self->_all_files_object();
 
 	# Add files being installed in fragments to the list.
@@ -3089,42 +3092,48 @@ sub verify_msi_file_contents {
 	my @fragment_names = $self->_fragment_keys();
 	foreach my $name (@fragment_names) {
 		my $fragment = $self->get_fragment_object($name);
-		if (defined $fragment and $fragment->can('_get_files')) {
+		if ( defined $fragment and $fragment->can('_get_files') ) {
 			push @files, @{ $fragment->_get_files() };
 		}
 	}
-	my @files_in_imagedir = grep { m/\A\Q$image_dir\E/msx } @files;
+	my @files_in_imagedir = grep {m/\A\Q$image_dir\E/msx} @files;
 	$files_msi->load_array(@files_in_imagedir);
-	$files_msi->add_file($perllocal) if -e $perllocal;
+	if ( -e $perllocal ) {
+		$files_msi->add_file($perllocal);
+	}
 
 	# Now get what the zip would grab.
 	my $files_zip = File::List::Object->new();
 	$files_zip->readdir($image_dir);
+
 	# TODO: Fix the rest of this routine when releasing the next version
 	# of File::List::Object. It'll do for now, however.
 	$files_zip->remove_files(
-		( grep { m/\Q.AAA\E\z/msx } $files_zip->_get_files_array() )
-	)->filter( $self->_filters() );
+		( grep {m/\Q.AAA\E\z/msx} $files_zip->_get_files_array() ) )
+	  ->filter( $self->_filters() );
 
-	my $not_in_msi = File::List::Object->clone($files_zip)->subtract($files_msi);
-	my $not_in_zip = File::List::Object->clone($files_msi)->subtract($files_zip);
+	my $not_in_msi =
+	  File::List::Object->clone($files_zip)->subtract($files_msi);
+	my $not_in_zip =
+	  File::List::Object->clone($files_msi)->subtract($files_zip);
 
-	if ($not_in_msi->count()) {
-		$self->trace_line(0, "Files list:\n");	
-		$self->trace_line(0, $not_in_msi->as_string() . "\n");
-		PDWiX->throw('These files should be installed by the MSI file being '
-		  . 'generated, but will not be.');
+	if ( $not_in_msi->count() ) {
+		$self->trace_line( 0, "Files list:\n" );
+		$self->trace_line( 0, $not_in_msi->as_string() . "\n" );
+		PDWiX->throw(
+			    'These files should be installed by the MSI file being '
+			  . 'generated, but will not be.' );
 	}
 
-	if ($not_in_zip->count()) {
-		$self->trace_line(0, "Files list:\n");	
-		$self->trace_line(0, $not_in_zip->as_string() . "\n");
-		PDWiX->throw('These files should be installed by a ZIP file, but '
-		  . 'will not be.');
+	if ( $not_in_zip->count() ) {
+		$self->trace_line( 0, "Files list:\n" );
+		$self->trace_line( 0, $not_in_zip->as_string() . "\n" );
+		PDWiX->throw( 'These files should be installed by a ZIP file, but '
+			  . 'will not be.' );
 	}
 
 	return 1;
-}
+} ## end sub verify_msi_file_contents
 
 =head3 write
 

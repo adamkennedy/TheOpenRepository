@@ -394,7 +394,7 @@ sub execute_any {
 	local $ENV{'INCLUDE'}           = undef;
 	local $ENV{'PERL5LIB'}          = undef;
 	local $ENV{'PERL_YAML_BACKEND'} = undef;
-	local $ENV{'PERL_JSON_BACKEND'} = undef;	
+	local $ENV{'PERL_JSON_BACKEND'} = undef;
 	local $ENV{'PATH'} = $self->get_path_string() . q{;} . join q{;}, @keep;
 
 	$self->trace_line( 3, "Path during execute_any: $ENV{PATH}\n" );

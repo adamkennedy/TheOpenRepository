@@ -270,6 +270,7 @@ sub _build_modules {
 	  HTML::Parser
 	  LWP
 	};
+
 =for cmt
 list LWP dependencies for a new version
 Old version should be used because support of https in new version depeds on Net::SSLeay
@@ -290,6 +291,7 @@ which does not work on 64-bit Perl (https://rt.cpan.org/Public/Bug/Display.html?
 	  LWP::UserAgent
 	};
 =cut
+
 	my %modules = ( '5.010000' => \@modules_list, );
 	$modules{'5.010001'} = $modules{'5.010000'};
 	$modules{'5.012000'} = $modules{'5.010000'};

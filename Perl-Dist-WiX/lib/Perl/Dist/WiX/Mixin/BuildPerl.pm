@@ -201,7 +201,6 @@ sub install_cpan_upgrades {
 				$self->_install_cpan_module( $module, 1 );
 			}
 
-			## no critic(ProhibitUnusedCapture)
 			# There's a problem with extracting these two files, so
 			# upgrading to these versions, instead...
 			when (
@@ -594,6 +593,7 @@ sub _create_perl_toolchain { ## no critic(ProhibitUnusedPrivateSubroutines)
 		$force = { 'CPAN' => 'DAGOLDEN/CPAN-1.94_64.tar.gz' };
 	}
 	$force->{'LWP'} = 'GAAS/libwww-perl-5.837.tar.gz';
+
 	#new version creates problems for https on 64 bit systems
 
 	my $toolchain = Perl::Dist::WiX::Toolchain->new(

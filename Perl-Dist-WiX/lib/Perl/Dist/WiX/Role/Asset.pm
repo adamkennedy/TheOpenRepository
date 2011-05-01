@@ -261,8 +261,6 @@ sub BUILDARGS {
 	);
 	delete @args{ 'url', 'file', 'parent' };
 
-	# Miscaught by Perl::Critic.
-	## no critic (ProhibitCommaSeparatedStatements)
 	return { (%default_args), (%args) };
 } ## end sub BUILDARGS
 

@@ -73,7 +73,7 @@ subtype _NoDots,
   as _NoSlashAtEnd,
   where { "$_" !~ m{[.]}ms },
   message {'Cannot have a period'};
-  
+
 subtype ExistingDirectory_SaneSlashes, as _NoDots;
 
 coerce ExistingDirectory_SaneSlashes,
