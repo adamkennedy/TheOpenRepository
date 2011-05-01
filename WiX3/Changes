@@ -1,5 +1,8 @@
 Revision history for WiX3
 
+0.010004  To be released
+       - Compatible with (and *requires*) Moose 2.00.
+
 0.010003  Tue 22 Feb 2011
        - Updating documentation.
 

@@ -6,6 +6,7 @@
 \B\.hg\b
 \B\.cvsignore$
 \B\.hgignore$
+\B\.hgtags$
 
 # Avoid Makemaker generated and utility files.
 \bMakefile$
