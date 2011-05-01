@@ -168,7 +168,7 @@ extends
   'Perl::Dist::WiX::Mixin::Installation' => { -version => 1.500 },
   'Perl::Dist::WiX::Mixin::ReleaseNotes' => { -version => 1.500 },
   'Perl::Dist::WiX::Mixin::Patching'     => { -version => 1.500 },
-  'Perl::Dist::WiX::Mixin::Support'      => { -version => 1.500 },
+  'Perl::Dist::WiX::Mixin::Support'      => { -version => 1.500001 },
   ;
 
 #####################################################################
