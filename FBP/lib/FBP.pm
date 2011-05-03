@@ -41,9 +41,6 @@ The C<new> constructor takes no arguments and creates a new parser/model object.
 use 5.008005;
 use Mouse            0.61;
 use Params::Util     1.00 ();
-use IO::File         1.14 ();
-use XML::SAX         0.96 ();
-use FBP::Parser           ();
 use FBP::Project          ();
 use FBP::Dialog           ();
 use FBP::BoxSizer         ();
@@ -144,20 +141,21 @@ sub parse_file {
 	}
 
 	# Open the file
+	require IO::File;
 	my $fh = IO::File->new( $file );
 	unless ( $fh ) {
 		die("Failed to open file '$file'");
 	}
 
-	# Create the parser
-	my $handler = FBP::Parser->new($self);
-	my $parser  = XML::SAX::ParserFactory->parser(
-		Handler => $handler,
-	);
-
-	# Parse the file
+	# Create the parser and parse the file
+	require FBP::Parser;
+	require XML::SAX;
 	eval {
-		$parser->parse_file( $fh );
+		my $handler = FBP::Parser->new($self);
+		my $parser  = XML::SAX::ParserFactory->parser(
+			Handler => $handler,
+		);
+		$parser->parse_file($fh);
 	};
 	if ( $@ ) {
 		die("Error while parsing '$file': $@");
