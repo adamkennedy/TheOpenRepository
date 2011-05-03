@@ -109,6 +109,7 @@ sub new {
 		[],
 	);
 	$self->{m_choice1}->SetSelection(0);
+	$self->{m_choice1}->Disable;
 
 	Wx::Event::EVT_CHOICE(
 		$self,

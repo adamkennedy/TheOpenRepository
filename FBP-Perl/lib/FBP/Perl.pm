@@ -24,7 +24,7 @@ use warnings;
 use FBP           0.26 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.34';
+our $VERSION = '0.35';
 
 
 
@@ -329,6 +329,9 @@ sub window_create {
 			"\t$tooltip",
 			");";
 	}
+	if ( not $window->enabled ) {
+		push @$lines, "$variable->Disable;";
+	}
 
 	# Add the bindings the window
 	my $bindings = $self->window_bindings($window);
@@ -355,9 +358,6 @@ sub button_create {
 
 	if ( $control->default ) {
 		push @$lines, "$variable->SetDefault;";
-	}
-	unless ( $control->enabled ) {
-		push @$lines, "$variable->Disable;";
 	}
 
 	return $lines;

@@ -1,5 +1,9 @@
 Changes for Perl extension FBP-Perl
 
+0.35 Tue 3 May 2011
+	- The ->Disable logic was only being applied to buttons, now it is
+	  applied uniformly across all window types
+
 0.34 Tue 3 May 2011
 	- Added support for FBP::FilePickerCtrl OnFileChanged events
 
