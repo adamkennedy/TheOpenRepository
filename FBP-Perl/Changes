@@ -1,5 +1,8 @@
 Changes for Perl extension FBP-Perl
 
+0.34 Tue 3 May 2011
+	- Added support for FBP::FilePickerCtrl OnFileChanged events
+
 0.33 Tue 3 May 2011
 	- Bump FBP dependency to 0.26 for minimum_size and maximum_size
 	- Added size method for generating size literals

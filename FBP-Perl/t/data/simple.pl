@@ -325,6 +325,14 @@ sub new {
 		Wx::wxFLP_DEFAULT_STYLE,
 	);
 
+	Wx::Event::EVT_FILEPICKER_CHANGED(
+		$self,
+		$self->{m_filePicker1},
+		sub {
+			shift->m_filePicker1_changed(@_);
+		},
+	);
+
 	$self->{m_dirPicker1} = Wx::DirPickerCtrl->new(
 		$self->{m_panel2},
 		-1,
@@ -502,6 +510,10 @@ sub list_item_activated {
 
 sub list_item_selected {
 	die 'Handler method list_item_selected for event m_listCtrl1.OnListItemSelected not implemented';
+}
+
+sub m_filePicker1_changed {
+	die 'Handler method m_filePicker1_changed for event m_filePicker1.OnFileChanged not implemented';
 }
 
 1;

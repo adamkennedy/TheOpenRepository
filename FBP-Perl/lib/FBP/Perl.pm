@@ -24,7 +24,7 @@ use warnings;
 use FBP           0.26 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.33';
+our $VERSION = '0.34';
 
 
 
@@ -1189,6 +1189,9 @@ my %EVENT = (
 
 	# wxEraseEvent
 	OnEraseBackground         => [ ''                               ],
+
+	# wxFilePickerCtrl
+	OnFileChanged             => [ 'EVT_FILEPICKER_CHANGED'         ],
 
 	# wxFocusEvent
 	OnKillFocus               => [ 'EVT_KILL_FOCUS'                 ],
