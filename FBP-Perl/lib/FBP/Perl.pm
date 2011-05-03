@@ -24,7 +24,7 @@ use warnings;
 use FBP           0.26 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 
 
 
