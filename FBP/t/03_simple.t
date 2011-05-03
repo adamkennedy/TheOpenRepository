@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 139;
+use Test::More tests => 143;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -115,6 +115,15 @@ is( $button->fg,            '',            '->fg ok'            );
 is( $button->bg,            '',            '->bg ok'            );
 is( $button->tooltip, 'This is a tooltip', '->tooltip ok'       );
 is( $button->OnButtonClick, 'm_button1',   '->OnButtonClick ok' );
+
+# ListCtrl properties
+my $listctrl = $object->find_first(
+	isa => 'FBP::ListCtrl',
+);
+isa_ok( $listctrl, 'FBP::ListCtrl' );
+is( $listctrl->name, 'm_listCtrl1', '->name ok' );
+is( $listctrl->minimum_size, '100,100', '->minimum_size ok' );
+is( $listctrl->maximum_size, '200,200', '->maximum_size ok' );
 
 # Choice box properties
 my $choice = $object->find_first(

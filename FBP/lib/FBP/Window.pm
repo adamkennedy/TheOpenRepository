@@ -11,7 +11,7 @@ FBP::Window - Base class for all graphical wxWindow objects
 use Mouse;
 use Scalar::Util ();
 
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 
 extends 'FBP::Object';
 with    'FBP::Children';
@@ -176,6 +176,36 @@ to all window types.
 =cut
 
 has window_style => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+=pod
+
+=head2 minimum_size
+
+The C<minimum_size> method returns a comma-separated pair of integers
+representing the minimum size for the window, or a zero-length string
+if no minimum size is defined.
+
+=cut
+
+has minimum_size => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+=pod
+
+=head2 maximum_size
+
+The C<maximum_size> method returns a comma-separated pair of integers
+representing the maximum size for the window, or a zero-length string
+if no minimum size is defined.
+
+=cut
+
+has maximum_size => (
 	is  => 'ro',
 	isa => 'Str',
 );

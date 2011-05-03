@@ -1,5 +1,9 @@
 Changes for Perl extension FBP
 
+0.26 Tue 3 May 2011
+	- Added FBP::Window::minimum_size method
+	- Added FBP::Window::maximum_size method
+
 0.25 Wed 30 Mar 2011
 	- Added FBP::Window::font method
 

@@ -2,7 +2,7 @@ package FBP::FontPickerCtrl;
 
 use Mouse;
 
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 
 extends 'FBP::Control';
 
