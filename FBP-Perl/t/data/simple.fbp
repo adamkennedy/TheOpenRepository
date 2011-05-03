@@ -37,7 +37,7 @@
             <property name="minimum_size"></property>
             <property name="name">MyDialog1</property>
             <property name="pos"></property>
-            <property name="size"></property>
+            <property name="size">-1,-1</property>
             <property name="style">wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</property>
             <property name="subclass"></property>
             <property name="title">Dialog Title</property>
@@ -636,8 +636,8 @@
                                                     <property name="font"></property>
                                                     <property name="hidden">0</property>
                                                     <property name="id">wxID_ANY</property>
-                                                    <property name="maximum_size">200,200</property>
-                                                    <property name="minimum_size">100,101</property>
+                                                    <property name="maximum_size"></property>
+                                                    <property name="minimum_size"></property>
                                                     <property name="name">m_listCtrl1</property>
                                                     <property name="permission">protected</property>
                                                     <property name="pos"></property>
@@ -1879,7 +1879,7 @@
                                         <property name="name">m_panel6</property>
                                         <property name="permission">protected</property>
                                         <property name="pos"></property>
-                                        <property name="size"></property>
+                                        <property name="size">100,100</property>
                                         <property name="subclass"></property>
                                         <property name="tooltip"></property>
                                         <property name="validator_data_type"></property>

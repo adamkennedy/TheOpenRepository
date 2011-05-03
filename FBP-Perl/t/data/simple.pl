@@ -22,6 +22,7 @@ sub new {
 		Wx::wxDefaultSize,
 		Wx::wxDEFAULT_DIALOG_STYLE | Wx::wxRESIZE_BORDER,
 	);
+	$self->SetSizeHints( Wx::wxDefaultSize, Wx::wxDefaultSize );
 
 	$self->{m_staticText1} = t::lib::MyClass->new(
 		$self,
@@ -353,7 +354,7 @@ sub new {
 		$self->{m_listbook2},
 		-1,
 		Wx::wxDefaultPosition,
-		Wx::wxDefaultSize,
+		[ 100, 100 ],
 		Wx::wxTAB_TRAVERSAL,
 	);
 
@@ -446,7 +447,6 @@ sub new {
 
 	$self->{m_panel6}->SetSizer($bSizer5);
 	$self->{m_panel6}->Layout;
-	$bSizer5->Fit($self->{m_panel6});
 
 	my $bSizer6 = Wx::BoxSizer->new(Wx::wxVERTICAL);
 	$bSizer6->Add( $self->{m_staticText3}, 0, Wx::wxALL, 5 );

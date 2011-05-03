@@ -1,5 +1,13 @@
 Changes for Perl extension FBP-Perl
 
+0.33 Tue 3 May 2011
+	- Bump FBP dependency to 0.26 for minimum_size and maximum_size
+	- Added size method for generating size literals
+	- Added support for dialog sizer hints via ->SetSizeHints
+	- Added support for window sizer hints ->SetMinSize and ->SetMaxSize
+	- Don't call ->Fit on anything with an explicit pixel size
+	- Handle explicit -1,-1 in size-related FBP attributes
+
 0.32 Fri 8 Apr 2011
 	- Added missing OnColourChanged and OnFontChanged event bindings for
 	  the colour and font picker controls.
