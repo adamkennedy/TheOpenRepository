@@ -5286,7 +5286,7 @@ sub _create_rightclick_fragment {
 	$child_tag->get_child_tag(1)->get_child_tag(0)->add_child_tag(
 		WiX3::XML::RegistryValue->new(
 			id     => 'sp1010c_executecommand',
-			value  => '[P_Perl_Location] "%1"',
+			value  => '[P_Perl_Location] "%1" %*',
 			type   => 'string',
 			action => 'write',
 		) );
