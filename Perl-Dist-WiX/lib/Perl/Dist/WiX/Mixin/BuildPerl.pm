@@ -195,6 +195,12 @@ sub install_cpan_upgrades {
 				$self->_install_cpan_module( $module, 1 );
 			}
 
+			when (m{/IO-Compress-2 [.] 034}msx) {
+
+				# IO::Compress 2.034 has a test bug. (RT#67931) Forcing.
+				$self->_install_cpan_module( $module, 1 );
+			}
+
 			when (m{/Time-HiRes-}msx) {
 
 				# Time-HiRes is timing-dependent, of course.
