@@ -195,12 +195,6 @@ sub install_cpan_upgrades {
 				$self->_install_cpan_module( $module, 1 );
 			}
 
-			when (m{/IO-Compress-2 [.] 034}msx) {
-
-				# IO::Compress 2.034 has a test bug. (RT#67931) Forcing.
-				$self->_install_cpan_module( $module, 1 );
-			}
-
 			when (m{/Time-HiRes-}msx) {
 
 				# Time-HiRes is timing-dependent, of course.
@@ -707,13 +701,6 @@ sub install_perl_toolchain {
 				# Upgrading to this version, instead...
 				$dist = 'STSI/TermReadKey-2.30.02.tar.gz';
 			}
-			when (/CPAN-1 [.] 9402/msx) {
-
-				# Alias agrees that we include 1.94_51 (or the
-				# current dev version past it) because of the fix
-				# for the Win32 file:// bug.
-				$dist = 'DAGOLDEN/CPAN-1.94_64.tar.gz';
-			}
 			when (/ExtUtils-MakeMaker-/msx) {
 
 				# There are modules that overwrite portions of this one.
@@ -723,6 +710,11 @@ sub install_perl_toolchain {
 
 				# This module needs forced on Vista
 				# (and probably 2008/Win7 as well).
+				$force = 1;
+			}
+			when (/IO-Compress-2 [.] 034/msx) {
+
+				# This module needs forced - has a test bug.
 				$force = 1;
 			}
 			when (/Win32-TieRegistry-/msx) {
