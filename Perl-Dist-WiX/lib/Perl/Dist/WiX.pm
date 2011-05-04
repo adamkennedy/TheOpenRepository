@@ -1019,6 +1019,21 @@ has 'sitename' => (
 
 
 
+=head4 smoketest
+
+The optional boolean C<smoketest> parameter is used to indicate that
+a 'smoketest' marked perl interpreter will be created.
+
+=cut
+
+has 'smoketest' => (
+	is      => 'ro',
+	isa     => Bool,
+	default => 0,
+);
+
+
+
 =head4 use_dll_relocation
 
 The optional C<use_dll_relocation> parameter specifies whether to use the
@@ -4432,15 +4447,19 @@ Returns the value to be used for perl -V:myuname, which is in this pattern:
 sub perl_config_myuname {
 	my $self = shift;
 
-	my $version =
-	  $self->perl_version_human() . q{.} . $self->build_number();
-
+	my $version = $self->perl_version_human();
+	
 	if ( $version =~ m/git/ms ) {
-		$version = $self->git_describe() . q{.} . $self->build_number();
+		$version = $self->git_describe();
 	}
-
-	if ( $self->beta_number() > 0 ) {
-		$version .= '.beta_' . $self->beta_number();
+	
+	if ( $self->smoketest() ) {
+		$version .= '.smoketest';
+	} else {
+		$version .= q{.} . $self->build_number();
+		if ( $self->beta_number() > 0 ) {
+			$version .= '.beta_' . $self->beta_number();
+		}
 	}
 
 	my $bits = ( 64 == $self->bits() ) ? 'x64' : 'i386';
