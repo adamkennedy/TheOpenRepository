@@ -1,5 +1,9 @@
 Changes for Perl extension FBP-Perl
 
+0.36 Thu 5 May 2011
+	- $self->SetSizeHints( ... ) can only be used when we also use
+	  $sizer->SetSizeHints($self) or X11 hangs nastily.
+
 0.35 Tue 3 May 2011
 	- The ->Disable logic was only being applied to buttons, now it is
 	  applied uniformly across all window types

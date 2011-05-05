@@ -24,7 +24,7 @@ use warnings;
 use FBP           0.26 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.35';
+our $VERSION = '0.36';
 
 
 
@@ -108,10 +108,15 @@ sub dialog_new {
 	my $self    = shift;
 	my $dialog  = shift;
 	my $super   = $self->dialog_super($dialog);
-	my $minsize = $self->wxsize($dialog->minimum_size);
-	my $maxsize = $self->wxsize($dialog->maximum_size);
 	my @windows = $self->dialog_windows($dialog);
 	my @sizers  = $self->dialog_sizers($dialog);
+
+	my @hints = ();
+	if ( $self->dialog_setsizehints($dialog) ) {
+		my $minsize = $self->wxsize($dialog->minimum_size);
+		my $maxsize = $self->wxsize($dialog->maximum_size);
+		push @hints, "\$self->SetSizeHints( $minsize, $maxsize );";
+	}
 
 	return $self->nested(
 		"sub new {",
@@ -119,7 +124,7 @@ sub dialog_new {
 		"my \$parent = shift;",
 		"",
 		$super,
-		"\$self->SetSizeHints( $minsize, $maxsize );",
+		@hints,
 		"",
 		@windows,
 		( map { @$_, "" } @sizers ),
@@ -184,7 +189,7 @@ sub dialog_sizers {
 				: "$variable->Fit(\$self);"
 			),
 			(
-				$dialog->style =~ /\bwxRESIZE_BORDER\b/
+				$self->dialog_setsizehints($dialog)
 				? "$variable->SetSizeHints(\$self);"
 				: ()
 			),
@@ -208,6 +213,26 @@ sub dialog_isa {
 	return [
 		"our \@ISA     = 'Wx::Dialog';",
 	];
+}
+
+sub dialog_setsizehints {
+	my $self   = shift;
+	my $dialog = shift;
+
+	# If our borders are resizable we need to set size hints
+	if ( $dialog->style =~ /\bwxRESIZE_BORDER\b/ ) {
+		return 1;
+	}
+
+	# If the dialog has size hints, we do need them
+	if ( $self->size($dialog->minimum_size) ) {
+		return 1;
+	}
+	if ( $self->size($dialog->maximum_size) ) {
+		return 1;
+	}
+
+	return 0;
 }
 
 
