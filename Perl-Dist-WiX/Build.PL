@@ -124,7 +124,7 @@ my $builder = $class->new(
 		'Moose'                      => '2.00',
 		'MooseX::NonMoose'           => '0.18',
 		'MooseX::Object::Pluggable'  => '0.0011',
-		'MooseX::Singleton'          => '0.25',
+		'MooseX::Singleton'          => '0.26',
 		'MooseX::Types'              => '0.19',
 		'MooseX::Types::URI'         => '0.02',
 		'MooseX::Types::Path::Class' => '0.05',
@@ -139,7 +139,7 @@ my $builder = $class->new(
 		# Template 2.21 will not install on Windows, anyway.
 		'Template'                   => '2.22',
 		'URI'                        => '1.35',
-		'WiX3'                       => '0.010002',
+		'WiX3'                       => '0.010004',
 		'YAML::Tiny'                 => '1.36',
 		'Win32'                      => '0.35',
 		'Win32::Exe'                 => '0.13',
