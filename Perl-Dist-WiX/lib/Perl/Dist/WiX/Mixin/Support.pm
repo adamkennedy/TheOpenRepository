@@ -687,8 +687,8 @@ sub remake_path {
 
 	if ( not -d $dir ) {
 		PDWiX::Directory->throw(
-			directory => $dir,
-			message   => 'Failed to recreate'
+			dir     => $dir,
+			message => 'Failed to recreate'
 		);
 	}
 	return $dir;
