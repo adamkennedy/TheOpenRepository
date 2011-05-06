@@ -2770,6 +2770,8 @@ sub install_portable {
 			id           => 'DataFolder'
 		) );
 
+	$self->make_path($self->dir('data'));
+
 	return 1;
 } ## end sub install_portable
 
