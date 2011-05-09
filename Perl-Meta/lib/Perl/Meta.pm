@@ -1,6 +1,7 @@
 package Perl::Meta;
 
-use warnings;
+use 5.005;
+#use warnings;
 use strict;
 
 =head1 NAME
@@ -13,7 +14,8 @@ Version 0.01
 
 =cut
 
-our $VERSION = '0.01';
+use vars '$VERSION';
+$VERSION = '0.01';
 
 
 =head1 SYNOPSIS
