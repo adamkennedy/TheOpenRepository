@@ -34,19 +34,19 @@ if you don't export anything, such as for a purely object-oriented module.
 
 =head1 SUBROUTINES/METHODS
 
-=head2 _extract_license
+=head2 extract_license
 
 =cut
 
-sub _extract_license {
+sub extract_license {
 	my $pod = shift;
 	my $matched;
-	return __extract_license(
+	return _extract_license(
 		($matched) = $pod =~ m/
 			(=head \d \s+ L(?i:ICEN[CS]E|ICENSING)\b.*?)
 			(=head \d.*|=cut.*|)\z
 		/xms
-	) || __extract_license(
+	) || _extract_license(
 		($matched) = $pod =~ m/
 			(=head \d \s+ (?:C(?i:OPYRIGHTS?)|L(?i:EGAL))\b.*?)
 			(=head \d.*|=cut.*|)\z
@@ -54,7 +54,7 @@ sub _extract_license {
 	);
 }
 
-sub __extract_license {
+sub _extract_license {
 	my $license_text = shift or return;
 	my @phrases      = (
 		'(?:under )?the same (?:terms|license) as (?:perl|the perl (?:\d )?programming language)' => 'perl', 1,
@@ -95,7 +95,7 @@ sub __extract_license {
 }
 
 
-sub _extract_perl_version {
+sub extract_perl_version {
 	if (
 		$_[0] =~ m/
 		^\s*
@@ -114,7 +114,7 @@ sub _extract_perl_version {
 }
 
 
-sub _extract_bugtracker {
+sub extract_bugtracker {
 	my @links   = $_[0] =~ m#L<(
 	 https?\Q://rt.cpan.org/\E[^>]+|
 	 https?\Q://github.com/\E[\w_]+/[\w_]+/issues|
