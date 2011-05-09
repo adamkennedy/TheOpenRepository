@@ -11,7 +11,7 @@ use Test::More tests => 17;
 require_ok( 'Perl::Meta' );
 
 SCOPE: {
-	my @links=Perl::Meta::_extract_bugtracker('L<http://rt.cpan.org/test>');
+	my @links=Perl::Meta::extract_bugtracker('L<http://rt.cpan.org/test>');
 	is_deeply(
 		\@links,
 		[ 'http://rt.cpan.org/test' ],
@@ -22,7 +22,7 @@ SCOPE: {
 }
 
 SCOPE: {
-	my @links=Perl::Meta::_extract_bugtracker('L<http://rt.cpan.org/test1> L<http://rt.cpan.org/test1>');
+	my @links=Perl::Meta::extract_bugtracker('L<http://rt.cpan.org/test1> L<http://rt.cpan.org/test1>');
 	is_deeply(
 		\@links,
 		[ 'http://rt.cpan.org/test1' ],
@@ -33,7 +33,7 @@ SCOPE: {
 }
 
 SCOPE: {
-	my @links=Perl::Meta::_extract_bugtracker('L<http://rt.cpan.org/test1> L<http://rt.cpan.org/test2>');
+	my @links=Perl::Meta::extract_bugtracker('L<http://rt.cpan.org/test1> L<http://rt.cpan.org/test2>');
 	is_deeply(
 		[ sort @links ],
 		[ 'http://rt.cpan.org/test1', 'http://rt.cpan.org/test2' ],
@@ -44,7 +44,7 @@ SCOPE: {
 }
 
 SCOPE: {
-	my @links=Perl::Meta::_extract_bugtracker('L<http://search.cpan.org/test1>');
+	my @links=Perl::Meta::extract_bugtracker('L<http://search.cpan.org/test1>');
 	is_deeply(
 		\@links,
 		[ ],
@@ -55,7 +55,7 @@ SCOPE: {
 }
 
 SCOPE: {
-	my @links=Perl::Meta::_extract_bugtracker('L<http://github.com/marcusramberg/mojomojo/issues>');
+	my @links=Perl::Meta::extract_bugtracker('L<http://github.com/marcusramberg/mojomojo/issues>');
 	is_deeply(
 		\@links,
 		[ 'http://github.com/marcusramberg/mojomojo/issues' ],
@@ -66,7 +66,7 @@ SCOPE: {
 }
 
 SCOPE: {
-	my @links=Perl::Meta::_extract_bugtracker('L<http://code.google.com/p/www-mechanize/issues/list>');
+	my @links=Perl::Meta::extract_bugtracker('L<http://code.google.com/p/www-mechanize/issues/list>');
 	is_deeply(
 		\@links,
 		[ 'http://code.google.com/p/www-mechanize/issues/list' ],
@@ -80,7 +80,7 @@ SCOPE: {
 
 
 SCOPE: {
-	my $l=Perl::Meta::_extract_license("=head1 Copyright\nunder the same terms as the perl programming language\n=cut\n");
+	my $l=Perl::Meta::extract_license("=head1 Copyright\nunder the same terms as the perl programming language\n=cut\n");
 		is($l, 'perl', 'Perl license detected',
 	);
 }
@@ -97,7 +97,7 @@ test
 
 =cut
 ";
-	my $l=Perl::Meta::_extract_license($text);
+	my $l=Perl::Meta::extract_license($text);
 		is($l, 'perl', 'Perl license detected',
 	);
 }
@@ -109,7 +109,7 @@ This module is distributed under the same terms as Perl itself.
 
 =cut
 ";
-	my $l=Perl::Meta::_extract_license($text);
+	my $l=Perl::Meta::extract_license($text);
 		is($l, 'perl', 'Perl license detected',
 	);
 }
@@ -120,13 +120,13 @@ SCOPE: {
 You may distribute under the terms of either the GNU General Public
 License or the Artistic License, as specified in the Perl README file.
 ";
-	my $l=Perl::Meta::_extract_license($text);
+	my $l=Perl::Meta::extract_license($text);
 		is($l, 'perl', 'Perl license detected',
 	);
 }
 
 SCOPE: {
-	my $l=Perl::Meta::_extract_license("=head1 COPYRIGHT\nAs LGPL license\n=cut\n");
+	my $l=Perl::Meta::extract_license("=head1 COPYRIGHT\nAs LGPL license\n=cut\n");
 		is($l, 'lgpl', 'LGPL detected',
 	);
 }
@@ -153,7 +153,7 @@ The "Artistic License" which comes with Perl.
 
 =cut
 EOT
-	my $l=Perl::Meta::_extract_license($text);
+	my $l=Perl::Meta::extract_license($text);
 		is($l, 'perl', 'Perl license detected',
 	);
 }
@@ -169,7 +169,7 @@ This library is free software; you can redistribute it and/or modify it under th
 
 =cut
 EOT
-	my $l=Perl::Meta::_extract_license($text);
+	my $l=Perl::Meta::extract_license($text);
 		is($l, 'artistic_2', 'Artistic 2.0 license detected',
 	);
 }
@@ -177,19 +177,19 @@ EOT
 
 
 SCOPE: {
-	my $version=Perl::Meta::_extract_perl_version("use 5.10.0;");
+	my $version=Perl::Meta::extract_perl_version("use 5.10.0;");
 		is($version, '5.10.0', 'perl 5.10.0 detected',
 	);
 }
 
 SCOPE: {
-	my $version=Perl::Meta::_extract_perl_version("   use 5.010;");
+	my $version=Perl::Meta::extract_perl_version("   use 5.010;");
 		is($version, '5.010', 'perl 5.10.0 detected',
 	);
 }
 
 SCOPE: {
-	my $version=Perl::Meta::_extract_perl_version("use strict;");
+	my $version=Perl::Meta::extract_perl_version("use strict;");
 		is($version, undef, 'no perl prereq',
 	);
 }

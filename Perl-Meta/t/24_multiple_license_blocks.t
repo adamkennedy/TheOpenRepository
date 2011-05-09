@@ -16,7 +16,7 @@ for (
 	"$p{header}$p{author}$p{license}$p{copyright}$p{footer}",
 	"$p{header}$p{license}$p{author}$p{copyright}$p{footer}",
 ) {
-	my $license = Perl::Meta::_extract_license($_);
+	my $license = Perl::Meta::extract_license($_);
 	ok defined $license && $license eq 'perl', "my license is $license";
 }
 

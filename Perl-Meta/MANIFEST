@@ -7,5 +7,5 @@ t/00-load.t
 t/manifest.t
 t/pod-coverage.t
 t/pod.t
-11_extraction.t
-24_multiple_license_blocks.t
+t/11_extraction.t
+t/24_multiple_license_blocks.t
