@@ -5,7 +5,7 @@ use strict;
 
 =head1 NAME
 
-Perl::Meta - The great new Perl::Meta!
+Perl::Meta - Extract metadata from perl/pod text.
 
 =head1 VERSION
 
@@ -18,23 +18,25 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
-
     use Perl::Meta;
 
-    my $foo = Perl::Meta->new();
+    my $pv = Perl::Meta::extract_perl_version(' use 5.10.1;');
     ...
-
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
 
 =head1 SUBROUTINES/METHODS
 
 =head2 extract_license
+
+Returns license code from perl/pod text by matching several patterns.
+
+=head2 extract_perl_version
+
+Returns perl version required in perl text.
+
+=head2 extract_bugtracker
+
+Searches for bug tracker pod links in text. rt.cpan.org, github.com,
+code.google.com are supported.
 
 =cut
 
