@@ -29,7 +29,7 @@ $VERSION = '0.01';
 
 =head2 extract_license
 
-Returns license code from perl/pod text by matching several patterns.
+Returns license code for META.yml/json from perl/pod text by matching several patterns.
 
 =head2 extract_perl_version
 
@@ -178,7 +178,7 @@ L<http://search.cpan.org/dist/Perl-Meta/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2010 Alexandr Ciornii.
+Copyright 2010-2011 Alexandr Ciornii.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
