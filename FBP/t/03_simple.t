@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 143;
+use Test::More tests => 145;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -215,6 +215,10 @@ isa_ok( $colourpickerctrl[1], 'FBP::ColourPickerCtrl' );
 is( $colourpickerctrl[0]->style, 'wxCLRP_DEFAULT_STYLE', '->style ok' );
 is( $colourpickerctrl[0]->colour, '255,0,0', '->colour ok' );
 is( $colourpickerctrl[1]->colour, 'wxSYS_COLOUR_INFOBK', '->colour ok' );
+
+# Test support for hidden
+is( $colourpickerctrl[0]->hidden, 0, '->hidden false for visible element' );
+is( $colourpickerctrl[1]->hidden, 1, '->hidden true for hidden element' );
 
 # FontPickerCtrl properties
 my $fontpickerctrl = $object->find_first(

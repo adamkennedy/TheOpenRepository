@@ -2,7 +2,7 @@ package FBP::MouseEvent;
 
 use Mouse::Role;
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 
 has OnEnterWindow => (
 	is  => 'ro',

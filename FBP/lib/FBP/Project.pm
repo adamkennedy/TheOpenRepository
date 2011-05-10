@@ -2,7 +2,7 @@ package FBP::Project;
 
 use Mouse;
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 
 extends 'FBP::Object';
 with    'FBP::Children';
@@ -11,6 +11,15 @@ has internationalize => (
 	is  => 'ro',
 	isa => 'Bool',
 );
+
+no Mouse;
+
+
+
+
+
+######################################################################
+# Convenience Methods
 
 sub dialogs {
 	return grep { 

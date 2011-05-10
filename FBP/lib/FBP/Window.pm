@@ -11,7 +11,7 @@ FBP::Window - Base class for all graphical wxWindow objects
 use Mouse;
 use Scalar::Util ();
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 
 extends 'FBP::Object';
 with    'FBP::Children';
@@ -61,6 +61,20 @@ The C<enabled> method indicates if the object is enabled or not.
 =cut
 
 has enabled => (
+	is  => 'ro',
+	isa => 'Bool',
+);
+
+=pod
+
+=head2 hidden
+
+The C<hidden> method indicates if the object is true if the shown is removed
+from view, or false if the window is shown.
+
+=cut
+
+has hidden => (
 	is  => 'ro',
 	isa => 'Bool',
 );

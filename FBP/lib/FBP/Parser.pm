@@ -7,7 +7,7 @@ use Params::Util   ();
 use XML::SAX::Base ();
 use FBP            ();
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 our @ISA     = 'XML::SAX::Base';
 
 # Object XML class to Perl class mapping
@@ -63,6 +63,7 @@ sub new {
 
 	# Create the basic parsing object
 	my $self = bless {
+		raw   => 0,
 		stack => [ $parent ],
 	}, $class;
 
@@ -185,8 +186,8 @@ sub end_element_object {
 	my $children = delete $attr->{children};
 	my $object   = $class->new(
 		%$attr,
-		raw => $attr,
-		$children ? ( children => $children ) : ( )
+		$self->{raw} ? ( raw      => $attr     ) : ( ),
+		$children    ? ( children => $children ) : ( ),
 	);
 	$self->parent->{children} ||= [ ];
 	push @{$self->parent->{children}}, $object;

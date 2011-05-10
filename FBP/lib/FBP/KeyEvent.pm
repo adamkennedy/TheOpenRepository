@@ -2,7 +2,7 @@ package FBP::KeyEvent;
 
 use Mouse::Role;
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 
 has OnChar => (
 	is  => 'ro',

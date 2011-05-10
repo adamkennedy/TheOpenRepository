@@ -12,27 +12,27 @@ FBP::Object - Base class for all wxFormBuilder objects
 
 use Mouse;
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 
-=pod
-
-=head2 raw
-
-The full wxFormBuilder XML data structure will contain a far larger breadth
-of properties than are actually supported in the L<FBP> object model.
-
-In other cases, the object model may normalise a property that some specific
-consumer will wish to access in the original form.
-
-The C<raw> method provides access to a C<HASH> containing the keys and values
-of the C<property> tags in the original XML document.
-
-=cut
-
-has raw => (
-	is  => 'ro',
-	isa => 'Any',
-);
+# =pod
+# 
+# =head2 raw
+# 
+# The full wxFormBuilder XML data structure will contain a far larger breadth
+# of properties than are actually supported in the L<FBP> object model.
+# 
+# In other cases, the object model may normalise a property that some specific
+# consumer will wish to access in the original form.
+# 
+# The C<raw> method provides access to a C<HASH> containing the keys and values
+# of the C<property> tags in the original XML document.
+# 
+# =cut
+# 
+# has raw => (
+	# is  => 'ro',
+	# isa => 'Any',
+# );
 
 =pod
 

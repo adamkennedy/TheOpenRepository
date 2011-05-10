@@ -1,5 +1,12 @@
 Changes for Perl extension FBP
 
+0.27 Tue 10 May 2011
+	- Now that the object model is largely completed, removed the storage
+	  of the raw property hash on object creation. This will dramatically
+	  reduce the memory size of FBP object trees.
+	- Removed FBP::Object::raw method
+	- Added FBP::Window::hidden method
+
 0.26 Tue 3 May 2011
 	- Added FBP::Window::minimum_size method
 	- Added FBP::Window::maximum_size method

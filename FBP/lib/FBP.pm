@@ -71,7 +71,7 @@ use FBP::StaticText       ();
 use FBP::StaticLine       ();
 use FBP::TextCtrl         ();
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 
 extends 'FBP::Object';
 with    'FBP::Children';
