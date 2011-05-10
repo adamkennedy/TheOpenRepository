@@ -286,7 +286,7 @@ sub install_cpan_upgrades {
 	# Install newest dev version of CPAN if we haven't already.
 	if ( not $self->fragment_exists('CPAN') ) {
 		$self->install_distribution(
-			name             => 'DAGOLDEN/CPAN-1.94_64.tar.gz',
+			name             => 'ANDK/CPAN-1.9600.tar.gz',
 			mod_name         => 'CPAN',
 			makefilepl_param => ['INSTALLDIRS=perl'],
 			buildpl_param    => [ '--installdirs', 'core' ],
@@ -296,7 +296,7 @@ sub install_cpan_upgrades {
 	# Install version of Module::Build if we haven't already.
 	if ( not $self->fragment_exists('Module_Build') ) {
 		$self->install_distribution(
-			name             => 'DAGOLDEN/Module-Build-0.3624.tar.gz',
+			name             => 'DAGOLDEN/Module-Build-0.3800.tar.gz',
 			mod_name         => 'Module::Build',
 			makefilepl_param => ['INSTALLDIRS=perl'],
 			buildpl_param    => [ '--installdirs', 'core' ],
