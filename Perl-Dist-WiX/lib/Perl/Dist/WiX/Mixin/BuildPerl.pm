@@ -587,11 +587,6 @@ sub _create_perl_toolchain { ## no critic(ProhibitUnusedPrivateSubroutines)
 	if ( $self->perl_version =~ m/\A512/ms ) {
 		$force = { 'Pod::Text' => 'RRA/podlators-2.4.0.tar.gz' };
 	}
-	if ( $self->perl_version =~ m/\A5101/ms ) {
-
-		# CPAN needs installed on 5.10.1, as well.
-		$force = { 'CPAN' => 'DAGOLDEN/CPAN-1.94_64.tar.gz' };
-	}
 	$force->{'LWP'} = 'GAAS/libwww-perl-5.837.tar.gz';
 
 	#new version creates problems for https on 64 bit systems
