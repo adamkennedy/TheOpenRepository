@@ -21,10 +21,10 @@ TO BE COMPLETED
 use 5.008005;
 use strict;
 use warnings;
-use FBP           0.26 ();
+use FBP           0.27 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.36';
+our $VERSION = '0.37';
 
 
 
@@ -317,50 +317,15 @@ sub window_create {
 	}
 
 	# Add common modifications
-	my $variable = $self->object_variable($window);
-	if ( $window->minimum_size ) {
-		my $size = $self->wxsize( $window->minimum_size );
-		push @$lines, "$variable->SetMinSize( $size );";
-	}
-	if ( $window->maximum_size ) {
-		my $size = $self->wxsize( $window->minimum_size );
-		push @$lines, "$variable->SetMaxSize( $size );";
-	}
-	if ( $window->fg ) {
-		my $colour = $self->colour( $window->fg );
-		push @$lines,
-			"$variable->SetForegroundColour(",
-			"\t$colour",
-			");";
-	};
-	if ( $window->bg ) {
-		my $colour = $self->colour( $window->bg );
-		push @$lines,
-			"$variable->SetBackgroundColour(",
-			"\t$colour",
-			");";
-	};
-	if ( $window->font ) {
-		my $font = $self->font( $window->font );
-		push @$lines,
-			"$variable->SetFont(",
-			"\t$font",
-			");";
-	}
-	if ( $window->tooltip ) {
-		my $tooltip = $self->text( $window->tooltip );
-		push @$lines,
-			"$variable->SetToolTip(",
-			"\t$tooltip",
-			");";
-	}
-	if ( not $window->enabled ) {
-		push @$lines, "$variable->Disable;";
-	}
-
-	# Add the bindings the window
-	my $bindings = $self->window_bindings($window);
-	push @$lines, @$bindings;
+	push @$lines, $self->window_minimum_size($window);
+	push @$lines, $self->window_maximum_size($window);
+	push @$lines, $self->window_fg($window);
+	push @$lines, $self->window_bg($window);
+	push @$lines, $self->window_font($window);
+	push @$lines, $self->window_tooltip($window);
+	push @$lines, $self->window_disable($window);
+	push @$lines, $self->window_hide($window);
+	push @$lines, $self->window_bindings($window);
 
 	return $lines;
 }
@@ -1189,6 +1154,132 @@ sub splitterwindow_pack {
 ######################################################################
 # Window Fragment Generators
 
+sub window_minimum_size {
+	my $self   = shift;
+	my $window = shift;
+
+	if ( $window->minimum_size ) {
+		my $variable = $self->object_variable($window);
+		my $size     = $self->wxsize( $window->minimum_size );
+		return (
+			"$variable->SetMinSize( $size );",
+		);
+	}
+
+	return;
+}
+
+sub window_maximum_size {
+	my $self   = shift;
+	my $window = shift;
+
+	if ( $window->maximum_size ) {
+		my $variable = $self->object_variable($window);
+		my $size     = $self->wxsize( $window->maximum_size );
+		return (
+			"$variable->SetMaxSize( $size );",
+		);
+	}
+
+	return;
+}
+
+sub window_fg {
+	my $self   = shift;
+	my $window = shift;
+
+	if ( $window->fg ) {
+		my $variable = $self->object_variable($window);
+		my $colour   = $self->colour( $window->fg );
+		return (
+			"$variable->SetForegroundColour(",
+			"\t$colour",
+			");",
+		);
+	};
+
+	return;
+}
+
+sub window_bg {
+	my $self   = shift;
+	my $window = shift;
+
+	if ( $window->bg ) {
+		my $variable = $self->object_variable($window);
+		my $colour   = $self->colour( $window->bg );
+		return (
+			"$variable->SetBackgroundColour(",
+			"\t$colour",
+			");",
+		);
+	};
+
+	return;
+}
+
+sub window_font {
+	my $self   = shift;
+	my $window = shift;
+
+	if ( $window->font ) {
+		my $variable = $self->object_variable($window);
+		my $font     = $self->font( $window->font );
+		return (
+			"$variable->SetFont(",
+			"\t$font",
+			");",
+		);
+	}
+
+	return;
+}
+
+sub window_tooltip {
+	my $self   = shift;
+	my $window = shift;
+
+	if ( $window->tooltip ) {
+		my $variable = $self->object_variable($window);
+		my $tooltip  = $self->text( $window->tooltip );
+		return (
+			"$variable->SetToolTip(",
+			"\t$tooltip",
+			");",
+		);
+	}
+
+	return;
+}
+
+sub window_disable {
+	my $self   = shift;
+	my $window = shift;
+
+	unless ( $window->enabled ) {
+		my $variable = $self->object_variable($window);
+		return (
+			"$variable->Disable;",
+		);
+	}
+
+	return;
+}
+
+sub window_hide {
+	my $self   = shift;
+	my $window = shift;
+
+	if ( $window->hidden ) {
+		my $variable = $self->object_variable($window);
+		return (
+			"$variable->Hide;",
+		);
+	}
+
+	return;
+}
+
 my %EVENT = (
 	# wxActivateEvent
 	OnActivate                => [ 'EVT_ACTIVATE'                   ],
@@ -1314,7 +1405,7 @@ sub window_bindings {
 		);
 	}
 
-	return \@lines;
+	return @lines;
 }
 
 sub dialog_methods {

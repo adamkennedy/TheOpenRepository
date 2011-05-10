@@ -304,6 +304,8 @@ sub new {
 		Wx::wxDefaultSize,
 		Wx::wxCLRP_DEFAULT_STYLE,
 	);
+	$self->{m_colourPicker2}->Disable;
+	$self->{m_colourPicker2}->Hide;
 
 	$self->{m_fontPicker1} = Wx::FontPickerCtrl->new(
 		$self->{m_panel2},

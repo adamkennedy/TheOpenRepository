@@ -1,5 +1,11 @@
 Changes for Perl extension FBP-Perl
 
+0.37 Thu 10 May 2011
+	- Bump FBP dependency to 0.27 to get ->hidden support
+	- Added support for setting ->Hide on hidden things
+	- Broke the generation of things like SetFont into smaller method
+	  to allow granular overriding of the code generated for them
+
 0.36 Thu 5 May 2011
 	- $self->SetSizeHints( ... ) can only be used when we also use
 	  $sizer->SetSizeHints($self) or X11 hangs nastily.
