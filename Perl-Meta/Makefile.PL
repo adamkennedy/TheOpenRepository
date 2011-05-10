@@ -8,7 +8,7 @@ WriteMakefile1(
     AUTHOR              => q{Alexandr Ciornii <alexchorny@gmail.com>},
     VERSION_FROM        => 'lib/Perl/Meta.pm',
     ABSTRACT_FROM       => 'lib/Perl/Meta.pm',
-    'LICENSE'=> 'perl'
+    'LICENSE'           => 'perl',
     PL_FILES            => {},
     PREREQ_PM => {
     },
