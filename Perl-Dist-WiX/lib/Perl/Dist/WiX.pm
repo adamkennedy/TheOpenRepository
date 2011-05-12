@@ -2715,24 +2715,18 @@ sub install_portable {
 	# Install the regular parts of Portability
 	if ( not $self->isa('Perl::Dist::Strawberry') ) {
 		$self->install_modules( qw(
-			  Sub::Uplevel
-		) );
-	}
-	$self->install_modules( qw(
+		  Sub::Uplevel
 		  Test::Exception
-	) );
-	if ( not $self->isa('Perl::Dist::Strawberry') ) {
-		$self->install_modules( qw(
-			  Test::Tester
-			  Test::NoWarnings
-			  LWP::Online
+		  Test::Tester
+		  Test::NoWarnings
+		  LWP::Online
+		  Class::Inspector
 		) );
 	}
 	if ( not $self->isa('Perl::Dist::Bootstrap') ) {
 		$self->install_modules( qw(
-			  Class::Inspector
-			  CPAN::Mini
-			  Portable
+		  CPAN::Mini
+		  Portable
 		) );
 	}
 
