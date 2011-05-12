@@ -22,6 +22,7 @@ LWP::Online - Does your process have access to the web
   # "real" access to the internet. Scripts will automatically
   # skip if connection fails.
   use LWP::Online ':skip_all';
+  use Test::More tests => 4; #after LWP::Online
 
 =head1 DESCRIPTION
 
