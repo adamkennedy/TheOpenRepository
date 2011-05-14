@@ -1,78 +1,14 @@
 use 5.010;
-use Module::Build;
+use lib qw(inc);
+use Builder;
 
 die "OS unsupported\n" unless 'MSWin32' eq $^O;
 
-# CPAN version test.
-#require CPAN;
-#if ($CPAN::VERSION < 1.9462) {
-#	print <<'EOF';
-#To install the rest of the prerequisites, you need to run
-#
-#	cpan ANDK/CPAN-1.94_62.tar.gz
-#
-#before installing this. 
-#
-#If you're already in CPAN or CPANPLUS, replace 'cpan' with 'install'.
-#If you're in CPAN, 'reload cpan' afterwards.
-#
-#EOF
-#	die "Please upgrade CPAN as instructed above.\n\n";
-#}
+Builder->cpan_version_test();
 
 # These are the main requirements.
 
-my $class = Module::Build->subclass(
-	class => 'PDWiX::Builder',
-	code  => <<'END_CODE',
-
-sub ACTION_authortest {
-    my ($self) = @_;
-
-    $self->depends_on('build');
-
-    $self->test_files( qw< t xt/author > );
-    $self->depends_on('test');
-
-    return;
-}
-
-
-sub ACTION_releasetest {
-    my ($self) = @_;
-
-    $self->depends_on('build');
-
-    $self->test_files( qw< t xt/author xt/release > );
-    $self->depends_on('test');
-
-    return;
-}
-
-
-sub ACTION_manifest {
-    my ($self, @arguments) = @_;
-
-    if (-e 'MANIFEST') {
-        unlink 'MANIFEST' or die "Can't unlink MANIFEST: $!";
-    }
-
-    return $self->SUPER::ACTION_manifest(@arguments);
-}
-
-
-sub ACTION_distmeta {
-    my ($self) = @_;
-	
-    $self->depends_on('manifest');
-	
-    return $self->SUPER::ACTION_distmeta();
-}
-END_CODE
-);
-
-
-my $builder = $class->new(
+my $builder = Builder->new(
 	module_name         => 'Perl::Dist::WiX',
 	license             => 'perl',
 	dist_author         => 'Curtis Jewell <csjewell@cpan.org>',
@@ -107,7 +43,7 @@ my $builder = $class->new(
 		'File::PathList'             => '1.04',
 		'File::pushd'                => '1.00',
 		'File::Remove'               => '1.42',
-		'File::ShareDir'             => '1.00',
+		'File::ShareDir'             => '1.02',
 		'File::Spec'                 => '3.29',
 		'File::Temp'                 => '0.21',
 		'HTTP::Status'               => '5.817',
@@ -177,6 +113,7 @@ my $builder = $class->new(
 	},
 	share_dir => {
 		dist => 'share',
+		Builder->plugin_share(),
 	},
 	script_files => [
 		'script/perldist_w'
