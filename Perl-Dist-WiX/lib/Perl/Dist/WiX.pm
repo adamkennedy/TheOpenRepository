@@ -3116,11 +3116,8 @@ sub verify_msi_file_contents {
 	# Now get what the zip would grab.
 	my $files_zip = File::List::Object->new();
 	$files_zip->readdir($image_dir);
-
-	# TODO: Fix the rest of this routine when releasing the next version
-	# of File::List::Object. It'll do for now, however.
 	$files_zip->remove_files(
-		( grep {m/\Q.AAA\E\z/msx} $files_zip->_get_files_array() ) )
+		( grep {m/\Q.AAA\E\z/msx} $files_zip->files() ) )
 	  ->filter( $self->_filters() );
 
 	my $not_in_msi =
