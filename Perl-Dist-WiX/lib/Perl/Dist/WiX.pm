@@ -3510,10 +3510,8 @@ sub _get_msi_property_list {
 		$list->add_simple_property( 'WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT',
 			'Read README file.' );
 		$list->add_simple_property( 'WIXUI_EXITDIALOGOPTIONALCHECKBOX', 1 );
-
-# TODO: Find out why the README.txt is not being generated.
-#		$list->add_simple_property('WixShellExecTarget',
-#			$self->msi_fileid_readme_txt());
+		$list->add_simple_property( 'WixShellExecTarget',
+			$self->msi_fileid_readme_txt() );
 	}
 	if ( $self->relocatable() ) {
 		$list->add_simple_property( 'WIXUI_INSTALLDIR', 'INSTALLDIR' );
