@@ -46,7 +46,7 @@
 [% IF dist.relocatable %]
 	[% IF dist.use_dll_relocation %]
 	<CustomAction Id="CA_FileList_msm" Property="CA_Relocate_msm"
-				  Value="MM;[INSTALLDIR];[% dist.assert.msm_relocation_idlist %]" Return="check" />
+				  Value="MM;[INSTALLDIR];[% dist.msm_relocation_idlist %]" Return="check" />
 	<CustomAction Id="CA_Relocate_msm" BinaryKey="B_ClearFolder" 
 				  DllEntry="RelocateMM" Execute="deferred" Return="check" />
 
