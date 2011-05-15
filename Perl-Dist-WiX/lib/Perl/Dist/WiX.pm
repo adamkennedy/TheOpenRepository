@@ -4420,7 +4420,7 @@ sub msi_fileid_readme_txt {
 		PDWiX->throw("Could not find README.txt's ID.\n");
 	}
 
-	return $readme_id;
+	return "[#$readme_id]";
 
 } ## end sub msi_fileid_readme_txt
 
