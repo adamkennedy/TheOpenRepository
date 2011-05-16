@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 145;
+use Test::More tests => 151;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -67,7 +67,7 @@ isa_ok( $dialog4[0], 'FBP::Dialog' );
 
 # Multiple-search query with multiple results
 my @window = $project->find( isa => 'FBP::Window' );
-is( scalar(@window), 30, '->find(multiple) ok' );
+is( scalar(@window), 31, '->find(multiple) ok' );
 foreach ( @window ) {
 	isa_ok( $_, 'FBP::Window' );
 }
@@ -268,4 +268,14 @@ is( $custom->class, 'My::Class' );
 is( $custom->wxclass, 'My::Class' );
 is( $custom->include, 'My::Module' );
 is( $custom->header, 'My::Module' );
+
+# RadioBox properties
+my $radiobox = $object->find_first(
+	isa => 'FBP::RadioBox',
+);
+isa_ok( $radiobox, 'FBP::RadioBox' );
+is( $radiobox->label, 'Radio Gaga', '->label ok' );
+is( $radiobox->choices, '"One" "Two" "Three" "Four"', '->choices ok' );
+is( $radiobox->selection, 2, '->selection ok' );
+is( $radiobox->majorDimension, 2, '->majorDimension ok' );
 

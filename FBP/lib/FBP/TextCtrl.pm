@@ -2,7 +2,7 @@ package FBP::TextCtrl;
 
 use Mouse;
 
-our $VERSION = '0.27';
+our $VERSION = '0.28';
 
 extends 'FBP::Control';
 

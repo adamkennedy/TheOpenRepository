@@ -61,6 +61,7 @@ use FBP::ListbookPage     ();
 use FBP::ListBox          ();
 use FBP::ListCtrl         ();
 use FBP::Panel            ();
+use FBP::RadioBox         ();
 use FBP::SizerItem        ();
 use FBP::Spacer           ();
 use FBP::SpinCtrl         ();
@@ -71,7 +72,7 @@ use FBP::StaticText       ();
 use FBP::StaticLine       ();
 use FBP::TextCtrl         ();
 
-our $VERSION = '0.27';
+our $VERSION = '0.28';
 
 extends 'FBP::Object';
 with    'FBP::Children';

@@ -1,5 +1,8 @@
 Changes for Perl extension FBP
 
+0.28 Tue 17 May 2011
+	- Added FBP::RadioBox class
+
 0.27 Tue 10 May 2011
 	- Now that the object model is largely completed, removed the storage
 	  of the raw property hash on object creation. This will dramatically
