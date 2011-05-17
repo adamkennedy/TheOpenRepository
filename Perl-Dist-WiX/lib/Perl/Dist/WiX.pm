@@ -3507,7 +3507,7 @@ sub _get_msi_property_list {
 	}
 	$list->add_simple_property( 'WIXUI_EXITDIALOGOPTIONALTEXT',
 		$self->msi_exit_text() );
-	if ( defined $self->msi_run_readme_txt() ) {
+	if ( $self->msi_run_readme_txt() ) {
 		$list->add_simple_property( 'WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT',
 			'Read README file.' );
 		$list->add_simple_property( 'WIXUI_EXITDIALOGOPTIONALCHECKBOX', 1 );
