@@ -1,0 +1,4 @@
+Changes for Perl extension Oz
+
+0.01 Fri 20 Apr 2007
+	- Create simple abstraction for a single-file Oz script
