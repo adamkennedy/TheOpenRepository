@@ -1,5 +1,10 @@
 Changes for Perl extension FBP-Perl
 
+0.38 Tue 17 May 2011
+	- Added support for Wx::RadioBox
+	- Generalised the generation of style constants a bit more
+	- Generalised the setting of ->SetSelection
+
 0.37 Thu 10 May 2011
 	- Bump FBP dependency to 0.27 to get ->hidden support
 	- Added support for setting ->Hide on hidden things

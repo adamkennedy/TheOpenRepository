@@ -21,10 +21,10 @@ TO BE COMPLETED
 use 5.008005;
 use strict;
 use warnings;
-use FBP           0.27 ();
+use FBP           0.29 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 
 
 
@@ -140,9 +140,6 @@ sub dialog_super {
 	my $title    = $self->text( $dialog->title );
 	my $position = $self->object_position($dialog);
 	my $size     = $self->object_wxsize($dialog);
-	my $style    = $self->wx(
-		$dialog->styles || 'wxDEFAULT_DIALOG_STYLE'
-	);
 
 	return $self->nested(
 		"my \$self = \$class->SUPER::new(",
@@ -151,7 +148,7 @@ sub dialog_super {
 		"$title,",
 		"$position,",
 		"$size,",
-		( $style ? "$style," : () ),
+		$self->window_style($dialog, 'wxDEFAULT_DIALOG_STYLE'),
 		");",
 	);
 }
@@ -302,6 +299,8 @@ sub window_create {
 		$lines = $self->listctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::Panel') ) {
 		$lines = $self->panel_create($window, $parent);
+	} elsif ( $window->isa('FBP::RadioBox') ) {
+		$lines = $self->radiobox_create($window, $parent);
 	} elsif ( $window->isa('FBP::SpinCtrl') ) {
 		$lines = $self->spinctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::SplitterWindow') ) {
@@ -317,6 +316,7 @@ sub window_create {
 	}
 
 	# Add common modifications
+	push @$lines, $self->window_selection($window);
 	push @$lines, $self->window_minimum_size($window);
 	push @$lines, $self->window_maximum_size($window);
 	push @$lines, $self->window_fg($window);
@@ -361,7 +361,6 @@ sub checkbox_create {
 	my $label    = $self->object_label($control);
 	my $position = $self->object_position($control);
 	my $size     = $self->object_wxsize($control);
-	my $style    = $self->wx( $control->styles );
 
 	return $self->nested(
 		$self->window_new($control),
@@ -370,7 +369,7 @@ sub checkbox_create {
 		"$label,",
 		"$position,",
 		"$size,",
-		( $style ? "$style," : () ),
+		$self->window_style($control),
 		");",
 	);
 }
@@ -384,7 +383,7 @@ sub choice_create {
 	my $size      = $self->object_wxsize($control);
 	my $items     = $self->control_items($control);
 
-	my $lines = $self->nested(
+	return $self->nested(
 		$self->window_new($control),
 		"$parent,",
 		"$id,",
@@ -393,14 +392,6 @@ sub choice_create {
 		$items,
 		");",
 	);
-
-	if ( length $control->selection ) {
-		my $variable  = $self->object_variable($control);
-		my $selection = $control->selection;
-		push @$lines, "$variable->SetSelection($selection);";
-	}
-
-	return $lines;
 }
 
 sub combobox_create {
@@ -412,7 +403,6 @@ sub combobox_create {
 	my $position = $self->object_position($control);
 	my $size     = $self->object_wxsize($control);
 	my $items    = $self->control_items($control);
-	my $style    = $self->wx( $control->styles );
 
 	return $self->nested(
 		$self->window_new($control),
@@ -422,7 +412,7 @@ sub combobox_create {
 		"$position,",
 		"$size,",
 		$items,
-		( $style ? "$style," : () ),
+		$self->window_style($control),
 		");",
 	);
 }
@@ -435,7 +425,6 @@ sub colourpickerctrl_create {
 	my $colour   = $self->colour( $control->colour );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_wxsize($control);
-	my $style    = $self->wx( $control->styles );
 
 	# Wx::ColourPickerCtrl does not support defaulting null colours.
 	# Use an explicit black instead until we find a better option.
@@ -450,7 +439,7 @@ sub colourpickerctrl_create {
 		"$colour,",
 		"$position,",
 		"$size,",
-		( $style ? "$style," : () ),
+		$self->window_style($control),
 		");",
 	);
 }
@@ -479,7 +468,6 @@ sub dirpickerctrl_create {
 	my $message  = $self->quote( $control->message );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_wxsize($control);
-	my $style    = $self->wx( $control->styles );
 
 	return $self->nested(
 		$self->window_new($control),
@@ -489,7 +477,7 @@ sub dirpickerctrl_create {
 		"$message,",
 		"$position,",
 		"$size,",
-		( $style ? "$style," : () ),
+		$self->window_style($control),
 		");",
 	);
 }
@@ -504,7 +492,6 @@ sub filepickerctrl_create {
 	my $wildcard = $self->quote( $control->wildcard );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_wxsize($control);
-	my $style    = $self->wx( $control->styles );
 
 	return $self->nested(
 		$self->window_new($control),
@@ -515,7 +502,7 @@ sub filepickerctrl_create {
 		"$wildcard,",
 		"$position,",
 		"$size,",
-		( $style ? "$style," : () ),
+		$self->window_style($control),
 		");",
 	);
 }
@@ -529,7 +516,6 @@ sub fontpickerctrl_create {
 	my $font     = $self->font( $control->value );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_wxsize($control);
-	my $style    = $self->wx( $control->styles );
 
 	my $lines = $self->nested(
 		$self->window_new($control),
@@ -538,7 +524,7 @@ sub fontpickerctrl_create {
 		"$font,",
 		"$position,",
 		"$size,",
-		( $style ? "$style," : () ),
+		$self->window_style($control),
 		");",
 	);
 
@@ -557,7 +543,6 @@ sub htmlwindow_create {
 	my $id       = $self->wx( $control->id );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_wxsize($control);
-	my $style    = $self->wx( $control->styles );
 
 	return $self->nested(
 		$self->window_new($control),
@@ -565,7 +550,7 @@ sub htmlwindow_create {
 		"$id,",
 		"$position,",
 		"$size,",
-		( $style ? "$style," : () ),
+		$self->window_style($control),
 		");",
 	);
 }
@@ -577,7 +562,6 @@ sub listbook_create {
 	my $id       = $self->wx( $control->id );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_wxsize($control);
-	my $style    = $self->wx( $control->styles );
 
 	return $self->nested(
 		$self->window_new($control),
@@ -585,7 +569,7 @@ sub listbook_create {
 		"$id,",
 		"$position,",
 		"$size,",
-		( $style ? "$style," : () ),
+		$self->window_style($control),
 		");",
 	);
 }
@@ -598,7 +582,6 @@ sub listbox_create {
 	my $position = $self->object_position($control);
 	my $size     = $self->object_wxsize($control);
 	my $items    = $self->control_items($control);
-	my $style    = $self->wx( $control->styles );
 
 	return $self->nested(
 		$self->window_new($control),
@@ -607,7 +590,7 @@ sub listbox_create {
 		"$position,",
 		"$size,",
 		$items,
-		( $style ? "$style," : () ),
+		$self->window_style($control),
 		");",
 	);
 }
@@ -619,7 +602,6 @@ sub listctrl_create {
 	my $id       = $self->wx( $control->id );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_wxsize($control);
-	my $style    = $self->wx( $control->styles );
 
 	return $self->nested(
 		$self->window_new($control),
@@ -627,7 +609,7 @@ sub listctrl_create {
 		"$id,",
 		"$position,",
 		"$size,",
-		( $style ? "$style," : () ),
+		$self->window_style($control),
 		");",
 	);
 }
@@ -639,7 +621,6 @@ sub panel_create {
 	my $id       = $self->wx( $window->id );
 	my $position = $self->object_position($window);
 	my $size     = $self->object_wxsize($window);
-	my $style    = $self->wx( $window->styles );
 
 	return $self->nested(
 		$self->window_new($window),
@@ -647,14 +628,40 @@ sub panel_create {
 		"$id,",
 		"$position,",
 		"$size,",
-		( $style ? "$style," : () ),
+		$self->window_style($window),
+		");",
+	);
+}
+
+sub radiobox_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $variable = $self->object_variable($control);
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->wx( $control->id );
+	my $label    = $self->quote( $control->label );
+	my $position = $self->object_position($control);
+	my $size     = $self->object_wxsize($control);
+	my $items    = $self->control_items($control);
+	my $major    = $control->majorDimension || 1;
+
+	return $self->nested(
+		$self->window_new($control),
+		"$parent,",
+		"$id,",
+		"$label,",
+		"$position,",
+		"$size,",
+		$items,
+		"$major,",
+		$self->window_style($control),
 		");",
 	);
 }
 
 sub spinctrl_create {
 	my $self     = shift;
-	my $control   = shift;
+	my $control  = shift;
 	my $variable = $self->object_variable($control);
 	my $parent   = $self->object_parent(@_);
 	my $id       = $self->wx( $control->id );
@@ -689,7 +696,6 @@ sub splitterwindow_create {
 	my $id       = $self->wx( $window->id );
 	my $position = $self->object_position($window);
 	my $size     = $self->object_wxsize($window);
-	my $style    = $self->wx( $window->styles );
 
 	# Object constructor
 	my $lines = $self->nested(
@@ -698,7 +704,7 @@ sub splitterwindow_create {
 		"$id,",
 		"$position,",
 		"$size,",
-		( $style ? "$style," : () ),
+		$self->window_style($window),
 		");",
 	);
 
@@ -742,7 +748,6 @@ sub staticline_create {
 	my $id       = $self->wx( $control->id );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_wxsize($control);
-	my $style    = $self->wx( $control->styles );
 
 	return $self->nested(
 		$self->window_new($control),
@@ -750,7 +755,7 @@ sub staticline_create {
 		"$id,",
 		"$position,",
 		"$size,",
-		( $style ? "$style," : () ),
+		$self->window_style($control),
 		");",
 	);
 }
@@ -763,8 +768,6 @@ sub textctrl_create {
 	my $value     = $self->quote( $control->value );
 	my $position  = $self->object_position($control);
 	my $size      = $self->object_wxsize($control);
-	my $style     = $self->wx( $control->styles );
-	my $maxlength = $control->maxlength;
 
 	my $lines = $self->nested(
 		$self->window_new($control),
@@ -773,9 +776,11 @@ sub textctrl_create {
 		"$value,",
 		"$position,",
 		"$size,",
-		( $style ? "$style," : () ),
+		$self->window_style($control),
 		");",
 	);
+
+	my $maxlength = $control->maxlength;
 	if ( $maxlength ) {
 		my $variable = $self->object_variable($control);
 		push @$lines, "$variable->SetMaxLength($maxlength);";
@@ -1152,7 +1157,22 @@ sub splitterwindow_pack {
 
 
 ######################################################################
-# Window Fragment Generators
+# Window Statement Fragments
+
+sub window_selection {
+	my $self   = shift;
+	my $window = shift;
+
+	if ( $window->can('selection') ) {
+		my $variable  = $self->object_variable($window);
+		my $selection = $window->selection || 0;
+		return (
+			"$variable->SetSelection($selection);",
+		);
+	}
+
+	return;
+}
 
 sub window_minimum_size {
 	my $self   = shift;
@@ -1371,12 +1391,14 @@ my %EVENT = (
 	OnNotebookPageChanging    => [ 'EVT_NOTEBOOK_PAGE_CHANGING'     ],
 	OnNotebookPageChanged     => [ 'EVT_NOTEBOOK_PAGE_CHANGED'      ],
 
+	# wxRadioBox
+	OnRadioBox                => [ 'EVT_RADIOBOX_SELECTED'          ],
+
 	# wxSplitterEvent
 	OnSplitterSashPosChanging => [ 'EVT_SPLITTER_SASH_POS_CHANGING' ],
 	OnSplitterSashPosChanged  => [ 'EVT_SPLITTER_SASH_POS_CHANGED'  ],
 	OnSplitterUnsplit         => [ 'EVT_SPLITTER_UNSPLIT'           ],
 	OnSplitterDClick          => [ 'EVT_SPLITTER_DCLICK'            ],
-
 );
 
 sub window_bindings {
@@ -1462,7 +1484,7 @@ sub dialog_methods {
 
 
 ######################################################################
-# Common Fragment Generators
+# Window Fragment Generators
 
 sub object_lexical {
 	$_[1]->permission !~ /^(?:protected|public)\z/;
@@ -1517,6 +1539,19 @@ sub window_new {
 	my $variable = $self->object_variable($window);
 	my $wxclass  = $window->wxclass;
 	return "$lexical$variable = $wxclass->new(";
+}
+
+sub window_style {
+	my $self    = shift;
+	my $window  = shift;
+	my $default = shift;
+	my $styles  = $window->styles || $default;
+
+	if ( defined $styles and length $styles ) {
+		return $self->wx($styles) . ',';
+	}
+
+	return;
 }
 
 sub window_accessor {

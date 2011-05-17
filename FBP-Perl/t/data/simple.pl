@@ -271,6 +271,31 @@ sub new {
 		5,
 	);
 
+	$self->{m_radioBox1} = Wx::RadioBox->new(
+		$self->{m_panel1},
+		-1,
+		"Radio Gaga",
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		[
+			"One",
+			"Two",
+			"Three",
+			"Four",
+		],
+		2,
+		Wx::wxRA_SPECIFY_COLS,
+	);
+	$self->{m_radioBox1}->SetSelection(2);
+
+	Wx::Event::EVT_RADIOBOX_SELECTED(
+		$self,
+		$self->{m_radioBox1},
+		sub {
+			shift->on_radio_box(@_);
+		},
+	);
+
 	$self->{m_panel2} = Wx::Panel->new(
 		$self->{m_listbook1},
 		-1,
@@ -432,6 +457,7 @@ sub new {
 	my $bSizer3 = Wx::BoxSizer->new(Wx::wxVERTICAL);
 	$bSizer3->Add( $self->{m_staticText2}, 0, Wx::wxALL, 5 );
 	$bSizer3->Add( $self->{m_spinCtrl1}, 0, Wx::wxALL, 5 );
+	$bSizer3->Add( $self->{m_radioBox1}, 0, Wx::wxALL, 5 );
 
 	$self->{m_panel1}->SetSizer($bSizer3);
 	$self->{m_panel1}->Layout;
@@ -513,6 +539,10 @@ sub list_item_activated {
 
 sub list_item_selected {
 	die 'Handler method list_item_selected for event m_listCtrl1.OnListItemSelected not implemented';
+}
+
+sub on_radio_box {
+	die 'Handler method on_radio_box for event m_radioBox1.OnRadioBox not implemented';
 }
 
 sub m_filePicker1_changed {
