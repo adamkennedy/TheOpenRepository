@@ -587,6 +587,9 @@ sub _create_perl_toolchain { ## no critic(ProhibitUnusedPrivateSubroutines)
 	if ( $self->perl_version =~ m/\A512/ms ) {
 		$force = { 'Pod::Text' => 'RRA/podlators-2.4.0.tar.gz' };
 	}
+	if ( $self->perl_version eq '5140' ) {
+		$force = { 'ExtUtils::MakeMaker' => 'MSCHWERN/ExtUtils-MakeMaker-6.57_10.tar.gz' };
+	}
 	$force->{'LWP'} = 'GAAS/libwww-perl-5.837.tar.gz';
 
 	#new version creates problems for https on 64 bit systems
