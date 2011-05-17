@@ -1,5 +1,8 @@
 Changes for Perl extension FBP
 
+0.29 Tue 17 May 2011
+	- Added FBP::RadioBox::style method
+
 0.28 Tue 17 May 2011
 	- Added FBP::RadioBox class
 

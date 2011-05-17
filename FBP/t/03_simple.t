@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 151;
+use Test::More tests => 152;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -278,4 +278,4 @@ is( $radiobox->label, 'Radio Gaga', '->label ok' );
 is( $radiobox->choices, '"One" "Two" "Three" "Four"', '->choices ok' );
 is( $radiobox->selection, 2, '->selection ok' );
 is( $radiobox->majorDimension, 2, '->majorDimension ok' );
-
+is( $radiobox->style, 'wxRA_SPECIFY_COLS', '->style ok' );

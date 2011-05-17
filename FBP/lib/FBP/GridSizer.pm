@@ -2,7 +2,7 @@ package FBP::GridSizer;
 
 use Mouse;
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 
 extends 'FBP::Sizer';
 

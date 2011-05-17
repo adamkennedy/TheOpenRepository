@@ -2,7 +2,7 @@ package FBP::RadioBox;
 
 use Mouse;
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 
 extends 'FBP::ControlWithItems';
 
@@ -23,6 +23,11 @@ has majorDimension => (
 	is       => 'ro',
 	isa      => 'Int',
 	required => 1,
+);
+
+has style => (
+	is       => 'ro',
+	isa      => 'Str',
 );
 
 has OnRadioBox => (
