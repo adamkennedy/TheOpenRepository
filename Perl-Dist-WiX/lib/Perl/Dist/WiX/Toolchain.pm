@@ -58,7 +58,7 @@ use Moose::Util::TypeConstraints;
 use English qw( -no_match_vars );
 use Carp qw();
 use Params::Util qw( _HASH );
-use Module::CoreList 2.32 qw();
+use Module::CoreList 2.49 qw();
 use IO::Capture::Stdout qw();
 use IO::Capture::Stderr qw();
 use vars qw(@DELEGATE);
@@ -298,7 +298,7 @@ which does not work on 64-bit Perl (https://rt.cpan.org/Public/Bug/Display.html?
 	$modules{'5.012001'} = $modules{'5.010000'};
 	$modules{'5.012002'} = $modules{'5.010000'};
 	$modules{'5.012003'} = $modules{'5.010000'};
-	$modules{'5.013004'} = $modules{'5.010000'};
+	$modules{'5.014000'} = $modules{'5.010000'};
 
 	return \%modules;
 } ## end sub _build_modules
@@ -329,7 +329,7 @@ sub _build_corelist_version {
 		'5.012001' => '5.012001',
 		'5.012002' => '5.012002',
 		'5.012003' => '5.012003',
-		'5.013004' => '5.013004',
+		'5.014000' => '5.014000',
 	);
 
 	return \%corelist;
