@@ -208,54 +208,35 @@ Aspect - Aspect-Oriented Programming (AOP) for Perl
 
 =head1 SYNOPSIS
 
-  package Person;
-  
-  sub create {
-      # ...
-  }
-  
-  sub set_name {
-      # ...
-  }
-  
-  sub get_address {
-      # ...
-  }
-  
-  package main;
-  
   use Aspect;
   
-  ### USING REUSABLE ASPECTS
   
-  # There can only be one.
-  aspect Singleton => 'Person::create';
   
-  # Profile all setters to find any slow ones
-  aspect Profiler => call qr/^Person::set_/;  
-  
-  ### WRITING YOUR OWN ADVICE
-  
-  # Defines a collection of events
-  my $pointcut = call qr/^Person::[gs]et_/; 
-  
-  # Advice will live as long as $before is in scope
-  my $before = before {
-      print "g/set will soon be next";
-  } $pointcut;
-  
-  # Advice will live forever, because it is created in void context 
-  after {
-      print "g/set has just been called";
-  } $pointcut;
-  
-  # Advice runs conditionally based on multiple factors
+  # Run some code "Advice" before a particular function
   before {
-      print "get will be called next, and we are within Tester::run_tests";
-  } call qr/^Person::get_/
+      print "About to call create\n";
+  } call 'Person::create';
+  
+  
+  
+  # Run Advice after several methods and hijack their return values
+  after {
+      print "Called getter/setter " . $_->sub_name . "\n";
+      $_->return_value(undef);
+  } call qr/^Person::[gs]et_/;
+  
+  
+  
+  # Run Advice conditionally based on multiple factors
+  before {
+      print "Calling a get method in void context within Tester::run_tests";
+  } wantvoid
+  & ( call qr/^Person::get_/ & ! call 'Person::get_not_trapped' )
   & cflow tester => 'Tester::run_tests';
   
-  # Complex condition hijack of a method if some condition is true
+  
+  
+  # Context-aware runtime hijacking of a method if certain condition is true
   around {
       if ( $_->self->customer_name eq 'Adam Kennedy' ) {
           # Ensure I always have cash
@@ -266,22 +247,44 @@ Aspect - Aspect-Oriented Programming (AOP) for Perl
           $_->return_value( $_->return_value - 1 );
       }
   } call 'Bank::Account::balance';
+  
+  
+  
+  # Catch and handle unexpected exceptions in a function into a formal object
+  after_throwing {
+    $_->exception(
+      Exception::Unexpected->new($_->exception)
+    );
+  } ! throwing qr/^Exception::(?:Expected|Unexpected)$/;
+  
+  
+  
+  # Use a pre-packaged collection "Aspect" of Advice rules to change a class
+  aspect Singleton => 'Foo::new';
+  
+  
+  
+  # Define debugger breakpoints with high precision and conditionality
+  aspect Breakpoint => call qr/^Foo::.+::Bar::when_/ & wantscalar & highest;
 
 =head1 DESCRIPTION
 
 Aspect-Oriented Programming (AOP) is a programming method developed by Xerox
-PARC and others. The basic idea is that in complex class systems there are
+PARC and others. The basic idea is that in complex systems there are
 certain aspects or behaviors that cannot normally be expressed in a coherent,
-concise and precise way. One example of such aspects are design
-patterns, which combine various kinds of classes to produce a common
-type of behavior. Another is logging. See L<http://www.aosd.net> for
-more info.
+concise and precise way.
+
+One example is logging, where bits of logging code is spread throughout the
+rest of the codenase. Another example is design patterns, which combine various
+kinds of classes to produce a common type of behavior. 
+
+See L<http://www.aosd.net> for more info.
 
 The Perl C<Aspect> module closely follows the terminology of the AspectJ
 project (L<http://eclipse.org/aspectj>). However due to the dynamic nature
 of the Perl language, several C<AspectJ> features are useless for us:
-exception softening, mixin support, out-of-class method declarations, and
-others.
+exception softening, mixin support, out-of-class method declarations,
+annotations, and others.
 
 The Perl C<Aspect> module is focused on subroutine matching and wrapping.
 It allows you to select collections of subroutines using a flexible pointcut
@@ -289,12 +292,17 @@ language, and modify their behavior in any way you want.
 
 =head2 Terminology
 
+One of the more opaque aspects (no pun intended) of Aspect-Oriented programming
+is that it has an entire unique set of terms that can be confusing for people
+learning to use the C<Aspect> module.
+
 =over
 
 =item Join Point
 
-An event that occurs during the running of a program. Currently only calls to
-subroutines are recognized as join points.
+An event that occurs during the running of a program which can be trapped and
+handled within the aspect system. Currently only calls to subroutines are
+recognized as join points in C<Aspect>.
 
 =item Pointcut
 
