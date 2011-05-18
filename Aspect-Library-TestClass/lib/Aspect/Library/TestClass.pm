@@ -148,7 +148,7 @@ distribution.
 
 Copyright 2001 by Marcel GrE<uuml>nauer
 
-Some parts copyright 2009 - 2010 Adam Kennedy.
+Some parts copyright 2009 - 2011 Adam Kennedy.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
