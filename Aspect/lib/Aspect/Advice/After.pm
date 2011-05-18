@@ -207,7 +207,7 @@ Aspect::Advice::After - Execute code after a function is called
 =head1 DESCRIPTION
 
 The C<after> advice type is used to execute code after a function is called,
-regardless of whether or not the function returned normally or returned an
+regardless of whether or not the function returned normally or threw an 
 exception.
 
 The C<after> advice type should be used when you need to potentially make
