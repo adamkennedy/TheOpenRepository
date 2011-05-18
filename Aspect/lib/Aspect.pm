@@ -431,11 +431,10 @@ our %EXPORTED = ();
 
 =head2 call
 
-  my $single  = call 'Person::get_address';
-  my $many    = call qr/^Person::get_/;
-  my $complex = call sub {
-      lc($_[0]) eq 'person::get_address';
-  };
+  my $single   = call 'Person::get_address';
+  my $multiple = call qr/^Person::get_/;
+  my $complex  = call sub { lc($_[0]) eq 'person::get_address' };
+  my $object   = Aspect::Pointcut::Call->new('Person::get_address');
 
 The most common pointcut is C<call>. All three of the examples will match the
 calling of C<Person::get_address()> as defined in the symbol table at the
@@ -444,17 +443,15 @@ time an advice is declared.
 The C<call> declarator takes a single parameter which is the pointcut spec,
 and can be provided in three different forms.
 
-=over
-
-=item C<string>
+B<string>
 
 Select only the specific full resolved subroutine whose name is equal to the
-specification string.
+specification string. 
 
 For example C<call 'Person::get'> will only match the plain C<get> method
 and will not match the longer C<get_address> method.
 
-=item C<regexp>
+B<regexp>
 
 Select all subroutines whose name matches the regular expression.
 
@@ -463,7 +460,7 @@ on the C<Person::Address> or any other child classes.
 
   $p = call qr/^Person::\w+$/;
 
-=item C<CODE> reference
+B<CODE>
 
 Select all subroutines where the supplied code returns true when passed a
 full resolved subroutine name as the only parameter.
@@ -477,10 +474,53 @@ hash C<%subs_to_match>:
 
 =back
 
+For more information on the C<call> pointcut see L<Aspect::Pointcut::Call>.
+
 =cut
 
 sub call ($) {
 	Aspect::Pointcut::Call->new(@_);
+}
+
+=pod
+
+=head2 throwing
+
+  my $string = throwing qr/does not exist/;
+  my $object = throwing 'Exception::Class';
+
+The C<throwing> pointcut is used with the C<after> (and C<after_throwing>) to
+restrict the pointcut so advice code is only fired for a specific die message
+or a particular exception class (or subclass).
+
+The C<throwing> declarator takes a single parameter which is the pointcut spec,
+and can be provided in two different forms.
+
+B<regexp>
+
+If a regular expression is passed to C<throwing> it will be matched against
+the exception if and only if the exception is a plain string.
+
+Thus, the regexp form can be used to trap unstructured errors emitted by C<die>
+or C<croak> while B<NOT> trapping any formal exception objects of any kind.
+
+B<string>
+
+If a string is passed to C<throwing> it will be treated as a class name and
+will be matched against the exception via an C<isa> method call if and only
+if the exception is an object.
+
+Thus, the string form can be used to trap and handle specific types of
+exceptions while allowing other types of exceptions or raw string errors to
+pass through.
+
+For more information on the C<throwing> pointcut see
+L<Aspect::Pointcut::Throwing>.
+
+=cut
+
+sub throwing ($) {
+	Aspect::Pointcut::Throwing->new(@_);
 }
 
 sub aspect {
@@ -553,10 +593,6 @@ sub wantscalar () {
 
 sub wantvoid () {
 	Aspect::Pointcut::Wantarray->new(undef);
-}
-
-sub throwing ($) {
-	Aspect::Pointcut::Throwing->new(@_);
 }
 
 
