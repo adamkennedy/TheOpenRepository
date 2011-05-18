@@ -10,7 +10,7 @@ use Aspect::Advice::Before ();
 use Aspect::Pointcut::Call ();
 use Aspect::Pointcut::And  ();
 
-our $VERSION = '0.36';
+our $VERSION = '0.37';
 our @ISA     = 'Aspect::Modular';
 
 sub Test::Class::make_subject {
@@ -33,7 +33,7 @@ sub get_advice {
 			my (@params) = $self->subject_params if $self->can('subject_params');
 			my $subject = $self->make_subject(@params);
 			$self->init_subject_state($subject) if $self->can('init_subject_state');
-			$context->append_param($subject);
+			$context->params( $context->params, $subject );
 		},
 	);
 }
