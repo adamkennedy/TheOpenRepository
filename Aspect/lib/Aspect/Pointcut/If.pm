@@ -31,6 +31,25 @@ sub compile_runtime {
 	$_[0]->[0];
 }
 
+
+
+
+
+######################################################################
+# Optional XS Acceleration
+
+BEGIN {
+	local $@;
+	eval <<'END_PERL';
+use Class::XSAccessor::Array 1.08 {
+	replace => 1,
+	getters => {
+		'compile_runtime' => 0,
+	},
+};
+END_PERL
+}
+
 1;
 
 __END__

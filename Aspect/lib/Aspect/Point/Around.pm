@@ -50,4 +50,23 @@ BEGIN {
 	*run_original = *proceed;
 }
 
+
+
+
+
+######################################################################
+# Optional XS Acceleration
+
+BEGIN {
+	local $@;
+	eval <<'END_PERL';
+use Class::XSAccessor 1.08 {
+	replace => 1,
+	getters => {
+		'original'   => 'original',
+	},
+};
+END_PERL
+}
+
 1;

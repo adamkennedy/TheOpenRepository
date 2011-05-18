@@ -354,6 +354,24 @@ sub match_runtime {
 	return 1;
 }
 
+
+
+
+
+######################################################################
+# Optional XS Acceleration
+
+BEGIN {
+	local $@;
+	eval <<'END_PERL';
+use Class::XSAccessor::Array 1.08 {
+	replace     => 1,
+	constructor => 'new',
+	true        => [ 'compile_weave', 'match_runtime' ],
+};
+END_PERL
+}
+
 1;
 
 __END__

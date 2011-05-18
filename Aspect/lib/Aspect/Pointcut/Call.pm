@@ -105,6 +105,26 @@ sub compile_runtime {
 	$_[0]->[5];
 }
 
+
+
+
+
+######################################################################
+# Optional XS Acceleration
+
+BEGIN {
+	local $@;
+	eval <<'END_PERL';
+use Class::XSAccessor::Array 1.08 {
+	replace => 1,
+	getters => {
+		'compile_weave'   => 4,
+		'compile_runtime' => 5,
+	},
+};
+END_PERL
+}
+
 1;
 
 __END__

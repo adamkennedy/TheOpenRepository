@@ -46,6 +46,25 @@ sub get_advice {
 
 1;
 
+
+
+
+
+######################################################################
+# Optional XS Acceleration
+
+BEGIN {
+	local $@;
+	eval <<'END_PERL';
+use Class::XSAccessor 1.08 {
+	replace => 1,
+	getters => {
+		'lexical' => 'lexical',
+	},
+};
+END_PERL
+}
+
 __END__
 
 =pod
