@@ -1,0 +1,7 @@
+syntax: glob
+_build/*
+Build
+Build.bat
+MANIFEST
+MYMETA.*
+blib/lib/Test/Perl/Dist.pm

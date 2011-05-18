@@ -46,3 +46,4 @@
 # Avoid releaserc file
 \breleaserc$
 ^MYMETA.yml$
+^MYMETA\.json$
