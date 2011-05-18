@@ -484,6 +484,95 @@ sub call ($) {
 
 =pod
 
+=head2 wantlist
+
+  my $pointcut = call 'Foo::bar' & wantlist;
+
+The C<wantlist> pointcut traps a condition based on Perl C<wantarray> context,
+when a function is called in list context. When used with C<call>, this
+pointcut can be used to trap list-context calls to one or more functions, while
+letting void or scalar context calls continue as normal.
+
+=cut
+
+sub wantlist () {
+	Aspect::Pointcut::Wantarray->new(1);
+}
+
+=pod
+
+=head2 wantscalar
+
+  my $pointcut = call 'Foo::bar' & wantscalar;
+
+The C<wantscalar> pointcut traps a condition based on Perl C<wantarray> context,
+when a function is called in scalar context. When used with C<call>, this
+pointcut can be used to trap scalar-context calls to one or more functions,
+while letting void or list context calls continue as normal.
+
+=cut
+
+sub wantscalar () {
+	Aspect::Pointcut::Wantarray->new('');
+}
+
+=pod
+
+=head2 wantvoid
+
+  my $bug = call 'Foo::get_value' & wantvoid;
+
+The C<wantvoid> pointcut traps a condition based on Perl C<wantarray> context,
+when a function is called in void context. When used with C<call>, this pointcut
+can be used to trap void-context calls to one or more functions, while letting
+scalar or list context calls continue as normal.
+
+This is particularly useful for methods which make no sense to call in void
+context, such as getters or other methods calculating and returning a useful
+result.
+
+=cut
+
+sub wantvoid () {
+	Aspect::Pointcut::Wantarray->new(undef);
+}
+
+=pod
+
+=head2 highest
+
+  my $entry = call 'Foo::recurse' & highest;
+
+The C<highest> pointcut is used to trap the first time a particular function
+is encountered, while ignoring any subsequent recursive calls into the same
+pointcut.
+
+It is unusual in that unlike all other types of pointcuts it is stateful, and
+so some detailed explaination is needed to understand how it will behave.
+
+Pointcut declarators follow normal Perl precedence and shortcutting in the same
+way that a typical set of C<foo() and bar()> might do for regular code.
+
+When the C<highest> is evaluated for the first time it returns true and a
+counter is to track the depth of the call stack. This counter is bound to the
+join point itself, and will decrement back again once we exit the advice code.
+
+If we encounter another function that is potentially contained in the same
+pointcut, then C<highest> will always return false.
+
+In this manner, you can trigger functionality to run only at the outermost
+call into a recursive series of functions, or you can negate the pointcut 
+with C<! highest> and look for recursive calls into a function when there
+shouldn't be any recursion.
+
+=cut
+
+sub highest () {
+	Aspect::Pointcut::Highest->new();
+}
+
+=pod
+
 =head2 throwing
 
   my $string = throwing qr/does not exist/;
@@ -571,28 +660,12 @@ sub after_throwing (&$) {
 	);
 }
 
-sub highest () {
-	Aspect::Pointcut::Highest->new();
-}
-
 sub if_true (&) {
 	Aspect::Pointcut::If->new(@_);
 }
 
 sub cflow ($$) {
 	Aspect::Pointcut::Cflow->new(@_);
-}
-
-sub wantlist () {
-	Aspect::Pointcut::Wantarray->new(1);
-}
-
-sub wantscalar () {
-	Aspect::Pointcut::Wantarray->new('');
-}
-
-sub wantvoid () {
-	Aspect::Pointcut::Wantarray->new(undef);
 }
 
 
