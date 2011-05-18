@@ -5,7 +5,7 @@ use warnings;
 use Carp         ();
 use Sub::Uplevel ();
 
-our $VERSION = '0.97_01';
+our $VERSION = '0.97_02';
 
 
 
@@ -40,16 +40,6 @@ sub params {
 	return CORE::wantarray
 		? @{$_[0]->{params}}
 		: $_[0]->{params};
-}
-
-sub append_param {
-	my $self = shift;
-	push @{$self->{params}}, @_;
-	return 1;
-}
-
-sub append_params {
-	shift->append_param(@_);
 }
 
 
@@ -110,6 +100,27 @@ sub AUTOLOAD {
 # through AUTOLOAD, and not having to check for DESTROY in AUTOLOAD.
 sub DESTROY () { }
 
+
+
+
+
+######################################################################
+# Optional XS Acceleration
+
+BEGIN {
+	local $@;
+	eval <<'END_PERL';
+use Class::XSAccessor 1.08 {
+	replace => 1,
+	getters => {
+		'sub_name'   => 'sub_name',
+		'wantarray'  => 'wantarray',
+		'params_ref' => 'params',
+	},
+};
+END_PERL
+}
+
 1;
 
 __END__
@@ -135,8 +146,6 @@ Aspect::Point - The Join Point context
      print $context->short_sub_name;  # The sub name (a get or set method)
      print $context->self;            # 1st parameter to the matching sub
      print $context->params->[1];     # 2nd parameter to the matching sub
-     $context->append_param($rdbms);  # Append a param to sub call
-     $context->append_params($a, $b); # Append params to sub call
      $context->return_value(4)        # Don't proceed and return immediately
      $context->original->(x => 3);    # Call matched sub independently
      $context->proceed(1);            # Continue to sub with context params
@@ -199,13 +208,13 @@ using the key C<company>.
 Print parameters to matched sub:
 
   before {
-      print join ',', shift->params;
+      print join ',', $_->params;
   } $pointcut;
 
 Append a parameter:
 
   before {
-      shift->append_param('extra-param');
+      $_->params( $_params, 'extra-param' );
   } $pointcut;
 
 Don't proceed to matched sub, return 4 instead:

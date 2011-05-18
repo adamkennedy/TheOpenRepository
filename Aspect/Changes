@@ -1,5 +1,11 @@
 Revision history for Perl extension Aspect
 
+0.97_02 Wed 18 May 2011
+	- Removed the barely document, untested and rarely used append_param(s)
+	- Added an improved SYNOPSIS and generally improving main POD
+	- Added limited XS acceleration if Class::XSAccessor 1.08 installed.
+	- Remove the use of test recursion in preparation for XS vs PP copying
+
 0.97_01 Thu 24 Mar 2011
 	- Now all standard keys have their own methods, remove the weird
 	  automagic from the AUTOLOAD method.

@@ -3,7 +3,7 @@ package Aspect::Advice;
 use strict;
 use warnings;
 
-our $VERSION = '0.97_01';
+our $VERSION = '0.97_02';
 
 sub new {
 	my $class = shift;
@@ -29,6 +29,27 @@ sub lexical {
 
 sub DESTROY {
 	$_[0]->{hook}->() if $_[0]->{hook};
+}
+
+
+
+
+
+######################################################################
+# Optional XS Acceleration
+
+BEGIN {
+	local $@;
+	eval <<'END_PERL';
+use Class::XSAccessor 1.08 {
+	replace => 1,
+	getters => {
+		'code'     => 'code',
+		'pointcut' => 'pointcut',
+		'lexical'  => 'lexical',
+	},
+};
+END_PERL
 }
 
 1;

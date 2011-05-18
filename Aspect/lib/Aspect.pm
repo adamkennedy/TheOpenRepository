@@ -30,7 +30,7 @@ use Aspect::Advice::Around         ();
 use Aspect::Advice::Before         ();
 use Aspect::AdviceContext          ();
 
-our $VERSION = '0.97_01';
+our $VERSION = '0.97_02';
 
 # Track the location of exported functions so that pointcuts
 # can avoid accidentally binding them.
@@ -252,10 +252,34 @@ Aspect - Aspect-Oriented Programming (AOP) for Perl
   
   # Catch and handle unexpected exceptions in a function into a formal object
   after_throwing {
-    $_->exception(
-      Exception::Unexpected->new($_->exception)
-    );
+      $_->exception(
+          Exception::Unexpected->new($_->exception)
+      );
   } ! throwing qr/^Exception::(?:Expected|Unexpected)$/;
+  
+  
+  
+  # Run Advice only on the outmost of a recursive series of calls
+  around {
+    print "Starting recursive child search\n";
+    $_->proceed;
+    print "Finished recursive child search\n";
+  } call 'Person::find_child' & highest;
+  
+  
+  
+  # Run Advice only during the current lexical scope
+  SCOPE: {
+      my $hook = before {
+          print "About to call create\n";
+      } call 'Person::create';
+  
+      # Advice will run for this call
+      Person->create('Bob');
+  }
+  
+  # Advice won't run for this call
+  Person->create('Tom');
   
   
   
@@ -266,7 +290,9 @@ Aspect - Aspect-Oriented Programming (AOP) for Perl
   
   # Define debugger breakpoints with high precision and conditionality
   aspect Breakpoint => call qr/^Foo::.+::Bar::when_/ & wantscalar & highest;
-
+  
+  
+  
 =head1 DESCRIPTION
 
 Aspect-Oriented Programming (AOP) is a programming method developed by Xerox
@@ -290,6 +316,10 @@ The Perl C<Aspect> module is focused on subroutine matching and wrapping.
 It allows you to select collections of subroutines using a flexible pointcut
 language, and modify their behavior in any way you want.
 
+In this regard it provides a similar set of functionality to L<Hook::LexWrap>,
+but with much more precision and with much more control and maintainability
+as the complexity of what you are doing increases.
+
 =head2 Terminology
 
 One of the more opaque aspects (no pun intended) of Aspect-Oriented programming
@@ -302,37 +332,43 @@ learning to use the C<Aspect> module.
 
 An event that occurs during the running of a program which can be trapped and
 handled within the aspect system. Currently only calls to subroutines are
-recognized as join points in C<Aspect>.
+supported as join points in B<Aspect>.
 
 =item Pointcut
 
-An expression that selects a collection of join points. For example: all calls
-to the class C<Person>, that are in the call flow of some C<Company>, but
-I<not> in the call flow of C<Company::make_report>.  C<Aspect> supports
-C<call()>, and C<cflow()> pointcuts, and logical operators (C<&>, C<|>, C<!>)
-for constructing more complex pointcuts. See the L<Aspect::Pointcut>
-documentation.
+An expression that selects a collection of join points and conditions.
+For example: all calls to the class C<Person>, that are called while within
+a call to some method of C<Company>, but I<not> the method
+C<Company::make_report>.
+
+C<Aspect> supports C<call>, and C<cflow> and C<throwing> pointcuts, the Perl
+specific pointcuts C<wantvoid>, C<wantscalar>, C<wantarray>, the run-time
+stateful pointcuts C<highest> and C<if_true>, and the logical operators
+(C<&>, C<|>, C<!>) for constructing more complex pointcuts.
+
+See the L<Aspect::Pointcut> documentation for more details.
 
 =item Advice
 
 A pointcut, with code that will run when it matches. The code can be run
-before or after the matched sub is run.
+before or after the matched sub is run, or only on exceptions.
 
 =item Advice Code
 
-The code that is run before or after a pointcut is matched. It can modify the
-way that the matched sub is run, and the value it returns.
+The code that is run when a pointcut is matched. It can modify the way that the
+matched sub is run, and the value it returns.
 
-=item Weave
+=item Weaving
 
 The installation of advice code on subs that match a pointcut. Weaving
-happens when you create the advice. Unweaving happens when the advice
-goes out of scope.
+happens when you create the advice. Unweaving happens when the lexically-created
+advice goes out of scope.
 
 =item The Aspect
 
-An object that installs advice. A way to package advice and other Perl code,
-so that it is reusable.
+An object or class that installs on or more Advice hooks.
+
+A way to package advice and other Perl code, so that it is reusable.
 
 =back
 
@@ -347,16 +383,21 @@ Create and remove pointcuts, advice, and aspects.
 =item *
 
 Flexible pointcut language: select subs to match using string equality,
-regexp, or C<CODE> ref. Match currently running sub, or a sub in the call
-flow. Build pointcuts composed of a logical expression of other pointcuts,
+regexp, or C<CODE> ref. Match currently running sub, a sub in the call
+flow, calls in particular void, scalar, or array contexts, or only the highest
+call in a set of recursive calls.
+
+=item *
+
+Build pointcuts composed of a logical expression of other pointcuts,
 using conjunction, disjunction, and negation.
 
 =item *
 
 In advice code, you can: modify parameter list for matched sub, modify return
-value, decide if to proceed to matched sub, access C<CODE> ref for matched
-sub, and access the context of any call flow pointcuts that were matched, if
-they exist.
+value, throw or suppress exceptions, decide whether or not to proceed to matched
+sub, access C<CODE> ref for matched sub, and access the context of any call
+flow pointcuts that were matched, if they exist.
 
 =item *
 
@@ -402,16 +443,15 @@ as an independent aspect, so the class remains unpolluted.
 
 =back
 
-The C<Aspect> module is different from C<Hook::Lexwrap> (which it uses for the
-actual wrapping) in two respects:
+The C<Aspect> module is different from C<Hook::Lexwrap> in two respects:
 
 =over
 
 =item *
 
-Select join points using flexible pointcut language instead of the sub name.
-For example: select all calls to C<Account> objects that are in the call flow
-of C<Company::make_report>.
+Select join points using flexible pointcut language instead of just sub name.
+For example: select all calls to C<Account> objects that are called within
+C<Company::make_report>.
 
 =item *
 
@@ -426,9 +466,9 @@ This package is a facade on top of the Perl AOP framework. It allows you to
 create pointcuts, advice, and aspects in a simple declarative fastion.
 
 You will be mostly working with this package (C<Aspect>), and the
-L<advice context|Aspect::AdviceContext> package.
+L<advice context|Aspect::Point> package.
 
-When you C<use Aspect;> you will import a family of around a dozen
+When you C<use Aspect;> you will import a family of around fifteen
 functions. These are all factories that allow you to create pointcuts,
 advice, and aspects.
 
@@ -463,7 +503,7 @@ Select only subs, where the supplied code, when run with the sub name as only
 parameter, returns true. The following will match all calls to subs whose name
 isa key in the hash C<%subs_to_match>:
 
-  $p = call sub { exists $subs_to_match{shift()} }
+  $p = call sub { exists $subs_to_match{$_[0]} }
 
 =back
 
