@@ -11,7 +11,7 @@ use Aspect::Hook          ();
 use Aspect::Advice        ();
 use Aspect::Point::Before ();
 
-our $VERSION = '0.97_02';
+our $VERSION = '0.97_03';
 our @ISA     = 'Aspect::Advice';
 
 sub _install {
@@ -19,13 +19,6 @@ sub _install {
 	my $pointcut = $self->pointcut;
 	my $code     = $self->code;
 	my $lexical  = $self->lexical;
-
-	# Special case.
-	# The method used by the Highest pointcut is incompatible
-	# with the goto optimisation used by the before() advice.
-	if ( $pointcut->match_contains('Aspect::Pointcut::Highest') ) {
-		Carp::croak("The highest pointcut is not currently supported by this advice");
-	}
 
 	# Get the curried version of the pointcut we will use for the
 	# runtime checks instead of the original.
@@ -126,6 +119,19 @@ END_PERL
 	# parent object calling _install. This is less bullet-proof
 	# than the DESTROY-time self-executing blessed coderef
 	return sub { $out_of_scope = 1 };
+}
+
+sub _validate {
+	my $self = shift;
+
+	# Special case.
+	# The method used by the Highest pointcut is incompatible
+	# with the goto optimisation used by the before() advice.
+	if ( $self->pointcut->match_contains('Aspect::Pointcut::Highest') ) {
+		return 'The pointcut highest is not currently supported by before advice';
+	}
+
+	$self->SUPER::_validate(@_);
 }
 
 1;

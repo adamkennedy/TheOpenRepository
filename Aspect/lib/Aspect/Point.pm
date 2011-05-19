@@ -2,10 +2,11 @@ package Aspect::Point;
 
 use strict;
 use warnings;
-use Carp         ();
-use Sub::Uplevel ();
+use Carp                  ();
+use Sub::Uplevel          ();
+use Aspect::Point::Static ();
 
-our $VERSION = '0.97_02';
+our $VERSION = '0.97_03';
 
 
 
@@ -18,6 +19,10 @@ our $VERSION = '0.97_02';
 	# my $class = shift;
 	# bless { @_ }, $class;
 # }
+
+sub pointcut {
+	$_[0]->{pointcut};
+}
 
 sub sub_name {
 	$_[0]->{sub_name};
@@ -88,6 +93,11 @@ sub return_value {
 	$self->{return_value} = shift;
 }
 
+# Accelerate the recommended cflow key
+sub enclosing {
+	$_[0]->{enclosing};
+}
+
 sub AUTOLOAD {
 	my $self = shift;
 	my $key  = our $AUTOLOAD;
@@ -113,9 +123,11 @@ BEGIN {
 use Class::XSAccessor 1.08 {
 	replace => 1,
 	getters => {
+		'pointcut'   => 'pointcut',
 		'sub_name'   => 'sub_name',
 		'wantarray'  => 'wantarray',
 		'params_ref' => 'params',
+		'enclosing'  => 'enclosing',
 	},
 };
 END_PERL
@@ -134,22 +146,22 @@ Aspect::Point - The Join Point context
 =head1 SYNOPSIS
 
   $pointcut = call qr/^Person::[gs]et_/
-            & cflow company => qr/^Company::/;
+            & cflow qr/^Company::/;
   
   # using in 'before' advice code
   before {
-     my $context = shift;             # Context is the only param to advice
-     print $context->type;            # The advice type ('before')
-     print $context->pointcut;        # The matching pointcut ($pointcut)
-     print $context->sub_name;        # The full package_name::sub_name
-     print $context->package_name;    # The package name ('Person')
-     print $context->short_sub_name;  # The sub name (a get or set method)
-     print $context->self;            # 1st parameter to the matching sub
-     print $context->params->[1];     # 2nd parameter to the matching sub
-     $context->return_value(4)        # Don't proceed and return immediately
-     $context->original->(x => 3);    # Call matched sub independently
-     $context->proceed(1);            # Continue to sub with context params
-     print $context->company->name;   # Access cflow pointcut advice context
+     my $point = shift;             # Context is the only param to advice
+     print $point->type;            # The advice type ('before')
+     print $point->pointcut;        # The matching pointcut ($pointcut)
+     print $point->sub_name;        # The full package_name::sub_name
+     print $point->package_name;    # The package name ('Person')
+     print $point->short_sub_name;  # The sub name (a get or set method)
+     print $point->self;            # 1st parameter to the matching sub
+     print $point->params->[1];     # 2nd parameter to the matching sub
+     $point->return_value(4)        # Don't proceed and return immediately
+     $point->original->(x => 3);    # Call matched sub independently
+     $point->proceed(1);            # Continue to sub with context params
+     print $point->enclosing->name; # Access cflow pointcut advice context
   } $pointcut;
 
 =head1 DESCRIPTION
@@ -191,17 +203,18 @@ on C<Person>?
 
 You can access cflow context in the synopsis above, by calling:
 
-  $context->company;
+  $point->enclosing;
 
-You get it from the main advice context, by calling a method named after
-the context key used in the cflow spec. In the synopsis pointcut
-definition, the cflow part was:
+You get it from the main advice join point by calling a method named after
+the context key used in the cflow spec (which is "enclosing" if a custom name
+was not provided, in line with AspectJ terminology). In the synopsis pointcut
+definition, the cflow part was equivalent to:
 
-  cflow company => qr/^Company::/
-        ^^^^^^^
+  cflow enclosing => qr/^Company::/
+        ^^^^^^^^^
 
-An C<AdviceContext> will be created for the cflow, and you can access it
-using the key C<company>.
+An L<Aspect::Point::Static> will be created for the cflow, and you can access it
+using the C<enclosing> method.
 
 =head1 EXAMPLES
 
@@ -226,19 +239,19 @@ Don't proceed to matched sub, return 4 instead:
 Call matched sub again and again until it returns something defined:
 
   after {
-      my $context = shift;
-      my $return  = $context->return_value;
+      my $point  = shift;
+      my $return = $point->return_value;
       while ( not defined $return ) {
-          $return = $context->original($context->params);
+          $return = $point->original($point->params);
       }
-      $context->return_value($return);
+      $point->return_value($return);
   } $pointcut;
 
 Print the name of the C<Company> object that started the chain of calls
 that eventually reached the get/set on C<Person>:
 
   before {
-      print shift->company->name;
+      print shift->enclosing->self->name;
   } $pointcut;
 
 =head1 AUTHORS

@@ -1,11 +1,24 @@
 package Aspect::Pointcut::Logic;
 
-# A mixable role for logic pointcuts
+# A base class for logic pointcuts
 
 use strict;
 use warnings;
+use Carp             ();
+use Params::Util     ();
+use Aspect::Pointcut ();
 
-our $VERSION = '0.97_02';
+our $VERSION = '0.97_03';
+our @ISA     = 'Aspect::Pointcut';
+
+sub new {
+	my $class = shift;
+	foreach ( @_ ) {
+		next if Params::Util::_INSTANCE($_, 'Aspect::Pointcut');
+		Carp::croak("Attempted to apply pointcut logic to non-pointcut '$_'");
+	}
+	$class->SUPER::new(@_);
+}
 
 sub match_runtime {
 	return 0;

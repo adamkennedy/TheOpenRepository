@@ -3,10 +3,11 @@ package Aspect::Pointcut::Highest;
 use strict;
 use warnings;
 use Carp             ();
+use Scalar::Util     ();
 use Params::Util     ();
 use Aspect::Pointcut ();
 
-our $VERSION = '0.97_02';
+our $VERSION = '0.97_03';
 our @ISA     = 'Aspect::Pointcut';
 
 

@@ -7,8 +7,9 @@ use Params::Util           ();
 use Aspect::Pointcut       ();
 use Aspect::Pointcut::Call ();
 use Aspect::AdviceContext  ();
+use Aspect::Point::Static  ();
 
-our $VERSION = '0.97_02';
+our $VERSION = '0.97_03';
 our @ISA     = 'Aspect::Pointcut';
 
 use constant KEY  => 0;
@@ -23,13 +24,16 @@ use constant SPEC => 2;
 
 sub new {
 	my $class = shift;
-	unless ( Params::Util::_IDENTIFIER($_[0]) ) {
+
+	# Check and default the cflow key
+	my $key = @_ > 1 ? shift : 'enclosing';
+	unless ( Params::Util::_IDENTIFIER($key) ) {
 		Carp::croak('Invalid runtime context key');
 	}
 
 	# Generate it via call
-	my $call = Aspect::Pointcut::Call->new($_[1]);
-	return bless [ $_[0], @$call ], $class;
+	my $call = Aspect::Pointcut::Call->new(shift);
+	return bless [ $key, @$call ], $class;
 }
 
 
@@ -63,12 +67,11 @@ sub compile_runtime {
 			last;
 		}
 		return 0 unless $caller;
-		my $class   = (ref $_ or 'Aspect::AdviceContext');
 		my $context = bless {
 			sub_name => $caller->{sub_name},
 			pointcut => $_->{pointcut},
 			params   => $caller->{params},
-		}, $class;
+		}, 'Aspect::Point::Static';
 		$_->{$self->[KEY]} = $context;
 		return 1;
 	};

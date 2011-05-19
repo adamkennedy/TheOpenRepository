@@ -32,7 +32,7 @@ Aspect - Aspect-Oriented Programming (AOP) for Perl
       print "Calling a get method in void context within Tester::run_tests";
   } wantvoid
   & ( call qr/^Person::get_/ & ! call 'Person::get_not_trapped' )
-  & cflow tester => 'Tester::run_tests';
+  & cflow 'Tester::run_tests';
   
   
   
@@ -414,7 +414,7 @@ use Aspect::Advice::Around         ();
 use Aspect::Advice::Before         ();
 use Aspect::AdviceContext          ();
 
-our $VERSION = '0.97_02';
+our $VERSION = '0.97_03';
 
 # Track the location of exported functions so that pointcuts
 # can avoid accidentally binding them.
@@ -484,6 +484,43 @@ sub call ($) {
 
 =pod
 
+=head2 cflow
+
+  before {
+     print "Called My::foo somewhere within My::bar\n";
+  } call 'My::foo'
+  & cflow 'My::bar';
+
+The C<cflow> declarator is used to specify that the join point must be somewhere
+within the control flow of the C<My::bar> function. That is, at the time
+C<My::foo> is being called somewhere up the call stack is C<My::bar>.
+
+The parameters to C<cflow> are identical to the parameters to C<call>.
+
+Due to an idiosyncracy in the way C<cflow> is implemented, they do not always
+parse properly well when joined with an operator. In general, you should use
+any C<cflow> operator last in your pointcut specification, or use explicit
+braces for it.
+
+  # This works fine
+  my $x = call 'My::foo' & cflow 'My::bar';
+  
+  # This will error
+  my $y = cflow 'My::bar' & call 'My::foo';
+  
+  # Use explicit braces if you can't have the flow last
+  my $z = cflow('My::bar') & call 'My::foo';
+
+For more information on the C<cflow> pointcut, see L<Aspect::Pointcut::Cflow>.
+
+=cut
+
+sub cflow ($;$) {
+	Aspect::Pointcut::Cflow->new(@_);
+}
+
+=pod
+
 =head2 wantlist
 
   my $pointcut = call 'Foo::bar' & wantlist;
@@ -492,6 +529,9 @@ The C<wantlist> pointcut traps a condition based on Perl C<wantarray> context,
 when a function is called in list context. When used with C<call>, this
 pointcut can be used to trap list-context calls to one or more functions, while
 letting void or scalar context calls continue as normal.
+
+For more information on the C<wantlist> pointcut see
+L<Aspect::Pointcut::Wantarray>.
 
 =cut
 
@@ -509,6 +549,9 @@ The C<wantscalar> pointcut traps a condition based on Perl C<wantarray> context,
 when a function is called in scalar context. When used with C<call>, this
 pointcut can be used to trap scalar-context calls to one or more functions,
 while letting void or list context calls continue as normal.
+
+For more information on the C<wantscalar> pointcut see
+L<Aspect::Pointcut::Wantarray>.
 
 =cut
 
@@ -530,6 +573,9 @@ scalar or list context calls continue as normal.
 This is particularly useful for methods which make no sense to call in void
 context, such as getters or other methods calculating and returning a useful
 result.
+
+For more information on the C<wantvoid> pointcut see
+L<Aspect::Pointcut::Wantarray>.
 
 =cut
 
@@ -565,10 +611,30 @@ call into a recursive series of functions, or you can negate the pointcut
 with C<! highest> and look for recursive calls into a function when there
 shouldn't be any recursion.
 
+In the current implementation, the semantics and behaviour of pointcuts
+containing multiple highest declarators is not defined (and the current
+implementation is also not amenable to supporting it).
+
+For these reasons, the usage of multiple highest declarators such as in the
+following example is not support, and so the following will throw an exception.
+
+  before {
+      print "This advice will not compile\n";
+  } wantscalar & (
+      (call 'My::foo' & highest)
+      |
+      (call 'My::bar' & highest)
+  );
+
+This limitation may change in future releases. Feedback welcome.
+
+For more information on the C<highest> pointcut see
+L<Aspect::Pointcut::Highest>.
+
 =cut
 
 sub highest () {
-	Aspect::Pointcut::Highest->new();
+	Aspect::Pointcut::Highest->new;
 }
 
 =pod
@@ -612,24 +678,95 @@ sub throwing ($) {
 	Aspect::Pointcut::Throwing->new(@_);
 }
 
-sub aspect {
-	my $class = _LIBRARY(shift);
-	return $class->new(
-		lexical => defined wantarray,
-		params  => [ @_ ],
-	);
+=pod
+
+=head2 if_true
+
+  # Intercept an adjustable random percentage of calls to a function
+  our $RATE = 0.01;
+  
+  before {
+      print "The few, the brave, the 1%\n";
+  } call 'My::foo'
+  & if_true {
+      rand() < $RATE
+  };
+
+Because of the lengths that B<Aspect> goes to internally to optimise the
+selection and interception of calls, writing your own custom pointcuts can
+be very difficult.
+
+When a custom or unusual pattern of interception is needed, often all that is
+desired is to extend a relatively normal pointcut with an extra caveat.
+
+To allow for this scenario, B<Aspect> provides the C<is_true> pointcut.
+
+This pointcut allows you to specify any arbitrary code to match on. This code
+will be executed at run-time if the join point matches all previous conditions.
+
+The join point matches if the function or closure returns true, and does not
+match if the code returns false or nothing at all.
+
+=cut
+
+sub if_true (&) {
+	Aspect::Pointcut::If->new(@_);
 }
 
-sub around (&$) {
-	Aspect::Advice::Around->new(
+=pod
+
+=head2 before
+
+  before {
+      # Don't call the function, return instead
+      $_->return_value(1);
+  } call 'My::foo';
+
+The B<before> advice declaration is used to defined advice code that will be
+run instead of the code originally at the join points, but continuing on to the
+real function if no action is taken to say otherwise.
+
+When called in void context, as shown above, C<before> will install the advice
+permanently into your program.
+
+When called in scalar context, as shown below, C<before> will return a guard
+object and enable the advice for as long as that guard object continues to
+remain in scope or otherwise avoid being destroyed.
+
+  SCOPE: {
+      my $guard = before {
+          print "Hello World!\n";
+      } call 'My::foo';
+  
+      # This will print
+      My::foo(); 
+  }
+  
+  # This will NOT print
+  My::foo();
+
+Because the end result of the code at the join points is irrelevant to this
+type of advice and the Aspect system does not need to hang around and maintain
+control during the join point, the underlying implementation is done in a way
+that is by far the fastest and with the least impact (essentially none) on the
+execution of your program.
+
+You are B<strongly> encouraged to use C<before> advice wherever possible for the
+current implementation, resorting to the other advice types when you truly need
+to be there are the end of the join point execution (or on both sides of it).
+
+=cut
+
+sub before (&$) {
+	Aspect::Advice::Before->new(
 		code     => $_[0],
 		pointcut => $_[1],
 		lexical  => defined wantarray,
 	);
 }
 
-sub before (&$) {
-	Aspect::Advice::Before->new(
+sub around (&$) {
+	Aspect::Advice::Around->new(
 		code     => $_[0],
 		pointcut => $_[1],
 		lexical  => defined wantarray,
@@ -660,13 +797,14 @@ sub after_throwing (&$) {
 	);
 }
 
-sub if_true (&) {
-	Aspect::Pointcut::If->new(@_);
+sub aspect {
+	my $class = _LIBRARY(shift);
+	return $class->new(
+		lexical => defined wantarray,
+		params  => [ @_ ],
+	);
 }
 
-sub cflow ($$) {
-	Aspect::Pointcut::Cflow->new(@_);
-}
 
 
 
@@ -743,67 +881,7 @@ sub _LIBRARY {
 
 1;
 
-__END__
-
-
-=head2 Pointcuts
-
-Pointcuts select join points, so that an advice can run code when they happen.
-The most common pointcut you will probably use is C<call()>. For example:
-
-  $p = call 'Person::get_address';
-
-This selects the calling of C<Person::get_address()> as defined in the
-symbol table during weave-time. The string is a pointcut spec, and can be
-expressed in three ways:
-
-=over
-
-=item C<string>
-
-Select only the sub whose name is equal to the spec string.
-
-=item C<regexp>
-
-Select only the subs whose name matches the regexp. The following will match
-all the subs defined on the C<Person> class, but not on the C<Person::Address>
-class.
-
-  $p = call qr/^Person::\w+$/;
-
-=item C<CODE> ref
-
-Select only subs, where the supplied code, when run with the sub name as only
-parameter, returns true. The following will match all calls to subs whose name
-isa key in the hash C<%subs_to_match>:
-
-  $p = call sub { exists $subs_to_match{$_[0]} }
-
-=back
-
-Pointcuts can be combined to form logical expressions, because they overload
-C<&>, C<|>, and C<!>, with factories that create composite pointcut objects.
-Be careful not to use the non-overloadable C<&&>, and C<||> operators, because
-you will get no error message.
-
-Select all calls to C<Person>, which are not calls to the constructor:
-
-  $p = call qr/^Person::\w+$/ & ! call 'Person::create';
-
-The second pointcut you can use, is C<cflow()>. It selects only the subs that
-are in call flow of its spec. Here we select all calls to C<Person>, only if
-they are in the call flow of some method in C<Company>:
-
-  $p = call qr/^Person::\w+$/ & cflow company => qr/^Company::\w+$/;
-
-The C<cflow()> pointcut takes two parameters: a context key, and a pointcut
-spec. The context key is used in advice code to access the context (params,
-sub name, etc.) of the sub found in the call flow. In the example above, the
-key can be used to access the name of the specific sub on C<Company> that was
-found in the call flow of the C<Person> method.The second parameter is a
-pointcut spec, that should match the sub required from the call flow.
-
-See the L<Aspect::Pointcut> docs for more info.
+=pod
 
 =head2 Advice
 
@@ -968,7 +1046,7 @@ Consider this advice:
   # Do not do this!
   before {
       print $_->sub_name;
-  } cflow company => 'MyApp::Company::make_report';
+  } cflow 'MyApp::Company::make_report';
 
 The advice code will be installed on B<every> sub loaded. The advice code
 will only run when in the specified call flow, which is the correct
@@ -981,7 +1059,7 @@ solution is to narrow the pointcut:
   before {
       print $_->sub_name;
   } call qr/^MyApp::/
-  & cflow company => 'MyApp::Company::make_report';
+  & cflow 'MyApp::Company::make_report';
 
 =head1 TO DO
 

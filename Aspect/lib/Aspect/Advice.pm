@@ -2,12 +2,17 @@ package Aspect::Advice;
 
 use strict;
 use warnings;
+use Carp ();
 
-our $VERSION = '0.97_02';
+our $VERSION = '0.97_03';
 
 sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
+
+	# Validate the advice and pointcut combination
+	my $error = $self->_validate;
+	Carp::croak($error) if defined $error;
 
 	# Install and save the lexical hook
 	$self->{hook} = $self->_install;
@@ -29,6 +34,29 @@ sub lexical {
 
 sub DESTROY {
 	$_[0]->{hook}->() if $_[0]->{hook};
+}
+
+
+
+
+
+######################################################################
+# Installation Internals
+
+sub _install {
+	my $class = ref $_[0] || $_[0];
+	die("Method '_install' is not implemented by class '$class'");
+}
+
+sub _validate {
+	my $self = shift;
+
+	# The use of more than one highest rule in a pointcut is not supported
+	if ( $self->pointcut->match_contains('Aspect::Pointcut::Highest') > 1 ) {
+		return "Multiple highest pointcut use is not yet supported";
+	}
+
+	return;
 }
 
 

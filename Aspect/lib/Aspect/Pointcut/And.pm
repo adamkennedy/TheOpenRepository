@@ -2,14 +2,10 @@ package Aspect::Pointcut::And;
 
 use strict;
 use warnings;
-use Aspect::Pointcut        ();
 use Aspect::Pointcut::Logic ();
 
-our $VERSION = '0.97_02';
-our @ISA     = qw{
-	Aspect::Pointcut::Logic
-	Aspect::Pointcut
-};
+our $VERSION = '0.97_03';
+our @ISA     = 'Aspect::Pointcut::Logic';
 
 
 
@@ -123,12 +119,12 @@ sub compile_runtime {
 }
 
 sub match_contains {
-	my $self = shift;
-	return 1 if $self->isa($_[0]);
+	my $self  = shift;
+	my $count = $self->isa($_[0]) ? 1 : 0;
 	foreach my $child ( @$self ) {
-		return 1 if $child->match_contains($_[0]);
+		$count += $child->match_contains($_[0]);
 	}
-	return '';
+	return $count;
 }
 
 sub match_runtime {

@@ -2,14 +2,10 @@ package Aspect::Pointcut::Not;
 
 use strict;
 use warnings;
-use Aspect::Pointcut        ();
 use Aspect::Pointcut::Logic ();
 
-our $VERSION = '0.97_02';
-our @ISA     = qw{
-	Aspect::Pointcut::Logic
-	Aspect::Pointcut
-};
+our $VERSION = '0.97_03';
+our @ISA     = 'Aspect::Pointcut::Logic';
 
 
 
@@ -37,10 +33,9 @@ sub compile_runtime {
 }
 
 sub match_contains {
-	my $self = shift;
-	return 1 if $self->isa($_[0]);
-	return 1 if $self->[0]->match_contains($_[0]);
-	return '';
+	my $self  = shift;
+	my $count = $self->[0]->match_contains($_[0]);
+	return $self->isa($_[0]) ? ++$count : $count;
 }
 
 sub match_runtime {

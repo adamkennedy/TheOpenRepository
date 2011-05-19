@@ -40,7 +40,7 @@ use Aspect::Pointcut::Or  ();
 use Aspect::Pointcut::And ();
 use Aspect::Pointcut::Not ();
 
-our $VERSION = '0.97_02';
+our $VERSION = '0.97_03';
 
 use overload (
 	# Keep traditional Perl boolification and stringification
@@ -48,7 +48,7 @@ use overload (
 	'""'   => sub { ref $_[0] },
 
 	# Overload bitwise boolean operators to perform logical transformations.
-	'|'    => sub { Aspect::Pointcut::Or ->new( $_[0], $_[1] ) },
+	'|'    => sub { Aspect::Pointcut::Or->new(  $_[0], $_[1] ) },
 	'&'    => sub { Aspect::Pointcut::And->new( $_[0], $_[1] ) },
 	'!'    => sub { Aspect::Pointcut::Not->new( $_[0]        ) },
 
@@ -258,7 +258,7 @@ if a particular named function should be hooked as a potential join point.
 
 =cut
 
-# Most pointcut conditions always match, so default to that
+# Most pointcut conditions always match at weave time, so default to that
 sub compile_weave {
 	return 1;
 }
@@ -301,15 +301,14 @@ The C<match_contains> method provides a convenience for the optimisation
 system which is used to check for the existance of a particular condition
 type anywhere within the pointcut object tree.
 
-Returns true if the tree contains any conditions of that type, or false
-if not.
+Returns the number of instances of a particular pointcut type within the tree.
 
 =cut
 
 sub match_contains {
 	my $self = shift;
 	return 1 if $self->isa($_[0]);
-	return '';
+	return 0;
 }
 
 =pod
@@ -365,9 +364,8 @@ BEGIN {
 	local $@;
 	eval <<'END_PERL';
 use Class::XSAccessor::Array 1.08 {
-	replace     => 1,
-	constructor => 'new',
-	true        => [ 'compile_weave', 'match_runtime' ],
+	replace => 1,
+	true    => [ 'compile_weave', 'match_runtime' ],
 };
 END_PERL
 }

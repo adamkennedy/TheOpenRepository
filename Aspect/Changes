@@ -1,7 +1,18 @@
 Revision history for Perl extension Aspect
 
-0.98_02 to be released
-	- Expanded XS acceleration to more classes
+0.97_03 to be released
+	- Expanded XS acceleration to more classes and methods
+	- Much more documentation of the declarator language
+	- Prohibit usage of the highest pointcut to one per advice declaration
+	  due to implementation complexity and unclear semantics.
+	- Added Advice::Point::Static for the cflow point details in line with
+	  AspectJ's idea of "static parts" of join points.
+	- Removed deprecated Aspect::AdviceContext now it is no longer needed
+	  by the cflow pointcut.
+	- Pointcut logic operations & | ! now validate their children
+	- The cflow declarator is now documented everywhere as single param,
+	  defaulting to an "enclosing" accessor, which is accelerated.
+	- Added specific accelerated Aspect::Point::pointcut method
 
 0.97_02 Wed 18 May 2011
 	- Removed the barely document, untested and rarely used append_param(s)
