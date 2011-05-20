@@ -482,8 +482,6 @@ hash C<%subs_to_match>:
       exists $subs_to_match{$_[0]};
   }
 
-=back
-
 For more information on the C<call> pointcut see L<Aspect::Pointcut::Call>.
 
 =cut
