@@ -203,6 +203,7 @@ sub install_cpan_upgrades {
 
 			# There's a problem with extracting these two files, so
 			# upgrading to these versions, instead...
+			## no critic(ProhibitUnusedCapture)
 			when (
 				m{Unicode-Collate-0 [.] (\d\d)
                    -withoutworldwriteables}msx

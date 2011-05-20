@@ -8,6 +8,7 @@ sub filter {
 	my $module = shift;
 	
 	return 0 if $module =~ m/auto::share::dist/;
+	return 0 if $module =~ m/::BuildPerl::/;
 	return 1;
 }
 

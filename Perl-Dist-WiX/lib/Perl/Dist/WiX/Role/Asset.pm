@@ -261,7 +261,7 @@ sub BUILDARGS {
 	);
 	delete @args{ 'url', 'file', 'parent' };
 
-	return { (%default_args), (%args) };
+	return { ( %default_args, %args ) };
 } ## end sub BUILDARGS
 
 
