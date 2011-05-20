@@ -133,7 +133,7 @@ t Revision history for Perl extension Attribute-Handlers
         - Add resources (bugtracker, ...) section to META.yml
 
 0.86_01	Thu Sep 17 10:01:00 CET 2009
-        - From perl change 09330df80caf214f375fcf0c04857347e3b17c69 (Zefram):
+	- From perl change 09330df80caf214f375fcf0c04857347e3b17c69 (Zefram):
 
           Fix [perl #66970] Incorrect coderef in MODIFY_CODE_ATTRIBUTES
 
