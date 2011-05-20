@@ -1,5 +1,9 @@
 Changes for Perl extension Perl-Dist-WiX
 
+1.500001   Wed 23 Feb 2011
+    1. Used to build Strawberry Perl 5.12.3.0/5.10.1.5.
+    2. Includes the 5.12.3 plugin for testing purposes.
+
 1.500   Wed 23 Feb 2011
     1. Used to build Strawberry Perl October 2010 and February 2011 Beta 1.
     2. Portable will have it's own dir to use insead of home (CHORNY)

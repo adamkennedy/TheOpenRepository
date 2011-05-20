@@ -62,6 +62,7 @@ mt\.dep$
 
 # Avoid release files
 \breleaserc$
+\bdist.ini$
 \bsite_html_config.yaml$
 
 # Avoid MYMETA.yml
