@@ -123,3 +123,11 @@ Revision history for Perl extension Filter::Simple
     - Port changes from core: Remove unnecessary PERL_CORE check
       from tests.
 
+0.86
+    - Never released to CPAN (only part of the perl core 5.14.0)
+
+0.87    Fri May 20 20:00:00 CET 2011
+
+    - Port changes from core: Whitespace fix that is significant for
+      POD correctness.
+
