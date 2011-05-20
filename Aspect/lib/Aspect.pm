@@ -1078,7 +1078,50 @@ sub _LIBRARY {
 
 =pod
 
-=head1 ASPECT LIBRARY
+=head1 OPERATORS
+
+=head2 Pointcut &
+
+Overloading of bitwise C<&> for pointcut declarations allows a natural looking
+boolean "and" logic for pointcuts. When using the C<&> operator the combined
+pointcut expression will match if all pointcut subexpressions match.
+
+In the original Java AspectJ framework, the subexpressions are considered to
+be a union without an inherent order at all. In Perl you may treat them as
+ordered since they are ordered internally, but since all subexpressions run 
+anyway you should probably not do anything that relies on this order. The
+optimiser may do interesting things with order in future, or we may move to an
+unordered implementation.
+
+For more information, see L<Aspect::Pointcut::And>.
+
+=head2 Pointcut |
+
+Overloading of bitwise C<|> for pointcut declarations allows a natural looking
+boolean "or" logic for pointcuts. When using the C<|> operator the combined
+pointcut expression will match if either pointcut subexpressions match.
+
+The subexpressions are ostensibly considered without any inherent order, and
+you should treat them that way when you can. However, they are internally
+ordered and shortcutting will be applied as per normal Perl expressions. So for
+speed reasons, you may with to put cheap pointcut declarators before expensive
+ones where you can.
+
+The optimiser may do interesting things with order in future, or we may move to
+an unordered implementation. So as a general rule, avoid things that require
+order while using order to optimise where you can.
+
+For more information, see L<Aspect::Pointcut::Or>.
+
+=head2 Pointcut !
+
+Overload of negation C<!> for pointcut declarations allows a natural looking
+boolean "not" logic for pointcuts. When using the C<!> operator the resulting
+pointcut expression will match if the single subexpression does B<not> match.
+
+For more information, see L<Aspect::Pointcut::Not>.
+
+=head1 LIBRARY
 
 The main L<Aspect> distribution ships with the following set of libraries. These
 are not necesarily recommended or the best on offer. The are shipped with
