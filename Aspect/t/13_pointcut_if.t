@@ -20,7 +20,7 @@ sub foo {
 before {
 	$COUNT += 10
 } call 'main::foo'
-& if_true { $COUNT == 1 };
+& true { $COUNT == 1 };
 
 is( foo(),  1, 'Advice did not fire' );
 is( foo(), 12, 'Advice did fired'    );

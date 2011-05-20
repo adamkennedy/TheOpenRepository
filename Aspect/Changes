@@ -1,6 +1,7 @@
 Revision history for Perl extension Aspect
 
-0.97_03 to be released
+0.97_03 Fri 20 May 2011
+	- Simplified if_true to true and ::If to ::True
 	- Expanded XS acceleration to more classes and methods
 	- Much more documentation of the declarator language
 	- Prohibit usage of the highest pointcut to one per advice declaration
@@ -13,6 +14,7 @@ Revision history for Perl extension Aspect
 	- The cflow declarator is now documented everywhere as single param,
 	  defaulting to an "enclosing" accessor, which is accelerated.
 	- Added specific accelerated Aspect::Point::pointcut method
+	- Move Aspect::Pointcut::Highest::Cleanup into its own module file
 
 0.97_02 Wed 18 May 2011
 	- Removed the barely document, untested and rarely used append_param(s)

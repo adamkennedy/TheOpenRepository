@@ -270,7 +270,7 @@ Programs that repeatedly weave and unweave during execution will thus gradually
 slow down and leak memory, and so is discouraged despite being permitted.
 
 If advice needs to be repeatedly enabled and disabled you should instead
-consider using the C<if_true> pointcut and a variable in the aspect package or
+consider using the C<true> pointcut and a variable in the aspect package or
 a closure to introduce a remote "on/off" switch for the aspect.
 
 into the advice code.
@@ -281,7 +281,7 @@ into the advice code.
   
   before {
       print "Calling Foo::bar\n";
-  } call 'Foo::bar' & if_true { $switch };
+  } call 'Foo::bar' & true { $switch };
   
   sub enable {
       $switch = 1;
@@ -397,10 +397,10 @@ use Params::Util              1.00 ();
 use Sub::Install              0.92 ();
 use Sub::Uplevel            0.2002 ();
 use Aspect::Pointcut               ();
-use Aspect::Pointcut::If           ();
 use Aspect::Pointcut::Or           ();
 use Aspect::Pointcut::And          ();
 use Aspect::Pointcut::Not          ();
+use Aspect::Pointcut::True         ();
 use Aspect::Pointcut::Call         ();
 use Aspect::Pointcut::Cflow        ();
 use Aspect::Pointcut::Highest      ();
@@ -412,7 +412,6 @@ use Aspect::Advice::AfterReturning ();
 use Aspect::Advice::AfterThrowing  ();
 use Aspect::Advice::Around         ();
 use Aspect::Advice::Before         ();
-use Aspect::AdviceContext          ();
 
 our $VERSION = '0.97_03';
 
@@ -680,7 +679,7 @@ sub throwing ($) {
 
 =pod
 
-=head2 if_true
+=head2 true
 
   # Intercept an adjustable random percentage of calls to a function
   our $RATE = 0.01;
@@ -688,7 +687,7 @@ sub throwing ($) {
   before {
       print "The few, the brave, the 1%\n";
   } call 'My::foo'
-  & if_true {
+  & true {
       rand() < $RATE
   };
 
@@ -709,8 +708,8 @@ match if the code returns false or nothing at all.
 
 =cut
 
-sub if_true (&) {
-	Aspect::Pointcut::If->new(@_);
+sub true (&) {
+	Aspect::Pointcut::True->new(@_);
 }
 
 =pod
@@ -847,7 +846,7 @@ sub import {
 		# Install new generation API functions
 		foreach ( qw{
 			around after_returning after_throwing
-			if_true highest throwing
+			true highest throwing
 			wantlist wantscalar wantvoid
 		} ) {
 			Sub::Install::install_sub( {

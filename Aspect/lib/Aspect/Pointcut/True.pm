@@ -1,4 +1,4 @@
-package Aspect::Pointcut::If;
+package Aspect::Pointcut::True;
 
 use strict;
 use warnings;
@@ -58,17 +58,17 @@ __END__
 
 =head1 NAME
 
-Aspect::Pointcut::If - Pointcut that allows arbitrary Perl code
+Aspect::Pointcut::True - Pointcut that allows arbitrary Perl code
 
 =head1 SYNOPSIS
 
   use Aspect;
   
   # High-level creation
-  my $pointcut1 = if_true { rand() > 0.5 };
+  my $pointcut1 = true { rand() > 0.5 };
   
   # Manual creation
-  my $pointcut2 = Aspect::Pointcut::If->new(
+  my $pointcut2 = Aspect::Pointcut::True->new(
     sub { rand() > 0.5 }
   );
 
@@ -78,7 +78,7 @@ Because L<Aspect>'s weaving phase technically occurs at run-time (relative
 to the overall process) it does not need to be limit itself only to 
 conditions that are fully describable at compile-time.
 
-B<Aspect::Pointcut::If> allows you to take advantage of this to create your
+B<Aspect::Pointcut::True> allows you to take advantage of this to create your
 own custom run-time pointcut conditions, although for safety and purity
 reasons you are not permitted to create custom conditions that interact
 with the L<Aspect::Point> object for the call.

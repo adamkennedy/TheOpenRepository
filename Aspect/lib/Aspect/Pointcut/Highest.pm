@@ -2,10 +2,11 @@ package Aspect::Pointcut::Highest;
 
 use strict;
 use warnings;
-use Carp             ();
-use Scalar::Util     ();
-use Params::Util     ();
-use Aspect::Pointcut ();
+use Carp                               ();
+use Scalar::Util                       ();
+use Params::Util                       ();
+use Aspect::Pointcut                   ();
+use Aspect::Pointcut::Highest::Cleanup ();
 
 our $VERSION = '0.97_03';
 our @ISA     = 'Aspect::Pointcut';
@@ -45,17 +46,11 @@ sub match_curry {
 sub compile_runtime {
 	my $depth = 0;
 	return sub {
-		my $cleanup  = sub { $depth-- };
-		bless $cleanup, 'Aspect::Pointcut::Highest::Cleanup';
-		$_->{highest} = $cleanup;
+		$_->{highest} = Aspect::Pointcut::Highest::Cleanup->new(
+			sub { $depth-- }
+		);
 		return ! $depth++;
 	};
-}
-
-package Aspect::Pointcut::Highest::Cleanup;
-
-sub DESTROY {
-	$_[0]->();
 }
 
 1;

@@ -6,7 +6,6 @@ use Carp                   ();
 use Params::Util           ();
 use Aspect::Pointcut       ();
 use Aspect::Pointcut::Call ();
-use Aspect::AdviceContext  ();
 use Aspect::Point::Static  ();
 
 our $VERSION = '0.97_03';
