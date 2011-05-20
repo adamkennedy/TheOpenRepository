@@ -3,7 +3,7 @@ Revision history for Perl extension Aspect
 0.97_03 Fri 20 May 2011
 	- Simplified if_true to true and ::If to ::True
 	- Expanded XS acceleration to more classes and methods
-	- Much more documentation of the declarator language
+	- Completed reasonable thorough main documentation for Aspect.pm
 	- Prohibit usage of the highest pointcut to one per advice declaration
 	  due to implementation complexity and unclear semantics.
 	- Added Advice::Point::Static for the cflow point details in line with

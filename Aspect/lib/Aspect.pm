@@ -242,6 +242,10 @@ Each of the different advice types needs to be used slightly differently, and
 are best employed for different types of jobs. We will discuss the use of each
 of the different advice types later in this document.
 
+But in general, the more specific advice type you use, the more optimisation
+can be applied to your advice declaration, and the less impact the advice will
+have on the speed of your program.
+
 In addition to the default pointcut types, it is (theoretically) possible to
 write your own specialised Advice types, although this would be extremely
 difficult and probably involve some form of XS programming.
@@ -412,6 +416,13 @@ use Aspect::Advice::AfterReturning ();
 use Aspect::Advice::AfterThrowing  ();
 use Aspect::Advice::Around         ();
 use Aspect::Advice::Before         ();
+use Aspect::Point                  ();
+use Aspect::Point::Static          ();
+use Aspect::Point::After           ();
+use Aspect::Point::AfterReturning  ();
+use Aspect::Point::AfterThrowing   ();
+use Aspect::Point::Around          ();
+use Aspect::Point::Before          ();
 
 our $VERSION = '0.97_03';
 
@@ -754,6 +765,8 @@ You are B<strongly> encouraged to use C<before> advice wherever possible for the
 current implementation, resorting to the other advice types when you truly need
 to be there are the end of the join point execution (or on both sides of it).
 
+For more information, see L<Aspect::Advice::Before>.
+
 =cut
 
 sub before (&$) {
@@ -764,21 +777,29 @@ sub before (&$) {
 	);
 }
 
-sub around (&$) {
-	Aspect::Advice::Around->new(
-		code     => $_[0],
-		pointcut => $_[1],
-		lexical  => defined wantarray,
-	);
-}
+=pod
 
-sub after (&$) {
-	Aspect::Advice::After->new(
-		code     => $_[0],
-		pointcut => $_[1],
-		lexical  => defined wantarray,
-	);
-}
+=head2 after_returning
+
+  # Hijack a return value for a function
+  after_returning {
+      $_->return_value(1);
+  } call 'My::true_or_false' & wantscalar;
+
+The C<after_returning> declarator is used to create advice in which the advice
+code is run after the join point has executed, but before the result of the
+function has been returned to the caller.
+
+Notably, the advice code is only triggered when the function returns normally,
+and does B<not> run the advice code if the function throws an exception.
+
+This makes C<after_returning> the prefered and safest advice type for use in
+simple situations where you just want to alter a function result, without
+having to consider the multitude of potential exceptions that might be thrown.
+
+For more information, see L<Aspect::Advice::AfterReturning>.
+
+=cut
 
 sub after_returning (&$) {
 	Aspect::Advice::AfterReturning->new(
@@ -788,6 +809,52 @@ sub after_returning (&$) {
 	);
 }
 
+=pod
+
+=head2 after_throwing
+
+  # Ignore one specific exception, returning a neutral
+  after_throwing {
+    $_->return_value(5);
+  } call 'My::satisfaction'
+  & throwing 'Exception::NoData';
+
+The C<after_throwing> declarator is used to create advice in which the advice
+code will be run after the join point has run, but before an exception thrown
+from within the join point is propogated up to the called.
+
+Notably, the advice code is only triggered if the function throws an exception,
+and does B<not> run the advice code when the function returns normally.
+
+This makes c<after_throwing> the B<Aspect> equivalent of the kind of try/catch
+handler provided by modules such as L<Error> or L<Try::Tiny>, except that it
+provides much more exotic ways to target which exceptions should be caught,
+and when.
+
+For example, the following intercepts two different types of exception in two
+entirely different places within your code using the same exception handler.
+
+  after_throwing {
+      print "Oops!\n";
+  } ( call 'My::foo' & throwing 'Exception::One' )
+  | ( call 'My::bar' & throwing 'Exception::Two' );
+
+Also, the Aspect-Oriented Programming approach does not automatically
+suppress the exception. In the "Oops!" example above the exception is still
+in the middle of being thrown, and will continue to propogate upwards as
+normal.
+
+The advice was used not to handle the exception, but to monitor it instead.
+
+This ease of tracking exceptions of a particular type without interrupting the
+functionality of the code (and which can be enabled and disabled as needed)
+is a big part of what makes B<Aspect> popular for tracing, logging and
+debugging systems.
+
+For more information, see L<Aspect::Advice::AfterThrowing>.
+
+=cut
+
 sub after_throwing (&$) {
 	Aspect::Advice::AfterThrowing->new(
 		code     => $_[0],
@@ -795,6 +862,137 @@ sub after_throwing (&$) {
 		lexical  => defined wantarray,
 	);
 }
+
+=pod
+
+=head2 after
+
+  # Confuse a program by bizarely swapping return values and exceptions
+  after {
+      if ( $_->exception ) {
+          $_->return_value($_->exception);
+      } else {
+          $_->exception($_->return_value);
+      }
+  } call 'My::foo' & wantscalar;
+
+The C<after> declarator is used to create advice in which the advice code will
+be run after the join point has run, regardless of whether the function return
+correctly or throws an exception.
+
+This advice should be used when you need to deal flexibly with return values,
+but might also want to handle exceptions. Use of this advice is relatively
+rare, as most of the time you want something more flexible like C<around>, 
+or something more specific like C<after_returning> or C<after_throwing>.
+
+For more information, see L<Aspect::Advice::After>.
+
+=cut
+
+sub after (&$) {
+	Aspect::Advice::After->new(
+		code     => $_[0],
+		pointcut => $_[1],
+		lexical  => defined wantarray,
+	);
+}
+
+=pod
+
+=head2 around
+
+  # Trace execution time for a function
+  around {
+      my @start   = Time::HiRes::gettimeofday();
+      $_->proceed;
+      my @stop    = Time::HiRes::gettimeofday();
+  
+      my $elapsed = Time::HiRes::tv_interval( \@start, \@stop );
+      print "My::foo executed in $elapsed seconds\n";
+  } call 'My::foo';
+
+The C<around> declarator is used to create the most general form of advice,
+and can be used to implement the most high level functionality.
+
+It allows you to make changes to the calling parameters, to change the result
+of the function, to subvert or prevent the calling altogether, and to do so
+while storing extra lexical state of your own across the join point.
+
+For example, the code shown above tracks the time at which a single function
+is called and returned, and then uses the two pieces of information to track
+the execution time of the call.
+
+Similar functionality to the above is used to implement the CPAN modules
+L<Aspect::Library::Timer> and the more complex L<Aspect::Library::ZoneTimer>.
+
+Within the C<around> advice code, the C<$_-E<gt>proceed> method is used to call
+the original function with whatever the current parameter context is, storing
+the result (whether return values or an exception) in the context as well.
+
+Alternatively, you can use the C<original> method to get access to a reference
+to the original function and call it directly without using context
+parameters and without storing the function results.
+
+  around {
+      $_->original->('alternative param');
+      $_->return_value('fake result');
+  } call 'My::foo';
+
+The above example calls the original function directly with an alternative
+parameter in void context (regardless of the original C<wantarray> context)
+ignoring any return values. It then sets an entirely made up return value of
+it's own.
+
+Although it is the most powerful advice type, C<around> is also the slowest
+advice type with the highest memory cost per join point. Where possible, you
+should try to use a more specific advice type.
+
+For more information, see L<Aspect::Advice::Around>.
+
+=cut
+
+sub around (&$) {
+	Aspect::Advice::Around->new(
+		code     => $_[0],
+		pointcut => $_[1],
+		lexical  => defined wantarray,
+	);
+}
+
+=pod
+
+=head2 aspect
+
+  aspect Singleton => 'Foo::new';
+
+The C<aspect> declarator is used to enable complete reusable aspects.
+
+The first parameter to C<aspect> identifies the aspect library class. If the
+parameter is a fully resolved class name (i.e. it contains double colons like
+Foo::Bar) the value it will be used directly. If it is a simple C<Identifier>
+without colons then it will be interpreted as C<Aspect::Library::Identifier>.
+
+If the aspect class is not loaded, it will be loaded for you and validated as
+being a subclass of C<Aspect::Library>.
+
+And further paramters will be passed on to the constructor for that class. See
+the documentation for each class for more information on the appropriate
+parameters for that class.
+
+As with each individual advice type complete aspects can be defined globally
+by using C<aspect> in void context, or lexically via a guard object by calling
+C<aspect> in scalar context.
+
+  # Break on the topmost call to function for a limited time
+  SCOPE: {
+      my $break = aspect Breakpoint => call 'My::foo' & highest;
+      
+      do_something();
+  }
+
+For more information on writing reusable aspects, see L<Aspect::Library>.
+
+=cut
 
 sub aspect {
 	my $class = _LIBRARY(shift);
@@ -882,6 +1080,42 @@ sub _LIBRARY {
 
 =pod
 
+=head1 ASPECT LIBRARY
+
+
+The main L<Aspect> distribution ships with the following set of libraries. These
+are not necesarily recommended or the best on offer. The are shipped with
+B<Aspect> for convenience, because they have no additional CPAN dependencies.
+
+Their purpose is summarised below, but see their own documentation for more
+information.
+
+L<Aspect::Library::Singleton>
+
+Convert an existing class to function as a singleton and return the same object
+for every constructor call.
+
+L<Aspect::Library::Breakpoint>
+
+Inject debugging breakpoints into a program using the full power and complexity
+of the C<Aspect> pointcuts.
+
+L<Aspect::Library::Wormhole>
+
+A tool for passing objects down a call flow, without adding extra arguments to
+the frames between the source and the target. It is a tool for acquiring
+implicit context.
+
+L<Aspect::Library::Listenable>
+
+An aspect for implementing the Listenable design pattern. It lets you define
+function as emitting events that can be registeded for by subscribers, and then
+add/remove subscribers for these events over time.
+
+When specific methods of the listenable are called, registered subscribers will
+be notified. This lets you build a general subscriber event system for your
+large program, as part of a plugin API or just for your own convenience.
+
 =head2 Advice
 
 An advice definition is just some code that will run on a match of some
@@ -934,38 +1168,14 @@ and doing so hundreds or thousands of times may result in significant
 memory consumption of performance loss for the functions matched by your
 pointcut.
 
-=head2 Aspects
-
-Aspects are just plain old Perl objects, that install advice, and do
-other AOP-like things, like install methods on other classes, or mess around
-with the inheritance hierarchy of other classes. A good base class for them
-is L<Aspect::Modular>, but you can use any Perl object as long as the class
-inherits from L<Aspect::Library>.
-
-If the aspect class exists immediately below the namespace
-C<Aspect::Library>, then it can be easily created with the following
-shortcut.
-
-  aspect Singleton => 'Company::create';
-
-This will create an L<Aspect::Library::Singleton> object. This reusable
-aspect is included in the B<Aspect> distribution, and forces singleton
-behavior on some constructor, in this case, C<Company::create()>.
-
-Such aspects share a similar behaviour to advice. If enabled in void context
-they will be installed permanently, but if called in scalar context they
-will return a guard object that allows the aspect to be enabled only until
-the end of the current scope.
-
-=head2 Internals
+=head1 INTERNALS
 
 Due to the dynamic nature of Perl, there is no need for processing of source
 or byte code, as required in the Java and .NET worlds.
 
-The implementation is very simple: when you create advice, its pointcut is
-matched using C<match_define()> to find every sub defined in the symbol
-table that might match against the pointcut (potentially subject to further
-runtime conditions).
+The implementation is conceptually very simple: when you create advice, its
+pointcut is matched to find every sub defined in the symbol table that might
+match against the pointcut (potentially subject to further runtime conditions).
 
 Those that match, will get a special wrapper installed. The wrapper only
 executes if, during run-time, a compiled context test for the pointcut
@@ -973,25 +1183,33 @@ returns true.
 
 The wrapper code creates an advice context, and gives it to the advice code.
 
-Some pointcuts like C<call()> are static, so the compiled run-time function
-always returns true, and C<match_define()> returns true if the sub name
-matches the pointcut spec.
+Most of the complexity comes from the extensive optimisation that is used to
+reduce the impact of both weaving of the advice and the run-time costs of the
+wrappers added to your code.
 
-Some pointcuts like C<cflow()> are dynamic, so C<match_define()> always
-returns true, but the compiled run-time function returns true only if some
-condition within the point is true.
+Some pointcuts like C<call> are static and their full effect is known at
+weave time, so the compiled run-time function can be optimised away entirely.
+
+Some pointcuts like C<cflow> are dynamic, so they are not used to select
+the functions to hook, but impose a run-time cost to determine whether or not
+they match.
 
 To make this process faster, when the advice is installed, the pointcut
 will not use itself directly for the compiled run-time function but will
 additionally generate a "curried" (optimised) version of itself.
 
 This curried version uses the fact that the run-time check will only be
-called if it matches the C<call()> pointcut pattern, and so no C<call()>
+called if it matches the C<call> pointcut pattern, and so no C<call>
 pointcuts needed to be tested at run-time unless they are in deep and
 complex nested coolean logic. It also handles collapsing any boolean logic
-impacted by the safe removal of the C<call()> pointcuts.
+impacted by the safe removal of the C<call> pointcuts.
 
-If you use only C<call()> pointcuts (alone or in boolean combinations)
+Further, where possible the pointcuts will be expressed as Perl source
+(including logic operators) and compiled into a single Perl expression. This
+not only massively reduces the number of functions to be called, but allows
+further optimisation of the pointcut by the opcode optimiser in perl itself.
+
+If you use only C<call> pointcuts (alone or in boolean combinations)
 the currying results in a null test (the pointcut is optimised away
 entirely) and so the need to make a run-time point test will be removed
 altogether from the generated advice hooks, reducing call overheads
@@ -1000,11 +1218,7 @@ significantly.
 If your pointcut does not have any static conditions (i.e. C<call>) then
 the wrapper code will need to be installed into every function on the symbol
 table. This is highly discouraged and liable to result in hooks on unusual
-functions and unwanted side effects.
-
-=head1 FUNCTIONS
-
-TO BE COMPLETED
+functions and unwanted side effects, potentially breaking your program.
 
 =head1 LIMITATIONS
 
@@ -1013,16 +1227,24 @@ TO BE COMPLETED
 Support for inheritance is lacking. Consider the following two classes:
 
   package Automobile;
-  ...
-  sub compute_mileage { ... }
+  
+  sub compute_mileage {
+      # ...
+  }
   
   package Van;
+  
   use base 'Automobile';
 
 And the following two advice:
 
-  before { print "Automobile!\n" } call 'Automobile::compute_mileage';
-  before { print "Van!\n"        } call 'Van::compute_mileage';
+  before {
+      print "Automobile!\n";
+  } call 'Automobile::compute_mileage';
+  
+  before {
+      print "Van!\n";
+  } call 'Van::compute_mileage';
 
 Some join points one would expect to be matched by the call pointcuts
 above, do not:
@@ -1050,9 +1272,12 @@ Consider this advice:
 The advice code will be installed on B<every> sub loaded. The advice code
 will only run when in the specified call flow, which is the correct
 behavior, but it will be I<installed> on every sub in the system. This
-can be slow. It happens because the C<cflow()> pointcut matches I<all>
-subs during weave-time. It matches the correct sub during run-time. The
-solution is to narrow the pointcut:
+can be extremely slow because the run-time cost of checking C<cflow> will
+occur on every single function called in your program.
+
+It happens because the C<cflow> pointcut matches I<all> subs during weave-time.
+It matches the correct sub during run-time. The solution is to narrow the
+pointcut:
 
   # Much better
   before {
@@ -1062,10 +1287,10 @@ solution is to narrow the pointcut:
 
 =head1 TO DO
 
-There are a number of things that could be added, if people have an interest
+There are a many things that could be added, if people have an interest
 in contributing to the project.
 
-=head1 Documentation
+=head2 Documentation
 
 * cookbook
 
@@ -1075,85 +1300,34 @@ in contributing to the project.
 
 =head2 Pointcuts
 
-* new pointcuts: execution, cflowbelow, within, advice, calledby. Sure
+* New pointcuts: execution, cflowbelow, within, advice, calledby. Sure
   you can implement them today with Perl treachery, but it is too much
   work.
 
-* need a way to match subs with an attribute, attributes::get()
-  will not work for some reason
+* We need a way to match subs with an attribute, attributes::get()
+  will currently not work.
 
 * isa() support for method pointcuts as Gaal Yahas suggested: match
   methods on class hierarchies without callbacks
 
 * Perl join points: phasic- BEGIN/INIT/CHECK/END 
 
-* The previous items indicate a need for a real join point specification
-  language
-
 =head2 Weaving
 
-* look into byte code manipulation with B:: modules- could be faster, no
-  need to mess with caller, and could add many more pointcut types. All
-  we need to do for sub pointcuts is add 2 gotos to selected subs.
+* The current optimation has gone as far as it can, next we need to look into
+  XS acceleration and byte code manipulation with B:: modules.
 
-* a debug flag to print out subs that were matched on match_define
+* A debug flag to print out subs that were matched during weaving
 
-* warnings when over 1000 methods wrapped
+* Warnings when over 1000 methods wrapped
 
-* support more pulling (vs. pushing) of aspects into packages:
-  attributes, package specific join points
- 
-* add whatever constructs required for mocking packages, objects,
-  builtins
+* Allow finer control of advice execution order
 
-* allow finer control of advice execution order
+* Centralised hooking in wrappers so that each successive advice won't need
+  to wrap around the previous one.
 
-=head2 Reusable Aspects
-
-* need better example for wormhole- something less tedius
-
-* use Scalar-Footnote for adding aspect state to objects, e.g. in
-  Listenable. Problem is it is still in developer release state
-
-* Listenable: when listeners go out of scope, they should be removed from
-  listenables, so you don't have to remember to remove them manually
-
-* Listenable: should overload some operator on listenables so that it is 
-  easier to add/remove listeners, e.g.:
-    $button += (click => sub { print 'click!' });
-
-* design aspects: DBC, threading, more GOF patterns
-
-* middleware aspects: security, load balancing, timeout/retry, distribution
-
-* Perl aspects: add use strict/warning/Carp to all matched packages.
-  Actually, Spiffy, Toolkit, and Toolset do this already very nicely.
-
-* interface with existing Perl modules for logging, tracing, param
-  checking, generally all things that are AOPish on CPAN. One should
-  be able to use it all through one consistent interface. If I have a
-  good set of pointcuts, I should be able to do all kinds of cross-
-  cutting things with them.
-
-* UnderscoreContext aspect: subs that match will, if called with no
-  parameters, get $_, and if in void context, return value will set $_.
-  Allows you to use your subs like builtins, that fall back on $_. So if
-  we have a sub:
-
-     sub replace_foo { my $in = shift; $in =~ s/foo/bar; $in }
-
-  Then both calls would be equivalent:
-
-     $_ = replace_foo($_);
-     replace_foo;
-
-* a generic FriendParamAppender aspect, that adds to a param list
-  for affected methods, any object the method requires. Heuristics
-  are applied to find the friend: maybe it is available in the call
-  flow? Perhaps someone in the call flow has an accessor that can
-  get it? Maybe a lexical in some sub in the call flow has it? The
-  point is to cover all cases where we pass objects around, so that
-  we don't have to. A generalization of the wormhole aspect.
+* Allow lexical aspects to be safely removed completely, rather than being left
+  in place and disabled as in the current implementation.
 
 =head1 SUPPORT
 
@@ -1168,7 +1342,7 @@ See L<perlmodinstall> for information and options on installing Perl modules.
 
 The latest version of this module is available from the Comprehensive Perl
 Archive Network (CPAN). Visit <http://www.perl.com/CPAN/> to find a CPAN
-site near you. Or see L<http://search.cpan.org/perldoc?Aspect.pm>.
+site near you. Or see L<http://search.cpan.org/perldoc?Aspect>.
 
 =head1 AUTHORS
 
