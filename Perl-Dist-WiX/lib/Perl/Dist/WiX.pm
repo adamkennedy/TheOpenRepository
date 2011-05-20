@@ -2715,18 +2715,18 @@ sub install_portable {
 	# Install the regular parts of Portability
 	if ( not $self->isa('Perl::Dist::Strawberry') ) {
 		$self->install_modules( qw(
-		  Sub::Uplevel
-		  Test::Exception
-		  Test::Tester
-		  Test::NoWarnings
-		  LWP::Online
-		  Class::Inspector
+			  Sub::Uplevel
+			  Test::Exception
+			  Test::Tester
+			  Test::NoWarnings
+			  LWP::Online
+			  Class::Inspector
 		) );
 	}
 	if ( not $self->isa('Perl::Dist::Bootstrap') ) {
 		$self->install_modules( qw(
-		  CPAN::Mini
-		  Portable
+			  CPAN::Mini
+			  Portable
 		) );
 	}
 
@@ -2764,7 +2764,7 @@ sub install_portable {
 			id           => 'DataFolder'
 		) );
 
-	$self->make_path($self->dir('data'));
+	$self->make_path( $self->dir('data') );
 
 	return 1;
 } ## end sub install_portable
@@ -3117,8 +3117,7 @@ sub verify_msi_file_contents {
 	my $files_zip = File::List::Object->new();
 	$files_zip->readdir($image_dir);
 	$files_zip->remove_files(
-		( grep {m/\Q.AAA\E\z/msx} @{$files_zip->files()} )
-	);
+		( grep {m/\Q.AAA\E\z/msx} @{ $files_zip->files() } ) );
 	$files_zip->filter( $self->_filters() );
 
 	my $not_in_msi =
@@ -4440,11 +4439,11 @@ sub perl_config_myuname {
 	my $self = shift;
 
 	my $version = $self->perl_version_human();
-	
+
 	if ( $version =~ m/git/ms ) {
 		$version = $self->git_describe();
 	}
-	
+
 	if ( $self->smoketest() ) {
 		$version .= '.smoketest';
 	} else {

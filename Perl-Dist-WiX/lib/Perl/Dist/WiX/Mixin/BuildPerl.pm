@@ -588,7 +588,8 @@ sub _create_perl_toolchain { ## no critic(ProhibitUnusedPrivateSubroutines)
 		$force = { 'Pod::Text' => 'RRA/podlators-2.4.0.tar.gz' };
 	}
 	if ( $self->perl_version eq '5140' ) {
-		$force = { 'ExtUtils::MakeMaker' => 'MSCHWERN/ExtUtils-MakeMaker-6.57_10.tar.gz' };
+		$force = { 'ExtUtils::MakeMaker' =>
+			  'MSCHWERN/ExtUtils-MakeMaker-6.57_10.tar.gz' };
 	}
 	$force->{'LWP'} = 'GAAS/libwww-perl-5.837.tar.gz';
 
