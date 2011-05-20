@@ -424,7 +424,7 @@ use Aspect::Point::AfterThrowing   ();
 use Aspect::Point::Around          ();
 use Aspect::Point::Before          ();
 
-our $VERSION = '0.97_03';
+our $VERSION = '0.97_04';
 
 # Track the location of exported functions so that pointcuts
 # can avoid accidentally binding them.

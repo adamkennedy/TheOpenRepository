@@ -1,5 +1,8 @@
 Revision history for Perl extension Aspect
 
+0.97_04 Sat 21 May 2011
+	- Added more POD to the main page, this is closer to the final form
+
 0.97_03 Fri 20 May 2011
 	- Simplified if_true to true and ::If to ::True
 	- Expanded XS acceleration to more classes and methods

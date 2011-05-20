@@ -3,7 +3,7 @@ package Aspect::Library;
 use strict;
 use warnings;
 
-our $VERSION = '0.97_03';
+our $VERSION = '0.97_04';
 
 1;
 

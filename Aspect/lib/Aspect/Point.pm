@@ -6,7 +6,7 @@ use Carp                  ();
 use Sub::Uplevel          ();
 use Aspect::Point::Static ();
 
-our $VERSION = '0.97_03';
+our $VERSION = '0.97_04';
 
 
 
