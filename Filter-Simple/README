@@ -414,7 +414,7 @@ DESCRIPTION
         use Filter::Simple;
 
         FILTER { s/(\w+)/\U$1/ };
-    
+
     that will almost never be a problem, but if you install a filtering
     subroutine by passing it directly to the "use Filter::Simple" statement:
 
@@ -497,3 +497,4 @@ COPYRIGHT AND LICENSE
         Copyright (c) 2000-2008, Damian Conway. All Rights Reserved.
         This module is free software. It may be used, redistributed
         and/or modified under the same terms as Perl itself.
+
