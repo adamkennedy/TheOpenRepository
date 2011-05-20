@@ -1,5 +1,5 @@
 BEGIN {
-        unshift @INC, 't/lib/';
+    unshift @INC, 't/lib/';
 }
 
 use Filter::Simple::FilterOnlyTest qr/ok/ => "not ok", "bad" => "ok";
