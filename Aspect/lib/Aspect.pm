@@ -707,7 +707,7 @@ be very difficult.
 When a custom or unusual pattern of interception is needed, often all that is
 desired is to extend a relatively normal pointcut with an extra caveat.
 
-To allow for this scenario, B<Aspect> provides the C<is_true> pointcut.
+To allow for this scenario, B<Aspect> provides the C<true> pointcut.
 
 This pointcut allows you to specify any arbitrary code to match on. This code
 will be executed at run-time if the join point matches all previous conditions.
