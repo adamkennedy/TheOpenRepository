@@ -11,7 +11,7 @@ use Aspect::Hook          ();
 use Aspect::Advice        ();
 use Aspect::Point::Before ();
 
-our $VERSION = '0.97_04';
+our $VERSION = '0.97_05';
 our @ISA     = 'Aspect::Advice';
 
 sub _install {
@@ -84,7 +84,7 @@ sub _install {
 				# Run the advice code
 				&\$code(\$_);
 
-				if ( \$_->proceed ) {
+				if ( \$_->{proceed} ) {
 					\@_ = \$_->args; ### Superfluous?
 					goto &\$original;
 				}
@@ -97,7 +97,7 @@ sub _install {
 			&\$code(\$_);
 
 			# Do they want to shortcut?
-			return \$_->{return_value} unless \$_->proceed;
+			return \$_->{return_value} unless \$_->{proceed};
 
 			# Continue onwards to the original function
 			\@_ = \$_->args; ### Superfluous?
@@ -116,14 +116,25 @@ END_PERL
 	return sub { $out_of_scope = 1 };
 }
 
+# Check for pointcut usage not supported by the advice type
 sub _validate {
-	my $self = shift;
+	my $self     = shift;
+	my $pointcut = $self->pointcut;
 
-	# Special case.
 	# The method used by the Highest pointcut is incompatible
 	# with the goto optimisation used by the before() advice.
-	if ( $self->pointcut->match_contains('Aspect::Pointcut::Highest') ) {
+	if ( $pointcut->match_contains('Aspect::Pointcut::Highest') ) {
 		return 'The pointcut highest is not currently supported by before advice';
+	}
+
+	# Pointcuts using "throwing" are irrelevant in before advice
+	if ( $pointcut->match_contains('Aspect::Pointcut::Throwing') ) {
+		return 'The pointcut throwing is illegal when used by before advice';
+	}
+
+	# Pointcuts using "throwing" are irrelevant in before advice
+	if ( $pointcut->match_contains('Aspect::Pointcut::Returning') ) {
+		return 'The pointcut returning is illegal when used by before advice';
 	}
 
 	$self->SUPER::_validate(@_);

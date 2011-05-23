@@ -1,12 +1,31 @@
 Revision history for Perl extension Aspect
 
-0.97_04 Sat 21 May 2011
+0.97_05 Mon 23 May 2011
 	- Advice code is now always run consistently in void context, the
 	  ->wantarray method is now the only way to check the calling context
 	  of the active joint point. This is not only more consistent in having
 	  all context come from methods, is also prevents inconsistent
 	  behaviour when calling methods directly with $_->self->method and it
 	  allows context-senstive behaviour to be added to the advice methods.
+	- Replaced params and params_ref with args, with a different behaviour
+	  based on the wantarray context it is called in. This is semantically
+	  much closer to the AspectJ version, and more importantly it has no
+	  "convenience" features which will prevent weird complexity later on.
+	- Rewrote return_value to act on context in the same manner as args.
+	  This is theoretically not backwards compatible, but the entire test
+	  suite continued to pass after change, which shows that the only things
+	  backcompatible would be things using methods in a strange manner.
+	- Added POD documentation for most of the methods in Aspect::Point.
+	- Added basic POD skeletons for the different Aspect::Advice:: classes.
+	- Minor optimisation in generated code to check for exceptions
+	  directly, rather than via the slower accessor method.
+	- Clarified that only after and after_throwing support exception
+	  handling and throwing.
+	- Aspect::Advice::AfterReturning now inherits from ::After
+	- Aspect::Advice::AfterThrowing  now inherits from ::After
+	- Added the returning pointcut for use with after advice
+
+0.97_04 Sat 21 May 2011
 	- Added more POD to the main page, this is closer to the final form
 
 0.97_03 Fri 20 May 2011

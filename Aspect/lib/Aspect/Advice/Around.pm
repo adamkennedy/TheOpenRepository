@@ -12,7 +12,7 @@ use Aspect::Hook          ();
 use Aspect::Advice        ();
 use Aspect::Point::Around ();
 
-our $VERSION = '0.97_04';
+our $VERSION = '0.97_05';
 our @ISA     = 'Aspect::Advice';
 
 sub _install {
@@ -73,7 +73,6 @@ sub _install {
 				wantarray    => \$wantarray,
 				args         => \\\@_,
 				return_value => \$wantarray ? [ ] : undef,
-				exception    => '',
 				pointcut     => \$pointcut,
 				original     => \$original,
 			}, 'Aspect::Point::Around';
@@ -109,6 +108,24 @@ END_PERL
 	# parent object calling _install. This is less bullet-proof
 	# than the DESTROY-time self-executing blessed coderef
 	return sub { $out_of_scope = 1 };
+}
+
+# Check for pointcut usage not supported by the advice type
+sub _validate {
+	my $self     = shift;
+	my $pointcut = $self->pointcut;
+
+	# Pointcuts using "throwing" are irrelevant in before advice
+	if ( $pointcut->match_contains('Aspect::Pointcut::Throwing') ) {
+		return 'The pointcut throwing is illegal when used by around advice';
+	}
+
+	# Pointcuts using "throwing" are irrelevant in before advice
+	if ( $pointcut->match_contains('Aspect::Pointcut::Returning') ) {
+		return 'The pointcut returning is illegal when used by around advice';
+	}
+
+	$self->SUPER::_validate(@_);
 }
 
 1;

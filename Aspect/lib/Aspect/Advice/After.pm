@@ -12,7 +12,7 @@ use Aspect::Hook         ();
 use Aspect::Advice       ();
 use Aspect::Point::After ();
 
-our $VERSION = '0.97_04';
+our $VERSION = '0.97_05';
 our @ISA     = 'Aspect::Advice';
 
 # NOTE: To simplify debugging of the generated code, all injected string
@@ -95,7 +95,7 @@ sub _install {
 				&\$code(\$_);
 
 				# Throw the same (or modified) exception
-				my \$exception = \$_->exception;
+				my \$exception = \$_->{exception};
 				die \$exception if \$exception;
 
 				# Get the (potentially) modified return value
@@ -128,7 +128,7 @@ sub _install {
 				&\$code(\$_);
 
 				# Throw the same (or modified) exception
-				my \$exception = \$_->exception;
+				my \$exception = \$_->{exception};
 				die \$exception if \$exception;
 
 				# Return the potentially-modified value
@@ -160,7 +160,7 @@ sub _install {
 			&\$code(\$_);
 
 			# Throw the same (or modified) exception
-			my \$exception = \$_->exception;
+			my \$exception = \$_->{exception};
 			die \$exception if \$exception;
 
 			return;
@@ -198,8 +198,11 @@ Aspect::Advice::After - Execute code after a function is called
   
       # Suppress exceptions AND alter the results to foo()
       if ( $_->short_name eq 'foo' ) {
-          $_->return_value(1) if $_->exception;
-          $_->return_value( $_->return_value + 1 );
+          if ( $_->exception ) {
+              $_->return_value(1);
+          } else {
+              $_->return_value( $_->return_value + 1 );
+          }
       }
   
   } call qr/^ MyModule::\w+ $/

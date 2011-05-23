@@ -9,11 +9,11 @@ use Carp::Heavy                  ();
 use Carp                         ();
 use Sub::Uplevel                 ();
 use Aspect::Hook                 ();
-use Aspect::Advice               ();
+use Aspect::Advice::After        ();
 use Aspect::Point::AfterThrowing ();
 
-our $VERSION = '0.97_04';
-our @ISA     = 'Aspect::Advice';
+our $VERSION = '0.97_05';
+our @ISA     = 'Aspect::Advice::After';
 
 # NOTE: To simplify debugging of the generated code, all injected string
 # fragments will be defined in $UPPERCASE, and all lexical variables to be
@@ -94,7 +94,7 @@ sub _install {
 				&\$code(\$_);
 
 				# Throw the same (or modified) exception
-				my \$exception = \$_->exception;
+				my \$exception = \$_->{exception};
 				die \$exception if \$exception;
 
 				# Get the (potentially) modified return value
@@ -125,7 +125,7 @@ sub _install {
 				&\$code(\$_);
 
 				# Throw the same (or modified) exception
-				my \$exception = \$_->exception;
+				my \$exception = \$_->{exception};
 				die \$exception if \$exception;
 
 				# Return the potentially-modified value
@@ -155,7 +155,7 @@ sub _install {
 				&\$code(\$_);
 
 				# Throw the same (or modified) exception
-				my \$exception = \$_->exception;
+				my \$exception = \$_->{exception};
 				die \$exception if \$exception;
 
 				return;
@@ -172,6 +172,19 @@ END_PERL
 	# parent object calling _install. This is less bullet-proof
 	# than the DESTROY-time self-executing blessed coderef
 	return sub { $out_of_scope = 1 };
+}
+
+# Check for pointcut usage not supported by the advice type
+sub _validate {
+	my $self     = shift;
+	my $pointcut = $self->pointcut;
+
+	# Pointcuts using "throwing" are irrelevant in before advice
+	if ( $pointcut->match_contains('Aspect::Pointcut::Returning') ) {
+		return 'The pointcut returning is illegal when used by after_throwing advice';
+	}
+
+	$self->SUPER::_validate(@_);
 }
 
 1;

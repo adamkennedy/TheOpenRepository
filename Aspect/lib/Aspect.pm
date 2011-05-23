@@ -409,6 +409,7 @@ use Aspect::Pointcut::Call         ();
 use Aspect::Pointcut::Cflow        ();
 use Aspect::Pointcut::Highest      ();
 use Aspect::Pointcut::Throwing     ();
+use Aspect::Pointcut::Returning    ();
 use Aspect::Pointcut::Wantarray    ();
 use Aspect::Advice                 ();
 use Aspect::Advice::After          ();
@@ -424,7 +425,7 @@ use Aspect::Point::AfterThrowing   ();
 use Aspect::Point::Around          ();
 use Aspect::Point::Before          ();
 
-our $VERSION = '0.97_04';
+our $VERSION = '0.97_05';
 
 # Track the location of exported functions so that pointcuts
 # can avoid accidentally binding them.
@@ -684,6 +685,24 @@ L<Aspect::Pointcut::Throwing>.
 
 sub throwing ($) {
 	Aspect::Pointcut::Throwing->new(@_);
+}
+
+=pod
+
+=head2 returning
+
+  after {
+      print "No exception\n";
+  } call 'Foo::bar' & returning;
+
+The C<returning> pointcut is used with C<after> advice types to indicate the
+join point should only occur when a function is returning B<without> throwing
+an exception.
+
+=cut
+
+sub returning () {
+	Aspect::Pointcut::Returning->new;
 }
 
 =pod
@@ -1042,7 +1061,7 @@ sub import {
 		# Install new generation API functions
 		foreach ( qw{
 			around after_returning after_throwing
-			true highest throwing
+			true highest throwing returning
 			wantlist wantscalar wantvoid
 		} ) {
 			Sub::Install::install_sub( {
