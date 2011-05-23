@@ -85,7 +85,7 @@ sub _install {
 				&\$code(\$_);
 
 				if ( \$_->proceed ) {
-					\@_ = \$_->args;
+					\@_ = \$_->args; ### Superfluous?
 					goto &\$original;
 				}
 
@@ -100,7 +100,7 @@ sub _install {
 			return \$_->{return_value} unless \$_->proceed;
 
 			# Continue onwards to the original function
-			\@_ = \$_->args;
+			\@_ = \$_->args; ### Superfluous?
 			goto &\$original;
 		};
 END_PERL
@@ -150,9 +150,14 @@ Aspect::Advice::Before - Execute code before a function is called
   
       # Shortcut calls to foo() to always be true
       if ( $_->short_name eq 'foo' ) {
-          $_->return_value(1);
+          return $_->return_value(1);
       }
   
+      # Add an extra flag to bar() but call as normal
+      if ( $_->short_name eq 'bar' ) {
+          $_->args( $_->args, 'flag' );
+      }
+
   } call qr/^ MyModule::\w+ $/
 
 =head1 DESCRIPTION

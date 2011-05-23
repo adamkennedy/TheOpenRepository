@@ -4,15 +4,114 @@ package Aspect::Point;
 
 =head1 NAME
 
-Aspect::Point - Context information during advice code for a single join point
+Aspect::Point - The Join Point context
+
+=head1 SYNOPSIS
+  
+  # An anonymous function suitable for use as advice code
+  # across all advice types (as it uses no limited access methods)
+  my $advice_code = sub {
+     print $_->type;         # The advice type ('before')
+     print $_->pointcut;     # The matching pointcut ($pointcut)
+     print $_->enclosing;    # Access cflow pointcut advice context
+     print $_->sub_name;     # The full package_name::sub_name
+     print $_->package_name; # The package name ('Person')
+     print $_->short_name;   # The sub name (a get or set method)
+     print $_->self;         # 1st parameter to the matching sub
+     print ($_->args)[1];    # 2nd parameter to the matching sub
+     $_->original->(x => 3); # Call matched sub independently
+     $->return_value(4)      # Set the return value
+  };
 
 =head1 DESCRIPTION
 
-The B<Aspect::Point> class family provides information and functionality about
-the context of a single call of a single join point during the execution
-of the advice code at that join point.
+Advice code is called when the advice pointcut is matched. In this code,
+there is often a need to access information about the join point context
+of the advice. Information like:
 
-It is made available via the topic variable C<$_>.
+What is the actual sub name matched?
+
+What are the parameters in this call that we matched?
+
+Sometimes you want to change the context for the matched sub, such as
+appending a parameter or even stopping the matched sub from being called
+at all.
+
+You do all these things through the C<Join Point>, which is an object
+that isa L<Aspect::Point>. It is the only parameter provided to the advice
+code. It provides all the information required about the match context,
+and allows you to change the behavior of the matched sub.
+
+Note: Modifying parameters through the context in the code of an I<after>
+advice, will have no effect, since the matched sub has already been called.
+
+In a future release this will be fixed so that the context for each advice
+type only responds to the methods relevant to that context, with the rest
+throwing an exception.
+
+=head2 Cflows
+
+If the pointcut of an advice is composed of at least one C<cflow> the
+advice code may require not only the context of the advice, but the join
+point context of the cflows as well.
+
+This is required if you want to find out, for example, what the name of the
+sub that matched a cflow. In the synopsis example above, which method from
+C<Company> started the chain of calls that eventually reached the get/set
+on C<Person>?
+
+You can access cflow context in the synopsis above, by calling:
+
+  $point->enclosing;
+
+You get it from the main advice join point by calling a method named after
+the context key used in the cflow spec (which is "enclosing" if a custom name
+was not provided, in line with AspectJ terminology). In the synopsis pointcut
+definition, the cflow part was equivalent to:
+
+  cflow enclosing => qr/^Company::/
+        ^^^^^^^^^
+
+An L<Aspect::Point::Static> will be created for the cflow, and you can access it
+using the C<enclosing> method.
+
+=head1 EXAMPLES
+
+Print parameters to matched sub:
+
+  before {
+      print join ',', $_->args;
+  } $pointcut;
+
+Append a parameter:
+
+  before {
+      $_->args( $_->args, 'extra parameter' );
+  } $pointcut;
+
+Don't proceed to matched sub, return 4 instead:
+
+  before {
+      shift->return_value(4);
+  } $pointcut;
+
+Call matched sub again and again until it returns something defined:
+
+  after {
+      my $point  = shift;
+      my $return = $point->return_value;
+      while ( not defined $return ) {
+          $return = $point->original($point->params);
+      }
+      $point->return_value($return);
+  } $pointcut;
+
+Print the name of the C<Company> object that started the chain of calls
+that eventually reached the get/set on C<Person>:
+
+  before {
+      print shift->enclosing->self->name;
+  } $pointcut;
 
 =head1 METHODS
 
@@ -171,8 +270,8 @@ older C<params> method).
 =cut
 
 sub args {
-	if ( defined wantarray ) {
-		return @{shift->{args}};
+	if ( defined CORE::wantarray ) {
+		return @{$_[0]->{args}};
 	} else {
 		@{$_[0]->{args}} = @_[1..$#_];
 	}
@@ -224,6 +323,19 @@ As with the core Perl C<wantarray> function, returns true if the function is
 being called in list context, false if the function is being called in scalar
 context, or C<undef> if the function is being called in void context.
 
+B<Backcompatibility Note:>
+
+Prior to L<Aspect> 0.98 the wantarray context of the call to the join point
+was available not only via the C<wantarray> method, but the advice code itself
+was called in matching wantarray context to the function call, allowing you to
+use plain C<wantarray> in the advice code as well.
+
+As all the other information about the join point was available through methods,
+having this one piece of metadata available different was becoming an oddity.
+
+The C<wantarray> context of the join point is now B<only> available by the
+C<wantarray> method.
+
 =cut
 
 sub wantarray {
@@ -240,32 +352,83 @@ sub wantarray {
 The C<return_value> method is used to get or set the return value for the
 join point function, in a similar way to the normal Perl C<return> keyword.
 
+As with the C<args> method, the C<return_value> method is sensitive to the
+context in which it is called.
+
+When called in list context, the C<return_value> method returns the join point
+return value as a list. If the join point is called in scalar context, this will
+be a single-element list containing the scalar return value. If the join point
+is called in void context, this will be a null list.
+
+When called in scalar context, the C<return_value> method returns the join
+point return value as a scalar. If the join point is called in list context,
+this will be the number of vales in the return list. If the join point is called
+in void context, this will be C<undef>
+
+When called in void context, the C<return_value> method sets the return value
+for the join point using semantics identical to the C<return> keyword.
+
+Because of this change in behavior based on the context in which C<return_value>
+is called, you should generally always set C<return_value> in it's own statement
+to prevent accidentally calling it in non-void context.
+
+  # Return null (equivalent to "return;")
+  $_->return_value;
+
+In advice types that can be triggered by an exception, or need to determine
+whether to continue to the join point function, setting a return value via
+C<return_value> is seen as implicitly indicating that any exception should be
+suppressed, or that we do B<not> want to continue to the join point function.
+
+When you call the C<return_value> method this does NOT trigger an immediate
+C<return> equivalent in the advice code, the lines after C<return_value> will
+continue to be executed as normal (to provide an opportunity for cleanup
+operations to be done and so on).
+
+If you use C<return_value> inside an if/else structure you will still need to
+do an explicit C<return> if you wish to break out of the advice code.
+
+Thus, if you wish to break out of the advice code as well as return with an
+alternative value, you should do the following.
+
+  return $_->return_value('value');
+
+This usage of C<return_value> appears to be contrary to the above instruction
+that setting the return value should always be done on a standalone line to
+guarentee void context.
+
+However, in Perl the context of the current function is inherited by a function
+called with return in the manner shown above. Thus the usage of C<return_value>
+in this way alone is guarenteed to also set the return value rather than fetch
+it.
 
 =cut
 
 sub return_value {
 	my $self = shift;
 
-	if ( $self->{wantarray} ) {
-		return @{$self->{return_value}} unless @_;
-
-		# Normalise list-wise return behaviour
-		# at mutation time, rather than everywhere else.
-		# NOTE: Reuse the current array reference. This
-		# causes the original return values to be cleaned
-		# up immediately, and allows for a small
-		# optimisation in the surrounding advice hook code.
-		$self->{return_value} = \@_;
-		$self->{exception}    = '';
-		$self->{proceed}      = 0;
-		return @_;
+	# Handle usage in getter form
+	if ( defined CORE::wantarray() ) {
+		# Let the inherent magic of Perl do the work between the
+		# list and scalar context calls to return_value
+		if ( $self->{wantarray} ) {
+			return @{$self->{return_value}};
+		} elsif ( defined $self->{wantarray} ) {
+			return $self->{return_value};
+		} else {
+			return;
+		}
 	}
 
-	return $self->{return_value} unless @_;
-
-	$self->{exception}    = '';
-	$self->{proceed}      = 0;
-	$self->{return_value} = shift;
+	# Having provided a return value, suppress any exceptions
+	# and don't proceed if applicable.
+	$self->{exception} = '';
+	$self->{proceed}   = 0;
+	if ( $self->{wantarray} ) {
+		@{$self->{return_value}} = @_;
+	} elsif ( defined $self->{wantarray} ) {
+		$self->{return_value} = pop;
+	}
 }
 
 # Accelerate the recommended cflow key
@@ -328,124 +491,7 @@ END_PERL
 
 1;
 
-__END__
-
 =pod
-
-=head1 NAME
-
-Aspect::Point - The Join Point context
-
-=head1 SYNOPSIS
-
-  $pointcut = call qr/^Person::[gs]et_/
-            & cflow qr/^Company::/;
-  
-  # using in 'before' advice code
-  before {
-     my $point = shift;             # Context is the only param to advice
-     print $point->type;            # The advice type ('before')
-     print $point->pointcut;        # The matching pointcut ($pointcut)
-     print $point->enclosing->name; # Access cflow pointcut advice context
-     print $point->sub_name;        # The full package_name::sub_name
-     print $point->package_name;    # The package name ('Person')
-     print $point->short_name;      # The sub name (a get or set method)
-     print $point->self;            # 1st parameter to the matching sub
-     print ($point->args)[1];       # 2nd parameter to the matching sub
-     $point->original->(x => 3);    # Call matched sub independently
-     $point->return_value(4)        # Don't proceed and return immediately
-     $point->proceed(1);            # Continue to sub with context params
-  } $pointcut;
-
-=head1 DESCRIPTION
-
-Advice code is called when the advice pointcut is matched. In this code,
-there is often a need to access information about the join point context
-of the advice. Information like:
-
-What is the actual sub name matched?
-
-What are the parameters in this call that we matched?
-
-Sometimes you want to change the context for the matched sub, such as
-appending a parameter or even stopping the matched sub from being called
-at all.
-
-You do all these things through the C<Join Point>, which is an object
-that isa L<Aspect::Point>. It is the only parameter provided to the advice
-code. It provides all the information required about the match context,
-and allows you to change the behavior of the matched sub.
-
-Note: Modifying parameters through the context in the code of an I<after>
-advice, will have no effect, since the matched sub has already been called.
-
-In a future release this will be fixed so that the context for each advice
-type only responds to the methods relevant to that context, with the rest
-throwing an exception.
-
-=head2 Cflows
-
-If the pointcut of an advice is composed of at least one C<cflow> the
-advice code may require not only the context of the advice, but the join
-point context of the cflows as well.
-
-This is required if you want to find out, for example, what the name of the
-sub that matched a cflow. In the synopsis example above, which method from
-C<Company> started the chain of calls that eventually reached the get/set
-on C<Person>?
-
-You can access cflow context in the synopsis above, by calling:
-
-  $point->enclosing;
-
-You get it from the main advice join point by calling a method named after
-the context key used in the cflow spec (which is "enclosing" if a custom name
-was not provided, in line with AspectJ terminology). In the synopsis pointcut
-definition, the cflow part was equivalent to:
-
-  cflow enclosing => qr/^Company::/
-        ^^^^^^^^^
-
-An L<Aspect::Point::Static> will be created for the cflow, and you can access it
-using the C<enclosing> method.
-
-=head1 EXAMPLES
-
-Print parameters to matched sub:
-
-  before {
-      print join ',', $_->args;
-  } $pointcut;
-
-Append a parameter:
-
-  before {
-      $_->args( $_->args, 'extra parameter' );
-  } $pointcut;
-
-Don't proceed to matched sub, return 4 instead:
-
-  before {
-      shift->return_value(4);
-  } $pointcut;
-
-Call matched sub again and again until it returns something defined:
-
-  after {
-      my $point  = shift;
-      my $return = $point->return_value;
-      while ( not defined $return ) {
-          $return = $point->original($point->params);
-      }
-      $point->return_value($return);
-  } $pointcut;
-
-Print the name of the C<Company> object that started the chain of calls
-that eventually reached the get/set on C<Person>:
-
-  before {
-      print shift->enclosing->self->name;
-  } $pointcut;
 
 =head1 AUTHORS
 
