@@ -93,9 +93,10 @@ is( $foo, 7, '->foo is called' );
 # Check that params works as expected and does pass through
 SCOPE: {
 	my $aspect = around {
-		my $p = $_[0]->params;
-		splice @$p, 1, 1, $p->[1] + 1;
-		$_[0]->proceed;
+		my @p = $_->args;
+		splice @p, 1, 1, $p[1] + 1;
+		$_->args(@p);
+		$_->proceed;
 	} call qr/My::One::inc/;
 	is( $object->inc(2), 4, 'around advice changing params' );
 	is( $inc, 2, '->inc is called' );
@@ -105,19 +106,22 @@ SCOPE: {
 # Check that we can run several simultaneous hooks.
 SCOPE: {
 	my $aspect1 = around {
-		my $p = $_[0]->params;
-		splice @$p, 1, 1, $p->[1] + 1;
-		$_[0]->proceed;
+		my @p = $_->args;
+		splice @p, 1, 1, $p[1] + 1;
+		$_->args(@p);
+		$_->proceed;
 	} call qr/My::One::inc/;
 	my $aspect2 = around {
-		my $p = $_[0]->params;
-		splice @$p, 1, 1, $p->[1] + 1;
-		$_[0]->proceed;
+		my @p = $_->args;
+		splice @p, 1, 1, $p[1] + 1;
+		$_->args(@p);
+		$_->proceed;
 	} call qr/My::One::inc/;
 	my $aspect3 = around {
-		my $p = $_[0]->params;
-		splice @$p, 1, 1, $p->[1] + 1;
-		$_[0]->proceed;
+		my @p = $_->args;
+		splice @p, 1, 1, $p[1] + 1;
+		$_->args(@p);
+		$_->proceed;
 	} call qr/My::One::inc/;
 	is( $object->inc(2), 6, 'around advice changing params' );
 	is( $inc, 3, '->inc is called' );
@@ -315,8 +319,8 @@ is_deeply(
 		array
 		scalar
 		void
-		ARRAY ARRAY array
-		SCALAR SCALAR scalar
+		ARRAY VOID array
+		SCALAR VOID scalar
 		VOID VOID void
 		array
 		scalar

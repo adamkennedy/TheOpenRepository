@@ -80,7 +80,7 @@ sub _install {
 				local \$_ = bless {
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
-					params       => \\\@_,
+					args         => \\\@_,
 					return_value => \$return,
 					exception    => '',
 					pointcut     => \$pointcut,
@@ -90,7 +90,7 @@ sub _install {
 				return \@\$return unless $MATCH_RUN;
 
 				# Execute the advice code
-				() = &\$code(\$_);
+				&\$code(\$_);
 
 				# Get the (potentially) modified return value
 				return \@{\$_->{return_value}};
@@ -104,7 +104,7 @@ sub _install {
 				local \$_ = bless {
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
-					params       => \\\@_,
+					args         => \\\@_,
 					return_value => \$return,
 					exception    => '',
 					pointcut     => \$pointcut,
@@ -114,7 +114,7 @@ sub _install {
 				return \$return unless $MATCH_RUN;
 
 				# Execute the advice code
-				my \$dummy = &\$code(\$_);
+				&\$code(\$_);
 				return \$_->{return_value};
 
 			} else {
@@ -125,7 +125,7 @@ sub _install {
 				local \$_ = bless {
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
-					params       => \\\@_,
+					args         => \\\@_,
 					return_value => undef,
 					exception    => '',
 					pointcut     => \$pointcut,
@@ -172,7 +172,7 @@ without throwing an exception.
       print STDERR "Called my function " . $_->sub_name . "\n";
   
       # Throw an exception if foo() returns 'bar'
-      if ( $_->short_sub_name eq 'foo' and $_->return_value eq 'bar' ) {
+      if ( $_->short_name eq 'foo' and $_->return_value eq 'bar' ) {
           $_->exception("Missing or invalid arguments to foo()");
       }
   

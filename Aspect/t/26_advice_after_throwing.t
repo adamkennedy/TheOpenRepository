@@ -366,8 +366,8 @@ is_deeply(
 		array
 		scalar
 		void
-		array ARRAY ARRAY
-		scalar SCALAR SCALAR
+		array ARRAY VOID
+		scalar SCALAR VOID
 		void VOID VOID
 		array
 		scalar

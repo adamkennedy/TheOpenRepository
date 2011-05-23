@@ -69,7 +69,7 @@ sub compile_runtime {
 		my $context = bless {
 			sub_name => $caller->{sub_name},
 			pointcut => $_->{pointcut},
-			params   => $caller->{params},
+			args     => $caller->{args},
 		}, 'Aspect::Point::Static';
 		$_->{$self->[KEY]} = $context;
 		return 1;
@@ -91,7 +91,7 @@ sub caller_info {
 	return defined $call_info{calling_package}
 		? {
 			%call_info,
-			params => [
+			args => [
 				$call_info{has_params} ? @DB::args : ()
 			],
 		} : 0;

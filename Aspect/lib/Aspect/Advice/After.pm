@@ -80,7 +80,7 @@ sub _install {
 				local \$_ = bless {
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
-					params       => \\\@_,
+					args         => \\\@_,
 					return_value => \$return,
 					exception    => \$\@,
 					pointcut     => \$pointcut,
@@ -92,7 +92,7 @@ sub _install {
 				}
 
 				# Execute the advice code
-				() = &\$code(\$_);
+				&\$code(\$_);
 
 				# Throw the same (or modified) exception
 				my \$exception = \$_->exception;
@@ -112,7 +112,7 @@ sub _install {
 				local \$_ = bless {
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
-					params       => \\\@_,
+					args         => \\\@_,
 					return_value => \$return,
 					exception    => \$\@,
 					pointcut     => \$pointcut,
@@ -125,7 +125,7 @@ sub _install {
 				}
 
 				# Execute the advice code
-				my \$dummy = &\$code(\$_);
+				&\$code(\$_);
 
 				# Throw the same (or modified) exception
 				my \$exception = \$_->exception;
@@ -145,7 +145,7 @@ sub _install {
 			local \$_ = bless {
 				sub_name     => \$name,
 				wantarray    => \$wantarray,
-				params       => \\\@_,
+				args         => \\\@_,
 				return_value => undef,
 				exception    => \$\@,
 				pointcut     => \$pointcut,
@@ -197,7 +197,7 @@ Aspect::Advice::After - Execute code after a function is called
       print STDERR "Called my function " . $_->sub_name . "\n";
   
       # Suppress exceptions AND alter the results to foo()
-      if ( $_->short_sub_name eq 'foo' ) {
+      if ( $_->short_name eq 'foo' ) {
           $_->return_value(1) if $_->exception;
           $_->return_value( $_->return_value + 1 );
       }

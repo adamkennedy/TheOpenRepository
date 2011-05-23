@@ -27,7 +27,7 @@ sub proceed {
 		Sub::Uplevel::uplevel(
 			2,
 			$self->{original},
-			@{$self->{params}},
+			@{$self->{args}},
 		)
 	) if $self->{wantarray};
 
@@ -35,14 +35,14 @@ sub proceed {
 		scalar Sub::Uplevel::uplevel(
 			2,
 			$self->{original},
-			@{$self->{params}},
+			@{$self->{args}},
 		)
 	) if defined $self->{wantarray};
 
 	return Sub::Uplevel::uplevel(
 		2,
 		$self->{original},
-		@{$self->{params}},
+		@{$self->{args}},
 	);
 }
 

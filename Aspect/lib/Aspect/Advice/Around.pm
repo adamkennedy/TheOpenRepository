@@ -71,7 +71,7 @@ sub _install {
 			local \$_ = bless {
 				sub_name     => \$name,
 				wantarray    => \$wantarray,
-				params       => \\\@_,
+				args         => \\\@_,
 				return_value => \$wantarray ? [ ] : undef,
 				exception    => '',
 				pointcut     => \$pointcut,
@@ -83,7 +83,7 @@ sub _install {
 			# Array context needs some special return handling
 			if ( \$wantarray ) {
 				# Run the advice code
-				() = Sub::Uplevel::uplevel(
+				Sub::Uplevel::uplevel(
 					1, \$code, \$_,
 				);
 
@@ -92,16 +92,9 @@ sub _install {
 			}
 
 			# Scalar and void have the same return handling.
-			# Just run the advice code differently.
-			if ( defined \$wantarray ) {
-				my \$dummy = Sub::Uplevel::uplevel(
-					1, \$code, \$_,
-				);
-			} else {
-				Sub::Uplevel::uplevel(
-					1, \$code, \$_,
-				);
-			}
+			Sub::Uplevel::uplevel(
+				1, \$code, \$_,
+			);
 
 			return \$_->{return_value};
 		};

@@ -20,7 +20,7 @@ sub get_advice {
 			Aspect::Pointcut::Cflow->new( source => $_[0] ),
 		),
 		code => sub {
-			$_->params( $_->params, $_->source->self );
+			$_->args( $_->args, $_->source->self );
 		},
 	);
 }

@@ -65,7 +65,7 @@ sub pointcut {
 
 =head2 sub_name
 
-  # Prints Full::Function::name
+  # Prints "Full::Function::name"
   before {
       print $_->sub_name . "\n";
   } call 'Full::Function::name';
@@ -77,6 +77,133 @@ at the join point the advice code is running at.
 
 sub sub_name {
 	$_[0]->{sub_name};
+}
+
+=pod
+
+=head2 package_name
+
+  # Prints "Just::Package"
+  before {
+      print $_->package_name . "\n";
+  } call 'Just::Package::name';
+
+The C<package_name> parameter is a convenience wrapper around the C<sub_name>
+method. Where C<sub_name> will return the fully resolved function name, the
+C<package_name> method will return just the namespace of the package of the
+join point.
+
+=cut
+
+sub package_name {
+	my $name = $_[0]->{sub_name};
+	return '' unless $name =~ /::/;
+	$name =~ s/::[^:]+$//;
+	return $name;
+}
+
+=pod
+
+=head2 short_name
+
+  # Prints "name"
+  before {
+      print $_->short_name . "\n";
+  } call 'Just::Package::name';
+
+The C<short_name> parameter is a convenience wrapper around the C<sub_name>
+method. Where C<sub_name> will return the fully resolved function name, the
+C<short_name> method will return just the name of the function.
+
+=cut
+
+sub short_name {
+	my $name = $_[0]->{sub_name};
+	return $name unless $name =~ /::/;
+	$name =~ /::([^:]+)$/;
+	return $1;
+}
+
+# Back compatibility
+BEGIN {
+	*short_sub_name = *short_name;
+}
+
+=pod
+
+  # Add a parameter to the function call
+  $_->args( $_->args, 'more' );
+
+The C<args> method allows you to get or set the list of parameters to a
+function. It is the method equivalent of manipulating the C<@_> array.
+
+It uses a slightly unusual calling convention based on list context, but does
+so in a way that allows your advice code to read very naturally.
+
+To summarise the situation, the three uses of the C<args> method are listed
+below, along with their C<@_> equivalents.
+
+  # Get the parameters as a list
+  my @list = $_->args;     # my $list = @_;
+  
+  # Get the number of parameters
+  my $count = $_->args;    # my $count = @_;
+  
+  # Set the parameters
+  $_->args( 1, 2, 3 );     # @_ = ( 1, 2, 3 );
+
+As you can see from the above example, when C<args> is called in list context
+it returns the list of parameters. When it is called in scalar context, it
+returns the number of parameters. And when it is called in void context, it
+sets the parameters to the passed values.
+
+Although this is somewhat unconventional, it does allow the most common existing
+uses of the older C<params> method to be changed directly to the new C<args>
+method (such as the first example above).
+
+And unlike the original, you can legally call C<args> in such a way as to set
+the function parameters to be an empty list (which you could not do with the
+older C<params> method).
+
+  # Set the function parameters to a null list
+  $_->args();
+
+=cut
+
+sub args {
+	if ( defined wantarray ) {
+		return @{shift->{args}};
+	} else {
+		@{$_[0]->{args}} = @_[1..$#_];
+	}
+}
+
+=pod
+
+=head2 self
+
+  after_returning {
+      $_->self->save;
+  } My::Foo::set;
+
+The C<self> method is a convenience provided for when you are writing advice
+that will be working with object-oriented Perl code. It returns the first the
+first parameter to the method (which should be object), which you can then call
+methods on.
+
+The result is advice code that is much more natural to read, as you can see in
+the above example where we implement an auto-save feature on the class
+C<My::Foo>, writing the contents to disk every time a value is set without
+error.
+
+At present the C<self> method is implemented fairly naively, if used outside
+of object-oriented code it will still return something (including C<undef> in
+the case where there were no parameters to the join point function).
+
+=cut
+
+sub self {
+	$_[0]->{args}->[0];
 }
 
 =pod
@@ -105,113 +232,16 @@ sub wantarray {
 
 =pod
 
-=head2 params_ref
+=head2 return_value
 
-The C<params_ref> method returns a reference to an C<ARRAY> containing the list
-of paramaters provided to the function. If the join point was a method call, the
-array will contain the calling object or class as the first param, as per the
-normal behaviour of object-oriented Perl code.
+  # Add an extra value to the returned list
+  $_->return_value( $_->return_value, 'thing' );
 
-To enable more convenient and powerful uses of L<Aspect> in your code, the
-C<ARRAY> reference returned is the actual live storage for the parameters that
-L<Aspect> itself uses for the function params.
+The C<return_value> method is used to get or set the return value for the
+join point function, in a similar way to the normal Perl C<return> keyword.
 
-Thus, you can use the returned reference not just to access the parameters, but
-to change them as well. For example, the following doubles the value of the
-third parameter to the function C<Foo::bar>.
-
-  before {
-      $_->params_ref->[2] *= 2;
-  } call 'Foo::bar';
 
 =cut
-
-sub params_ref {
-	$_[0]->{params};
-}
-
-=pod
-
-=head2 params
-
-The C<params> method returns the list of parameters to the function as a list.
-If the join point was a method call, the list will contain the calling object
-or calss as the first element in the list, as per the normal behaviour of
-object-oriented Perl code.
-
-=cut
-
-sub params {
-	$_[0]->{params} = [ @_[1..$#_] ] if @_ > 1;
-	return CORE::wantarray
-		? @{$_[0]->{params}}
-		: $_[0]->{params};
-}
-
-=pod
-
-=head2 self
-
-  after_returning {
-      $_->self->save;
-  } My::Foo::set;
-
-The C<self> method is a convenience provided for when you are writing advice
-that will be working with object-oriented Perl code. It returns the first the
-first parameter to the method (which should be object), which you can then call
-methods on.
-
-The result is advice code that is much more natural to read, as you can see in
-the above example where we implement an auto-save feature on the class
-C<My::Foo>, writing the contents to disk every time a value is set without
-error.
-
-At present the C<self> method is implemented fairly naively, if used outside
-of object-oriented code it will still return something (including C<undef> in
-the case where there were no params to the join point function).
-
-=cut
-
-sub self {
-	$_[0]->{params}->[0];
-}
-
-
-
-
-
-######################################################################
-# Higher Level Methods
-
-=pod
-
-=head2 package_name
-
-  # Prints Just::Package::name
-  before {
-      print $_->sub_name . "\n";
-  } call 'Just::Package::name';
-
-The C<package_name> parameter is a convenience wrapper around the C<sub_name>
-method. Where C<sub_name> will return the fully resolved function name, the
-C<package_name> method will return just the namespace of the package of the
-join point.
-
-=cut
-
-sub package_name {
-	my $name = $_[0]->{sub_name};
-	return '' unless $name =~ /::/;
-	$name =~ s/::[^:]+$//;
-	return $name;
-}
-
-sub short_sub_name {
-	my $name = $_[0]->{sub_name};
-	return $name unless $name =~ /::/;
-	$name =~ /::([^:]+)$/;
-	return $1;
-}
 
 sub return_value {
 	my $self = shift;
@@ -259,6 +289,24 @@ sub DESTROY () { }
 
 
 
+#######################################################################
+# Back Compatibility
+
+sub params_ref {
+	$_[0]->{args};
+}
+
+sub params {
+	$_[0]->{args} = [ @_[1..$#_] ] if @_ > 1;
+	return CORE::wantarray
+		? @{$_[0]->{args}}
+		: $_[0]->{args};
+}
+
+
+
+
+
 ######################################################################
 # Optional XS Acceleration
 
@@ -271,7 +319,7 @@ use Class::XSAccessor 1.08 {
 		'pointcut'   => 'pointcut',
 		'sub_name'   => 'sub_name',
 		'wantarray'  => 'wantarray',
-		'params_ref' => 'params',
+		'params_ref' => 'args',
 		'enclosing'  => 'enclosing',
 	},
 };
@@ -298,15 +346,15 @@ Aspect::Point - The Join Point context
      my $point = shift;             # Context is the only param to advice
      print $point->type;            # The advice type ('before')
      print $point->pointcut;        # The matching pointcut ($pointcut)
+     print $point->enclosing->name; # Access cflow pointcut advice context
      print $point->sub_name;        # The full package_name::sub_name
      print $point->package_name;    # The package name ('Person')
-     print $point->short_sub_name;  # The sub name (a get or set method)
+     print $point->short_name;      # The sub name (a get or set method)
      print $point->self;            # 1st parameter to the matching sub
-     print $point->params->[1];     # 2nd parameter to the matching sub
-     $point->return_value(4)        # Don't proceed and return immediately
+     print ($point->args)[1];       # 2nd parameter to the matching sub
      $point->original->(x => 3);    # Call matched sub independently
+     $point->return_value(4)        # Don't proceed and return immediately
      $point->proceed(1);            # Continue to sub with context params
-     print $point->enclosing->name; # Access cflow pointcut advice context
   } $pointcut;
 
 =head1 DESCRIPTION
@@ -366,13 +414,13 @@ using the C<enclosing> method.
 Print parameters to matched sub:
 
   before {
-      print join ',', $_->params;
+      print join ',', $_->args;
   } $pointcut;
 
 Append a parameter:
 
   before {
-      $_->params( $_params, 'extra-param' );
+      $_->args( $_->args, 'extra parameter' );
   } $pointcut;
 
 Don't proceed to matched sub, return 4 instead:

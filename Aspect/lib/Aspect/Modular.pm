@@ -13,7 +13,7 @@ sub new {
 
 	# Generate the appropriate advice
 	$self->{advice} = [
-		$self->get_advice( $self->params )
+		$self->get_advice( $self->args )
 	];
 
 	# Warn if the aspect is supposed to be permanent,
@@ -31,8 +31,8 @@ sub new {
 	return $self;
 }
 
-sub params {
-	@{$_[0]->{params}};
+sub args {
+	@{$_[0]->{args}};
 }
 
 sub lexical {
@@ -44,7 +44,16 @@ sub get_advice {
 	die("Method 'get_advice' is not implemented by class '$class'");
 }
 
-1;
+
+
+
+
+######################################################################
+# Back Compatibility
+
+BEGIN {
+	*params = *args;
+}
 
 
 
@@ -64,6 +73,8 @@ use Class::XSAccessor 1.08 {
 };
 END_PERL
 }
+
+1;
 
 __END__
 

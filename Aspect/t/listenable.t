@@ -100,7 +100,7 @@ SCOPE: {
 	is( $event->source, $point, 'source' );
 	is( $event->color, 'red', 'color' );
 	is( $event->old_color, 'blue', 'old_color' );
-	is_deeply( $event->params, ['red'], 'params' );
+	is_deeply( $event->params, [ 'red' ], 'args' );
 	remove_listener( $point, Color => $listener );
 }
 

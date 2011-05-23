@@ -146,8 +146,9 @@ is( $foo, 9, '->foo is called' );
 # Check that params works as expected and does pass through
 SCOPE: {
 	my $aspect = after {
-		my $p = shift->params;
-		splice @$p, 1, 1, $p->[1] + 1;
+		my @p = $_->args;
+		splice @p, 1, 1, $p[1] + 1;
+		$_->args(@p);
 	} call qr/My::One::inc/;
 	is( $object->inc(2), 3, 'after advice changing params does nothing' );
 	is( $inc, 2, '->inc is called' );
@@ -467,11 +468,11 @@ is_deeply(
 		array
 		scalar
 		void
-		array ARRAY ARRAY
-		scalar SCALAR SCALAR
+		array ARRAY VOID
+		scalar SCALAR VOID
 		void VOID VOID
-		array ARRAY ARRAY
-		scalar SCALAR SCALAR
+		array ARRAY VOID
+		scalar SCALAR VOID
 		void VOID VOID
 		array
 		scalar

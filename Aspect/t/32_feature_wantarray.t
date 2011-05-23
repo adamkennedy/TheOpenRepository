@@ -121,11 +121,11 @@ is_deeply(
 		array
 		scalar
 		void
-		ARRAY ARRAY array
-		SCALAR SCALAR scalar
+		ARRAY VOID array
+		SCALAR VOID scalar
 		VOID VOID void
-		array ARRAY ARRAY
-		scalar SCALAR SCALAR
+		array ARRAY VOID
+		scalar SCALAR VOID
 		void VOID VOID
 		array
 		scalar

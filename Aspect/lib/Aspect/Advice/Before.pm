@@ -70,7 +70,7 @@ sub _install {
 			local \$_ = bless {
 				sub_name     => \$name,
 				wantarray    => \$wantarray,
-				params       => \\\@_,
+				args         => \\\@_,
 				pointcut     => \$pointcut,
 				return_value => \$wantarray ? [ ] : undef,
 				original     => \$original,
@@ -82,10 +82,10 @@ sub _install {
 			# Array context needs some special return handling
 			if ( \$wantarray ) {
 				# Run the advice code
-				() = &\$code(\$_);
+				&\$code(\$_);
 
 				if ( \$_->proceed ) {
-					\@_ = \$_->params;
+					\@_ = \$_->args;
 					goto &\$original;
 				}
 
@@ -94,18 +94,13 @@ sub _install {
 			}
 
 			# Scalar and void have the same return handling.
-			# Just run the advice code differently.
-			if ( defined \$wantarray ) {
-				my \$dummy = &\$code(\$_);
-			} else {
-				&\$code(\$_);
-			}
+			&\$code(\$_);
 
 			# Do they want to shortcut?
 			return \$_->{return_value} unless \$_->proceed;
 
 			# Continue onwards to the original function
-			\@_ = \$_->params;
+			\@_ = \$_->args;
 			goto &\$original;
 		};
 END_PERL
@@ -154,7 +149,7 @@ Aspect::Advice::Before - Execute code before a function is called
       print STDERR "Called my function " . $_->sub_name . "\n";
   
       # Shortcut calls to foo() to always be true
-      if ( $_->short_sub_name eq 'foo' ) {
+      if ( $_->short_name eq 'foo' ) {
           $_->return_value(1);
       }
   

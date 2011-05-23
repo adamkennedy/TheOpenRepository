@@ -1,6 +1,12 @@
 Revision history for Perl extension Aspect
 
 0.97_04 Sat 21 May 2011
+	- Advice code is now always run consistently in void context, the
+	  ->wantarray method is now the only way to check the calling context
+	  of the active joint point. This is not only more consistent in having
+	  all context come from methods, is also prevents inconsistent
+	  behaviour when calling methods directly with $_->self->method and it
+	  allows context-senstive behaviour to be added to the advice methods.
 	- Added more POD to the main page, this is closer to the final form
 
 0.97_03 Fri 20 May 2011

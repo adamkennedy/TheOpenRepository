@@ -77,8 +77,9 @@ is( $foo, 5, '->foo is called' );
 # Check that params works as expected and does pass through
 SCOPE: {
 	my $aspect = before {
-		my $p = shift->params;
-		splice @$p, 1, 1, $p->[1] + 1;
+		my @p = $_->args;
+		splice @p, 1, 1, $p[1] + 1;
+		$_->args(@p);
 	} call qr/My::One::inc/;
 	is( $object->inc(2), 4, 'before advice changing params' );
 	is( $inc, 2, '->inc is called' );
@@ -88,16 +89,19 @@ SCOPE: {
 # Check that we can run several simultaneous hooks.
 SCOPE: {
 	my $aspect1 = before {
-		my $p = shift->params;
-		splice @$p, 1, 1, $p->[1] + 1;
+		my @p = $_->args;
+		splice @p, 1, 1, $p[1] + 1;
+		$_->args(@p);
 	} call qr/My::One::inc/;
 	my $aspect2 = before {
-		my $p = shift->params;
-		splice @$p, 1, 1, $p->[1] + 1;
+		my @p = $_->args;
+		splice @p, 1, 1, $p[1] + 1;
+		$_->args(@p);
 	} call qr/My::One::inc/;
 	my $aspect3 = before {
-		my $p = shift->params;
-		splice @$p, 1, 1, $p->[1] + 1;
+		my @p = $_->args;
+		splice @p, 1, 1, $p[1] + 1;
+		$_->args(@p);
 	} call qr/My::One::inc/;
 	is( $object->inc(2), 6, 'before advice changing params' );
 	is( $inc, 3, '->inc is called' );
@@ -291,8 +295,8 @@ is_deeply(
 		array
 		scalar
 		void
-		ARRAY ARRAY array
-		SCALAR SCALAR scalar
+		ARRAY VOID array
+		SCALAR VOID scalar
 		VOID VOID void
 		array
 		scalar

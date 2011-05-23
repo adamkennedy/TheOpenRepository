@@ -44,7 +44,7 @@ sub get_advice {
 
 			my $always_fire = delete $params{__always_fire};
 			my %old_state = get_listenable_state($listenable, \%params);
-			$context->original->( $context->params );
+			$context->original->( $context->args );
 			my %new_state = get_listenable_state($listenable, \%params);
 
 			return if
@@ -52,7 +52,7 @@ sub get_advice {
 				keys %old_state &&
 				is_equal_state(\%old_state, \%new_state);
 
-			my @params = $context->params;
+			my @params = $context->args;
 			shift @params; # remove $self
 			my $event = Aspect::Library::Listenable::Event->new(
 				name   => $event_name,

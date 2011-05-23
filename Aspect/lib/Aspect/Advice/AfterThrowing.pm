@@ -81,7 +81,7 @@ sub _install {
 				local \$_ = bless {
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
-					params       => \\\@_,
+					args         => \\\@_,
 					return_value => \$return,
 					exception    => \$\@,
 					pointcut     => \$pointcut,
@@ -91,7 +91,7 @@ sub _install {
 				die \$_->{exception} unless $MATCH_RUN;
 
 				# Execute the advice code
-				() = &\$code(\$_);
+				&\$code(\$_);
 
 				# Throw the same (or modified) exception
 				my \$exception = \$_->exception;
@@ -112,7 +112,7 @@ sub _install {
 				local \$_ = bless {
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
-					params       => \\\@_,
+					args         => \\\@_,
 					return_value => \$return,
 					exception    => \$\@,
 					pointcut     => \$pointcut,
@@ -122,7 +122,7 @@ sub _install {
 				die \$_->{exception} unless $MATCH_RUN;
 
 				# Execute the advice code
-				my \$dummy = &\$code(\$_);
+				&\$code(\$_);
 
 				# Throw the same (or modified) exception
 				my \$exception = \$_->exception;
@@ -142,7 +142,7 @@ sub _install {
 				local \$_ = bless {
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
-					params       => \\\@_,
+					args         => \\\@_,
 					return_value => undef,
 					exception    => \$\@,
 					pointcut     => \$pointcut,
@@ -195,7 +195,7 @@ exception
   
       # Suppress stringwise "bar" errors from foo() and return true instead
       if (
-          $_->short_sub_name eq 'foo'
+          $_->short_name eq 'foo'
           and
           ref $_->exception
           and

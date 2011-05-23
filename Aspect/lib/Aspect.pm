@@ -996,7 +996,7 @@ sub aspect {
 	my $class = _LIBRARY(shift);
 	return $class->new(
 		lexical => defined wantarray,
-		params  => [ @_ ],
+		args    => [ @_ ],
 	);
 }
 
