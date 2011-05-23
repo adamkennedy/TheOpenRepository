@@ -1,5 +1,23 @@
 package Aspect::Point;
 
+=pod
+
+=head1 NAME
+
+Aspect::Point - Context information during advice code for a single join point
+
+=head1 DESCRIPTION
+
+The B<Aspect::Point> class family provides information and functionality about
+the context of a single call of a single join point during the execution
+of the advice code at that join point.
+
+It is made available via the topic variable C<$_>.
+
+=head1 METHODS
+
+=cut
+
 use strict;
 use warnings;
 use Carp                  ();
@@ -20,25 +38,108 @@ our $VERSION = '0.97_04';
 	# bless { @_ }, $class;
 # }
 
+=pod
+
+=head2 pointcut
+
+  my $pointcut = $_->pointcut;
+
+The C<pointcut> method provides access to the original join point specification
+(as a tree of L<Aspect::Pointcut> objects) that the current join point matched
+against.
+
+Please note that the pointcut returned is the full and complete pointcut tree,
+due to the heavy optimisation used on the actual pointcut code when it is run
+there is no way at the time of advice execution to indicate which specific
+conditions in the pointcut tree matched and which did not.
+
+Returns an object which is a sub-class of L<Aspect::Pointcut>.
+
+=cut
+
 sub pointcut {
 	$_[0]->{pointcut};
 }
+
+=pod
+
+=head2 sub_name
+
+  # Prints Full::Function::name
+  before {
+      print $_->sub_name . "\n";
+  } call 'Full::Function::name';
+
+The C<sub_name> method returns a string with the full resolved function name
+at the join point the advice code is running at.
+
+=cut
 
 sub sub_name {
 	$_[0]->{sub_name};
 }
 
+=pod
+
+=head2 wantarray
+
+  # Return differently depending on the calling context
+  if ( $_->wantarray ) {
+      $_->return_value(5);
+  } else {
+      $_->return_value(1, 2, 3, 4, 5);
+  }
+
+The C<wantarray> method returns the L<perlfunc/wantarray> context of the
+call to the function for the current join point.
+
+As with the core Perl C<wantarray> function, returns true if the function is
+being called in list context, false if the function is being called in scalar
+context, or C<undef> if the function is being called in void context.
+
+=cut
+
 sub wantarray {
 	$_[0]->{wantarray};
 }
+
+=pod
+
+=head2 params_ref
+
+The C<params_ref> method returns a reference to an C<ARRAY> containing the list
+of paramaters provided to the function. If the join point was a method call, the
+array will contain the calling object or class as the first param, as per the
+normal behaviour of object-oriented Perl code.
+
+To enable more convenient and powerful uses of L<Aspect> in your code, the
+C<ARRAY> reference returned is the actual live storage for the parameters that
+L<Aspect> itself uses for the function params.
+
+Thus, you can use the returned reference not just to access the parameters, but
+to change them as well. For example, the following doubles the value of the
+third parameter to the function C<Foo::bar>.
+
+  before {
+      $_->params_ref->[2] *= 2;
+  } call 'Foo::bar';
+
+=cut
 
 sub params_ref {
 	$_[0]->{params};
 }
 
-sub self {
-	$_[0]->{params}->[0];
-}
+=pod
+
+=head2 params
+
+The C<params> method returns the list of parameters to the function as a list.
+If the join point was a method call, the list will contain the calling object
+or calss as the first element in the list, as per the normal behaviour of
+object-oriented Perl code.
+
+=cut
 
 sub params {
 	$_[0]->{params} = [ @_[1..$#_] ] if @_ > 1;
@@ -47,12 +148,56 @@ sub params {
 		: $_[0]->{params};
 }
 
+=pod
+
+=head2 self
+
+  after_returning {
+      $_->self->save;
+  } My::Foo::set;
+
+The C<self> method is a convenience provided for when you are writing advice
+that will be working with object-oriented Perl code. It returns the first the
+first parameter to the method (which should be object), which you can then call
+methods on.
+
+The result is advice code that is much more natural to read, as you can see in
+the above example where we implement an auto-save feature on the class
+C<My::Foo>, writing the contents to disk every time a value is set without
+error.
+
+At present the C<self> method is implemented fairly naively, if used outside
+of object-oriented code it will still return something (including C<undef> in
+the case where there were no params to the join point function).
+
+=cut
+
+sub self {
+	$_[0]->{params}->[0];
+}
+
 
 
 
 
 ######################################################################
 # Higher Level Methods
+
+=pod
+
+=head2 package_name
+
+  # Prints Just::Package::name
+  before {
+      print $_->sub_name . "\n";
+  } call 'Just::Package::name';
+
+The C<package_name> parameter is a convenience wrapper around the C<sub_name>
+method. Where C<sub_name> will return the fully resolved function name, the
+C<package_name> method will return just the namespace of the package of the
+join point.
+
+=cut
 
 sub package_name {
 	my $name = $_[0]->{sub_name};

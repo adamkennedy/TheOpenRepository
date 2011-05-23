@@ -1121,6 +1121,24 @@ pointcut expression will match if the single subexpression does B<not> match.
 
 For more information, see L<Aspect::Pointcut::Not>.
 
+=head1 ADVICE CONTEXT METHODS
+
+The following methods are available in the advice code for one or more advice
+types. Different sets of methods are available for the different advice types.
+
+The actual objects involved are those within the L<Aspect::Point> tree.
+
+=head2 type
+
+The C<type> method is a convenience provided in the situation something has a
+L<Aspect::Point> method and wants to know the advice declarator it is made for.
+
+Returns C<"before"> for L<Aspect::Advice::Before> advice, C<"after"> for
+L<Aspect::Advice::After> advice, C<"after_returning"> for
+L<Aspect::Advice::AfterReturning> advice, C<"after_throwing"> for
+L<Aspect::Advice::AfterThrowing> advice, or C<"around"> for
+L<Aspect::Advice::Around> advice.
+
 =head1 LIBRARY
 
 The main L<Aspect> distribution ships with the following set of libraries. These
