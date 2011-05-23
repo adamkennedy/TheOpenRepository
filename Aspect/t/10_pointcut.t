@@ -22,37 +22,37 @@ use Aspect;
 SCOPE: {
 	my $nul1 = call 'Foo::foo' & call 'Foo::bar' & call 'Foo::baz';
 	isa_ok( $nul1, 'Aspect::Pointcut::And' );
-	is( scalar($nul1->match_curry), undef, 'Multi-level nested calls curry to null' );
+	is( scalar($nul1->curry_runtime), undef, 'Multi-level nested calls curry to null' );
 
 	my $nul2 = wantlist & call 'Foo::bar' & call 'Foo::baz';
 	isa_ok( $nul2, 'Aspect::Pointcut::And' );
-	isa_ok( $nul2->match_curry, 'Aspect::Pointcut::Wantarray' );
+	isa_ok( $nul2->curry_runtime, 'Aspect::Pointcut::Wantarray' );
 
 	my $nul3 = call 'Foo::foo' & wantlist & call 'Foo::baz';
 	isa_ok( $nul3, 'Aspect::Pointcut::And' );
-	isa_ok( $nul3->match_curry, 'Aspect::Pointcut::Wantarray' );
+	isa_ok( $nul3->curry_runtime, 'Aspect::Pointcut::Wantarray' );
 
 	my $nul4 = call 'Foo::foo' & call 'Foo::baz' & highest;
 	isa_ok( $nul4, 'Aspect::Pointcut::And' );
-	isa_ok( $nul4->match_curry, 'Aspect::Pointcut::Highest' );
+	isa_ok( $nul4->curry_runtime, 'Aspect::Pointcut::Highest' );
 }
 
 SCOPE: {
 	my $nul1 = call 'Foo::foo' | call 'Foo::bar' | call 'Foo::baz';
 	isa_ok( $nul1, 'Aspect::Pointcut::Or' );
-	is( scalar($nul1->match_curry), undef, 'Multi-level nested calls curry to null' );
+	is( scalar($nul1->curry_runtime), undef, 'Multi-level nested calls curry to null' );
 
 	my $nul2 = wantlist | call 'Foo::bar' | call 'Foo::baz';
 	isa_ok( $nul2, 'Aspect::Pointcut::Or' );
-	isa_ok( $nul2->match_curry, 'Aspect::Pointcut::Wantarray' );
+	isa_ok( $nul2->curry_runtime, 'Aspect::Pointcut::Wantarray' );
 
 	my $nul3 = call 'Foo::foo' | wantlist | call 'Foo::baz';
 	isa_ok( $nul3, 'Aspect::Pointcut::Or' );
-	isa_ok( $nul3->match_curry, 'Aspect::Pointcut::Wantarray' );
+	isa_ok( $nul3->curry_runtime, 'Aspect::Pointcut::Wantarray' );
 
 	my $nul4 = call 'Foo::foo' | call 'Foo::baz' | highest;
 	isa_ok( $nul4, 'Aspect::Pointcut::Or' );
-	isa_ok( $nul4->match_curry, 'Aspect::Pointcut::Highest' );
+	isa_ok( $nul4->curry_runtime, 'Aspect::Pointcut::Highest' );
 }
 
 
@@ -74,7 +74,7 @@ SCOPE: {
 	isa_ok( $raw->[1],           'Aspect::Pointcut::Wantarray' );
 
 	# Curry the pointcut to the final form
-	my $run = $raw->match_curry;
+	my $run = $raw->curry_runtime;
 	isa_ok( $run, 'Aspect::Pointcut::And' );
 	is( scalar(@$run), 3, '3 elements in the top level And pointcut' );
 	isa_ok( $run->[0], 'Aspect::Pointcut::Wantarray' );
@@ -97,7 +97,7 @@ SCOPE: {
 	isa_ok( $raw->[1],           'Aspect::Pointcut::Wantarray' );
 
 	# Curry the pointcut to the final form
-	my $run = $raw->match_curry;
+	my $run = $raw->curry_runtime;
 	isa_ok( $run, 'Aspect::Pointcut::Or' );
 	is( scalar(@$run), 3, '3 elements in the top level Or pointcut' );
 	isa_ok( $run->[0], 'Aspect::Pointcut::Wantarray' );

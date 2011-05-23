@@ -32,7 +32,7 @@ sub pointcut_ok {
 	ok( ! $bad_matches,  "$type no match" );
 
 	# Does it curry away to nothing?
-	my $curried = $subject->match_curry;
+	my $curried = $subject->curry_runtime;
 	is( $curried, undef, 'Simple call curries away to nothing' );
 
 	# Do we produce an appropriate compiled run-time function
@@ -94,7 +94,7 @@ is_deeply(
 );
 
 # Create the runtime-curried pointcut
-my $curried = $not_call_and_call->match_curry;
+my $curried = $not_call_and_call->curry_runtime;
 is( $curried, undef, 'A call-only pointcut curries away to nothing' );
 
 

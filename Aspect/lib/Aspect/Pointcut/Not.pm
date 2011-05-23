@@ -18,9 +18,14 @@ sub compile_weave {
 	my $child = $_[0]->[0]->compile_weave;
 	if ( ref $child ) {
 		return sub { not $child->() };
-	} else {
+	}
+	unless ( $child eq '1' ) {
 		return "not ( $child )";
 	}
+
+	# When the child matches everything, the negation doesn't negate
+	# the set of things matched. So we match everything too.
+	return 1;
 }
 
 sub compile_runtime {
@@ -45,11 +50,30 @@ sub match_runtime {
 # Logical not inherits it's curryability from the element contained
 # within it. We continue to be needed if and only if something below us
 # continues to be needed as well.
+sub curry_weave {
+	my $self = shift;
+	my $child = $self->[0]->curry_weave or return;
+
+	# Handle the special case where the collapsing pointcut results
+	# in a "double not". Fetch the child of our child not and return
+	# it directly.
+	if ( $child->isa('Aspect::Pointcut::Not') ) {
+		return $child->[0];
+	}
+
+	# Return our clone with the curried child
+	my $class = ref($self);
+	return $class->new( $child );
+}
+
+# Logical not inherits it's curryability from the element contained
+# within it. We continue to be needed if and only if something below us
+# continues to be needed as well.
 # For cleanliness (and to avoid accidents) we make a copy of ourself
 # in case our child curries to something other than it's pure self.
-sub match_curry {
+sub curry_runtime {
 	my $self  = shift;
-	my $child = $self->[0]->match_curry or return;
+	my $child = $self->[0]->curry_runtime or return;
 
 	# Handle the special case where the collapsing pointcut results
 	# in a "double not". Fetch the child of our child not and return

@@ -2,9 +2,11 @@ package Aspect::Pointcut::Throwing;
 
 use strict;
 use warnings;
-use Carp             ();
-use Params::Util     ();
-use Aspect::Pointcut ();
+use Carp                        ();
+use Params::Util                ();
+use Aspect::Pointcut            ();
+use Aspect::Pointcut::Not       ();
+use Aspect::Pointcut::Returning ();
 
 our $VERSION = '0.97_05';
 our @ISA     = 'Aspect::Pointcut';
@@ -19,12 +21,16 @@ our @ISA     = 'Aspect::Pointcut';
 sub new {
 	my $class = shift;
 	my $spec  = shift;
+
+	# Handle a specific die message
 	if ( Params::Util::_STRING($spec) ) {
 		return bless [
 			$spec,
 			"Params::Util::_INSTANCE(\$_->{exception}, '$spec')",
 		], $class;
 	}
+
+	# Handle a specific exception class
 	if ( Params::Util::_REGEX($spec) ) {
 		my $regex = "/$spec/";
 		$regex =~ s|^/\(\?([xism]*)-[xism]*:(.*)\)/\z|/$2/$1|s;
@@ -33,6 +39,7 @@ sub new {
 			"defined \$_->{exception} and not ref \$_->{exception} and \$_->{exception} =~ $regex",
 		], $class;
 	}
+
 	Carp::croak("Invalid throwing pointcut specification");
 }
 
@@ -43,9 +50,14 @@ sub new {
 ######################################################################
 # Weaving Methods
 
+# Exception pointcuts always match at weave time and should curry away
+sub curry_weave {
+	return;
+}
+
 # Throwing pointcuts do not curry.
 # (But maybe they should, when used with say a before {} block)
-sub match_curry {
+sub curry_runtime {
 	return $_[0];
 }
 

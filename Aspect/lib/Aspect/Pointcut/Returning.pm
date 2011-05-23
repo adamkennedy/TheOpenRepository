@@ -15,9 +15,14 @@ our @ISA     = 'Aspect::Pointcut';
 ######################################################################
 # Weaving Methods
 
+# Exception pointcuts always match at weave time and should curry away
+sub curry_weave {
+	return;
+}
+
 # Exception-related pointcuts do not curry.
 # (But maybe they should if we specialise to an AfterReturning advice hook)
-sub match_curry {
+sub curry_runtime {
 	return $_[0];
 }
 

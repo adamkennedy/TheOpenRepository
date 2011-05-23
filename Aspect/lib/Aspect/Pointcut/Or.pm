@@ -115,7 +115,36 @@ sub match_runtime {
 	return 0;
 }
 
-sub match_curry {
+sub curry_weave {
+	my $self = shift;
+	my @list = @$self;
+
+	# Collapse nested logical clauses
+	while ( scalar grep { $_->isa('Aspect::Pointcut::Or') } @list ) {
+		@list = map {
+			$_->isa('Aspect::Pointcut::Or') ? @$_ : $_
+		} @list;
+	}
+
+	# Curry down our children. Any null element always matches, and
+	# therefore in an OR scenario the entire expression always matches.
+	my @or = ();
+	foreach my $child ( @list ) {
+		my $curried = $child->curry_weave or return;
+		push @or, $curried;
+	}
+
+	# If none are left, curry us away to nothing
+	return unless @or;
+
+	# If only one remains, curry us away to just that child
+	return $list[0] if @or == 1;
+
+	# Create our clone to hold the curried subset
+	return ref($self)->new(@or);
+}
+
+sub curry_runtime {
 	my $self = shift;
 	my @list = @$self;
 
@@ -148,9 +177,9 @@ sub match_curry {
 	@list = grep { defined $_ } map {
 		$_->isa('Aspect::Pointcut::Call')
 		? $strip
-			? $_->match_curry($strip)
+			? $_->curry_runtime($strip)
 			: $_
-		: $_->match_curry($strip)
+		: $_->curry_runtime($strip)
 	} @list;
 
 	# If none are left, curry us away to nothing

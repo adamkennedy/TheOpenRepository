@@ -8,7 +8,10 @@ our $VERSION = '0.97_05';
 
 sub new {
 	my $class = shift;
-	my $self  = bless { @_ }, $class;
+	my $self  = bless {
+		@_,
+		installed => 0,
+	}, $class;
 
 	# Validate the advice and pointcut combination
 	my $error = $self->_validate;
@@ -30,6 +33,10 @@ sub pointcut {
 
 sub lexical {
 	$_[0]->{lexical};
+}
+
+sub installed {
+	$_[0]->{installed};
 }
 
 sub DESTROY {

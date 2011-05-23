@@ -156,10 +156,11 @@ sub match_all {
 	my $self    = shift;
 	my @matches = ();
 
-	# Generate the compiled form of the weave-time function feature
-	my $compiled = $self->compiled_weave;
+	# Curry the pointcut and compile the weave-time function
+	my $curried  = $self->curry_weave;
+	my $compiled = $curried ? $self->compiled_weave : sub () { 1 };
 	unless ( $compiled ) {
-		die "Failed to generate filter ->compile_weave";
+		die "Failed to generate weave filter";
 	}
 
 	# Quick initial root package scan to remove the need
@@ -334,9 +335,9 @@ sub match_always {
 
 =pod
 
-=head2 match_curry
+=head2 curry_runtime
 
-  my $optimized_pointcut = $raw_pointcut->match_curry;
+  my $optimized_pointcut = $raw_pointcut->curry_runtime;
 
 In a production system, pointcut declarations can result in large and
 complex B<Aspect::Pointcut> object trees.
@@ -365,9 +366,29 @@ away to nothing, and no further testing needs to be done at run-time.
 
 =cut
 
-sub match_curry {
+sub curry_runtime {
 	my $class = ref $_[0] || $_[0];
-	die("Method 'match_curry' not implemented in class '$class'");
+	die("Method 'curry_runtime' not implemented in class '$class'");
+}
+
+=pod
+
+=head2 curry_weave
+
+The C<curry_weave> method is similar to the C<curry_runtime> method, except
+that instead of reducing the pointcut to only elements that are relevant at
+run-time, it reduces the pointcut to only elements that are relevant at weave
+time.
+
+By remove purely run-time elements, the compile weave test code is made both
+faster and more accurate (some complicated situations can occur when there is
+a L<Aspect::Pointcut::Not> in the tree).
+
+=cut
+
+sub curry_weave {
+	my $class = ref $_[0] || $_[0];
+	die("Method 'curry_weave' not implemented in class '$class'");
 }
 
 sub match_runtime {

@@ -24,6 +24,8 @@ Revision history for Perl extension Aspect
 	- Aspect::Advice::AfterReturning now inherits from ::After
 	- Aspect::Advice::AfterThrowing  now inherits from ::After
 	- Added the returning pointcut for use with after advice
+	- Added a second curry method for use prior to weave-time compilation
+	- Added support for naked throwing() without a specific exception value
 
 0.97_04 Sat 21 May 2011
 	- Added more POD to the main page, this is closer to the final form

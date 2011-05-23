@@ -88,10 +88,15 @@ sub match_runtime {
 	return 0;
 }
 
+# Call pointcuts are the primary thing used at weave time
+sub curry_weave {
+	return $_[0];
+}
+
 # Call pointcuts curry away to null, because they are the basis
 # for which methods to hook in the first place. Any method called
 # at run-time has already been checked.
-sub match_curry {
+sub curry_runtime {
 	return;
 }
 

@@ -24,7 +24,7 @@ sub _install {
 	# runtime checks instead of the original.
 	# Because $MATCH_RUN is used in boolean conditionals, if there
 	# is nothing to do the compiler will optimise away the code entirely.
-	my $curried   = $pointcut->match_curry;
+	my $curried   = $pointcut->curry_runtime;
 	my $compiled  = $curried ? $curried->compiled_runtime : undef;
 	my $MATCH_RUN = $compiled ? '$compiled->()' : 1;
 
@@ -104,6 +104,7 @@ sub _install {
 			goto &\$original;
 		};
 END_PERL
+		$self->{installed}++;
 	}
 
 	# If this will run lexical we don't need a descoping hook

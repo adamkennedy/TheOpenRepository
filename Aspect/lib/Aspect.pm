@@ -683,8 +683,13 @@ L<Aspect::Pointcut::Throwing>.
 
 =cut
 
-sub throwing ($) {
-	Aspect::Pointcut::Throwing->new(@_);
+sub throwing (;$) {
+	return( @_
+		? Aspect::Pointcut::Throwing->new(@_)
+		: Aspect::Pointcut::Not->new(
+			Aspect::Pointcut::Returning->new
+		)
+	);
 }
 
 =pod

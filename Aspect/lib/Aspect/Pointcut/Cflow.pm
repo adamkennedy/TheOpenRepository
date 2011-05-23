@@ -42,9 +42,15 @@ sub new {
 ######################################################################
 # Weaving Methods
 
+# The cflow pointcut is currently of no value at weave time, because it is
+# actually implemented as something closer to cflowbelow.
+sub curry_weave {
+	return;
+}
+
 # The cflow pointcuts do not curry at all.
 # So they don't need to clone, and can be used directly.
-sub match_curry {
+sub curry_runtime {
 	return $_[0];
 }
 
