@@ -295,11 +295,11 @@ sub compiled_runtime {
 
 =head2 match_contains
 
-  my $contains_any = $pointcut->match_contains('Aspect::Pointcut::Call');
+  my $calls = $pointcut->match_contains('Aspect::Pointcut::Call');
 
-The C<match_contains> method provides a convenience for the optimisation
-system which is used to check for the existance of a particular condition
-type anywhere within the pointcut object tree.
+The C<match_contains> method provides a convenience for the validation and
+optimisation systems. It is used to check for the existance of a particular
+condition type anywhere within the pointcut object tree.
 
 Returns the number of instances of a particular pointcut type within the tree.
 
@@ -309,6 +309,27 @@ sub match_contains {
 	my $self = shift;
 	return 1 if $self->isa($_[0]);
 	return 0;
+}
+
+=pod
+
+=head2 match_always
+
+  my $always = $pointcut->match_contains('Aspect::Pointcut::Throwing');
+
+The C<match_always> method provides a convenience for the validation and
+optimisation systems. It is used to check that a particular condition type will
+be tested at least once for a matching join point, regardless of which path
+the match takes through branching pointcut logic.
+
+Returns true if an expression type is encounter at least once in all branches,
+or false if there is any branch path that can be taken in which the condition
+won't be encountered.
+
+=cut
+
+sub match_always {
+	die "CODE NOT IMPLEMENTED";
 }
 
 =pod

@@ -120,9 +120,10 @@ sub compile_runtime {
 
 sub match_contains {
 	my $self  = shift;
-	my $count = $self->isa($_[0]) ? 1 : 0;
+	my $type  = shift;
+	my $count = $self->isa($type) ? 1 : 0;
 	foreach my $child ( @$self ) {
-		$count += $child->match_contains($_[0]);
+		$count += $child->match_contains($type);
 	}
 	return $count;
 }
