@@ -246,7 +246,7 @@ SCOPE: {
 	# Set up the Aspect
 	my $aspect = after_throwing { $AFTER++ } call 'My::Three::bar';
 	isa_ok( $aspect, 'Aspect::Advice' );
-	isa_ok( $aspect, 'Aspect::Advice::AfterThrowing' );
+	isa_ok( $aspect, 'Aspect::Advice::After' );
 	is( $AFTER,          0, '$AFTER is false' );
 	is( scalar(@CALLER), 0, '@CALLER is empty' );
 
