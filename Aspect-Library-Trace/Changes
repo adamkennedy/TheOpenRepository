@@ -1,7 +1,8 @@
 Changes for Perl extension Aspect-Library-Trace
 
-0.35 to be released
-	- Updated to Aspect 0.97 syntax
+0.98 Tue 24 May 2011
+	- Updated to Module::Install 1.01
+	- Updated to syntax changes for Aspect 0.98
 
 0.34 Fri  8 Jan 2010
 	- Added missing Test::NoWarnings dependency
