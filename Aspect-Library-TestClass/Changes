@@ -1,7 +1,8 @@
 Changes for Perl extensions Aspect-Library-TestClass
 
-0.38 to be released
-	- Updated to Aspect 0.98 syntax changes
+0.98 Tue 24 May 2011 - Adam Kennedy
+	- Updated to Module::Install 1.01
+	- Updated to match syntax changes in Aspect 0.98
 
 0.37 Wed 18 May 2011 - Adam Kennedy
 	- Removed use of deprecated append_param method
