@@ -3,7 +3,7 @@ package Aspect::Library::Trace;
 use 5.006;
 use strict;
 use warnings;
-use Aspect            0.33 ();
+use Aspect            0.97 ();
 use Aspect::Modular        ();
 use Aspect::Advice::Around ();
 
@@ -30,7 +30,7 @@ sub get_advice {
 		pointcut => $_[1],
 		code     => sub {
 			print STDERR '  ' x $depth++ . $_[0]->sub_name . "\n";
-			$_[0]->run_original;
+			$_[0]->proceed;
 			$depth--;
 		},
 	);
