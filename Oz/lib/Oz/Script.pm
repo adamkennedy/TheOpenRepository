@@ -1,18 +1,13 @@
 package Oz::Script;
 
-use 5.005;
+use 5.008;
 use strict;
-use Carp         'croak';
-use File::Slurp  ();
-use Params::Util qw{ _STRING _SCALAR };
+use Carp                 ();
+use File::Slurp  9999.12 ();
+use Params::Util    0.20 ();
+use Oz::Compiler         ();
 
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.01';
-}
-
-# Must load all of the main modules
-use Oz ();
+our $VERSION = '0.01';
 
 
 
@@ -27,15 +22,15 @@ sub new {
 	# Create the basic object
 	my $self = bless {
 		text => undef,
-		}, $class;
+	}, $class;
 
 	# Load the script
 	my $source = shift;
-	if ( _SCALAR($source) ) {
+	if ( Params::Util::_SCALAR($source) ) {
 		$self->{text} = $$source;
-	} elsif ( _STRING($source) ) {
+	} elsif ( Params::Util::_STRING($source) ) {
 		if ( $source =~ /(?:\012|\015)/ ) {
-			croak("Source code should only be passed as a reference");
+			Carp::croak("Source code should only be passed as a reference");
 		}
 		$self->{text} = File::Slurp::read_file( $source );
 	} else {
@@ -70,7 +65,7 @@ sub run {
 	# Create the default compiler for this script
 	my $compiler = Oz::Compiler->new(
 		script => $self,
-		);
+	);
 
 	# Execute and return the result
 	return $compiler->run( @params );

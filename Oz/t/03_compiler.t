@@ -24,7 +24,7 @@ SCOPE: {
 	isa_ok( $script, 'Oz::Script' );
 	my $compiler = Oz::Compiler->new(
 		script => $script,
-		);
+	);
 	isa_ok( $compiler, 'Oz::Compiler' );
 
 	# Build the ozf file

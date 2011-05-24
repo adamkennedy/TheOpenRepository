@@ -10,6 +10,10 @@ use File::Spec::Functions ':ALL';
 use Test::More tests => 5;
 use Oz::Script;
 
+my $SCRIPT = \<<'END_OZ';
+{Show "Hello World!"}
+END_OZ
+
 
 
 
@@ -19,9 +23,9 @@ use Oz::Script;
 
 SCOPE: {
 	# Create from a string
-	my $scalar_ref = Oz::Script->new( \qq~{Show "Hello World!"}\n~ );
+	my $scalar_ref = Oz::Script->new( $SCRIPT );
 	isa_ok( $scalar_ref, 'Oz::Script' );
-	is( $scalar_ref->text, qq~{Show "Hello World!"}\n~, '->text ok' );
+	is( $scalar_ref->text, $$SCRIPT, '->text ok' );
 
 	# Create from a file
 	my $name = catfile( qw{ t data expression.oz } );
