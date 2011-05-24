@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Carp                   ();
 use Params::Util      1.00 ();
-use Aspect::Modular   0.97 ();
+use Aspect::Modular   0.98 ();
 use Aspect::Advice::Around ();
 use Time::HiRes     1.9718 ();
 
