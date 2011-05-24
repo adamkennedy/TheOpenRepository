@@ -32,7 +32,7 @@ sub new {
 		} @parts;
 	}
 
-	$class->SUPER::new(@_);
+	$class->SUPER::new(@parts);
 }
 
 
@@ -168,13 +168,6 @@ sub curry_weave {
 	my $self = shift;
 	my @list = @$self;
 
-	# Collapse nested ::And clauses
-	while ( scalar grep { $_->isa('Aspect::Pointcut::And') } @list ) {
-		@list = map {
-			$_->isa('Aspect::Pointcut::And') ? @$_ : $_
-		} @list;
-	}
-
 	# Curry down our children. Anything that is not relevant at weave
 	# time is considered to always match, but curries to null.
 	# In an AND scenario, any "always" match can be savely removed.
@@ -193,13 +186,6 @@ sub curry_weave {
 sub curry_runtime {
 	my $self = shift;
 	my @list = @$self;
-
-	# Collapse nested ::And clauses
-	while ( scalar grep { $_->isa('Aspect::Pointcut::And') } @list ) {
-		@list = map {
-			$_->isa('Aspect::Pointcut::And') ? @$_ : $_
-		} @list;
-	}
 
 	# Should we strip out the call pointcuts
 	my $strip = shift;

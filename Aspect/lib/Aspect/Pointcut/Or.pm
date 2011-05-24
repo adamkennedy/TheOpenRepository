@@ -32,7 +32,7 @@ sub new {
 		} @parts;
 	}
 
-	$class->SUPER::new(@_);
+	$class->SUPER::new(@parts);
 }
 
 
@@ -147,13 +147,6 @@ sub curry_weave {
 	my $self = shift;
 	my @list = @$self;
 
-	# Collapse nested logical clauses
-	while ( scalar grep { $_->isa('Aspect::Pointcut::Or') } @list ) {
-		@list = map {
-			$_->isa('Aspect::Pointcut::Or') ? @$_ : $_
-		} @list;
-	}
-
 	# Curry down our children. Any null element always matches, and
 	# therefore in an OR scenario the entire expression always matches.
 	my @or = ();
@@ -175,13 +168,6 @@ sub curry_weave {
 sub curry_runtime {
 	my $self = shift;
 	my @list = @$self;
-
-	# Collapse nested logical clauses
-	while ( scalar grep { $_->isa('Aspect::Pointcut::Or') } @list ) {
-		@list = map {
-			$_->isa('Aspect::Pointcut::Or') ? @$_ : $_
-		} @list;
-	}
 
 	# Should we strip out the call pointcuts
 	my $strip = shift;

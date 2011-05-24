@@ -143,17 +143,7 @@ own lexical scope between the caller and callee, with a specific C<proceed>
 call required in your code to execute the target function. See
 L<Aspect::Advice::Around> for more information.
 
-Two more specialised variants of C<after> are also available.
-
-C<after_returning> is used to indicate code that should run following the
-function, but ignoring exceptions and allowing them to raise normally. See
-L<Aspect::Advice::AfterReturning> for more information.
-
-C<after_throwing> is used to indicate code that should run only when the
-target function throws an exception. See L<Aspect::Advice::AfterThrowing>
-for more information.
-
-Then the advice code is called, it is provided with an L<Advice::Point>
+When the advice code is called, it is provided with an L<Advice::Point>
 object which describes the context of the call to the target function, and
 allows you to change it.
 

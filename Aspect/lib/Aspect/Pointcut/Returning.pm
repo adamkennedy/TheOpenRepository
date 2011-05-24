@@ -21,7 +21,6 @@ sub curry_weave {
 }
 
 # Exception-related pointcuts do not curry.
-# (But maybe they should if we specialise to an AfterReturning advice hook)
 sub curry_runtime {
 	return $_[0];
 }

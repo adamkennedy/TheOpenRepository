@@ -37,7 +37,7 @@ is( $inc, 1, '->inc is called' );
 
 # Check that the null case does nothing
 SCOPE: {
-	my $aspect = after_returning {
+	my $aspect = Aspect::after_returning {
 		# It's oh so quiet...
 	} call 'My::One::foo';
 	is( $object->foo, 'foo', 'Null case does not change anything' );
@@ -50,7 +50,7 @@ is( $foo, 3, '->foo is called' );
 
 # Check that return_value works as expected and does not pass through
 SCOPE: {
-	my $aspect = after_returning {
+	my $aspect = Aspect::after_returning {
 		shift->return_value('bar')
 	} call "My::One::foo";
 	is( $object->foo, 'bar', 'after_returning changing return_value' );
@@ -63,7 +63,7 @@ is( $foo, 5, '->foo is called' );
 
 # Check that proceed fails as expected (reading)
 SCOPE: {
-	my $aspect = after_returning {
+	my $aspect = Aspect::after_returning {
 		shift->proceed;
 	} call "My::One::foo";
 	throws_ok(
@@ -76,7 +76,7 @@ SCOPE: {
 
 # Check that proceed fails as expected (writing)
 SCOPE: {
-	my $aspect = after_returning {
+	my $aspect = Aspect::after_returning {
 		shift->proceed(0);
 	} call "My::One::foo";
 	throws_ok(
@@ -93,7 +93,7 @@ is( $foo, 8, '->foo is called' );
 
 # Check that params works as expected and does pass through
 SCOPE: {
-	my $aspect = after_returning {
+	my $aspect = Aspect::after_returning {
 		my @p = $_->args;
 		splice @p, 1, 1, $p[1] + 1;
 		$_->args(@p);
@@ -105,13 +105,13 @@ SCOPE: {
 # Check that we can rehook the same function.
 # Check that we can run several simultaneous hooks.
 SCOPE: {
-	my $aspect1 = after_returning {
+	my $aspect1 = Aspect::after_returning {
 		$_[0]->return_value( $_[0]->return_value + 1 );
 	} call qr/My::One::inc/;
-	my $aspect2 = after_returning {
+	my $aspect2 = Aspect::after_returning {
 		$_[0]->return_value( $_[0]->return_value + 1 );
 	} call qr/My::One::inc/;
-	my $aspect3 = after_returning {
+	my $aspect3 = Aspect::after_returning {
 		$_[0]->return_value( $_[0]->return_value + 1 );
 	} call qr/My::One::inc/;
 	is( $object->inc(2), 6, 'after_returning advice changing params' );
@@ -123,7 +123,7 @@ is( $object->inc(3), 4, 'inc uninstalled' );
 is( $inc, 4, '->inc is called' );
 
 # Check the introduction of a permanent hook
-after_returning {
+Aspect::after_returning {
 	shift->return_value('forever');
 } call 'My::One::inc';
 is( $object->inc(1), 'forever', '->inc hooked forever' );
@@ -143,7 +143,7 @@ is( $bar, 1,  '->bar is called' );
 is( $foo, 10, '->foo is called for both ->bar and ->foo' );
 
 SCOPE: {
-	my $advice = after_returning {
+	my $advice = Aspect::after_returning {
 		my $c = shift;
 		$c->return_value($c->my_key->self);
 	} call "My::One::foo"
@@ -175,7 +175,7 @@ sub main::with_proto ($) { shift }
 
 # Control case
 SCOPE: {
-	my $advice = after_returning {
+	my $advice = Aspect::after_returning {
 		shift->return_value('wrapped')
 	} call 'main::no_proto';
 	is( main::no_proto('foo'), 'wrapped', 'No prototype' );
@@ -190,7 +190,7 @@ SCOPE: {
 
 # Confirm correct parameter error during hooking
 SCOPE: {
-	my $advice = after_returning {
+	my $advice = Aspect::after_returning {
 		shift->return_value('wrapped');
 	} call 'main::with_proto';
 	is( main::with_proto('foo'), 'wrapped', 'With prototype' );
@@ -219,7 +219,7 @@ my $AFTER  = 0;
 
 SCOPE: {
 	# Set up the Aspect
-	my $aspect = after_returning { $AFTER++ } call 'My::Three::bar';
+	my $aspect = Aspect::after_returning { $AFTER++ } call 'My::Three::bar';
 	isa_ok( $aspect, 'Aspect::Advice' );
 	isa_ok( $aspect, 'Aspect::Advice::After' );
 	is( $AFTER,          0, '$AFTER is false' );
@@ -269,7 +269,7 @@ SCOPE: {
 }
 
 SCOPE: {
-	my $aspect = after_returning {
+	my $aspect = Aspect::after_returning {
 		if ( $_[0]->wantarray ) {
 			push @CONTEXT, 'ARRAY';
 		} elsif ( defined $_[0]->wantarray ) {
@@ -332,7 +332,7 @@ SCOPE: {
 
 # Regression test for RT #63781 Could not get the return value
 SCOPE: {
-	after_returning {
+	Aspect::after_returning {
 		is( $_->return_value, 'James Bond', '->return_value ok' );
 	} call qr/query_person/;
 

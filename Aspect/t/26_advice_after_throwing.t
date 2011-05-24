@@ -44,7 +44,7 @@ is( $boom, 1, '->boom is called' );
 
 # Check that the null case does nothing with exceptions
 SCOPE: {
-	my $aspect = after_throwing {
+	my $aspect = Aspect::after_throwing {
 		# It's oh so quiet...
 	} call qr/^My::One::(?:foo|boom)$/;
 	is( $object->foo, 'foo', 'Null case does not change anything' );
@@ -65,7 +65,7 @@ is( $boom, 3, '->boom is called' );
 
 # Check that return_value works as expected and does not pass through
 SCOPE: {
-	my $aspect = after_throwing {
+	my $aspect = Aspect::after_throwing {
 		shift->return_value('bar')
 	} call qr/^My::One::(?:foo|boom)$/;
 	is(
@@ -88,7 +88,7 @@ is( $boom, 5, '->boom is called' );
 
 # Check that proceed fails as expected (reading)
 SCOPE: {
-	my $aspect = after_throwing {
+	my $aspect = Aspect::after_throwing {
 		shift->proceed;
 	} call "My::One::boom";
 	throws_ok(
@@ -101,7 +101,7 @@ SCOPE: {
 
 # Check that proceed fails as expected (writing)
 SCOPE: {
-	my $aspect = after_throwing {
+	my $aspect = Aspect::after_throwing {
 		shift->proceed(0);
 	} call "My::One::boom";
 	throws_ok(
@@ -119,13 +119,13 @@ is( $boom, 8, '->boom is called' );
 # Check that we can rehook the same function.
 # Check that we can run several simultaneous hooks.
 SCOPE: {
-	my $aspect1 = after_throwing {
+	my $aspect1 = Aspect::after_throwing {
 		$_[0]->exception( 'one ' . $_[0]->exception );
 	} call qr/My::One::boom/;
-	my $aspect2 = after_throwing {
+	my $aspect2 = Aspect::after_throwing {
 		$_[0]->exception( 'two ' . $_[0]->exception );
 	} call qr/My::One::boom/;
-	my $aspect3 = after_throwing {
+	my $aspect3 = Aspect::after_throwing {
 		$_[0]->exception( 'three ' . $_[0]->exception );
 	} call qr/My::One::boom/;
 	throws_ok(
@@ -143,7 +143,7 @@ is( $boom, 10, '->boom is called' );
 # Check the introduction of a permanent hook.
 # Check alteration of the exception.
 SCOPE: {
-	after_throwing {
+	Aspect::after_throwing {
 		shift->exception('blah');
 	} call 'My::One::boom';
 }
@@ -164,7 +164,7 @@ is( $bang, 1,  '->bang is called' );
 is( $boom, 13, '->boom is called for both' );
 
 SCOPE: {
-	my $advice = after_throwing {
+	my $advice = Aspect::after_throwing {
 		my $c = shift;
 		$c->return_value($c->my_key->self);
 	} call "My::One::boom"
@@ -200,7 +200,7 @@ sub main::with_proto ($) { die shift }
 
 # Control case
 SCOPE: {
-	my $advice = after_throwing {
+	my $advice = Aspect::after_throwing {
 		shift->return_value('wrapped')
 	} call 'main::no_proto';
 	is( main::no_proto('foo'), 'wrapped', 'No prototype' );
@@ -215,7 +215,7 @@ SCOPE: {
 
 # Confirm correct parameter error during hooking
 SCOPE: {
-	my $advice = after_throwing {
+	my $advice = Aspect::after_throwing {
 		shift->return_value('wrapped');
 	} call 'main::with_proto';
 	is( main::with_proto('foo'), 'wrapped', 'With prototype' );
@@ -244,7 +244,7 @@ my $AFTER  = 0;
 
 SCOPE: {
 	# Set up the Aspect
-	my $aspect = after_throwing { $AFTER++ } call 'My::Three::bar';
+	my $aspect = Aspect::after_throwing { $AFTER++ } call 'My::Three::bar';
 	isa_ok( $aspect, 'Aspect::Advice' );
 	isa_ok( $aspect, 'Aspect::Advice::After' );
 	is( $AFTER,          0, '$AFTER is false' );
@@ -305,7 +305,7 @@ SCOPE: {
 }
 
 SCOPE: {
-	my $aspect = after_throwing {
+	my $aspect = Aspect::after_throwing {
 		if ( $_[0]->wantarray ) {
 			push @CONTEXT, 'ARRAY';
 		} elsif ( defined $_[0]->wantarray ) {

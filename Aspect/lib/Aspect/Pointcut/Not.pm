@@ -19,7 +19,7 @@ sub new {
 
 	# Check the thing we are negating
 	unless ( Params::Util::_INSTANCE($_[0], 'Aspect::Pointcut') ) {
-		Carp::croak("Attempted to apply pointcut logic to non-pointcut '$part'");
+		Carp::croak("Attempted to apply pointcut logic to non-pointcut '$_[0]'");
 	}
 
 	$class->SUPER::new(@_);
