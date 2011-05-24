@@ -20,6 +20,17 @@ our @ISA     = 'Aspect::Point';
 
 use constant type => 'around';
 
+
+
+
+
+######################################################################
+# Aspect::Point Methods
+
+sub exception {
+	Carp::croak("Cannot call exception in around advice");
+}
+
 sub return_value {
 	my $self = shift;
 	my $want = $self->{wantarray};

@@ -9,8 +9,13 @@ our @ISA     = 'Aspect::Point';
 
 use constant type => 'after';
 
-# We have to do this as a die message or it will hit the AUTOLOAD
-# on the underlying hash key.
+
+
+
+
+######################################################################
+# Aspect::Point Methods
+
 sub proceed {
 	Carp::croak("Cannot call proceed in after advice");
 }

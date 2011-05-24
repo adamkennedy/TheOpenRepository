@@ -23,10 +23,19 @@ our @ISA     = 'Aspect::Point';
 
 use constant type => 'before';
 
-# We have to do this as a die message or it will hit the AUTOLOAD
-# on the underlying hash key.
+
+
+
+
+######################################################################
+# Aspect::Point Methods
+
 sub proceed {
 	Carp::croak("Cannot call proceed in before advice");
+}
+
+sub exception {
+	Carp::croak("Cannot call exception in before advice");
 }
 
 sub return_value {
