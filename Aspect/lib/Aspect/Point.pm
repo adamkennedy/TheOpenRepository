@@ -115,6 +115,15 @@ that eventually reached the get/set on C<Person>:
 
 =head1 METHODS
 
+=head2 type
+
+The C<type> method is a convenience provided in the situation something has a
+L<Aspect::Point> method and wants to know the advice declarator it is made for.
+
+Returns C<"before"> in L<Aspect::Advice::Before> advice, C<"after"> in
+L<Aspect::Advice::After> advice, or C<"around"> in
+L<Aspect::Advice::Around> advice.
+
 =cut
 
 use strict;
@@ -281,7 +290,7 @@ sub args {
 
 =head2 self
 
-  after_returning {
+  after {
       $_->self->save;
   } My::Foo::set;
 

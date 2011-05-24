@@ -649,9 +649,9 @@ sub highest () {
   my $string = throwing qr/does not exist/;
   my $object = throwing 'Exception::Class';
 
-The C<throwing> pointcut is used with the C<after> (and C<after_throwing>) to
-restrict the pointcut so advice code is only fired for a specific die message
-or a particular exception class (or subclass).
+The C<throwing> pointcut is used with the C<after> to restrict the pointcut so
+advice code is only fired for a specific die message or a particular exception
+class (or subclass).
 
 The C<throwing> declarator takes a single parameter which is the pointcut spec,
 and can be provided in two different forms.
@@ -807,11 +807,6 @@ The C<after> declarator is used to create advice in which the advice code will
 be run after the join point has run, regardless of whether the function return
 correctly or throws an exception.
 
-This advice should be used when you need to deal flexibly with return values,
-but might also want to handle exceptions. Use of this advice is relatively
-rare, as most of the time you want something more flexible like C<around>, 
-or something more specific like C<after_returning> or C<after_throwing>.
-
 For more information, see L<Aspect::Advice::After>.
 
 =cut
@@ -855,7 +850,6 @@ sub after_throwing (&$) {
       my @start   = Time::HiRes::gettimeofday();
       $_->proceed;
       my @stop    = Time::HiRes::gettimeofday();
-  
       my $elapsed = Time::HiRes::tv_interval( \@start, \@stop );
       print "My::foo executed in $elapsed seconds\n";
   } call 'My::foo';
@@ -1075,19 +1069,9 @@ For more information, see L<Aspect::Pointcut::Not>.
 
 =head1 ADVICE CONTEXT METHODS
 
-The following methods are available in the advice code for one or more advice
-types. Different sets of methods are available for the different advice types.
+A range of different methods are available within each type of advice code.
 
-The actual objects involved are those within the L<Aspect::Point> tree.
-
-=head2 type
-
-The C<type> method is a convenience provided in the situation something has a
-L<Aspect::Point> method and wants to know the advice declarator it is made for.
-
-Returns C<"before"> for L<Aspect::Advice::Before> advice, C<"after"> for
-L<Aspect::Advice::After> advice, or C<"around"> for
-L<Aspect::Advice::Around> advice.
+See L<Aspect::Point> for the method documentation.
 
 =head1 LIBRARY
 

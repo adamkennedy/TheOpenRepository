@@ -112,8 +112,8 @@ Aspect::Pointcut::Throwing - Exception typing pointcut
 =head1 DESCRIPTION
 
 The B<Aspect::Pointcut::Throwing> pointcut is used to match situations
-in which an after() or after_throwing() advice block wishes to intercept
-the throwing of a specific exception string or object.
+in which an after() advice block wishes to intercept the throwing of a specific
+exception string or object.
 
 =head1 AUTHORS
 
