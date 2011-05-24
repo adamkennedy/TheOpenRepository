@@ -5,9 +5,6 @@ use strict;
 use warnings;
 use Aspect ();
 
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.01';
-}
+our $VERSION = '0.01';
 
 1;
