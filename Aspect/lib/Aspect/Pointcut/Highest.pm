@@ -5,10 +5,10 @@ use warnings;
 use Carp                               ();
 use Scalar::Util                       ();
 use Params::Util                       ();
+use Aspect::Guard                      ();
 use Aspect::Pointcut                   ();
-use Aspect::Pointcut::Highest::Cleanup ();
 
-our $VERSION = '0.97_05';
+our $VERSION = '0.97_06';
 our @ISA     = 'Aspect::Pointcut';
 
 
@@ -51,9 +51,7 @@ sub curry_runtime {
 sub compile_runtime {
 	my $depth = 0;
 	return sub {
-		$_->{highest} = Aspect::Pointcut::Highest::Cleanup->new(
-			sub { $depth-- }
-		);
+		$_->{highest} = Aspect::Guard->new( sub { $depth-- } );
 		return ! $depth++;
 	};
 }

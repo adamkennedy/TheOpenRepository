@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use Aspect::Point ();
 
-our $VERSION = '0.97_05';
+our $VERSION = '0.97_06';
 our @ISA     = 'Aspect::Point';
 
 use constant type => 'around';

@@ -4,8 +4,36 @@ use strict;
 use warnings;
 use Aspect::Pointcut::Logic ();
 
-our $VERSION = '0.97_05';
+our $VERSION = '0.97_06';
 our @ISA     = 'Aspect::Pointcut::Logic';
+
+
+
+
+
+######################################################################
+# Constructor
+
+sub new {
+	my $class = shift;
+	my @parts = @_;
+
+	# Validate the pointcut subexpressions
+	foreach my $part ( @parts ) {
+		next if Params::Util::_INSTANCE($part, 'Aspect::Pointcut');
+		Carp::croak("Attempted to apply pointcut logic to non-pointcut '$part'");
+	}
+
+	# Collapse nested and statements at constructor time so we don't have
+	# to do so multiple times later on during currying.
+	while ( scalar grep { $_->isa('Aspect::Pointcut::And') } @parts ) {
+		@parts = map {
+			$_->isa('Aspect::Pointcut::And') ? @$_ : $_
+		} @parts;
+	}
+
+	$class->SUPER::new(@_);
+}
 
 
 

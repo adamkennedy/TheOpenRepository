@@ -4,8 +4,26 @@ use strict;
 use warnings;
 use Aspect::Pointcut::Logic ();
 
-our $VERSION = '0.97_05';
+our $VERSION = '0.97_06';
 our @ISA     = 'Aspect::Pointcut::Logic';
+
+
+
+
+
+######################################################################
+# Constructor
+
+sub new {
+	my $class = shift;
+
+	# Check the thing we are negating
+	unless ( Params::Util::_INSTANCE($_[0], 'Aspect::Pointcut') ) {
+		Carp::croak("Attempted to apply pointcut logic to non-pointcut '$part'");
+	}
+
+	$class->SUPER::new(@_);
+}
 
 
 

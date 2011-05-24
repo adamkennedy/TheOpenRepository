@@ -1,7 +1,9 @@
 Revision history for Perl extension Aspect
 
 0.97_06 Tue 24 May 2011
-	- 
+	- Generalised and moved Aspec::Pointcut::Highest::Clean to Aspect::Guard
+	- Removed dedicated Aspect::Advice::AfterReturning advice type
+	- Removed dedicated Aspect::Advice::AfterThrowing advice type
 
 0.97_05 Mon 23 May 2011
 	- Advice code is now always run consistently in void context, the
