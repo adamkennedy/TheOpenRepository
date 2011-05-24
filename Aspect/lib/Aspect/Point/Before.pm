@@ -23,14 +23,36 @@ our @ISA     = 'Aspect::Point';
 
 use constant type => 'before';
 
-sub original {
-	$_[0]->{original};
-}
-
 # We have to do this as a die message or it will hit the AUTOLOAD
 # on the underlying hash key.
 sub proceed {
 	Carp::croak("Cannot call proceed in before advice");
+}
+
+sub return_value {
+	my $self = shift;
+
+	# Handle usage in getter form
+	if ( defined CORE::wantarray() ) {
+		# Let the inherent magic of Perl do the work between the
+		# list and scalar context calls to return_value
+		if ( $self->{wantarray} ) {
+			return @{$self->{return_value}};
+		} elsif ( defined $self->{wantarray} ) {
+			return $self->{return_value};
+		} else {
+			return;
+		}
+	}
+
+	# Having provided a return value, suppress any exceptions
+	# and don't proceed if applicable.
+	$self->{proceed} = 0;
+	if ( $self->{wantarray} ) {
+		@{$self->{return_value}} = @_;
+	} elsif ( defined $self->{wantarray} ) {
+		$self->{return_value} = pop;
+	}
 }
 
 
