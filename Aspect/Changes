@@ -1,6 +1,10 @@
 Revision history for Perl extension Aspect
 
-0.98 to be released
+0.99 to be released
+	- Removed the proceed method from the begin advice, you now only signal
+	  to not continue with either exception or return_value.
+
+0.98 Tue 24 May 2011
 	- Production release, no change from 0.97_06
 	- Major refactoring, documentation and and 1.00 preparation release
 	- The API has now moved closed to the AspectJ API where sensible

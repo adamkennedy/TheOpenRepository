@@ -16,17 +16,13 @@ use strict;
 use warnings;
 use Aspect::Point ();
 
-our $VERSION = '0.98';
+our $VERSION = '0.99';
 our @ISA     = 'Aspect::Point';
 
 use constant type => 'before';
 
 sub original {
 	$_[0]->{original};
-}
-
-sub proceed {
-	@_ > 1 ? $_[0]->{proceed} = $_[1] : $_[0]->{proceed};
 }
 
 
@@ -43,9 +39,6 @@ use Class::XSAccessor 1.08 {
 	replace => 1,
 	getters => {
 		'original'   => 'original',
-	},
-	accessors => {
-		'proceed' => 'proceed',
 	},
 };
 END_PERL
