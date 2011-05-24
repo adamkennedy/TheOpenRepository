@@ -3,7 +3,7 @@ package Aspect::Library::Timer;
 use 5.008002;
 use strict;
 use warnings;
-use Aspect::Modular 0.90 ();
+use Aspect::Modular 0.97 ();
 use Time::HiRes   1.9718 ();
 
 use vars qw{$VERSION @ISA};
@@ -22,7 +22,7 @@ sub get_advice {
 		code     => sub {
 			# Capture the time
 			my @start = Time::HiRes::gettimeofday();
-			$_->run_original;
+			$_->proceed;
 			my @stop  = Time::HiRes::gettimeofday();
 
 			# Process the time

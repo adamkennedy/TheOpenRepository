@@ -5,8 +5,8 @@ use strict;
 use warnings;
 use Carp                          ();
 use Params::Util             1.00 ();
-use Aspect::Modular          0.90 ();
-use Aspect::Advice::Around   0.90 ();
+use Aspect::Modular          0.97 ();
+use Aspect::Advice::Around   0.97 ();
 use Time::HiRes            1.9718 ();
 
 use vars qw{$VERSION @ISA};
@@ -44,14 +44,14 @@ sub get_advice {
 			code     => sub {
 				# Shortcut if we are inside the same zone
 				if ( @STACK and $STACK[-1]->[0] eq $zone ) {
-					$_->run_original;
+					$_->proceed;
 					return;
 				}
 
 				# Execute the function and capture timing
 				push @STACK, [ $zone, { } ];
 				my @start = Time::HiRes::gettimeofday();
-				$_->run_original;
+				$_->proceed;
 				my @stop  = Time::HiRes::gettimeofday();
 				my $frame = pop @STACK;
 				my $total = $frame->[1];
