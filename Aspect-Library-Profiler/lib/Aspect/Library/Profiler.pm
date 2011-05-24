@@ -3,12 +3,13 @@ package Aspect::Library::Profiler;
 use 5.008002;
 use strict;
 use warnings;
-use Aspect::Modular    0.97 ();
 use Benchmark::Timer 0.7101 ();
+use Aspect::Modular    0.98 ();
+use Aspect::Advice::Around  ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.34';
+	$VERSION = '0.98';
 	@ISA     = 'Aspect::Modular';
 }
 
@@ -23,9 +24,9 @@ sub get_advice {
 		lexical  => $_[0]->lexical,
 		pointcut => $_[1],
 		code     => sub {
-			my $name = $_[0]->sub_name;
+			my $name = $_->sub_name;
 			$TIMER->start($name);
-			$_[0]->proceed;
+			$_->proceed;
 			$TIMER->stop($name);
 		},
 	);

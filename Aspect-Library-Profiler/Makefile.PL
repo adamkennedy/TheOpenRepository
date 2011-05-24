@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.88;
+use inc::Module::Install::DSL 1.01;
 
 all_from      lib/Aspect/Library/Profiler.pm
 requires_from lib/Aspect/Library/Profiler.pm
