@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.91;
+use inc::Module::Install::DSL 1.01;
 
 all_from      lib/Aspect/Library/NYTProf.pm
 requires_from lib/Aspect/Library/NYTProf.pm

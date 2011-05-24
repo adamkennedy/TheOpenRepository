@@ -3,10 +3,11 @@ package Aspect::Library::NYTProf;
 use 5.008002;
 use strict;
 use warnings;
-use Aspect::Modular 0.40 ();
-use Devel::NYTProf  3.01 ();
+use Devel::NYTProf    3.01 ();
+use Aspect::Modular   0.98 ();
+use Aspect::Advice::Around ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.98';
 our @ISA     = 'Aspect::Modular';
 our $DEPTH   = 0;
 
@@ -15,13 +16,9 @@ sub get_advice {
 		lexical  => $_[0]->lexical,
 		pointcut => $_[1],
 		code     => sub {
-			if ( not $DEPTH++ ) {
-				DB::enable_profile();
-			}
-			$_[0]->run_original;
-			if ( not --$DEPTH ) {
-				DB::disable_profile();
-			}
+			DB::enable_profile() unless $DEPTH++;
+			$_->proceed;
+			DB::disable_profile() unless --$DEPTH;
 		},
 	);
 }
