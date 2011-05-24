@@ -395,35 +395,31 @@ use warnings;
 # Added by eilara as hack around caller() core dump
 # NOTE: Now we've switched to Sub::Uplevel can this be removed?
 # -- ADAMK
-use Carp::Heavy                    ();
-use Carp                           ();
-use Params::Util              1.00 ();
-use Sub::Install              0.92 ();
-use Sub::Uplevel            0.2002 ();
-use Aspect::Pointcut               ();
-use Aspect::Pointcut::Or           ();
-use Aspect::Pointcut::And          ();
-use Aspect::Pointcut::Not          ();
-use Aspect::Pointcut::True         ();
-use Aspect::Pointcut::Call         ();
-use Aspect::Pointcut::Cflow        ();
-use Aspect::Pointcut::Highest      ();
-use Aspect::Pointcut::Throwing     ();
-use Aspect::Pointcut::Returning    ();
-use Aspect::Pointcut::Wantarray    ();
-use Aspect::Advice                 ();
-use Aspect::Advice::After          ();
-use Aspect::Advice::AfterReturning ();
-use Aspect::Advice::AfterThrowing  ();
-use Aspect::Advice::Around         ();
-use Aspect::Advice::Before         ();
-use Aspect::Point                  ();
-use Aspect::Point::Static          ();
-use Aspect::Point::After           ();
-use Aspect::Point::AfterReturning  ();
-use Aspect::Point::AfterThrowing   ();
-use Aspect::Point::Around          ();
-use Aspect::Point::Before          ();
+use Carp::Heavy                 ();
+use Carp                        ();
+use Params::Util           1.00 ();
+use Sub::Install           0.92 ();
+use Sub::Uplevel         0.2002 ();
+use Aspect::Pointcut            ();
+use Aspect::Pointcut::Or        ();
+use Aspect::Pointcut::And       ();
+use Aspect::Pointcut::Not       ();
+use Aspect::Pointcut::True      ();
+use Aspect::Pointcut::Call      ();
+use Aspect::Pointcut::Cflow     ();
+use Aspect::Pointcut::Highest   ();
+use Aspect::Pointcut::Throwing  ();
+use Aspect::Pointcut::Returning ();
+use Aspect::Pointcut::Wantarray ();
+use Aspect::Advice              ();
+use Aspect::Advice::After       ();
+use Aspect::Advice::Around      ();
+use Aspect::Advice::Before      ();
+use Aspect::Point               ();
+use Aspect::Point::Static       ();
+use Aspect::Point::After        ();
+use Aspect::Point::Around       ();
+use Aspect::Point::Before       ();
 
 our $VERSION = '0.97_05';
 
@@ -684,12 +680,7 @@ L<Aspect::Pointcut::Throwing>.
 =cut
 
 sub throwing (;$) {
-	return( @_
-		? Aspect::Pointcut::Throwing->new(@_)
-		: Aspect::Pointcut::Not->new(
-			Aspect::Pointcut::Returning->new
-		)
-	);
+	Aspect::Pointcut::Throwing->new(@_);
 }
 
 =pod
@@ -824,9 +815,12 @@ For more information, see L<Aspect::Advice::AfterReturning>.
 =cut
 
 sub after_returning (&$) {
-	Aspect::Advice::AfterReturning->new(
+	Aspect::Advice::After->new(
 		code     => $_[0],
-		pointcut => $_[1],
+		pointcut => Aspect::Pointcut::And->new(
+			Aspect::Pointcut::Returning->new,
+			$_[1],
+		),
 		lexical  => defined wantarray,
 	);
 }
@@ -878,9 +872,14 @@ For more information, see L<Aspect::Advice::AfterThrowing>.
 =cut
 
 sub after_throwing (&$) {
-	Aspect::Advice::AfterThrowing->new(
+	Aspect::Advice::After->new(
 		code     => $_[0],
-		pointcut => $_[1],
+		pointcut => Aspect::Pointcut::And->new(
+			Aspect::Pointcut::Not->new(
+				Aspect::Pointcut::Returning->new,
+			),
+			$_[1],
+		),
 		lexical  => defined wantarray,
 	);
 }

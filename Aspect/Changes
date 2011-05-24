@@ -1,5 +1,8 @@
 Revision history for Perl extension Aspect
 
+0.97_06 Tue 24 May 2011
+	- 
+
 0.97_05 Mon 23 May 2011
 	- Advice code is now always run consistently in void context, the
 	  ->wantarray method is now the only way to check the calling context
