@@ -1,6 +1,5 @@
-use inc::Module::Install::DSL 0.83;
+use inc::Module::Install::DSL 1.01;
 
 all_from      lib/ORLite/Profile.pm
-requires      ORLite 1.20
-requires      Aspect 0.14
-test_requires Test::More 0.42
+requires_from lib/ORLite/Profile.pm
+test_requires Test::More 0.47
