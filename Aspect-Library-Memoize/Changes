@@ -1,5 +1,8 @@
 Changes for Perl extension Aspect-Library-Memoize
 
+0.98 to be released
+	- Clean up to synchronise with Aspect 0.98
+
 0.32 Thu  7 Jan 2010
 	- Moved Aspect::Library::Memoize into its own distribution to remove
 	  the non-100% reliable Memoize dependency.

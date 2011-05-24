@@ -4,36 +4,38 @@ use 5.008002;
 use strict;
 use warnings;
 use Memoize           1.01 ();
-use Aspect::Modular   0.32 ();
+use Aspect::Modular   0.98 ();
 use Aspect::Advice::Before ();
 
-our $VERSION = '0.32';
+our $VERSION = '0.98';
 our @ISA     = 'Aspect::Modular';
 
 sub get_advice {
-	my %wrappers = ();
+	my %WRAPPER = ();
 	Aspect::Advice::Before->new(
 		lexical  => $_[0]->lexical,
 		pointcut => $_[1],
 		code     => sub {
-			my $context = shift;
-			my $name    = $context->sub_name;
+			my $name = $_->sub_name;
 
 			# Would be difficult if Memoize did not have INSTALL => undef option
-			$wrappers{$name} ||= Memoize::memoize(
-				$context->original,
+			$WRAPPER{$name} ||= Memoize::memoize(
+				$_->original,
 				INSTALL => undef,
 			);
 
-			# Set the correct return value
-			# NOTE: This seems overly complicated, refactor?
-			$context->return_value(
-				wantarray
-				? [
-					$wrappers{$name}->($context->params)
-				]
-				: $wrappers{$name}->($context->params)
-			);
+			# Pass through to the memoised function, using the
+			# same wantarray context as the original call.
+			if ( $_->wantarray ) {
+				my @rv = $WRAPPER{$name}->($_->args);
+				$_->return_value(@rv);
+			} elsif ( defined $_->wantarray ) {
+				my $rv = $WRAPPER{$name}->($_->args);
+				$_->return_value($rv);
+			} else {
+				$WRAPPER{$name}->($_->args);
+				$_->return_value;
+			}
 		},
 	);
 }
@@ -67,32 +69,15 @@ subsequent calls.
 
 =head1 SEE ALSO
 
-See the L<Aspect|::Aspect> pods for a guide to the Aspect module.
+See the L<Aspect> documentation for a guide to the Aspect module.
 
 You can find an example of using this aspect in the C<examples/> directory
 of the distribution.
-
-=head1 BUGS AND LIMITATIONS
-
-No bugs have been reported.
-
-Please report any bugs or feature requests through the web interface at
-L<http://rt.cpan.org>.
 
 =head1 SUPPORT
 
 Please report any bugs or feature requests through the web interface at
 L<http://rt.cpan.org/Public/Dist/Display.html?Name=Aspect-Library-Memoize>.
-
-=head1 INSTALLATION
-
-See perlmodinstall for information and options on installing Perl modules.
-
-=head1 AVAILABILITY
-
-The latest version of this module is available from the Comprehensive Perl
-Archive Network (CPAN). Visit <http://www.perl.com/CPAN/> to find a CPAN
-site near you. Or see <http://www.perl.com/CPAN/authors/id/M/MA/MARCEL/>.
 
 =head1 AUTHORS
 
