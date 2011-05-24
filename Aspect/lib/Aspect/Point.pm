@@ -123,7 +123,7 @@ use Carp                  ();
 use Sub::Uplevel          ();
 use Aspect::Point::Static ();
 
-our $VERSION = '0.97_06';
+our $VERSION = '0.98';
 
 
 

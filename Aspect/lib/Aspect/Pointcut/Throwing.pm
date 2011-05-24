@@ -8,7 +8,7 @@ use Aspect::Pointcut            ();
 use Aspect::Pointcut::Not       ();
 use Aspect::Pointcut::Returning ();
 
-our $VERSION = '0.97_06';
+our $VERSION = '0.98';
 our @ISA     = 'Aspect::Pointcut';
 
 

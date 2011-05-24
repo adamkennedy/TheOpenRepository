@@ -1,5 +1,10 @@
 Revision history for Perl extension Aspect
 
+0.98 to be released
+	- Production release, no change from 0.97_06
+	- Major refactoring, documentation and and 1.00 preparation release
+	- The API has now moved closed to the AspectJ API where sensible
+
 0.97_06 Tue 24 May 2011
 	- Generalised and moved Aspec::Pointcut::Highest::Clean to Aspect::Guard
 	- Removed dedicated Aspect::Advice::AfterReturning advice type
