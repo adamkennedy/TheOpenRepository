@@ -5,12 +5,12 @@ use strict;
 use warnings;
 use Test::Class       0.33 ();
 use Params::Util      1.00 ();
-use Aspect::Modular   0.36 ();
+use Aspect::Modular   0.98 ();
 use Aspect::Advice::Before ();
 use Aspect::Pointcut::Call ();
 use Aspect::Pointcut::And  ();
 
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 our @ISA     = 'Aspect::Modular';
 
 sub Test::Class::make_subject {
@@ -27,28 +27,28 @@ sub get_advice {
 			$pointcut,
 		),
 		code => sub {
-			my $context = shift;
-			my $self    = $context->self; # the Test::Class object
-			return unless is_test_method_with_subject($context);
-			my (@params) = $self->subject_params if $self->can('subject_params');
+			my $self   = $_->self;
+			my @method = ( $_->package_name, $_->short_name );
+
+			# Are we in a test class, in a test method, and can
+			# we get a subject_class from the test class.
+			# Would be nice if we could check for existence of test
+			# attribute on the method.
+			Params::Util::_INSTANCE($self, 'Test::Class') or return;
+			$self->_method_info(@method) or return;
+			$self->can('subject_class') or return;
+
+			my @params = ();
+			if ( $self->can('subject_params') ) {
+				@params = $self->subject_params;
+			}
 			my $subject = $self->make_subject(@params);
-			$self->init_subject_state($subject) if $self->can('init_subject_state');
-			$context->params( $context->params, $subject );
+			if ( $self->can('init_subject_state') ) {
+				$self->init_subject_state($subject) 
+			}
+			$_->args( $_->args, $subject );
 		},
 	);
-}
-
-# true if we are in a test class, in a test method, and we can get a
-# subject_class from the test class
-# would be nice if we could somehow check for existence of test attribute
-# on method
-sub is_test_method_with_subject {
-	my $context = shift;
-	my $self    = $context->self; # the Test::Class object
-	my @method  = ($context->package_name, $context->short_sub_name);
-	return Params::Util::_INSTANCE($self, 'Test::Class')
-	    && $self->_method_info(@method)
-	    && $self->can('subject_class');
 }
 
 1;
