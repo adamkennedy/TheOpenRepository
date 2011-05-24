@@ -369,7 +369,9 @@ sub wantarray {
 
 =head2 exception
 
-  $_->exception('Kaboom');
+  unless ( $_->exception ) {
+      $_->exception('Kaboom');
+  }
 
 The C<exception> method is used to get the current die message or exception
 object, or to set the die message or exception object.
@@ -433,10 +435,11 @@ use Class::XSAccessor 1.08 {
 	replace => 1,
 	getters => {
 		'pointcut'   => 'pointcut',
+		'original'   => 'original',
 		'sub_name'   => 'sub_name',
 		'wantarray'  => 'wantarray',
-		'params_ref' => 'args',
 		'enclosing'  => 'enclosing',
+		'params_ref' => 'args',
 	},
 };
 END_PERL

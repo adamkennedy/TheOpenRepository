@@ -17,26 +17,22 @@ sub proceed {
 
 sub return_value {
 	my $self = shift;
+	my $want = $self->{wantarray};
 
 	# Handle usage in getter form
 	if ( defined CORE::wantarray() ) {
 		# Let the inherent magic of Perl do the work between the
 		# list and scalar context calls to return_value
-		if ( $self->{wantarray} ) {
-			return @{$self->{return_value}};
-		} elsif ( defined $self->{wantarray} ) {
-			return $self->{return_value};
-		} else {
-			return;
-		}
+		return @{$self->{return_value}} if $want;
+		return   $self->{return_value}  if defined $want;
+		return;
 	}
 
-	# Having provided a return value, suppress any exceptions
-	# and don't proceed if applicable.
+	# Having provided a return value, suppress any exceptions.
 	$self->{exception} = '';
-	if ( $self->{wantarray} ) {
+	if ( $want ) {
 		@{$self->{return_value}} = @_;
-	} elsif ( defined $self->{wantarray} ) {
+	} elsif ( defined $want ) {
 		$self->{return_value} = pop;
 	}
 }
