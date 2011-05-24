@@ -77,7 +77,7 @@ is( $foo, 4, '->foo is called' );
 # Check that return_value works as expected with and without exceptions
 SCOPE: {
 	my $aspect = after {
-		shift->return_value('bar')
+		$_->return_value('bar')
 	} call qr/^My::One::(?:foo|boom)$/;
 	is(
 		$object->foo => 'bar',
@@ -104,16 +104,16 @@ is( $boom, 4, '->boom is called' );
 # Check that proceed fails as expected (reading)
 SCOPE: {
 	my $aspect = after {
-		shift->proceed;
+		$_->proceed;
 	} call qr/^My::One::(?:foo|boom)$/;
 	throws_ok(
 		sub { $object->foo },
-		qr/Key does not exist/,
+		qr/Cannot call proceed in after advice/,
 		'Throws correct error when process is read from',
 	);
 	throws_ok(
 		sub { $object->boom },
-		qr/Key does not exist/,
+		qr/Cannot call proceed in after advice/,
 		'Throws correct error when process is read from during exception',
 	);
 	is( $foo, 7,  '->foo is called'  );
@@ -123,16 +123,16 @@ SCOPE: {
 # Check that proceed fails as expected (writing)
 SCOPE: {
 	my $aspect = after {
-		shift->proceed(0);
+		$_->proceed(0);
 	} call qr/^My::One::(?:foo|boom)$/;
 	throws_ok(
 		sub { $object->foo },
-		qr/Key does not exist/,
+		qr/Cannot call proceed in after advice/,
 		'Throws correct error when process is written to',
 	);
 	throws_ok(
 		sub { $object->boom },
-		qr/Key does not exist/,
+		qr/Cannot call proceed in after advice/,
 		'Throws correct error when process is read from during exception',
 	);
 	is( $foo,  8, '->foo is called'  );
@@ -158,15 +158,15 @@ SCOPE: {
 # Check that we can run several simultaneous hooks.
 SCOPE: {
 	my $aspect1 = after {
-		$_[0]->return_value( $_[0]->return_value + 2 );
+		$_->return_value( $_->return_value + 2 );
 	} call qr/My::One::inc/;
 	my $aspect2 = after {
-		$_[0]->exception( $_[0]->return_value + 3 );
+		$_->exception( $_->return_value + 3 );
 	} call qr/My::One::inc/;
 	my $aspect3 = after {
-		my $e = $_[0]->exception;
+		my $e = $_->exception;
 		$e =~ s/\D.+//;
-		$_[0]->return_value( $e + 4 );
+		$_->return_value( $e + 4 );
 	} call qr/My::One::inc/;
 	is( $object->inc(2), 12, 'after advice changing params' );
 	is( $inc, 3, '->inc is called' );
@@ -179,7 +179,7 @@ is( $inc, 4, '->inc is called' );
 # Check the introduction of a permanent hook
 SCOPE: {
 	after {
-		shift->exception('forever');
+		$_->exception('forever');
 	} call qr/^My::One::(?:inc|boom)$/;
 }
 throws_ok(
@@ -205,8 +205,16 @@ is( $boom, 7, '->boom is called' );
 # Check before hook installation
 is( $object->bar, 'foo', 'bar cflow not yet installed' );
 is( $object->foo, 'foo', 'foo cflow not yet installed' );
-throws_ok( sub { $object->boom }, qr/forever/, 'boom cflow is not installed' );
-throws_ok( sub { $object->bang }, qr/forever/, 'bang cflow is not installed' );
+throws_ok(
+	sub { $object->boom },
+	qr/forever/,
+	'boom cflow is not installed',
+);
+throws_ok(
+	sub { $object->bang },
+	qr/forever/,
+	'bang cflow is not installed',
+);
 is( $bar, 1,  '->bar is called' );
 is( $foo, 11, '->foo is called for both ->bar and ->foo' );
 is( $bang, 1,  '->bang is called' );
@@ -215,7 +223,7 @@ is( $boom, 9, '->boom is called for both' );
 SCOPE: {
 	my $advice = after {
 		my $c = shift;
-		$c->return_value($c->my_key->self);
+		$c->return_value( $c->my_key->self );
 	} call qr/^My::One::(?:foo|boom)$/
 	& cflow my_key => qr/^My::One::(?:bar|bang)$/;
 
@@ -241,8 +249,16 @@ SCOPE: {
 # Confirm original behaviour on uninstallation
 is( $object->bar, 'foo', 'bar cflow uninstalled' );
 is( $object->foo, 'foo', 'foo cflow uninstalled' );
-throws_ok( sub { $object->boom }, qr/forever/, 'boom cflow is not installed' );
-throws_ok( sub { $object->bang }, qr/forever/, 'bang cflow is not installed' );
+throws_ok(
+	sub { $object->boom },
+	qr/forever/,
+	'boom cflow is not installed',
+);
+throws_ok(
+	sub { $object->bang },
+	qr/forever/,
+	'bang cflow is not installed',
+);
 is( $bar, 3,  '->bar is called' );
 is( $foo, 15, '->foo is called for both' );
 is( $bang, 3,  '->bang is called' );
@@ -261,7 +277,7 @@ sub main::with_proto ($) { shift }
 # Control case
 SCOPE: {
 	my $advice = after {
-		shift->return_value('wrapped')
+		$_->return_value('wrapped')
 	} call 'main::no_proto';
 	is( main::no_proto('foo'), 'wrapped', 'No prototype' );
 }
@@ -276,7 +292,7 @@ SCOPE: {
 # Confirm correct parameter error during hooking
 SCOPE: {
 	my $advice = after {
-		shift->return_value('wrapped');
+		$_->return_value('wrapped');
 	} call 'main::with_proto';
 	is( main::with_proto('foo'), 'wrapped', 'With prototype' );
 

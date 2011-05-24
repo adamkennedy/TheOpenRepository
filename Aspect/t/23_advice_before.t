@@ -50,7 +50,7 @@ is( $foo, 3, '->foo is called' );
 # Check that return_value works as expected and does not pass through
 SCOPE: {
 	my $aspect = before {
-		shift->return_value('bar')
+		$_->return_value('bar')
 	} call "My::One::foo";
 	is( $object->foo, 'bar', 'before changing return_value' );
 	is( $foo, 3, '->foo is not called' );
@@ -63,7 +63,7 @@ is( $foo, 4, '->foo is called' );
 # Check that proceed works as expected and does not pass through
 SCOPE: {
 	my $aspect = before {
-		shift->proceed(0);
+		$_->return_value;
 	} call "My::One::foo";
 	is( scalar($object->foo), undef, 'scalar process(0) shortcuts to undef' );
 	is_deeply( [ $object->foo ], [ ], 'list process(0) shortcuts to ()' );
@@ -113,7 +113,7 @@ is( $inc, 4, '->inc is called' );
 
 # Check the introduction of a permanent hook
 before {
-	shift->return_value('forever');
+	$_->return_value('forever');
 } call 'My::One::inc';
 is( $object->inc, 'forever', '->inc hooked forever' );
 is( $inc, 4, '->inc not called' );
@@ -165,7 +165,7 @@ sub main::with_proto ($) { shift }
 # Control case
 SCOPE: {
 	my $advice = before {
-		shift->return_value('wrapped')
+		$_->return_value('wrapped')
 	} call 'main::no_proto';
 	is( main::no_proto('foo'), 'wrapped', 'No prototype' );
 }
@@ -180,7 +180,7 @@ SCOPE: {
 # Confirm correct parameter error during hooking
 SCOPE: {
 	my $advice = before {
-		shift->return_value('wrapped');
+		$_->return_value('wrapped');
 	} call 'main::with_proto';
 	is( main::with_proto('foo'), 'wrapped', 'With prototype' );
 

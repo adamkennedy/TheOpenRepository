@@ -51,7 +51,7 @@ is( $foo, 3, '->foo is called' );
 # Check that return_value works as expected and does not pass through
 SCOPE: {
 	my $aspect = Aspect::after_returning {
-		shift->return_value('bar')
+		$_->return_value('bar')
 	} call "My::One::foo";
 	is( $object->foo, 'bar', 'after_returning changing return_value' );
 	is( $foo, 4, '->foo is called' );
@@ -64,11 +64,11 @@ is( $foo, 5, '->foo is called' );
 # Check that proceed fails as expected (reading)
 SCOPE: {
 	my $aspect = Aspect::after_returning {
-		shift->proceed;
+		$_->proceed;
 	} call "My::One::foo";
 	throws_ok(
 		sub { $object->foo },
-		qr/Key does not exist/,
+		qr/Cannot call proceed in after advice/,
 		'Throws correct error when process is read from',
 	);
 	is( $foo, 6, '->foo is called' );
@@ -77,11 +77,11 @@ SCOPE: {
 # Check that proceed fails as expected (writing)
 SCOPE: {
 	my $aspect = Aspect::after_returning {
-		shift->proceed(0);
+		$_->proceed(0);
 	} call "My::One::foo";
 	throws_ok(
 		sub { $object->foo },
-		qr/Key does not exist/,
+		qr/Cannot call proceed in after advice/,
 		'Throws correct error when process is written to',
 	);
 	is( $foo, 7, '->foo is called' );

@@ -92,9 +92,7 @@ Aspect - Aspect-Oriented Programming (AOP) for Perl
   
   # Define debugger breakpoints with high precision and conditionality
   aspect Breakpoint => call qr/^Foo::.+::Bar::when_/ & wantscalar & highest;
-  
-  
-  
+
 =head1 DESCRIPTION
 
 =head2 What is Aspect-Oriented Programming?

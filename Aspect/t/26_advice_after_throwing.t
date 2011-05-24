@@ -66,7 +66,7 @@ is( $boom, 3, '->boom is called' );
 # Check that return_value works as expected and does not pass through
 SCOPE: {
 	my $aspect = Aspect::after_throwing {
-		shift->return_value('bar')
+		$_->return_value('bar')
 	} call qr/^My::One::(?:foo|boom)$/;
 	is(
 		$object->foo => 'foo',
@@ -89,11 +89,11 @@ is( $boom, 5, '->boom is called' );
 # Check that proceed fails as expected (reading)
 SCOPE: {
 	my $aspect = Aspect::after_throwing {
-		shift->proceed;
+		$_->proceed;
 	} call "My::One::boom";
 	throws_ok(
 		sub { $object->boom },
-		qr/Key does not exist/,
+		qr/Cannot call proceed in after advice/,
 		'Throws correct error when process is read from',
 	);
 	is( $boom, 6, '->boom is called' );
@@ -102,11 +102,11 @@ SCOPE: {
 # Check that proceed fails as expected (writing)
 SCOPE: {
 	my $aspect = Aspect::after_throwing {
-		shift->proceed(0);
+		$_->proceed(0);
 	} call "My::One::boom";
 	throws_ok(
 		sub { $object->boom },
-		qr/Key does not exist/,
+		qr/Cannot call proceed in after advice/,
 		'Throws correct error when process is written to',
 	);
 	is( $boom, 7, '->boom is called' );
@@ -120,13 +120,13 @@ is( $boom, 8, '->boom is called' );
 # Check that we can run several simultaneous hooks.
 SCOPE: {
 	my $aspect1 = Aspect::after_throwing {
-		$_[0]->exception( 'one ' . $_[0]->exception );
+		$_->exception( 'one ' . $_->exception );
 	} call qr/My::One::boom/;
 	my $aspect2 = Aspect::after_throwing {
-		$_[0]->exception( 'two ' . $_[0]->exception );
+		$_->exception( 'two ' . $_->exception );
 	} call qr/My::One::boom/;
 	my $aspect3 = Aspect::after_throwing {
-		$_[0]->exception( 'three ' . $_[0]->exception );
+		$_->exception( 'three ' . $_->exception );
 	} call qr/My::One::boom/;
 	throws_ok(
 		sub { $object->boom },
@@ -144,7 +144,7 @@ is( $boom, 10, '->boom is called' );
 # Check alteration of the exception.
 SCOPE: {
 	Aspect::after_throwing {
-		shift->exception('blah');
+		$_->exception('blah');
 	} call 'My::One::boom';
 }
 throws_ok( sub { $object->boom }, qr/blah/, 'boom permanently hooked' );
@@ -201,7 +201,7 @@ sub main::with_proto ($) { die shift }
 # Control case
 SCOPE: {
 	my $advice = Aspect::after_throwing {
-		shift->return_value('wrapped')
+		$_->return_value('wrapped')
 	} call 'main::no_proto';
 	is( main::no_proto('foo'), 'wrapped', 'No prototype' );
 }
@@ -216,7 +216,7 @@ SCOPE: {
 # Confirm correct parameter error during hooking
 SCOPE: {
 	my $advice = Aspect::after_throwing {
-		shift->return_value('wrapped');
+		$_->return_value('wrapped');
 	} call 'main::with_proto';
 	is( main::with_proto('foo'), 'wrapped', 'With prototype' );
 

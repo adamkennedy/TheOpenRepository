@@ -7,20 +7,20 @@ package Aspect::Point;
 Aspect::Point - The Join Point context
 
 =head1 SYNOPSIS
-  
+
   # An anonymous function suitable for use as advice code
   # across all advice types (as it uses no limited access methods)
   my $advice_code = sub {
-     print $_->type;         # The advice type ('before')
-     print $_->pointcut;     # The matching pointcut ($pointcut)
-     print $_->enclosing;    # Access cflow pointcut advice context
-     print $_->sub_name;     # The full package_name::sub_name
-     print $_->package_name; # The package name ('Person')
-     print $_->short_name;   # The sub name (a get or set method)
-     print $_->self;         # 1st parameter to the matching sub
-     print ($_->args)[1];    # 2nd parameter to the matching sub
-     $_->original->(x => 3); # Call matched sub independently
-     $->return_value(4)      # Set the return value
+      print $_->type;           # The advice type ('before')
+      print $_->pointcut;       # The matching pointcut ($pointcut)
+      print $_->enclosing;      # Access cflow pointcut advice context
+      print $_->sub_name;       # The full package_name::sub_name
+      print $_->package_name;   # The package name ('Person')
+      print $_->short_name;     # The sub name (a get or set method)
+      print $_->self;           # 1st parameter to the matching sub
+      print ($_->args)[1];      # 2nd parameter to the matching sub
+      $_->original->( x => 3 ); # Call matched sub independently
+      $_->return_value(4)       # Set the return value
   };
 
 =head1 DESCRIPTION
@@ -62,7 +62,7 @@ on C<Person>?
 
 You can access cflow context in the synopsis above, by calling:
 
-  $point->enclosing;
+  $point->enclosing
 
 You get it from the main advice join point by calling a method named after
 the context key used in the cflow spec (which is "enclosing" if a custom name

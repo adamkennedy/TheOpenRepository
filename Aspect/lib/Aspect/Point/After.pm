@@ -14,6 +14,12 @@ sub exception {
 	$_[0]->{exception} = $_[1];
 }
 
+# We have to do this as a die message or it will hit the AUTOLOAD
+# on the underlying hash key.
+sub proceed {
+	Carp::croak("Cannot call proceed in after advice");
+}
+
 1;
 
 __END__

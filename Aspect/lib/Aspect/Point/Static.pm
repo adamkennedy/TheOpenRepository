@@ -28,7 +28,7 @@ our @ISA     = 'Aspect::Point';
 # Error on anything this doesn't support
 
 sub return_value {
-	Carp::croak("Cannot call return_value on static part of join point");
+	Carp::croak("Cannot call return_value on static part of a join point");
 }
 
 sub AUTOLOAD {

@@ -8,6 +8,8 @@ Aspect::Point - The Join Point context for "before" advice code
 
 =head1 SYNOPSIS
 
+
+
 =head1 METHODS
 
 =cut
@@ -25,6 +27,12 @@ sub original {
 	$_[0]->{original};
 }
 
+# We have to do this as a die message or it will hit the AUTOLOAD
+# on the underlying hash key.
+sub proceed {
+	Carp::croak("Cannot call proceed in before advice");
+}
+
 
 
 
@@ -38,7 +46,7 @@ BEGIN {
 use Class::XSAccessor 1.08 {
 	replace => 1,
 	getters => {
-		'original'   => 'original',
+		'original' => 'original',
 	},
 };
 END_PERL
