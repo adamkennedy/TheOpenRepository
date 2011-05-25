@@ -67,7 +67,7 @@ sub _install {
 
 			# Apply any runtime-specific context checks
 			my \$wantarray = wantarray;
-			local \$_ = bless {
+			local \$Aspect::POINT = bless {
 				sub_name     => \$name,
 				wantarray    => \$wantarray,
 				args         => \\\@_,
@@ -77,6 +77,7 @@ sub _install {
 				proceed      => 1,
 			}, 'Aspect::Point::Before';
 
+			local \$_ = \$Aspect::POINT;
 			goto &\$original unless $MATCH_RUN;
 
 			# Array context needs some special return handling

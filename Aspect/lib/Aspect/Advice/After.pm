@@ -77,7 +77,7 @@ sub _install {
 					)
 				] };
 
-				local \$_ = bless {
+				local \$Aspect::POINT = bless {
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					args         => \\\@_,
@@ -86,13 +86,15 @@ sub _install {
 					pointcut     => \$pointcut,
 					original     => \$original,
 				}, 'Aspect::Point::After';
+
 				unless ( $MATCH_RUN ) {
-					return \@\$return unless \$_->{exception};
-					die \$_->{exception};
+					return \@\$return unless \$Aspect::POINT->{exception};
+					die \$Aspect::POINT->{exception};
 				}
 
 				# Execute the advice code
-				&\$code(\$_);
+				local \$_ = \$Aspect::POINT;
+				&\$code(\$Aspect::POINT);
 
 				# Throw the same (or modified) exception
 				my \$exception = \$_->{exception};
@@ -109,7 +111,7 @@ sub _install {
 					)
 				};
 
-				local \$_ = bless {
+				local \$Aspect::POINT = bless {
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					args         => \\\@_,
@@ -120,12 +122,13 @@ sub _install {
 				}, 'Aspect::Point::After';
 
 				unless ( $MATCH_RUN ) {
-					return \$return unless \$_->{exception};
-					die \$_->{exception};
+					return \$return unless \$Aspect::POINT->{exception};
+					die \$Aspect::POINT->{exception};
 				}
 
 				# Execute the advice code
-				&\$code(\$_);
+				local \$_ = \$Aspect::POINT;
+				&\$code(\$Aspect::POINT);
 
 				# Throw the same (or modified) exception
 				my \$exception = \$_->{exception};
@@ -142,7 +145,7 @@ sub _install {
 				)
 			};
 
-			local \$_ = bless {
+			local \$Aspect::POINT = bless {
 				sub_name     => \$name,
 				wantarray    => \$wantarray,
 				args         => \\\@_,
@@ -151,13 +154,15 @@ sub _install {
 				pointcut     => \$pointcut,
 				original     => \$original,
 			}, 'Aspect::Point::After';
+
 			unless ( $MATCH_RUN ) {
-				return unless \$_->{exception};
-				die \$_->{exception};
+				return unless \$Aspect::POINT->{exception};
+				die \$Aspect::POINT->{exception};
 			}
 
 			# Execute the advice code
-			&\$code(\$_);
+			local \$_ = \$Aspect::POINT;
+			&\$code(\$Aspect::POINT);
 
 			# Throw the same (or modified) exception
 			my \$exception = \$_->{exception};

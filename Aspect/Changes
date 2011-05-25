@@ -12,6 +12,10 @@ Revision history for Perl extension Aspect
 	  as the around advice doesn't catch them during proceed (that will be
 	  fixed some time after 1.00)
 	- Expanded the testing of various edge cases
+	- Localise $_ in a more contained manner so that don't copy/backup $_
+	  for hooked around pointcuts that don't match the runtime part of the
+	  join point. Using a global for this instead of overloading $_ also
+	  makes pointcut marginally slightly faster.
 
 0.98 Tue 24 May 2011
 	- Production release, no change from 0.97_06

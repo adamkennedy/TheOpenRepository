@@ -26,10 +26,17 @@ use constant RUNTIME_EVAL => 4;
 # $self->[0] is the original specification provided to the constructor
 # $self->[1] is a function form of the condition that has a sub name passed
 #            in and returns true if matching or false if not.
-# $self->[2] is a either a string that is a fragment of Perl that can be eval'ed
-#            with $_ set to a join point object, or a function in the style of
-#            the $self->[1] param above and taking the sub name param. Returns
-#            true if matching or false if not.
+# $self->[2] is a function form of the condition that has the sub name set as
+#            the topic variable.
+# $self->[3] is a function form of the condition that has the join point object
+#            set as the topic variable.
+# $self->[4] is either a string Perl fragment that can be eval'ed with $_ set
+#            as the sub name, or a function that can be called with $_ set as
+#            the sub name.
+# $self->[5] is either a string Perl fragment that can be eval'ed with $_ set
+#            as the join point variable, or a function that can be called with
+#            $_ set as the join point variable.
+# All of 1-5 return true of the condition matches, or false if not.
 sub new {
 	my $class = shift;
 	my $spec  = shift;
@@ -39,9 +46,9 @@ sub new {
 			$spec,
 			eval "sub () { \$_[0] eq $string }",
 			eval "sub () { \$_ eq $string }",
-			eval "sub () { \$_->{sub_name} eq $string }",
+			eval "sub () { \$Aspect::POINT->{sub_name} eq $string }",
 			"\$_ eq $string",
-			"\$_->{sub_name} eq $string",
+			"\$Aspect::POINT->{sub_name} eq $string",
 		], $class;
 	}
 	if ( Params::Util::_CODELIKE($spec) ) {
@@ -49,9 +56,9 @@ sub new {
 			$spec,
 			$spec,
 			sub { $spec->($_) },
-			sub { $spec->($_->{sub_name}) },
+			sub { $spec->($Aspect::POINT->{sub_name}) },
 			sub { $spec->($_) },
-			sub { $spec->($_->{sub_name}) },
+			sub { $spec->($Aspect::POINT->{sub_name}) },
 		], $class;
 	}
 	if ( Params::Util::_REGEX($spec) ) {
@@ -69,9 +76,9 @@ sub new {
 			$spec,
 			eval "sub () { \$_[0] =~ $regex }",
 			eval "sub () { $regex }",
-			eval "sub () { \$_->{sub_name} =~ $regex }",
+			eval "sub () { \$Aspect::POINT->{sub_name} =~ $regex }",
 			$regex,
-			"\$_->{sub_name} =~ $regex",
+			"\$Aspect::POINT->{sub_name} =~ $regex",
 		], $class;
 	}
 	Carp::croak("Invalid function call specification");

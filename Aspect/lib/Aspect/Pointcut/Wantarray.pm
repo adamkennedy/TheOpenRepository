@@ -22,17 +22,17 @@ use constant LIST   => 3;
 sub new {
 	return bless [
 		LIST,
-		'$_->{wantarray}',
+		'$Aspect::POINT->{wantarray}',
 	], $_[0] if $_[1];
 
 	return bless [
 		SCALAR,
-		'defined $_->{wantarray} and not $_->{wantarray}',
+		'defined $Aspect::POINT->{wantarray} and not $Aspect::POINT->{wantarray}',
 	], $_[0] if defined $_[1];
 
 	return bless [
 		VOID,
-		'not defined $_->{wantarray}',
+		'not defined $Aspect::POINT->{wantarray}',
 	], $_[0];
 }
 

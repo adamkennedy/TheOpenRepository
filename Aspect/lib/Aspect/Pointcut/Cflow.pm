@@ -72,12 +72,12 @@ sub compile_runtime {
 			last;
 		}
 		return 0 unless $caller;
-		my $context = bless {
+		my $static = bless {
 			sub_name => $caller->{sub_name},
-			pointcut => $_->{pointcut},
+			pointcut => $Aspect::POINT->{pointcut},
 			args     => $caller->{args},
 		}, 'Aspect::Point::Static';
-		$_->{$self->[KEY]} = $context;
+		$Aspect::POINT->{$self->[KEY]} = $static;
 		return 1;
 	};
 }

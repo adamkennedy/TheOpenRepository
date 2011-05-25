@@ -40,8 +40,14 @@ sub pointcut_ok {
 	is( ref($compiled2), 'CODE', '->compiled_runtime returns a CODE reference' );
 
 	# Does the compiled code work properly?
-	my $good_match = do { local $_ = { sub_name => $good }; $compiled2->() };
-	my $bad_match  = do { local $_ = { sub_name => $bad  }; $compiled2->() };
+	my $good_match = do {
+		local $Aspect::POINT = { sub_name => $good };
+		$compiled2->();
+	};
+	my $bad_match = do {
+		local $Aspect::POINT = { sub_name => $bad };
+		$compiled2->();
+	};
 	ok(   $good_match, "$type match"    );
 	ok( ! $bad_match,  "$type no match" );
 }

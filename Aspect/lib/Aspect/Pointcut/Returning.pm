@@ -26,7 +26,7 @@ sub curry_runtime {
 }
 
 sub compile_runtime {
-	"defined \$_->{exception} and not ref \$_->{exception} and \$_->{exception} eq ''";
+	'defined $Aspect::POINT->{exception} and not ref $Aspect::POINT->{exception} and $Aspect::POINT->{exception} eq ""';
 }
 
 1;

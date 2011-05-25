@@ -27,7 +27,7 @@ sub _install {
 	# is nothing to do the compiler will optimise away the code entirely.
 	my $curried   = $pointcut->curry_runtime;
 	my $compiled  = $curried ? $curried->compiled_runtime : undef;
-	my $MATCH_RUN = $compiled ? '$compiled->()' : 1;
+	my $MATCH_RUN = $compiled ? 'do { local $_ = $Aspect::POINT; $compiled->() }' : 1;
 
 	# When an aspect falls out of scope, we don't attempt to remove
 	# the generated hook code, because it might (for reasons potentially
@@ -68,7 +68,7 @@ sub _install {
 
 			# Apply any runtime-specific context checks
 			my \$wantarray = wantarray;
-			my \$point     = bless {
+			local \$Aspect::POINT = bless {
 				sub_name     => \$name,
 				wantarray    => \$wantarray,
 				args         => \\\@_,
@@ -79,22 +79,19 @@ sub _install {
 			}, 'Aspect::Point::Around';
 
 			# Can we shortcut the advice code
-			do {
-				local \$_ = \$point;
-				$MATCH_RUN;
-			} or goto &\$original;
+			goto &\$original unless $MATCH_RUN;
 
 			# Run the advice code
 			SCOPE: {
-				local \$_ = \$point;
+				local \$_ = \$Aspect::POINT;
 				Sub::Uplevel::uplevel(
-					1, \$code, \$point,
+					1, \$code, \$Aspect::POINT,
 				);
 			}
 
 			# Return the result
-			return \@{\$point->{return_value}} if \$wantarray;
-			return \$point->{return_value};
+			return \@{\$Aspect::POINT->{return_value}} if \$wantarray;
+			return \$Aspect::POINT->{return_value};
 		};
 END_PERL
 		$self->{installed}++;
