@@ -424,6 +424,51 @@ our $VERSION = '0.982';
 # can avoid accidentally binding them.
 our %EXPORTED = ();
 
+sub install {
+	Sub::Install::install_sub( {
+		into => $_[1],
+		code => $_[2],
+		as   => $_[3] || $_[2],
+	} );
+	$EXPORTED{"$_[1]::$_[2]"} = 1;
+}
+
+sub import {
+	my $class  = shift;
+	my $legacy = 0;
+	my $into   = caller();
+	while ( @_ ) {
+		my $value = shift;
+		if ( $value eq ':legacy' ) {
+			$legacy = 1;
+		} else {
+			Carp::croak("Unknown or unsupported import param '$value'");
+		}
+	}
+
+	# Install unchanged legacy functions
+	foreach ( qw{ aspect before call cflow } ) {
+		$class->install( $into => $_ );
+	}
+
+	# Install functions that change between API versions
+	$class->install( $into => $legacy ? 'after_returning' : 'after' => 'after' );
+
+	unless ( $legacy ) {
+		# Install new generation API functions
+		foreach ( qw{
+			around
+			throwing returning
+			wantlist wantscalar wantvoid
+			true highest
+		} ) {
+			$class->install( $into => $_ );
+		}
+	}
+
+	return 1;
+}
+
 
 
 
@@ -940,63 +985,6 @@ sub aspect {
 		lexical => defined wantarray,
 		args    => [ @_ ],
 	);
-}
-
-
-
-
-
-
-######################################################################
-# Import Logic
-
-sub import {
-	my $class  = shift;
-	my $legacy = 0;
-	my $into   = caller();
-	while ( @_ ) {
-		my $value = shift;
-		if ( $value eq ':legacy' ) {
-			$legacy = 1;
-		} else {
-			Carp::croak("Unknown or unsupported import param '$value'");
-		}
-	}
-
-	# Install unchanged legacy functions
-	foreach ( qw{ aspect before call cflow } ) {
-		Sub::Install::install_sub( {
-			code => $_,
-			into => $into,
-		} );
-		$EXPORTED{"${into}::$_"} = 1;
-	}
-
-	# Install functions that change between API versions
-	Sub::Install::install_sub( {
-		code => $legacy ? 'after_returning' : 'after',
-		as   => 'after',
-		into => $into,
-	} );
-	$EXPORTED{"${into}::after"} = 1;
-
-	unless ( $legacy ) {
-		# Install new generation API functions
-		foreach ( qw{
-			around
-			throwing returning
-			wantlist wantscalar wantvoid
-			true highest
-		} ) {
-			Sub::Install::install_sub( {
-				code => $_,
-				into => $into,
-			} );
-			$EXPORTED{"${into}::$_"} = 1;
-		}
-	}
-
-	return 1;
 }
 
 
