@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 13;
+use Test::More tests => 10;
 use Test::NoWarnings;
 use Aspect;
 
@@ -17,78 +17,75 @@ use Aspect;
 
 
 ######################################################################
-# Topic Propagation
-
-SCOPE: {
-	package Foo;
-
-	sub around_topic {
-		return "Topic is $_";
-	}
-
-	sub before_topic {
-		return "Topic is $_";
-	}
-
-	sub after_topic {
-		return "Topic is $_";
-	}
-}
-
-# Do the functions initiall work
-$_ = 'test1';
-is( Foo::around_topic(), 'Topic is test1', 'around_topic unhooked ok' );
-is( Foo::before_topic(), 'Topic is test1', 'before_topic unhooked ok' );
-is( Foo::after_topic(),  'Topic is test1', 'after_topic unhooked ok' );
-
-# Set up some null aspects over the topic functions
-before { } call 'Foo::before_topic';
-after  { } call 'Foo::after_topic';
-around { $_->proceed } call 'Foo::around_topic';
-
-$_ = 'test2';
-is( Foo::around_topic(), 'Topic is test2', 'around_topic hooked ok' );
-is( Foo::before_topic(), 'Topic is test2', 'before_topic hooked ok' );
-is( Foo::after_topic(),  'Topic is test2', 'after_topic hooked ok' );
-
-
-
-
-
-######################################################################
-# Topic Manipulation
+# Topic Propogation and Manipulation
 
 SCOPE: {
 	package Bar;
 
-	sub around_topic {
+	sub around_control {
 		$_ += 10;
 		return "Topic is $_";
 	}
 
-	sub before_topic {
+	sub around_matched {
+		$_ += 10;
+		return "Topic is $_";
+	}
+
+	sub around_unmatched {
+		$_ += 10;
+		return "Topic is $_";
+	}
+
+	sub before_control {
 		$_ += 100;
 		return "Topic is $_";
 	}
 
-	sub after_topic {
+	sub before_matched {
+		$_ += 100;
+		return "Topic is $_";
+	}
+
+	sub before_unmatched {
+		$_ += 100;
+		return "Topic is $_";
+	}
+
+	sub after_control {
+		$_ += 1000;
+		return "Topic is $_";
+	}
+
+	sub after_matched {
+		$_ += 1000;
+		return "Topic is $_";
+	}
+
+	sub after_unmatched {
 		$_ += 1000;
 		return "Topic is $_";
 	}
 }
 
-# Do the functions initiall work
+# Do the functions initially work
 $_ = 1;
-is( Bar::around_topic(), 'Topic is 11',   'around_topic unhooked ok' );
-is( Bar::before_topic(), 'Topic is 111',  'before_topic unhooked ok' );
-is( Bar::after_topic(),  'Topic is 1111', 'after_topic unhooked ok'  );
+is( Bar::around_control(), 'Topic is 11',   'around_control ok' );
+is( Bar::before_control(), 'Topic is 111',  'before_control ok' );
+is( Bar::after_control(),  'Topic is 1111', 'after_control ok'  );
 
-# Set up some null aspects over the topic functions
-before { } call 'Bar::before_topic';
-after  { } call 'Bar::after_topic';
-around { $_->proceed } call 'Bar::around_topic';
+# Set up some null aspects over the matched functions
+around { $_->proceed } call 'Bar::around_matched';
+around { $_->proceed } call 'Bar::around_unmatched' & wantvoid;
+before { } call 'Bar::before_matched';
+before { } call 'Bar::before_unmatched' & wantvoid;
+after  { } call 'Bar::after_matched';
+after  { } call 'Bar::after_unmatched' & wantvoid;
 
 $_ = 2;
-is( Bar::around_topic(), 'Topic is 12',   'around_topic hooked ok' );
-is( Bar::before_topic(), 'Topic is 112',  'before_topic hooked ok' );
-is( Bar::after_topic(),  'Topic is 1112', 'after_topic hooked ok'  );
+is( Bar::around_matched(),   'Topic is 12',   'around_matched ok'   );
+is( Bar::around_unmatched(), 'Topic is 22',   'around_unmatched ok' );
+is( Bar::before_matched(),   'Topic is 122',  'before_matched ok'   );
+is( Bar::before_unmatched(), 'Topic is 222',  'before_unmatched ok' );
+is( Bar::after_matched(),    'Topic is 1222', 'after_matched ok'    );
+is( Bar::after_unmatched(),  'Topic is 2222', 'after_unmatched ok'  );

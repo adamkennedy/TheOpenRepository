@@ -23,9 +23,7 @@ sub get_advice {
 				$_->return_value($CACHE{$class});
 			} else {
 				$_->proceed;
-				unless ( $_->exception ) {
-					$CACHE{$class} = $_->return_value;
-				}
+				$CACHE{$class} = $_->return_value;
 			}
 		},
 	);

@@ -8,6 +8,10 @@ Revision history for Perl extension Aspect
 	- Added a reduced volume copy of the Aspect::Point method documentation
 	  to the main Aspect documentation.
 	- Ensure $_ is passed through intact during around advice using proceed
+	- Aspect::Library::Single no longer incorrectly checks for exceptions,
+	  as the around advice doesn't catch them during proceed (that will be
+	  fixed some time after 1.00)
+	- Expanded the testing of various edge cases
 
 0.98 Tue 24 May 2011
 	- Production release, no change from 0.97_06
