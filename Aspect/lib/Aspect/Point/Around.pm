@@ -55,27 +55,37 @@ sub return_value {
 sub proceed {
 	my $self = shift;
 
-	return $self->return_value(
+	local $_ = ${$self->{topic}};
+
+	if ( $self->{wantarray} ) {
+		$self->return_value(
+			Sub::Uplevel::uplevel(
+				2,
+				$self->{original},
+				@{$self->{args}},
+			)
+		);
+
+	} elsif ( defined $self->{wantarray} ) {
+		$self->return_value(
+			scalar Sub::Uplevel::uplevel(
+				2,
+				$self->{original},
+				@{$self->{args}},
+			)
+		);
+
+	} else {
 		Sub::Uplevel::uplevel(
 			2,
 			$self->{original},
 			@{$self->{args}},
-		)
-	) if $self->{wantarray};
+		);
+	}
 
-	return $self->return_value(
-		scalar Sub::Uplevel::uplevel(
-			2,
-			$self->{original},
-			@{$self->{args}},
-		)
-	) if defined $self->{wantarray};
+	${$self->{topic}} = $_;
 
-	return Sub::Uplevel::uplevel(
-		2,
-		$self->{original},
-		@{$self->{args}},
-	);
+	return;
 }
 
 BEGIN {

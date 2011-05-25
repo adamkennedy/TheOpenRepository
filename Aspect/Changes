@@ -7,6 +7,7 @@ Revision history for Perl extension Aspect
 	- Moved all advice code method documentation into Aspect::Point
 	- Added a reduced volume copy of the Aspect::Point method documentation
 	  to the main Aspect documentation.
+	- Ensure $_ is passed through intact during around advice using proceed
 
 0.98 Tue 24 May 2011
 	- Production release, no change from 0.97_06

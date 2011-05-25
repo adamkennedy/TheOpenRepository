@@ -389,6 +389,10 @@ sub enclosing {
 	$_[0]->{enclosing};
 }
 
+sub topic {
+	Carp::croak("The join point method topic in reserved");
+}
+
 sub AUTOLOAD {
 	my $self = shift;
 	my $key  = our $AUTOLOAD;

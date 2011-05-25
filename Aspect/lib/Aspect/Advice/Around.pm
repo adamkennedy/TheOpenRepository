@@ -68,34 +68,33 @@ sub _install {
 
 			# Apply any runtime-specific context checks
 			my \$wantarray = wantarray;
-			local \$_ = bless {
+			my \$point     = bless {
 				sub_name     => \$name,
 				wantarray    => \$wantarray,
 				args         => \\\@_,
 				return_value => \$wantarray ? [ ] : undef,
 				pointcut     => \$pointcut,
 				original     => \$original,
+				topic        => \\\$_,
 			}, 'Aspect::Point::Around';
 
-			goto &\$original unless $MATCH_RUN;
+			# Can we shortcut the advice code
+			do {
+				local \$_ = \$point;
+				$MATCH_RUN;
+			} or goto &\$original;
 
-			# Array context needs some special return handling
-			if ( \$wantarray ) {
-				# Run the advice code
+			# Run the advice code
+			SCOPE: {
+				local \$_ = \$point;
 				Sub::Uplevel::uplevel(
-					1, \$code, \$_,
+					1, \$code, \$point,
 				);
-
-				# Don't run the original
-				return \@{\$_->{return_value}};
 			}
 
-			# Scalar and void have the same return handling.
-			Sub::Uplevel::uplevel(
-				1, \$code, \$_,
-			);
-
-			return \$_->{return_value};
+			# Return the result
+			return \@{\$point->{return_value}} if \$wantarray;
+			return \$point->{return_value};
 		};
 END_PERL
 		$self->{installed}++;
