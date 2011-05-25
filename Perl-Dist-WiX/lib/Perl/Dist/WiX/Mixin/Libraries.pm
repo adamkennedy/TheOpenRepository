@@ -115,7 +115,7 @@ sub _binary_file {
 } ## end sub _binary_file
 
 
-# Private troutine to map a file or package name to a URL.
+# Private routine to map a file or package name to a URL.
 sub _binary_url {
 	my $self = shift;
 	my $file = shift;
