@@ -68,39 +68,27 @@ sub _install {
 			# Apply any runtime-specific context checks
 			my \$wantarray = wantarray;
 			local \$Aspect::POINT = bless {
-				sub_name     => \$name,
-				wantarray    => \$wantarray,
-				args         => \\\@_,
-				pointcut     => \$pointcut,
-				return_value => \$wantarray ? [ ] : undef,
-				original     => \$original,
-				proceed      => 1,
+				pointcut  => \$pointcut,
+				original  => \$original,
+				sub_name  => \$name,
+				wantarray => \$wantarray,
+				args      => \\\@_,
+				exception => \$\@, ### Not used (yet)
 			}, 'Aspect::Point::Before';
 
 			local \$_ = \$Aspect::POINT;
 			goto &\$original unless $MATCH_RUN;
 
-			# Array context needs some special return handling
-			if ( \$wantarray ) {
-				# Run the advice code
-				&\$code(\$_);
-
-				if ( \$_->{proceed} ) {
-					\@_ = \$_->args; ### Superfluous?
-					goto &\$original;
-				}
-
-				# Don't run the original
-				return \@{\$_->{return_value}};
-			}
-
-			# Scalar and void have the same return handling.
+			# Run the advice code
 			&\$code(\$_);
 
-			# Do they want to shortcut?
-			return \$_->{return_value} unless \$_->{proceed};
+			# Shortcut if they set a return value
+			if ( exists \$_->{return_value} ) {
+				return \@{\$_->{return_value}} if \$wantarray;
+				return \$_->{return_value};
+			}
 
-			# Continue onwards to the original function
+			# Proceed to the original function
 			\@_ = \$_->args; ### Superfluous?
 			goto &\$original;
 		};

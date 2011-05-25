@@ -385,6 +385,86 @@ sub exception {
 	$_[0]->{exception} = $_[1];
 }
 
+=pod
+
+=head2 return_value
+
+  # Add an extra value to the returned list
+  $_->return_value( $_->return_value, 'thing' );
+
+The C<return_value> method is used to get or set the return value for the
+join point function, in a similar way to the normal Perl C<return> keyword.
+
+As with the C<args> method, the C<return_value> method is sensitive to the
+context in which it is called.
+
+When called in list context, the C<return_value> method returns the join point
+return value as a list. If the join point is called in scalar context, this will
+be a single-element list containing the scalar return value. If the join point
+is called in void context, this will be a null list.
+
+When called in scalar context, the C<return_value> method returns the join
+point return value as a scalar. If the join point is called in list context,
+this will be the number of vales in the return list. If the join point is called
+in void context, this will be C<undef>
+
+When called in void context, the C<return_value> method sets the return value
+for the join point using semantics identical to the C<return> keyword.
+
+Because of this change in behavior based on the context in which C<return_value>
+is called, you should generally always set C<return_value> in it's own statement
+to prevent accidentally calling it in non-void context.
+
+  # Return null (equivalent to "return;")
+  $_->return_value;
+
+In advice types that can be triggered by an exception, or need to determine
+whether to continue to the join point function, setting a return value via
+C<return_value> is seen as implicitly indicating that any exception should be
+suppressed, or that we do B<not> want to continue to the join point function.
+
+When you call the C<return_value> method this does NOT trigger an immediate
+C<return> equivalent in the advice code, the lines after C<return_value> will
+continue to be executed as normal (to provide an opportunity for cleanup
+operations to be done and so on).
+
+If you use C<return_value> inside an if/else structure you will still need to
+do an explicit C<return> if you wish to break out of the advice code.
+
+Thus, if you wish to break out of the advice code as well as return with an
+alternative value, you should do the following.
+
+  return $_->return_value('value');
+
+This usage of C<return_value> appears to be contrary to the above instruction
+that setting the return value should always be done on a standalone line to
+guarentee void context.
+
+However, in Perl the context of the current function is inherited by a function
+called with return in the manner shown above. Thus the usage of C<return_value>
+in this way alone is guarenteed to also set the return value rather than fetch
+it.
+
+=cut
+
+sub return_value {
+	my $self = shift;
+	my $want = $self->{wantarray};
+
+	# Handle usage in getter form
+	if ( defined CORE::wantarray() ) {
+		# Let the inherent magic of Perl do the work between the
+		# list and scalar context calls to return_value
+		return @{$self->{return_value} || []} if $want;
+		return $self->{return_value} if defined $want;
+		return;
+	}
+
+	# We've been provided a return value
+	$self->{exception}    = '';
+	$self->{return_value} = $want ? [ @_ ] : pop;
+}
+
 sub enclosing {
 	$_[0]->{enclosing};
 }
@@ -454,64 +534,6 @@ END_PERL
 1;
 
 =pod
-
-=head2 return_value
-
-  # Add an extra value to the returned list
-  $_->return_value( $_->return_value, 'thing' );
-
-The C<return_value> method is used to get or set the return value for the
-join point function, in a similar way to the normal Perl C<return> keyword.
-
-As with the C<args> method, the C<return_value> method is sensitive to the
-context in which it is called.
-
-When called in list context, the C<return_value> method returns the join point
-return value as a list. If the join point is called in scalar context, this will
-be a single-element list containing the scalar return value. If the join point
-is called in void context, this will be a null list.
-
-When called in scalar context, the C<return_value> method returns the join
-point return value as a scalar. If the join point is called in list context,
-this will be the number of vales in the return list. If the join point is called
-in void context, this will be C<undef>
-
-When called in void context, the C<return_value> method sets the return value
-for the join point using semantics identical to the C<return> keyword.
-
-Because of this change in behavior based on the context in which C<return_value>
-is called, you should generally always set C<return_value> in it's own statement
-to prevent accidentally calling it in non-void context.
-
-  # Return null (equivalent to "return;")
-  $_->return_value;
-
-In advice types that can be triggered by an exception, or need to determine
-whether to continue to the join point function, setting a return value via
-C<return_value> is seen as implicitly indicating that any exception should be
-suppressed, or that we do B<not> want to continue to the join point function.
-
-When you call the C<return_value> method this does NOT trigger an immediate
-C<return> equivalent in the advice code, the lines after C<return_value> will
-continue to be executed as normal (to provide an opportunity for cleanup
-operations to be done and so on).
-
-If you use C<return_value> inside an if/else structure you will still need to
-do an explicit C<return> if you wish to break out of the advice code.
-
-Thus, if you wish to break out of the advice code as well as return with an
-alternative value, you should do the following.
-
-  return $_->return_value('value');
-
-This usage of C<return_value> appears to be contrary to the above instruction
-that setting the return value should always be done on a standalone line to
-guarentee void context.
-
-However, in Perl the context of the current function is inherited by a function
-called with return in the manner shown above. Thus the usage of C<return_value>
-in this way alone is guarenteed to also set the return value rather than fetch
-it.
 
 =head1 AUTHORS
 

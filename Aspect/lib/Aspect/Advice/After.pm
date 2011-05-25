@@ -78,13 +78,13 @@ sub _install {
 				] };
 
 				local \$Aspect::POINT = bless {
+					pointcut     => \$pointcut,
+					original     => \$original,
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					args         => \\\@_,
 					return_value => \$return,
 					exception    => \$\@,
-					pointcut     => \$pointcut,
-					original     => \$original,
 				}, 'Aspect::Point::After';
 
 				unless ( $MATCH_RUN ) {
@@ -112,13 +112,13 @@ sub _install {
 				};
 
 				local \$Aspect::POINT = bless {
+					pointcut     => \$pointcut,
+					original     => \$original,
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					args         => \\\@_,
 					return_value => \$return,
 					exception    => \$\@,
-					pointcut     => \$pointcut,
-					original     => \$original,
 				}, 'Aspect::Point::After';
 
 				unless ( $MATCH_RUN ) {
@@ -146,13 +146,13 @@ sub _install {
 			};
 
 			local \$Aspect::POINT = bless {
+				pointcut     => \$pointcut,
+				original     => \$original,
 				sub_name     => \$name,
 				wantarray    => \$wantarray,
 				args         => \\\@_,
 				return_value => undef,
 				exception    => \$\@,
-				pointcut     => \$pointcut,
-				original     => \$original,
 			}, 'Aspect::Point::After';
 
 			unless ( $MATCH_RUN ) {

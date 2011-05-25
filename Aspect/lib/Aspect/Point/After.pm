@@ -20,28 +20,6 @@ sub proceed {
 	Carp::croak("Cannot call proceed in after advice");
 }
 
-sub return_value {
-	my $self = shift;
-	my $want = $self->{wantarray};
-
-	# Handle usage in getter form
-	if ( defined CORE::wantarray() ) {
-		# Let the inherent magic of Perl do the work between the
-		# list and scalar context calls to return_value
-		return @{$self->{return_value}} if $want;
-		return   $self->{return_value}  if defined $want;
-		return;
-	}
-
-	# Having provided a return value, suppress any exceptions.
-	$self->{exception} = '';
-	if ( $want ) {
-		@{$self->{return_value}} = @_;
-	} elsif ( defined $want ) {
-		$self->{return_value} = pop;
-	}
-}
-
 1;
 
 __END__
