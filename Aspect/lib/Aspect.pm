@@ -421,7 +421,7 @@ use Aspect::Point::After        ();
 use Aspect::Point::Around       ();
 use Aspect::Point::Before       ();
 
-our $VERSION = '0.981';
+our $VERSION = '0.982';
 
 # Track the location of exported functions so that pointcuts
 # can avoid accidentally binding them.
