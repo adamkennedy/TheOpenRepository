@@ -1,6 +1,6 @@
 Revision history for Perl extension Aspect
 
-0.99 to be released
+0.981 Wed 25 May 2011
 	- Removed the proceed method from the begin advice, you now only signal
 	  to not continue with either exception or return_value.
 	- Remove some leftover references to after_throwing and after_returning
