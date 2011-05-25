@@ -7,19 +7,6 @@ use Aspect::Point ();
 our $VERSION = '0.982';
 our @ISA     = 'Aspect::Point';
 
-use constant type => 'after';
-
-
-
-
-
-######################################################################
-# Aspect::Point Methods
-
-sub proceed {
-	Carp::croak("Cannot call proceed in after advice");
-}
-
 1;
 
 __END__

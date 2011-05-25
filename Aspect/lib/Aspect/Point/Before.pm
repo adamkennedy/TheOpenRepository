@@ -7,23 +7,6 @@ use Aspect::Point ();
 our $VERSION = '0.982';
 our @ISA     = 'Aspect::Point';
 
-use constant type => 'before';
-
-
-
-
-
-######################################################################
-# Aspect::Point Methods
-
-sub proceed {
-	Carp::croak("Cannot call proceed in before advice");
-}
-
-sub exception {
-	Carp::croak("Cannot call exception in before advice");
-}
-
 1;
 
 =pod

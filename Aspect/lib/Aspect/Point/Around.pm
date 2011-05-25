@@ -7,59 +7,6 @@ use Aspect::Point ();
 our $VERSION = '0.982';
 our @ISA     = 'Aspect::Point';
 
-use constant type => 'around';
-
-
-
-
-
-######################################################################
-# Aspect::Point Methods
-
-sub exception {
-	Carp::croak("Cannot call exception in around advice");
-}
-
-sub proceed {
-	my $self = shift;
-
-	local $_ = ${$self->{topic}};
-
-	if ( $self->{wantarray} ) {
-		$self->return_value(
-			Sub::Uplevel::uplevel(
-				2,
-				$self->{original},
-				@{$self->{args}},
-			)
-		);
-
-	} elsif ( defined $self->{wantarray} ) {
-		$self->return_value(
-			scalar Sub::Uplevel::uplevel(
-				2,
-				$self->{original},
-				@{$self->{args}},
-			)
-		);
-
-	} else {
-		Sub::Uplevel::uplevel(
-			2,
-			$self->{original},
-			@{$self->{args}},
-		);
-	}
-
-	${$self->{topic}} = $_;
-
-	return;
-}
-
-BEGIN {
-	*run_original = *proceed;
-}
-
 1;
 
 __END__

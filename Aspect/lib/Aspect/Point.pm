@@ -115,15 +115,6 @@ that eventually reached the get/set on C<Person>:
 
 =head1 METHODS
 
-=head2 type
-
-The C<type> method is a convenience provided in the situation something has a
-L<Aspect::Point> method and wants to know the advice declarator it is made for.
-
-Returns C<"before"> in L<Aspect::Advice::Before> advice, C<"after"> in
-L<Aspect::Advice::After> advice, or C<"around"> in
-L<Aspect::Advice::Around> advice.
-
 =cut
 
 use strict;
@@ -139,12 +130,29 @@ our $VERSION = '0.982';
 
 
 ######################################################################
-# Constructor and Built-In Accessors
+# Aspect::Point Methods
 
 # sub new {
 	# my $class = shift;
 	# bless { @_ }, $class;
 # }
+
+=pod
+
+=head2 type
+
+The C<type> method is a convenience provided in the situation something has a
+L<Aspect::Point> method and wants to know the advice declarator it is made for.
+
+Returns C<"before"> in L<Aspect::Advice::Before> advice, C<"after"> in
+L<Aspect::Advice::After> advice, or C<"around"> in
+L<Aspect::Advice::Around> advice.
+
+=cut
+
+sub type {
+	$_[0]->{type};
+}
 
 =pod
 
@@ -381,6 +389,9 @@ object, or to set the die message or exception object.
 =cut
 
 sub exception {
+	unless ( $_[0]->{type} eq 'after' ) {
+		Carp::croak("Cannot call exception in $_[0]->{exception} advice");
+	}
 	return $_[0]->{exception} if defined CORE::wantarray();
 	$_[0]->{exception} = $_[1];
 }
@@ -465,6 +476,46 @@ sub return_value {
 	$self->{return_value} = $want ? [ @_ ] : pop;
 }
 
+sub proceed {
+	my $self = shift;
+
+	unless ( $self->{type} eq 'around' ) {
+		Carp::croak("Cannot call proceed in $self->{type} advice");
+	}
+
+	local $_ = ${$self->{topic}};
+
+	if ( $self->{wantarray} ) {
+		$self->return_value(
+			Sub::Uplevel::uplevel(
+				2,
+				$self->{original},
+				@{$self->{args}},
+			)
+		);
+
+	} elsif ( defined $self->{wantarray} ) {
+		$self->return_value(
+			scalar Sub::Uplevel::uplevel(
+				2,
+				$self->{original},
+				@{$self->{args}},
+			)
+		);
+
+	} else {
+		Sub::Uplevel::uplevel(
+			2,
+			$self->{original},
+			@{$self->{args}},
+		);
+	}
+
+	${$self->{topic}} = $_;
+
+	return;
+}
+
 sub enclosing {
 	$_[0]->{enclosing};
 }
@@ -505,6 +556,7 @@ sub params {
 
 BEGIN {
 	*short_sub_name = *short_name;
+	*run_original   = *proceed;
 }
 
 
@@ -520,6 +572,7 @@ BEGIN {
 use Class::XSAccessor 1.08 {
 	replace => 1,
 	getters => {
+		'type'       => 'type',
 		'pointcut'   => 'pointcut',
 		'original'   => 'original',
 		'sub_name'   => 'sub_name',
