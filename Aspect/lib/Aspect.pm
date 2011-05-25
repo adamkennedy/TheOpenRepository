@@ -417,9 +417,6 @@ use Aspect::Advice::Around      ();
 use Aspect::Advice::Before      ();
 use Aspect::Point               ();
 use Aspect::Point::Static       ();
-use Aspect::Point::After        ();
-use Aspect::Point::Around       ();
-use Aspect::Point::Before       ();
 
 our $VERSION = '0.982';
 
