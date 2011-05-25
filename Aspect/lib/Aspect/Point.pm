@@ -253,6 +253,8 @@ sub short_name {
 
 =pod
 
+=head2 args
+
   # Add a parameter to the function call
   $_->args( $_->args, 'more' );
 
@@ -309,8 +311,8 @@ sub args {
   } My::Foo::set;
 
 The C<self> method is a convenience provided for when you are writing advice
-that will be working with object-oriented Perl code. It returns the first the
-first parameter to the method (which should be object), which you can then call
+that will be working with object-oriented Perl code. It returns the first
+parameter to the method (which should be object), which you can then call
 methods on.
 
 The result is advice code that is much more natural to read, as you can see in

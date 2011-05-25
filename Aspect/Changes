@@ -5,6 +5,8 @@ Revision history for Perl extension Aspect
 	  to not continue with either exception or return_value.
 	- Remove some leftover references to after_throwing and after_returning
 	- Moved all advice code method documentation into Aspect::Point
+	- Added a reduced volume copy of the Aspect::Point method documentation
+	  to the main Aspect documentation.
 
 0.98 Tue 24 May 2011
 	- Production release, no change from 0.97_06
