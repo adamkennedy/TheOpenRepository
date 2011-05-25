@@ -3,6 +3,7 @@ Revision history for Perl extension Aspect
 0.982 to be released
 	- Refactored away the ->{proceed} flag on before join point objects.
 	- Unified return_value across all advice types, and optimised further.
+	- Completing the POD documentation for the Aspect::Point:: modules
 
 0.981 Wed 25 May 2011
 	- Removed the proceed method from the begin advice, you now only signal

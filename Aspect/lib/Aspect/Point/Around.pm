@@ -1,15 +1,4 @@
 package Aspect::Point::Around;
-=pod
-
-=head1 NAME
-
-Aspect::Point - The Join Point context for "around" advice code
-
-=head1 SYNOPSIS
-
-=head1 METHODS
-
-=cut
 
 use strict;
 use warnings;
@@ -73,21 +62,33 @@ BEGIN {
 
 1;
 
+__END__
+
 =pod
+
+=head1 NAME
+
+Aspect::Point - The Join Point context for "around" advice code
+
+=head1 DESCRIPTION
+
+This class implements the methods available for topic object in C<around> advice
+implemented via the L<Aspect::Advice::Around>.
+
+It supports all methods described in the main L<Aspect::Point> documentation
+except for the C<exception> method (as the ability to throw formal exceptions is
+not yet supported in this advice type).
+
+This class is an implementation convenience, and may be refactored away in a
+future release of the L<Aspect> distribution.
 
 =head1 AUTHORS
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
-Marcel GrE<uuml>nauer E<lt>marcel@cpan.orgE<gt>
-
-Ran Eilam E<lt>eilara@cpan.orgE<gt>
-
 =head1 COPYRIGHT
 
-Copyright 2001 by Marcel GrE<uuml>nauer
-
-Some parts copyright 2009 - 2011 Adam Kennedy.
+Copyright 2009 - 2011 Adam Kennedy.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

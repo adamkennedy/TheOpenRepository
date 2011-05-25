@@ -1,17 +1,5 @@
 package Aspect::Point::Static;
 
-=pod
-
-=head1 NAME
-
-Aspect::Point - The Join Point context for join point static parts
-
-=head1 SYNOPSIS
-
-=head1 METHODS
-
-=cut
-
 use strict;
 use warnings;
 use Carp          ();
@@ -40,21 +28,29 @@ sub AUTOLOAD {
 
 1;
 
+__END__
+
 =pod
+
+=head1 NAME
+
+Aspect::Point - The Join Point context for join point static parts
+
+=head1 DESCRIPTION
+
+This class implements the "static part" join point object, normally
+encounted during (and stored by) the C<cflow> pointcut declarator.
+
+It implements the subset of L<Aspect::Point> methods relating to the join
+point in general and not relating to the specific call to the join point.
 
 =head1 AUTHORS
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
-Marcel GrE<uuml>nauer E<lt>marcel@cpan.orgE<gt>
-
-Ran Eilam E<lt>eilara@cpan.orgE<gt>
-
 =head1 COPYRIGHT
 
-Copyright 2001 by Marcel GrE<uuml>nauer
-
-Some parts copyright 2009 - 2011 Adam Kennedy.
+Copyright 2009 - 2011 Adam Kennedy.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
