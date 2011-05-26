@@ -511,7 +511,7 @@ sub import {
 		true
 	};
 
-	# Install the modern API
+	# Install deprecated API elements
 	if ( $flag{deprecated} ) {
 		$class->install( $into => $_ ) foreach qw{
 			after_returning
