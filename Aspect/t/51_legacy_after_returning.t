@@ -9,7 +9,7 @@ BEGIN {
 use Test::More tests => 59;
 use Test::NoWarnings;
 use Test::Exception;
-use Aspect;
+use Aspect ':deprecated';
 
 # Lexicals to track call counts in the support class
 my $new = 0;
