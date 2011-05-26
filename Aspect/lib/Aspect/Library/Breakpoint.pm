@@ -5,7 +5,7 @@ use warnings;
 use Aspect::Library        ();
 use Aspect::Advice::Before ();
 
-our $VERSION = '0.982';
+our $VERSION = '0.983';
 our @ISA     = 'Aspect::Library';
 
 sub get_advice {

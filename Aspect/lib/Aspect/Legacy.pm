@@ -28,7 +28,7 @@ use warnings;
 use Aspect   ();
 use Exporter ();
 
-our $VERSION   = '0.982';
+our $VERSION   = '0.983';
 our @ISA       = 'Exporter';
 our @EXPORT    = qw( aspect before after call cflow );
 our $INSTALLED = 0;

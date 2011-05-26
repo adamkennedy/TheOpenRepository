@@ -455,7 +455,7 @@ use Aspect::Advice::Before      ();
 use Aspect::Point               ();
 use Aspect::Point::Static       ();
 
-our $VERSION = '0.982';
+our $VERSION = '0.983';
 our %FLAGS   = ();
 
 # Track the location of exported functions so that pointcuts
