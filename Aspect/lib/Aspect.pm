@@ -455,7 +455,7 @@ use Aspect::Advice::Before      ();
 use Aspect::Point               ();
 use Aspect::Point::Static       ();
 
-our $VERSION = '0.983';
+our $VERSION = '1.00';
 our %FLAGS   = ();
 
 # Track the location of exported functions so that pointcuts
@@ -472,9 +472,10 @@ sub install {
 }
 
 sub import {
-	my $class = shift;
-	my $into  = caller();
-	my %flag  = ();
+	my $class  = shift;
+	my $into   = caller();
+	my %flag   = ();
+	my @export = ();
 
 	# Handle import params
 	while ( @_ ) {
@@ -482,7 +483,7 @@ sub import {
 		if ( $value =~ /^:(\w+)$/ ) {
 			$flag{$1} = 1;
 		} else {
-			Carp::croak("Unknown or unsupported import param '$value'");
+			push @export, $_;
 		}
 	}
 
@@ -492,6 +493,12 @@ sub import {
 		if ( $flag{legacy} ) {
 			return Aspect::Legacy->import;
 		}
+	}
+
+	# Custom method export list
+	if ( @export ) {
+		$class->install( $into => $_ ) foreach @export;
+		return 1;
 	}
 
 	# Install the modern API

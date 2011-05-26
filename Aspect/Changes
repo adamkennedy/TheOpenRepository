@@ -1,6 +1,8 @@
 Revision history for Perl extension Aspect
 
-0.99  Thu 26 May 2011
+1.00 Thu 26 May 2011
+	- First production release of the second-generation Aspect.pm!
+	- Support passing an explicit function list to import as per Exporter
 	- Final POD spelling tweaks
 
 0.983 Thu 26 May 2011
