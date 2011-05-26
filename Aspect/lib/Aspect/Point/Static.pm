@@ -34,7 +34,7 @@ __END__
 
 =head1 NAME
 
-Aspect::Point - The Join Point context for join point static parts
+Aspect::Point::Static - The Join Point context for join point static parts
 
 =head1 DESCRIPTION
 
