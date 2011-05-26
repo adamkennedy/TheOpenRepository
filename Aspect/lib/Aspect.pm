@@ -384,6 +384,37 @@ When you C<use Aspect;> you will import a family of around fifteen
 functions. These are all factories that allow you to create pointcuts,
 advice, and aspects.
 
+=head2 Back Compatibility
+
+The various APIs in B<Aspect> have changed a few times between older versions
+and the current implementation.
+
+By default, none of these changes are available in the current version of the
+B<Aspect> module. They can, however, be accessed by providing one of two flags
+when loading B<Aspect>.
+
+  # Support for pre-1.00 Aspect usage
+  use Aspect ':deprecated';
+
+The C<:deprecated> flag loads in all alternative and deprecated function and
+method names, and exports the deprecated C<after_returning>, C<after_throwing>
+advice constructors, and the deprecated C<if_true> alias for the C<true>
+pointcut.
+
+  # Support for pre-2010 Aspect usage (both usages are equivalent)
+  use Aspect ':legacy';
+  use Aspect::Legacy;
+
+The C<:legacy> flag loads in all alternative and deprecated functions as per
+the C<:deprecated> flag.
+
+Instead of exporting all available functions and pointcut declarators it exports
+C<only> the set of functions that were available in B<Aspect> 0.12.
+
+Finally, it changes the behaviour of the exported version of C<after> to add an
+implicit C<& returning> to all pointcuts, as the original implementation did not
+trap exceptions.
+
 =head1 FUNCTIONS
 
 The following functions are exported by default (and are documented as such)
@@ -480,9 +511,13 @@ sub import {
 		true
 	};
 
-	# Install deprecated parts of the API
+	# Install the modern API
 	if ( $flag{deprecated} ) {
-		$class->install( $into => 'true' => 'if_true' );
+		$class->install( $into => $_ ) foreach qw{
+			after_returning
+			after_throwing
+			if_true
+		};
 	}
 
 	return 1;

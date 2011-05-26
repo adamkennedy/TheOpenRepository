@@ -1,9 +1,10 @@
 Revision history for Perl extension Aspect
 
-0.983 to be released
+0.983 Thu 26 May 2011
 	- Added a convenience wrapper over Sub::Install
 	- Rewrote the initial introduction by drawing language from Wikipedia.
 	- Moved all legacy code into a dedicated legacy module
+	- Split out tests for deprecated features into their own test scripts
 
 0.982 Wed 25 May 2011
 	- Refactored away the ->{proceed} flag on before join point objects.
