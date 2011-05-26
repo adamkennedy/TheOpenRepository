@@ -540,29 +540,6 @@ sub DESTROY () { }
 
 
 
-#######################################################################
-# Back Compatibility
-
-sub params_ref {
-	$_[0]->{args};
-}
-
-sub params {
-	$_[0]->{args} = [ @_[1..$#_] ] if @_ > 1;
-	return CORE::wantarray
-		? @{$_[0]->{args}}
-		: $_[0]->{args};
-}
-
-BEGIN {
-	*short_sub_name = *short_name;
-	*run_original   = *proceed;
-}
-
-
-
-
-
 ######################################################################
 # Optional XS Acceleration
 
@@ -578,7 +555,6 @@ use Class::XSAccessor 1.08 {
 		'sub_name'   => 'sub_name',
 		'wantarray'  => 'wantarray',
 		'enclosing'  => 'enclosing',
-		'params_ref' => 'args',
 	},
 };
 END_PERL

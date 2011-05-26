@@ -425,6 +425,7 @@ use Aspect::Point               ();
 use Aspect::Point::Static       ();
 
 our $VERSION = '0.982';
+our %FLAGS   = ();
 
 # Track the location of exported functions so that pointcuts
 # can avoid accidentally binding them.
@@ -440,37 +441,44 @@ sub install {
 }
 
 sub import {
-	my $class  = shift;
-	my $legacy = 0;
-	my $into   = caller();
+	my $class = shift;
+	my $into  = caller();
+	my %flag  = ();
+
+	# Handle import params
 	while ( @_ ) {
 		my $value = shift;
-		if ( $value eq ':legacy' ) {
-			$legacy = 1;
+		if ( $value =~ /^:(\w+)$/ ) {
+			$flag{$1} = 1;
 		} else {
 			Carp::croak("Unknown or unsupported import param '$value'");
 		}
 	}
 
-	# Install unchanged legacy functions
-	foreach ( qw{ aspect before call cflow } ) {
-		$class->install( $into => $_ );
-	}
-
-	# Install functions that change between API versions
-	$class->install( $into => $legacy ? 'after_returning' : 'after' => 'after' );
-
-	unless ( $legacy ) {
-		# Install new generation API functions
-		foreach ( qw{
-			around
-			throwing returning
-			wantlist wantscalar wantvoid
-			true highest
-		} ) {
-			$class->install( $into => $_ );
+	# Legacy API and deprecation support
+	if ( $flag{legacy} or $flag{deprecated} ) {
+		require Aspect::Legacy;
+		if ( $flag{legacy} ) {
+			return Aspect::Legacy->import;
 		}
 	}
+
+	# Install the modern API
+	$class->install( $into => $_ ) foreach qw{
+		aspect
+		before
+		after
+		around
+		call
+		cflow
+		throwing
+		returning
+		wantlist
+		wantscalar
+		wantvoid
+		highest
+		true
+	};
 
 	return 1;
 }
@@ -864,28 +872,6 @@ sub after (&$) {
 		lexical  => defined wantarray,
 		code     => $_[0],
 		pointcut => $_[1],
-	);
-}
-
-sub after_returning (&$) {
-	Aspect::Advice::After->new(
-		lexical  => defined wantarray,
-		code     => $_[0],
-		pointcut => Aspect::Pointcut::And->new(
-			Aspect::Pointcut::Returning->new,
-			$_[1],
-		),
-	);
-}
-
-sub after_throwing (&$) {
-	Aspect::Advice::After->new(
-		lexical  => defined wantarray,
-		code     => $_[0],
-		pointcut => Aspect::Pointcut::And->new(
-			Aspect::Pointcut::Throwing->new,
-			$_[1],
-		),
 	);
 }
 
