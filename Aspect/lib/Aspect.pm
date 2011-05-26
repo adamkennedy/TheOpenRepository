@@ -1048,7 +1048,7 @@ sub _LIBRARY {
 
 =pod
 
-=head1 POINTCUT OPERATORS
+=head1 OPERATORS
 
 =head2 &
 
@@ -1091,7 +1091,7 @@ pointcut expression will match if the single subexpression does B<not> match.
 
 For more information, see L<Aspect::Pointcut::Not>.
 
-=head1 ADVICE METHODS
+=head1 METHODS
 
 A range of different methods are available within each type of advice code.
 
