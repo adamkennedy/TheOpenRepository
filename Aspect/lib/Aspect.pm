@@ -480,6 +480,11 @@ sub import {
 		true
 	};
 
+	# Install deprecated parts of the API
+	if ( $flag{deprecated} ) {
+		$class->install( $into => 'true' => 'if_true' );
+	}
+
 	return 1;
 }
 

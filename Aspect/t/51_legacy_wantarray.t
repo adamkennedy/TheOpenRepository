@@ -10,7 +10,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 52;
+use Test::More tests => 16;
 use Test::NoWarnings;
 use Test::Exception;
 use Aspect ':deprecated';
