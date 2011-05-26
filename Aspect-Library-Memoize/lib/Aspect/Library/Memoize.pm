@@ -4,10 +4,10 @@ use 5.008002;
 use strict;
 use warnings;
 use Memoize           1.01 ();
-use Aspect::Modular   0.98 ();
+use Aspect::Modular   1.00 ();
 use Aspect::Advice::Before ();
 
-our $VERSION = '0.98';
+our $VERSION = '1.00';
 our @ISA     = 'Aspect::Modular';
 
 sub get_advice {

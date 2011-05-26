@@ -5,13 +5,13 @@ use strict;
 use warnings;
 use Carp                   ();
 use Params::Util      1.00 ();
-use Aspect::Modular   0.98 ();
+use Aspect::Modular   1.00 ();
 use Aspect::Advice::Around ();
 use Time::HiRes     1.9718 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.06';
+	$VERSION = '1.07';
 	@ISA     = 'Aspect::Modular';
 }
 

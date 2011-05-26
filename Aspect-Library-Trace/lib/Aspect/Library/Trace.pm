@@ -3,13 +3,13 @@ package Aspect::Library::Trace;
 use 5.006;
 use strict;
 use warnings;
-use Aspect            0.98 ();
+use Aspect            1.00 ();
 use Aspect::Modular        ();
 use Aspect::Advice::Around ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.98';
+	$VERSION = '1.00';
 	@ISA     = 'Aspect::Modular';
 }
 

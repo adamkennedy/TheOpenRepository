@@ -5,12 +5,12 @@ use strict;
 use warnings;
 use Test::Class       0.33 ();
 use Params::Util      1.00 ();
-use Aspect::Modular   0.98 ();
+use Aspect::Modular   1.00 ();
 use Aspect::Advice::Before ();
 use Aspect::Pointcut::And  ();
 use Aspect::Pointcut::Call ();
 
-our $VERSION = '0.98';
+our $VERSION = '1.00';
 our @ISA     = 'Aspect::Modular';
 
 sub Test::Class::make_subject {

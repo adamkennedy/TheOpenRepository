@@ -4,12 +4,12 @@ use 5.008002;
 use strict;
 use warnings;
 use Benchmark::Timer 0.7101 ();
-use Aspect::Modular    0.98 ();
+use Aspect::Modular    1.00 ();
 use Aspect::Advice::Around  ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.98';
+	$VERSION = '1.00';
 	@ISA     = 'Aspect::Modular';
 }
 

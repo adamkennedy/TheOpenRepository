@@ -3,12 +3,12 @@ package Aspect::Library::Timer;
 use 5.008002;
 use strict;
 use warnings;
-use Aspect::Modular 0.98 ();
+use Aspect::Modular 1.00 ();
 use Time::HiRes   1.9718 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.06';
+	$VERSION = '1.07';
 	@ISA     = 'Aspect::Modular';
 }
 
