@@ -1,5 +1,8 @@
 Revision history for Perl extension Aspect
 
+0.99  Thu 26 May 2011
+	- Final POD spelling tweaks
+
 0.983 Thu 26 May 2011
 	- Added a convenience wrapper over Sub::Install
 	- Rewrote the initial introduction by drawing language from Wikipedia.
@@ -295,7 +298,7 @@ Revision history for Perl extension Aspect
 	  void context we never add the $out_of_scope hook, and as a
 	  result we don't need to save the advice object at all (and just
 	  let it immediately destroy). As well as removing the need for a
-	  bunch of the nasty curried objects, we remove an unnecesary if ()
+	  bunch of the nasty curried objects, we remove an unnecessary if ()
 	  test for every single call (to non-lexical hooks).
 
 0.28 Wed  6 Jan 2010 - Adam Kennedy

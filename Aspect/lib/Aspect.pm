@@ -109,14 +109,14 @@ Features implemented via Aspects can be compiled and added to you program only
 in certain situations, and because of this Aspects are useful when debugging
 or testing large or complex programs.
 
-Aspects can implement features necesary for correctness of programs such as
+Aspects can implement features necessary for correctness of programs such as
 reactivity or synchronisation, and can be used to add checking assertions
 to your or other people's modules.
 
 They can cause code to emit useful side effects not considered by the original
 author of a module, without changing the original function of the module.
 
-And, if necesary (although not recommended), they can do various types of
+And, if necessary (although not recommended), they can do various types of
 "Monkey Patching", hijacking the functionality of some other module in an
 unexpected (by the original author) way so that the module acts differently
 when used in your program, when those changes might otherwise be dangerous or
@@ -272,7 +272,7 @@ Unfortunately, due to the nature of the mechanism B<Aspect> uses to hook into
 function calls, unweaving can never be guarenteed to be round-trip clean.
 
 While the pointcut matching logic and advice code will never be run for unwoven
-advice, it may be necesary to leave the underlying hooking artifact in place on
+advice, it may be necessary to leave the underlying hooking artifact in place on
 the join point indefinitely (imposing a small performance penalty and preventing
 clean up of the relevant advice closure from memory).
 
@@ -992,7 +992,7 @@ without colons then it will be interpreted as C<Aspect::Library::Identifier>.
 If the aspect class is not loaded, it will be loaded for you and validated as
 being a subclass of C<Aspect::Library>.
 
-And further paramters will be passed on to the constructor for that class. See
+And further parameters will be passed on to the constructor for that class. See
 the documentation for each class for more information on the appropriate
 parameters for that class.
 
