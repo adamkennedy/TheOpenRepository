@@ -40,6 +40,7 @@ use Object::Tiny 1.08 qw{
 # Screen Location Constants
 
 use constant {
+	MOUSE_LOGIN_USERNAME          => [ 554, 710 ],
 	MOUSE_LOGIN_CURRENT_CHARACTER => [ 250, 250 ],
 	MOUSE_CHROME_MARKET           => [ 20,  280 ],
 };
@@ -141,6 +142,12 @@ sub start {
 	sleep 10;
 	$self->connect;
 
+	# Check that the screen size is 1024x768
+	my $screenshot = $self->screenshot;
+	unless ( $screenshot->width == 1024 and $screenshot->height == 768 ) {
+		die "EVE is not running at 1024x768";
+	}
+
 	return $self;
 }
 
@@ -167,8 +174,8 @@ sub stop {
 sub login {
 	my $self = shift;
 
-	# Tab to the username
-	$self->send_keys( "\t\t" );
+	# Click in the username box
+	$self->left_click( MOUSE_LOGIN_USERNAME );
 
 	# Clear out the old username (if it exists)
 	$self->send_keys( '{BACKSPACE}' x 20 );
@@ -186,13 +193,13 @@ sub login {
 	$self->send_keys( "\t~" );
 
 	# Wait till we get to the user screen
-	$self->sleep(30);
+	$self->sleep(20);
 
 	# Move the mouse to the current user and select
 	$self->left_click( MOUSE_LOGIN_CURRENT_CHARACTER );
 
 	# Wait till we get to the main login
-	$self->sleep(30);
+	$self->sleep(20);
 
 	return 1;
 }
@@ -237,23 +244,17 @@ sub market_search {
 #####################################################################
 # Get Information
 
-# Find the current mouse co-ordinate
+# Find the current mouse co-ordinate relative to the window
 sub mouse_xy {
-	my $self    = shift;
-	my ($x, $y) = Win32::GuiTest::GetCursorPos();
-	return [ $x, $y ];
-}
+	my $self = shift;
 
-# Get the screenshot for the window
-sub screenshot {
-	my $self   = shift;
-	my $screen = Imager::Search::Screenshot->new(
-		[ hwnd => $self->window ],
-	);
-	unless ( _INSTANCE($screen, 'Imager') ) {
-		die("Failed to capture screen");
-	}
-	return $screen;
+	# Show the window and capture current position
+	Win32::GuiTest::SetForegroundWindow($self->window);
+	my ($l,$t,$r,$b) = Win32::GuiTest::GetWindowRect($self->window);
+
+	# Get the cursor position, offset by the window rect
+	my ($x, $y) = Win32::GuiTest::GetCursorPos();
+	return [ $x - $l, $y - $t ];
 }
 
 
@@ -382,7 +383,7 @@ sub find_patterns {
 	my %hash = ();
 	foreach my $file ( @files ) {
 		my $pattern = Imager::Search::Pattern->new(
-			driver => 'Imager::Search::Driver::HTML24',
+			driver => 'Imager::Search::Driver::BMP24',
 			file   => File::Spec->catfile( $path, $file ),
 		);
 		$file =~ s/\.bmp$//;
@@ -392,6 +393,13 @@ sub find_patterns {
 	\%hash;
 }
 
+# Get the screenshot for the window
+sub screenshot {
+	Imager::Search::Screenshot->new(
+		[ hwnd => $_[0]->window ],
+		driver => 'BMP24',
+	);
+}
 
 
 

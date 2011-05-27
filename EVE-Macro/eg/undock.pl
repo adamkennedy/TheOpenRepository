@@ -3,12 +3,9 @@
 # Simple script to undock you when in the station
 
 use strict;
-use FindBin    ();
-use File::Spec ();
-use lib File::Spec->catdir(
-	$FindBin::Bin, File::Spec->updir, 'lib',
-	);
-use EVE::Macro::Object;
+use FindBin            ();
+use File::Spec         ();
+use EVE::Macro::Object ();
 
 my $macro = EVE::Macro::Object->new;
 
