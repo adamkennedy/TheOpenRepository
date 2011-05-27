@@ -23,6 +23,7 @@ my $session = POE::Session->create(
 	},
 );
 
+my $id1 = ($POE::VERSION >= 1.310) ? 1 : 2;
 test_out("not ok 1 - POE appears to be stopping cleanly");
 test_fail(37);
 POE::Kernel->run;
@@ -32,7 +33,7 @@ test_err( '# children: 0'   );
 test_err( '# current: 1'    );
 test_err( '# extra: 0'      );
 test_err( '# handles: 0'    );
-test_err( '# id: 2'         );
+test_err( "# id: $id1"      );
 test_err( '# queue:'        );
 test_err( '#   distinct: 0' );
 test_err( '#   from: 0'     );

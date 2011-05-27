@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 3;
 use Test::POE::Stopping;
 use POE qw{Session};
 
