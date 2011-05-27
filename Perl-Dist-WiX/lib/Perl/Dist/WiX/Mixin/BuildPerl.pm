@@ -201,6 +201,7 @@ sub install_cpan_upgrades {
 				$self->_install_cpan_module( $module, 1 );
 			}
 
+=for cmt
 			# There's a problem with extracting these two files, so
 			# upgrading to these versions, instead...
 			## no critic(ProhibitUnusedCapture)
@@ -217,7 +218,6 @@ sub install_cpan_upgrades {
 				);
 			} ## end when ( m{Unicode-Collate-0 [.] (\d\d) })
 
-=for cmt
 			when (
 				/Unicode-Normalize-1 [.] (\d\d)-withoutworldwriteables/msx)
 			{
