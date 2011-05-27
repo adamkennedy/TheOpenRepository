@@ -6,6 +6,10 @@ HISTORY - public release history for Data::Dumper
 
 =over 8
 
+=item 2.131 (May 27 2011)
+
+Essentially the same as version 2.130_02, but a production release.
+
 =item 2.130_03 (May 20 2011)
 
 Essentially the same as version 2.130_02, but a CPAN release
