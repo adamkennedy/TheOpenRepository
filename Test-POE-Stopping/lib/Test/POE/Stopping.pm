@@ -110,6 +110,11 @@ sub poe_stopping {
 		session_summary($_)
 	} $api->session_list;
 
+	# Remove the master session
+	@sessions = grep {
+		$_->{id} ne POE::Kernel->ID
+	} @sessions;
+
 	# Check we aren't trying to terminate POE in a nested event
 	my $i      = 0;
 	my $invoke = 0;
@@ -216,7 +221,7 @@ sub session_summary {
 		extra    => $api->get_session_extref_count($session),
 		handles  => $api->session_handle_count($session),
 		signals  => scalar(keys %signals),
-		current  => ($current->ID == $session->ID) ? 1 : 0,
+		current  => ($current->ID eq $session->ID) ? 1 : 0,
 		children => scalar(@children),
 		queue    => {
 			distinct => scalar(@distinct),

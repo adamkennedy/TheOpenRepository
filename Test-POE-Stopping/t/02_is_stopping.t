@@ -19,8 +19,11 @@ POE::Session->create(
 	},
 );
 
-POE::Kernel->run;
+my $rv = eval {
+	POE::Kernel->run;
+};
 pass( 'POE Stopped' );
+is( $@, '', 'POE Stopped without exception' );
 
 
 
