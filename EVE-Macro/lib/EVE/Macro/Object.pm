@@ -2,15 +2,16 @@ package EVE::Macro::Object;
 
 use 5.008;
 use strict;
+use warnings;
 use File::Spec            0.80 ();
 use File::HomeDir         0.93 ();
 use File::ShareDir        1.00 ();
-use Params::Util          1.00 qw{ _POSINT _IDENTIFIER _STRING _INSTANCE };
+use Params::Util          1.00 ();
 use Config::Tiny          2.02 ();
 use File::Find::Rule      0.32 ();
 use Time::HiRes         1.9718 ();
 use Win32::GuiTest        1.58 ();
-use Win32::Process        0.14 qw{ STILL_ACTIVE NORMAL_PRIORITY_CLASS };
+use Win32::Process        0.14 ('NORMAL_PRIORITY_CLASS');
 use Win32::Process::List  0.09 ();
 use Win32                 0.39 ();
 use Imager::Search        1.00 ();
@@ -21,6 +22,15 @@ our $VERSION = '0.01';
 
 BEGIN {
 	$Win32::GuiTest::debug = 0;
+
+	sub Imager::Search::Match::centre_x {
+		$_[0]->{centre_x};
+	}
+
+	sub Imager::Search::Match::centre_y {
+		$_[0]->{centre_y};
+	}
+
 }
 
 use Object::Tiny 1.08 qw{
@@ -40,8 +50,8 @@ use Object::Tiny 1.08 qw{
 # Screen Location Constants
 
 use constant {
-	MOUSE_LOGIN_USERNAME          => [ 554, 710 ],
-	MOUSE_LOGIN_CURRENT_CHARACTER => [ 250, 250 ],
+	MOUSE_LOGIN_USERNAME          => [ 552, 687 ],
+	MOUSE_LOGIN_CURRENT_CHARACTER => [ 170, 273 ],
 	MOUSE_CHROME_MARKET           => [ 20,  280 ],
 };
 
@@ -86,10 +96,10 @@ sub new {
 	}
 
 	# We need a username and password
-	unless ( _IDENTIFIER($self->username) ) {
+	unless ( Params::Util::_IDENTIFIER($self->username) ) {
 		die("Did not provide a username");
 	}
-	unless ( _STRING($self->password) ) {
+	unless ( Params::Util::_STRING($self->password) ) {
 		die("Did not provide a password");
 	}
 
@@ -174,6 +184,11 @@ sub stop {
 sub login {
 	my $self = shift;
 
+	# On Windows Vista or later you can't just make something else
+	# the foreground window unless you current own it. For eve, we
+	# can use a keypress to stimulate it to the front regardless.
+	$self->send_keys("\t");
+
 	# Click in the username box
 	$self->left_click( MOUSE_LOGIN_USERNAME );
 
@@ -198,8 +213,16 @@ sub login {
 	# Move the mouse to the current user and select
 	$self->left_click( MOUSE_LOGIN_CURRENT_CHARACTER );
 
-	# Wait till we get to the main login
+	# Wait till we get into the game
 	$self->sleep(20);
+
+	# If the neocom is expanded, shrink it.
+	my @matches = $self->screenshot_search('neocom-minimize');
+	if ( @matches ) {
+		die "Found more than one neocom-minimise" if @matches > 1;
+		$self->left_click($matches[0]);
+		$self->sleep(5);
+	}
 
 	return 1;
 }
@@ -246,15 +269,13 @@ sub market_search {
 
 # Find the current mouse co-ordinate relative to the window
 sub mouse_xy {
-	my $self = shift;
-
-	# Show the window and capture current position
-	Win32::GuiTest::SetForegroundWindow($self->window);
-	my ($l,$t,$r,$b) = Win32::GuiTest::GetWindowRect($self->window);
-
-	# Get the cursor position, offset by the window rect
-	my ($x, $y) = Win32::GuiTest::GetCursorPos();
-	return [ $x - $l, $y - $t ];
+	my $self = shift->foreground;
+	return [
+		Win32::GuiTest::ScreenToClient(
+			$self->window,
+			Win32::GuiTest::GetCursorPos(),
+		)
+	];
 }
 
 
@@ -264,12 +285,20 @@ sub mouse_xy {
 #####################################################################
 # Basic Functions
 
+# Ensure EVE is the foreground window, returns the object as a convenience
+sub foreground {
+	my $self = shift;
+	Win32::GuiTest::SetForegroundWindow($self->window);
+	Win32::GuiTest::SetActiveWindow($self->window);
+	Win32::GuiTest::SetFocus($self->window);
+	$self->sleep(1);
+	return $self;
+}
+
 # Type something or send keys
 sub send_keys {
-	my $self   = shift;
-	my $string = shift;
-	Win32::GuiTest::SetForegroundWindow($self->window);
-	Win32::GuiTest::SendKeys($string);
+	my $self = shift->foreground;
+	Win32::GuiTest::SendKeys(shift);
 	return 1;
 }
 
@@ -278,23 +307,19 @@ sub mouse_to {
 	my $self = shift;
 	my $to   = _COORD(@_);
 
-	# Show the window and capture current position
-	Win32::GuiTest::SetForegroundWindow($self->window);
-	my ($l,$t,$r,$b) = Win32::GuiTest::GetWindowRect($self->window);
-
 	# Move the mouse to the window-relative position
 	Win32::GuiTest::MouseMoveAbsPix(
-		$to->[0] + $l,
-		$to->[1] + $t,
+		$self->window,
+		Win32::GuiTest::ClientToScreen(@$to),
 	);
 
 	return 1;
 }
 
-# Clicking the mouse
 sub left_click {
-	my $self = shift;
+	my $self = shift->foreground;
 	$self->mouse_to(@_) if @_;
+	$self->sleep(1);
 	Win32::GuiTest::SendLButtonDown();
 	$self->sleep(1);
 	Win32::GuiTest::SendLButtonUp();
@@ -302,63 +327,12 @@ sub left_click {
 }
 
 sub right_click {
-	my $self = shift;
+	my $self = shift->foreground;
 	$self->mouse_to(@_) if @_;
-	Win32::GuiTest::SendLButtonDown();
-	Win32::GuiTest::SendLButtonUp();
+	Win32::GuiTest::SendRButtonDown();
+	$self->sleep(0.5);
+	Win32::GuiTest::SendRButtonUp();
 	return 1;
-}
-
-# Select a menu option
-sub left_click_left_menu {
-	my $self     = shift;
-	my $position = _POSINT(shift) or die("Invalid menu number");
-	my $config   = $self->config->{mouse_config} or die "No [mouse_config]";
-	return $self->left_click(
-		$config->{left_menu_x},
-		$config->{left_menu_y} + $config->{left_menu_d} * $position,
-		);
-}
-
-# Click a named target
-sub left_click_target {
-	my $self   = shift;
-	my $name   = shift or die("No left_click_target provided");
-	my $target = $self->config->{mouse_target}->{$name}
-		or die("No such [mouse_target] name '$name'");
-	return $self->left_click( $target );
-}
-
-sub right_click_target {
-	my $self   = shift;
-	my $name   = shift or die("No left_click_target provided");
-	my $target = $self->config->{mouse_target}->{$name}
-		or die("No such [mouse_target] name '$name'");
-	return $self->right_click( $target );
-}
-
-# Sleep for a period of time, and at the end validate EVE is still running
-# and we are attached to it.
-sub sleep {
-	my $self    = shift;
-	my $seconds = shift;
-	unless ( _POSINT($seconds) ) {
-		$seconds = $self->config->{sleep}->{$seconds};
-	}
-	unless ( _POSINT($seconds) ) {
-		die("Missing or invalid sleep time");
-	}
-
-	# Do the sleep itself
-	sleep($seconds);
-
-	# Confirm EVE is still running
-	my $window = $self->find_window;
-	unless ( $window == $self->window ) {
-		die("EVE window id has unexpectedly changed");
-	}
-
-	1;
 }
 
 
@@ -367,6 +341,10 @@ sub sleep {
 
 #####################################################################
 # Vision Support
+
+sub pattern {
+	$_[0]->patterns->{$_[1]} or die "Image pattern '$_[1]' does not exist";
+}
 
 # Load named pattern objects for a directory
 sub find_patterns {
@@ -382,12 +360,14 @@ sub find_patterns {
 	# Load the patterns
 	my %hash = ();
 	foreach my $file ( @files ) {
-		my $pattern = Imager::Search::Pattern->new(
+		my $name = $file;
+		$name =~ s/\.bmp$//;
+		$hash{$name} = Imager::Search::Pattern->new(
+			name   => $name,
 			driver => 'Imager::Search::Driver::BMP24',
 			file   => File::Spec->catfile( $path, $file ),
+			cache  => 1,
 		);
-		$file =~ s/\.bmp$//;
-		$hash{$file} = $pattern;
 	}
 
 	\%hash;
@@ -400,6 +380,16 @@ sub screenshot {
 		driver => 'BMP24',
 	);
 }
+
+# Search for a pattern in a screenshot
+sub screenshot_search {
+	my $self       = shift;
+	my $name       = shift;
+	my $pattern    = $self->pattern($name);
+	my $screenshot = $self->screenshot;
+	$screenshot->find($pattern);
+}
+
 
 
 
@@ -418,7 +408,7 @@ sub launch {
 		$self->config->{_}->{exe} || "C:\\Program Files\\CCP\\EVE\\eve.exe",
 		"eve",
 		0,
-		NORMAL_PRIORITY_CLASS,
+		Win32::Process::NORMAL_PRIORITY_CLASS,
 		".",
 	);
 	unless ( $rv and $process ){
@@ -481,6 +471,30 @@ sub find_window {
 	return $windows[0];
 }
 
+# Sleep for a period of time, and at the end validate EVE is still running
+# and we are attached to it.
+sub sleep {
+	my $self    = shift;
+	my $seconds = shift;
+	unless ( Params::Util::_POSINT($seconds) ) {
+		$seconds = $self->config->{sleep}->{$seconds};
+	}
+	unless ( Params::Util::_POSINT($seconds) ) {
+		die("Missing or invalid sleep time");
+	}
+
+	# Do the sleep itself
+	Time::HiRes::sleep($seconds);
+
+	# Confirm EVE is still running
+	my $window = $self->find_window;
+	unless ( $window == $self->window ) {
+		die("EVE window id has unexpectedly changed");
+	}
+
+	return 1;
+}
+
 
 
 
@@ -490,18 +504,20 @@ sub find_window {
 
 sub _COORD {
 	if ( @_ == 1 ) {
-		if ( $_[0] =~ /^(\d+)[^\d]+(\d+)$/ ) {
+		if ( Params::Util::_INSTANCE($_[0], 'Imager::Search::Match') ) {
+			return [ $_[0]->centre_x, $_[0]->centre_y ];
+		} elsif ( $_[0] =~ /^(\d+)[^\d]+(\d+)$/ ) {
 			return [ $1+0, $2+0 ];
 		} elsif ( ref $_[0] eq 'ARRAY' ) {
-			_POSINT($_[0]->[0]) or die("Invalid position X");
-			_POSINT($_[0]->[1]) or die("Invalid position Y");
+			Params::Util::_POSINT($_[0]->[0]) or die("Invalid position X");
+			Params::Util::_POSINT($_[0]->[1]) or die("Invalid position Y");
 			return [ $_[0]->[0], $_[0]->[1] ];
 		} else {
 			die("Unrecognised position string");
 		}
 	} elsif ( @_ == 2 ) {
-		_POSINT($_[0]) or die("Invalid position X");
-		_POSINT($_[1]) or die("Invalid position Y");
+		Params::Util::_POSINT($_[0]) or die("Invalid position X");
+		Params::Util::_POSINT($_[1]) or die("Invalid position Y");
 		return [ $_[0], $_[1] ];
 	} else {
 		die("Invalid or unknown position");
