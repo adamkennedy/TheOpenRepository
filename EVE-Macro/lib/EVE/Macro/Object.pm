@@ -1,22 +1,25 @@
 package EVE::Macro::Object;
 
-use 5.006;
+use 5.008;
 use strict;
 use File::Spec            0.80 ();
 use File::HomeDir         0.93 ();
+use File::ShareDir        1.00 ();
 use Params::Util          1.00 qw{ _POSINT _IDENTIFIER _STRING _INSTANCE };
 use Config::Tiny          2.02 ();
+use File::Find::Rule      0.32 ();
 use Time::HiRes         1.9718 ();
 use Win32::GuiTest        1.58 ();
 use Win32::Process        0.14 qw{ STILL_ACTIVE NORMAL_PRIORITY_CLASS };
 use Win32::Process::List  0.09 ();
 use Win32                 0.39 ();
 use Imager::Search        1.00 ();
+use Imager::Search::Pattern    ();
 use Imager::Search::Screenshot ();
 
-use vars qw{$VERSION};
+our $VERSION = '0.01';
+
 BEGIN {
-	$VERSION               = '0.01';
 	$Win32::GuiTest::debug = 0;
 }
 
@@ -26,6 +29,7 @@ use Object::Tiny 1.08 qw{
 	process
 	window
 	marketlogs
+	patterns
 };
 
 
@@ -37,7 +41,7 @@ use Object::Tiny 1.08 qw{
 
 use constant {
 	MOUSE_LOGIN_CURRENT_CHARACTER => [ 250, 250 ],
-	MOUSE_CHROME_MARKET           => [ 20,  
+	MOUSE_CHROME_MARKET           => [ 20,  280 ],
 };
 
 
@@ -97,6 +101,16 @@ sub new {
 	}
 	unless ( -d $self->marketlogs ) {
 		die("Missing or invalid marketlogs directory");
+	}
+
+	# Find the image search patterns
+	unless ( $self->patterns ) {
+		$self->{patterns} = $self->find_patterns(
+			File::Spec->catdir(
+				File::ShareDir::dist_dir('EVE-Macro-Object'),
+				'vision',
+			),
+		);
 	}
 
 	return $self;
@@ -344,6 +358,38 @@ sub sleep {
 	}
 
 	1;
+}
+
+
+
+
+
+#####################################################################
+# Vision Support
+
+# Load named pattern objects for a directory
+sub find_patterns {
+	my $self = shift;
+	my $path = shift;
+	unless ( -d $path ) {
+		die "Directory '$path' does not exist";
+	}
+
+	# Scan for pattern files
+	my @files = File::Find::Rule->relative->file('*.bmp')->in($path);
+
+	# Load the patterns
+	my %hash = ();
+	foreach my $file ( @files ) {
+		my $pattern = Imager::Search::Pattern->new(
+			driver => 'Imager::Search::Driver::HTML24',
+			file   => File::Spec->catfile( $path, $file ),
+		);
+		$file =~ s/\.bmp$//;
+		$hash{$file} = $pattern;
+	}
+
+	\%hash;
 }
 
 

@@ -6,10 +6,9 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 10;
+use Test::More tests => 6;
 use File::Spec::Functions ':ALL';
-use EVE::Macro::Object    ();
-use Win32::Process::List  ();
+use EVE::Macro::Object ();
 
 # Data files
 my $config = rel2abs(catfile( 'data', 'EVE-Macro.conf' ));
@@ -22,13 +21,5 @@ my $object = EVE::Macro::Object->start(
 isa_ok( $object, 'EVE::Macro::Object' );
 isa_ok( $object->process, 'Win32::Process' );
 ok( $object->window, '->window ok' );
-ok( $object->login, '->login  ok' );
-foreach my $type ( qw{ Hydrogen Helium Oxygen Nitrogen } ) {
-	ok(
-		$object->market_search("$type Isotopes"),
-		'->market_search ok',
-	);
-}
-ok( $object->stop, '->stop ok' );
-
-1;
+ok( $object->login,  '->login  ok' );
+ok( $object->stop,   '->stop ok'   );
