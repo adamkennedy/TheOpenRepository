@@ -52,7 +52,7 @@ use Object::Tiny 1.08 qw{
 use constant {
 	MOUSE_LOGIN_USERNAME          => [ 552, 687 ],
 	MOUSE_LOGIN_CURRENT_CHARACTER => [ 170, 273 ],
-	MOUSE_CHROME_MARKET           => [ 20,  280 ],
+	MOUSE_CHROME_MARKET           => [ 18,  262 ],
 };
 
 
@@ -235,27 +235,25 @@ sub market_search {
 	$self->left_click( MOUSE_CHROME_MARKET );
 	$self->sleep(1);
 
-	# Click the search tab
-	$self->left_click( 125, 140 );
+	# If we aren't on the search tab switch to it
+	my @tab = $self->screenshot_search('market-search-tab');
+	if ( @tab == 1 ) {
+		$self->left_click( $tab[0] );
+		$self->sleep(1);
+	}
+
+	# Clear any previous search term
+	my @search = $self->screenshot_search('market-search-button');
+	unless ( @search == 1 ) {
+		die "Failed to find search button";
+	}
+	$self->left_click( $search[0]->left - 20, $search[0]->centre_y );
 	$self->sleep(1);
+	$self->send_keys( '{BACKSPACE}' x 100 );
 
-	# Click the search box
-	$self->left_click( 125, 160 );
-	$self->sleep(1);
-
-	# Enter the product name
-	$self->send_keys( '{BACKSPACE}' x 40 );
-	$self->send_keys( '{DELETE}'    x 40 );
-	$self->send_keys( $product . '~' );
-	$self->sleep(3);
-
-	# Select the first resulting thing
-	$self->left_click( 125, 185 );
-	$self->sleep(5);
-
-	# Export the market data
-	$self->left_click( 450, 775 );
-	$self->sleep(3);
+	# Search for what we want
+	$self->send_keys( $product . "~" );
+	$self->sleep(10);
 
 	return 1;
 }
@@ -317,20 +315,37 @@ sub mouse_to {
 
 sub left_click {
 	my $self = shift->foreground;
+
+	# Move the mouse to the target, allow time for transition effects
 	$self->mouse_to(@_) if @_;
 	$self->sleep(1);
+
+	# Click whatever it is nice and slow
 	Win32::GuiTest::SendLButtonDown();
 	$self->sleep(1);
 	Win32::GuiTest::SendLButtonUp();
+
+	# Return the mouse to the rest position to prevent unwanted tooltips
+	$self->mouse_to( [ 1, 1 ] ) if @_;
+
 	return 1;
 }
 
 sub right_click {
 	my $self = shift->foreground;
+
+	# Move the mouse to the target, allow time for transition effects
 	$self->mouse_to(@_) if @_;
+	$self->sleep(0.5);
+
+	# Click whatever it is nice and slow
 	Win32::GuiTest::SendRButtonDown();
 	$self->sleep(0.5);
 	Win32::GuiTest::SendRButtonUp();
+
+	# Return the mouse to the rest position to prevent unwanted tooltips
+	$self->mouse_to( [ 2, 2 ] ) if @_;
+
 	return 1;
 }
 
@@ -382,11 +397,11 @@ sub screenshot {
 
 # Search for a pattern in a screenshot
 sub screenshot_search {
-	my $self       = shift;
-	my $name       = shift;
-	my $pattern    = $self->pattern($name);
-	my $screenshot = $self->screenshot;
-	$screenshot->find($pattern);
+	my $self = shift;
+	my $name = shift;
+	$self->screenshot->find(
+		$self->pattern($name)
+	);
 }
 
 
@@ -431,11 +446,7 @@ sub attach {
 	return undef unless $pid;
 
 	# Create the process handle
-	Win32::Process::Open(
-		$self->{process},
-		$pid,
-		0,
-	);
+	Win32::Process::Open( $self->{process}, $pid, 0 );
 
 	return 1;
 }
