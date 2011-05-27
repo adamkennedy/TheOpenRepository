@@ -1,6 +1,7 @@
 Changes for Perl extension Test-POE-Stopping
 
 1.08 Fri 27 May 2011
+	- Updating to Module::Install::DSL 1.01
 	- Updated to deal with the session management internals change
 	  to support forking that arrived in POE 1.310
 
