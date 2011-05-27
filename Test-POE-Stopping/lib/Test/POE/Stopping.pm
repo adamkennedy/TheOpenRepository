@@ -185,12 +185,13 @@ sub poe_stopping {
 }
 
 sub session_summary {
-	my $session  = shift->ID;
+	my $session  = shift;
 	my $api      = POE::API::Peek->new;
-	my $current  = $api->current_session->ID;
-	my @children = $api->get_session_children($session);
+	my $param    = ($POE::VERSION >= 1.310) ? $session->ID : $session;
+	my $current  = $api->current_session;
+	my @children = $api->get_session_children($param);
 	my %signals  = eval {
-		$api->signals_watched_by_session($session);
+		$api->signals_watched_by_session($param);
 	};
 	if ( $@ and $@ =~ /^Can\'t use an undefined value as a HASH reference/ ) {
 		%signals = ();
@@ -200,12 +201,12 @@ sub session_summary {
 	my @to = grep {
 		$_->{destination}->isa('POE::Session')
 		and
-		$_->{destination}->ID == $current
+		$_->{destination}->ID == $current->ID
 	} @queue;
 	my @from = grep {
 		$_->{source}->isa('POE::Session')
 		and
-		$_->{source}->ID == $current
+		$_->{source}->ID == $current->ID
 	} @queue;
 	my @distinct = do {
 		my %seen = ();
@@ -213,13 +214,13 @@ sub session_summary {
 	};
 
 	my $summary = {
-		id       => $session,
-		alias    => $api->session_alias_count($session),
-		refs     => $api->get_session_refcount($session),
-		extra    => $api->get_session_extref_count($session),
-		handles  => $api->session_handle_count($session),
+		id       => $session->ID,
+		alias    => $api->session_alias_count($param),
+		refs     => $api->get_session_refcount($param),
+		extra    => $api->get_session_extref_count($param),
+		handles  => $api->session_handle_count($param),
 		signals  => scalar(keys %signals),
-		current  => ($current eq $session) ? 1 : 0,
+		current  => ($current->ID eq $session->ID) ? 1 : 0,
 		children => scalar(@children),
 		queue    => {
 			distinct => scalar(@distinct),
