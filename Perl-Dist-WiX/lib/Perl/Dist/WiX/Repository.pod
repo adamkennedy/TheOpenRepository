@@ -14,6 +14,9 @@ the branches that are currently being used as of May 2011.
 Perl::Dist::WiX is currently on Curtis Jewell's Mercurial repository, at 
 L<http://hg.curtisjewell.name/Perl-Dist-WiX>
 
+After mercurial revision 1020 on that repository (svn revision r14408) changes 
+will not be mirrored to svn.ali.as.
+
 If you need push access for Perl::Dist::WiX, please e-mail me with what 
 you'd like to do (a patch would be nice) and I'll give you access.
 
