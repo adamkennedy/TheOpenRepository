@@ -309,8 +309,7 @@ sub mouse_to {
 
 	# Move the mouse to the window-relative position
 	Win32::GuiTest::MouseMoveAbsPix(
-		$self->window,
-		Win32::GuiTest::ClientToScreen(@$to),
+		Win32::GuiTest::ClientToScreen( $self->window, @$to )
 	);
 
 	return 1;
