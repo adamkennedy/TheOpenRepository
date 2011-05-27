@@ -2,17 +2,16 @@ package EVE::Macro::Object;
 
 use 5.006;
 use strict;
-use Carp           'croak';
-use File::Spec     ();
-use File::HomeDir  ();
-use Params::Util   qw{ _POSINT _IDENTIFIER _STRING _INSTANCE };
-use Config::Tiny   ();
-use Time::HiRes    ();
-use Win32::GuiTest ();
-use Win32::Process qw{ STILL_ACTIVE NORMAL_PRIORITY_CLASS };
-use Win32::Process::List;
-use Win32;
-use Imager::Search             ();
+use File::Spec            0.80 ();
+use File::HomeDir         0.93 ();
+use Params::Util          1.00 qw{ _POSINT _IDENTIFIER _STRING _INSTANCE };
+use Config::Tiny          2.02 ();
+use Time::HiRes         1.9718 ();
+use Win32::GuiTest        1.58 ();
+use Win32::Process        0.14 qw{ STILL_ACTIVE NORMAL_PRIORITY_CLASS };
+use Win32::Process::List  0.09 ();
+use Win32                 0.39 ();
+use Imager::Search        1.00 ();
 use Imager::Search::Screenshot ();
 
 use vars qw{$VERSION};
@@ -21,16 +20,24 @@ BEGIN {
 	$Win32::GuiTest::debug = 0;
 }
 
-use Object::Tiny qw{
-	username
-	password
-
+use Object::Tiny 1.08 qw{
 	config
 	config_file
 	process
 	window
-
 	marketlogs
+};
+
+
+
+
+
+#####################################################################
+# Screen Location Constants
+
+use constant {
+	MOUSE_LOGIN_CURRENT_CHARACTER => [ 250, 250 ],
+	MOUSE_CHROME_MARKET           => [ 20,  
 };
 
 
@@ -56,13 +63,13 @@ sub new {
 		if ( -f $file ) {
 			# Load the config file
 			$self->{config} = Config::Tiny->read( $file )
-				or croak(
+				or die(
 					"Failed to load config file"
 					. $self->config_file
 				);
 		} else {
 			if ( $self->config_file ) {
-				croak(
+				die(
 					"Failed to find config file "
 					. $self->config_file
 				);
@@ -75,10 +82,10 @@ sub new {
 
 	# We need a username and password
 	unless ( _IDENTIFIER($self->username) ) {
-		croak("Did not provide a username");
+		die("Did not provide a username");
 	}
 	unless ( _STRING($self->password) ) {
-		croak("Did not provide a password");
+		die("Did not provide a password");
 	}
 
 	# Try to find the market log directory
@@ -89,19 +96,33 @@ sub new {
 		);	
 	}
 	unless ( -d $self->marketlogs ) {
-		croak("Missing or invalid marketlogs directory");
+		die("Missing or invalid marketlogs directory");
 	}
 
 	return $self;
+}
+
+sub username {
+	$_[0]->{username} || $_[0]->config->{'_'}->{username};
+}
+
+sub password {
+	$_[0]->{password} || $_[0]->config->{'_'}->{password};
 }
 
 # Create a new EVE instance
 sub start {
 	my $self = shift->new(@_);
 
-	# Launch eve, wait a bit, then find the login screen
+	# Are we already running?
+	if ( $self->find_windows ) {
+		die("An instance of EVE is already running");
+	}
+
+	# Launch EVE, wait a bit, then find the login screen.
+	# This is the only place we should use raw sleep calls.
 	$self->launch;
-	sleep 10;
+	sleep 30;
 	$self->attach;
 	sleep 10;
 	$self->connect;
@@ -115,7 +136,7 @@ sub stop {
 
 	# Stop the process
 	unless ( $self->process ) {
-		croak("No process handle, unable to stop EVE");
+		die("No process handle, unable to stop EVE");
 	}
 	$self->process->Kill(0);
 
@@ -142,7 +163,7 @@ sub login {
 	$self->send_keys( $self->username );
 
 	# Change to the password field
-	$self->send_keys( "\t\t" );
+	$self->send_keys( "\t" );
 
 	# Enter the password
 	$self->send_keys( $self->password );
@@ -151,13 +172,13 @@ sub login {
 	$self->send_keys( "\t~" );
 
 	# Wait till we get to the user screen
-	sleep 20;
+	$self->sleep(30);
 
 	# Move the mouse to the current user and select
-	$self->left_click( 300, 300 );
+	$self->left_click( MOUSE_LOGIN_CURRENT_CHARACTER );
 
 	# Wait till we get to the main login
-	sleep 20;
+	$self->sleep(30);
 
 	return 1;
 }
@@ -167,30 +188,30 @@ sub market_search {
 	my $product = shift;
 
 	# Click the market
-	$self->left_click( 20, 270 );
-	sleep 1;
+	$self->left_click( MOUSE_CHROME_MARKET );
+	$self->sleep(1);
 
 	# Click the search tab
 	$self->left_click( 125, 140 );
-	sleep 1;
+	$self->sleep(1);
 
 	# Click the search box
 	$self->left_click( 125, 160 );
-	sleep 1;
+	$self->sleep(1);
 
 	# Enter the product name
 	$self->send_keys( '{BACKSPACE}' x 40 );
 	$self->send_keys( '{DELETE}'    x 40 );
 	$self->send_keys( $product . '~' );
-	sleep 3;
+	$self->sleep(3);
 
 	# Select the first resulting thing
 	$self->left_click( 125, 185 );
-	sleep 5;
+	$self->sleep(5);
 
 	# Export the market data
 	$self->left_click( 450, 775 );
-	sleep 3;
+	$self->sleep(3);
 
 	return 1;
 }
@@ -216,7 +237,7 @@ sub screenshot {
 		[ hwnd => $self->window ],
 	);
 	unless ( _INSTANCE($screen, 'Imager') ) {
-		croak("Failed to capture screen");
+		die("Failed to capture screen");
 	}
 	return $screen;
 }
@@ -260,7 +281,7 @@ sub left_click {
 	my $self = shift;
 	$self->mouse_to(@_) if @_;
 	Win32::GuiTest::SendLButtonDown();
-	sleep 1;
+	$self->sleep(1);
 	Win32::GuiTest::SendLButtonUp();
 	return 1;
 }
@@ -276,7 +297,7 @@ sub right_click {
 # Select a menu option
 sub left_click_left_menu {
 	my $self     = shift;
-	my $position = _POSINT(shift) or croak("Invalid menu number");
+	my $position = _POSINT(shift) or die("Invalid menu number");
 	my $config   = $self->config->{mouse_config} or die "No [mouse_config]";
 	return $self->left_click(
 		$config->{left_menu_x},
@@ -287,27 +308,42 @@ sub left_click_left_menu {
 # Click a named target
 sub left_click_target {
 	my $self   = shift;
-	my $name   = shift or croak("No left_click_target provided");
+	my $name   = shift or die("No left_click_target provided");
 	my $target = $self->config->{mouse_target}->{$name}
-		or croak("No such [mouse_target] name '$name'");
+		or die("No such [mouse_target] name '$name'");
 	return $self->left_click( $target );
 }
 
 sub right_click_target {
 	my $self   = shift;
-	my $name   = shift or croak("No left_click_target provided");
+	my $name   = shift or die("No left_click_target provided");
 	my $target = $self->config->{mouse_target}->{$name}
-		or croak("No such [mouse_target] name '$name'");
+		or die("No such [mouse_target] name '$name'");
 	return $self->right_click( $target );
 }
 
-# Wait for a defined period of time
+# Sleep for a period of time, and at the end validate EVE is still running
+# and we are attached to it.
 sub sleep {
-	my $self = shift;
-	my $name = shift;
-	my $period = $self->config->{'sleep'}->{$name}
-		or croak("Invalid sleep '$name'");
-	return Time::HiRes::sleep( $period );
+	my $self    = shift;
+	my $seconds = shift;
+	unless ( _POSINT($seconds) ) {
+		$seconds = $self->config->{sleep}->{$seconds};
+	}
+	unless ( _POSINT($seconds) ) {
+		die("Missing or invalid sleep time");
+	}
+
+	# Do the sleep itself
+	sleep($seconds);
+
+	# Confirm EVE is still running
+	my $window = $self->find_window;
+	unless ( $window == $self->window ) {
+		die("EVE window id has unexpectedly changed");
+	}
+
+	1;
 }
 
 
@@ -332,7 +368,7 @@ sub launch {
 		".",
 	);
 	unless ( $rv and $process ){
-		croak("Failed to start EVE");
+		die("Failed to start EVE");
 	}
 
 	return 1;
@@ -360,24 +396,35 @@ sub attach {
 
 	return 1;
 }
-		
+
 # Connect to an existing instance of EVE
 sub connect {
 	my $self = shift;
 
 	# Locate the EVE window
 	unless ( $self->window ) {
-		my @windows = Win32::GuiTest::FindWindowLike(0, '^EVE$');
-		unless ( @windows ) {
-			croak("EVE is not running");
-		}
-		unless ( @windows == 1 ) {
-			croak("Detected more than one EVE window");
-		}
-		$self->{window} = $windows[0];
+		$self->{window} = $self->find_window;
 	}
 
-	return $self;	
+	return $self;
+}
+
+# Find all eve windows
+sub find_windows {
+	Win32::GuiTest::FindWindowLike(0, '^EVE$');
+}
+
+# Find the (presumably only) EVE window
+sub find_window {
+	my $self    = shift;
+	my @windows = $self->find_windows;
+	unless ( @windows ) {
+		die("EVE is not running");
+	}
+	unless ( @windows == 1 ) {
+		die("Detected more than one EVE window");
+	}
+	return $windows[0];
 }
 
 
@@ -392,18 +439,18 @@ sub _COORD {
 		if ( $_[0] =~ /^(\d+)[^\d]+(\d+)$/ ) {
 			return [ $1+0, $2+0 ];
 		} elsif ( ref $_[0] eq 'ARRAY' ) {
-			_POSINT($_[0]->[0]) or croak("Invalid position X");
-			_POSINT($_[0]->[1]) or croak("Invalid position Y");
+			_POSINT($_[0]->[0]) or die("Invalid position X");
+			_POSINT($_[0]->[1]) or die("Invalid position Y");
 			return [ $_[0]->[0], $_[0]->[1] ];
 		} else {
-			croak("Unrecognised position string");
+			die("Unrecognised position string");
 		}
 	} elsif ( @_ == 2 ) {
-		_POSINT($_[0]) or croak("Invalid position X");
-		_POSINT($_[1]) or croak("Invalid position Y");
+		_POSINT($_[0]) or die("Invalid position X");
+		_POSINT($_[1]) or die("Invalid position Y");
 		return [ $_[0], $_[1] ];
 	} else {
-		croak("Invalid or unknown position");
+		die("Invalid or unknown position");
 	}
 }
 

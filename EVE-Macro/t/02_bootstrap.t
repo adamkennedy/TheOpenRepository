@@ -15,14 +15,13 @@ use Win32::Process::List  ();
 my $config = rel2abs(catfile( 'data', 'EVE-Macro.conf' ));
 ok( -f $config, "Found test config at $config" );
 my $object = EVE::Macro::Object->start(
-	config_file => $config,
-	username    => 'Algorithm2',
-	password    => 'phlegm3{#}',
+	# config_file => $config,
+	# username    => 'Algorithm2',
+	# password    => 'phlegm3{#}',
 );
 isa_ok( $object, 'EVE::Macro::Object' );
 isa_ok( $object->process, 'Win32::Process' );
 ok( $object->window, '->window ok' );
-
 ok( $object->login, '->login  ok' );
 foreach my $type ( qw{ Hydrogen Helium Oxygen Nitrogen } ) {
 	ok(
