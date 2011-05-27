@@ -1,5 +1,12 @@
 Changes for Perl extension POE-Declare
 
+0.55 Fri 27 May 2011
+	- Updating Module::Install::DSL to 1.01
+	- Updating Test::POE::Stopping dependency to 1.08 to be able to deal
+	  with the change to session internals in POE 1.310.
+	- Test scripts compensate for a hardcoded assumption that the ID of the
+	  first session is 2 in POE, it is now 1 (and the tests adapt)
+
 0.54 Fri 15 Apr 2011
 	- Add support for timeout variance both in declaration and overridden
 	  timeout lengths.

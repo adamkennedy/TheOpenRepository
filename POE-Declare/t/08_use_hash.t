@@ -58,6 +58,8 @@ SCOPE: {
 #####################################################################
 # Tests
 
+my $ID1 = ($POE::VERSION >= 1.310) ? 1 : 2;
+
 SCOPE: {
 	# There should be no meta-object for the Foo class initially
 	is( POE::Declare::meta('Foo'), undef, 'meta(Foo) is undef' );
@@ -147,8 +149,8 @@ SCOPE: {
 	is( $object->session, undef, '->session is undef' );
 	$object->spawn;
 	is( $object->spawned, 1,  '->spawned is true'  );
-	is( $object->session_id, 2, '->session_id is true' );
-	is( $object->ID, 2, '->ID is true and matches ->session_id' );
+	is( $object->session_id, $ID1, '->session_id is true' );
+	is( $object->ID, $ID1, '->ID is true and matches ->session_id' );
 	isa_ok( $object->session, 'POE::Session', '->session is true' );
 
 	# Check the behaviour of SELF in methods
