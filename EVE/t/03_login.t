@@ -8,19 +8,19 @@ BEGIN {
 
 use Test::More tests => 7;
 use File::Spec::Functions ':ALL';
-use EVE::Macro::Object ();
+use EVE ();
 
 # Data files
 my $config = rel2abs(catfile( 'data', 'EVE-Macro.conf' ));
 ok( -f $config, "Found test config at $config" );
 
 # Bootstrap the game
-my $object = EVE::Macro::Object->start(
+my $object = EVE::Game->start(
 	# config_file => $config,
 	# username    => 'Algorithm2',
 	# password    => 'phlegm3{#}',
 );
-isa_ok( $object, 'EVE::Macro::Object' );
+isa_ok( $object, 'EVE::Game' );
 isa_ok( $object->process, 'Win32::Process' );
 ok( $object->window, '->window ok' );
 

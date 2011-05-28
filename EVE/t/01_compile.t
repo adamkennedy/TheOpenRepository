@@ -8,4 +8,4 @@ BEGIN {
 
 use Test::More tests => 1;
 
-use_ok( 'EVE::Macro::Object' );
+use_ok( 'EVE' );

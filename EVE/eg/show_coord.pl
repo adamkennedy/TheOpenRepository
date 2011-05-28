@@ -1,9 +1,9 @@
 #!/usr/bin/perl
 
 use strict;
-use FindBin            ();
-use File::Spec         ();
-use EVE::Macro::Object ();
+use FindBin    ();
+use File::Spec ();
+use EVE::Game  ();
 
 
 
@@ -12,12 +12,12 @@ use EVE::Macro::Object ();
 #####################################################################
 # Main Script
 
-my $eve = EVE::Macro::Object->start;
+my $game = EVE::Game->start;
 
 while ( 1 ) {
-	my $coord = $eve->mouse_xy;
+	my $coord = $game->mouse_xy;
 	print "Mouse at: $coord->[0],$coord->[1]\n";
 	sleep(1);
 }
 
-$eve->stop;
+$game->stop;

@@ -3,14 +3,12 @@
 # Simple script to undock you when in the station
 
 use strict;
-use FindBin            ();
-use File::Spec         ();
-use EVE::Macro::Object ();
+use FindBin    ();
+use File::Spec ();
+use EVE::Game  ();
 
-my $macro = EVE::Macro::Object->new;
+my $game = EVE::Game->new;
 
-$macro->left_click_target('station_undock');
-$macro->sleep('undock');
-$macro->left_click_target('ship_autopilot');
-
-1;
+$game->left_click_target('station_undock');
+$game->sleep('undock');
+$game->left_click_target('ship_autopilot');

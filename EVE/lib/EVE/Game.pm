@@ -1,4 +1,4 @@
-package EVE::Macro::Object;
+package EVE::Game;
 
 use 5.008;
 use strict;
