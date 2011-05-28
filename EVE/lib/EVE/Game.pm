@@ -3,6 +3,7 @@ package EVE::Game;
 use 5.008;
 use strict;
 use warnings;
+use Carp                       ();
 use File::Spec            0.80 ();
 use File::HomeDir         0.93 ();
 use File::ShareDir        1.00 ();
@@ -52,7 +53,13 @@ use Object::Tiny 1.08 qw{
 use constant {
 	MOUSE_LOGIN_USERNAME          => [ 552, 687 ],
 	MOUSE_LOGIN_CURRENT_CHARACTER => [ 170, 273 ],
-	MOUSE_CHROME_MARKET           => [ 18,  262 ],
+	MOUSE_ESCAPE_RESET_TAB        => [ 522, 164 ],
+	MOUSE_ESCAPE_RESET_WINDOWS    => [ 614, 209 ],
+	MOUSE_NEOCOM_MARKET           => [ 18,  262 ],
+	MOUSE_MARKET_DETAILS_TAB      => [ 438, 111 ],
+	MOUSE_MARKET_SEARCH_TAB       => [ 195, 200 ],
+	MOUSE_MARKET_SEARCH_TEXT      => [ 121, 226 ],
+	MOUSE_MARKET_EXPORT_TO_FILE   => [ 613, 670 ],
 };
 
 
@@ -78,13 +85,13 @@ sub new {
 		if ( -f $file ) {
 			# Load the config file
 			$self->{config} = Config::Tiny->read( $file )
-				or die(
+				or Carp::croak(
 					"Failed to load config file"
 					. $self->config_file
 				);
 		} else {
 			if ( $self->config_file ) {
-				die(
+				Carp::croak(
 					"Failed to find config file "
 					. $self->config_file
 				);
@@ -97,10 +104,10 @@ sub new {
 
 	# We need a username and password
 	unless ( Params::Util::_IDENTIFIER($self->username) ) {
-		die("Did not provide a username");
+		Carp::croak("Did not provide a username");
 	}
 	unless ( Params::Util::_STRING($self->password) ) {
-		die("Did not provide a password");
+		Carp::croak("Did not provide a password");
 	}
 
 	# Try to find the market log directory
@@ -111,7 +118,7 @@ sub new {
 		);	
 	}
 	unless ( -d $self->marketlogs ) {
-		die("Missing or invalid marketlogs directory");
+		Carp::croak("Missing or invalid marketlogs directory");
 	}
 
 	# Find the image search patterns
@@ -123,6 +130,10 @@ sub new {
 			),
 		);
 	}
+
+	# Initialise the screenshot variables
+	$self->{screenshot}      = undef;
+	$self->{screenshot_time} = 0;
 
 	return $self;
 }
@@ -141,7 +152,7 @@ sub start {
 
 	# Are we already running?
 	if ( $self->find_windows ) {
-		die("An instance of EVE is already running");
+		Carp::croak("An instance of EVE is already running");
 	}
 
 	# Launch EVE, wait a bit, then find the login screen.
@@ -155,7 +166,7 @@ sub start {
 	# Check that the screen size is 1024x768
 	my $screenshot = $self->screenshot;
 	unless ( $screenshot->width == 1024 and $screenshot->height == 768 ) {
-		die "EVE is not running at 1024x768";
+		$self->throw("EVE is not running at 1024x768");
 	}
 
 	return $self;
@@ -193,7 +204,7 @@ sub login {
 	$self->left_click( MOUSE_LOGIN_USERNAME );
 
 	# Clear out the old username (if it exists)
-	$self->send_keys( '{BACKSPACE}' x 20 );
+	$self->send_keys( '{BACKSPACE 30}' );
 
 	# Enter the username
 	$self->send_keys( $self->username );
@@ -217,12 +228,73 @@ sub login {
 	$self->sleep(20);
 
 	# If the neocom is expanded, shrink it.
-	my @matches = $self->screenshot_search('neocom-minimize');
-	if ( @matches ) {
-		die "Found more than one neocom-minimise" if @matches > 1;
-		$self->left_click($matches[0]);
-		$self->sleep(5);
+	my $minimize = $self->screenshot_has('neocom-minimize');
+	if ( $minimize ) {
+		$self->left_click($minimize);
+		$self->sleep(1);
 	}
+
+	# Reset all window positions
+	$self->reset_windows;
+
+	# If the chat window is open, minimize it for safety
+	$self->chat_minimize;
+
+	return 1;
+}
+
+sub reset_windows {
+	my $self = shift;
+
+	# Assuming we aren't already at the quit screen, hit escape
+	$self->send_keys( '{ESCAPE}' );
+	$self->sleep(3);
+
+	# Click on the fixed location of the reset tab
+	$self->left_click( MOUSE_ESCAPE_RESET_TAB );
+
+	# Reset the windows
+	$self->left_click( MOUSE_ESCAPE_RESET_WINDOWS );
+
+	# Hit escape again to exit the escape menu
+	$self->send_keys( '{ESCAPE}' );
+	$self->sleep(3);
+
+	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Market Interface
+
+sub market_visible {
+	my $self    = shift;
+	my @matches = $self->screenshot_find('market-window');
+	if ( @matches > 1 ) {
+		$self->throw("More than one market window detected");
+	} elsif ( @matches ) {
+		return $matches[0];
+	} else {
+		return undef;
+	}
+}
+
+sub market_start {
+	my $self = shift;
+
+	# Click the neocom market icon to ensure it should be on the screen
+	$self->left_click( MOUSE_NEOCOM_MARKET );
+	$self->sleep(1);
+	unless ( $self->market_visible ) {
+		$self->throw("Failed to open market window");
+	}
+
+	# Make sure the market is in search mode and details mode
+	$self->left_click( MOUSE_MARKET_SEARCH_TAB  );
+	$self->left_click( MOUSE_MARKET_DETAILS_TAB );
 
 	return 1;
 }
@@ -231,29 +303,50 @@ sub market_search {
 	my $self    = shift;
 	my $product = shift;
 
-	# Click the market
-	$self->left_click( MOUSE_CHROME_MARKET );
-	$self->sleep(1);
-
-	# If we aren't on the search tab switch to it
-	my @tab = $self->screenshot_search('market-search-tab');
-	if ( @tab == 1 ) {
-		$self->left_click( $tab[0] );
-		$self->sleep(1);
-	}
-
 	# Clear any previous search term
-	my @search = $self->screenshot_search('market-search-button');
-	unless ( @search == 1 ) {
-		die "Failed to find search button";
-	}
-	$self->left_click( $search[0]->left - 20, $search[0]->centre_y );
-	$self->sleep(1);
-	$self->send_keys( '{BACKSPACE}' x 100 );
+	$self->left_click( MOUSE_MARKET_SEARCH_TEXT );
+	$self->sleep(0.5);
+	$self->send_keys( '{DELETE 100}' );
 
 	# Search for what we want
 	$self->send_keys( $product . "~" );
-	$self->sleep(10);
+	$self->sleep(3);
+
+	# Scan for product hits
+	my @hits = grep {
+		$_->left > 375 and $_->left < 400
+	}$self->screenshot_find('info-small');
+
+	# Click on each of the hits to bring up their market information
+	foreach my $hit ( @hits ) {
+		$self->left_click( $hit->left - 20, $hit->centre_y );
+		$self->sleep(5);
+	}
+
+	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Chat Interface
+
+sub chat_minimize {
+	my $self = shift;
+
+	# Is the chat window open?
+	my $open = $self->screenshot_has('chat-open-channel');
+	unless ( $open ) {
+		return 0;
+	}
+
+	# Close the chat window
+	$self->left_click( $open->left, $open->top );
+	if ( $self->screenshot_has('chat-open-window') ) {
+		$self->throw("Failed to close chat window");
+	}
 
 	return 1;
 }
@@ -303,7 +396,7 @@ sub send_keys {
 # Move the mouse to a particular position
 sub mouse_to {
 	my $self = shift;
-	my $to   = _COORD(@_);
+	my $to   = $self->coord(@_);
 
 	# Move the mouse to the window-relative position
 	Win32::GuiTest::MouseMoveAbsPix(
@@ -313,16 +406,41 @@ sub mouse_to {
 	return 1;
 }
 
+# Move the mouse rapidly around a set of matches images to identify where they
+# are seen.
+sub mouse_flicker {
+	my $self = shift;
+
+	# Convert the matches into points
+	my @points = ();
+	foreach my $match ( @_ ) {
+		push @points, (
+			[ $match->left,  $match->top    ],
+			[ $match->left,  $match->bottom ],
+			[ $match->right, $match->bottom ],
+			[ $match->right, $match->top    ],
+		);
+	}
+
+	# Move the mouse to each of the points
+	foreach my $point ( @points x 5 ) {
+		$self->mouse_to($point);
+		$self->sleep(0.1);
+	}
+
+	return 1;
+}
+
 sub left_click {
 	my $self = shift->foreground;
 
 	# Move the mouse to the target, allow time for transition effects
 	$self->mouse_to(@_) if @_;
-	$self->sleep(1);
+	$self->sleep(0.5);
 
 	# Click whatever it is nice and slow
 	Win32::GuiTest::SendLButtonDown();
-	$self->sleep(1);
+	$self->sleep(0.5);
 	Win32::GuiTest::SendLButtonUp();
 
 	# Return the mouse to the rest position to prevent unwanted tooltips
@@ -357,7 +475,13 @@ sub right_click {
 # Vision Support
 
 sub pattern {
-	$_[0]->patterns->{$_[1]} or die "Image pattern '$_[1]' does not exist";
+	my $self = shift;
+	my $name = shift;
+	my $pattern = $self->patterns->{$name};
+	unless ( $pattern ) {
+		$self->throw("Image pattern '$name' does not exist");
+	}
+	return $pattern;
 }
 
 # Load named pattern objects for a directory
@@ -365,7 +489,7 @@ sub find_patterns {
 	my $self = shift;
 	my $path = shift;
 	unless ( -d $path ) {
-		die "Directory '$path' does not exist";
+		$self->throw("Directory '$path' does not exist");
 	}
 
 	# Scan for pattern files
@@ -387,21 +511,47 @@ sub find_patterns {
 	\%hash;
 }
 
-# Get the screenshot for the window
+# Screenshots become automatically stale after 1 second
 sub screenshot {
-	Imager::Search::Screenshot->new(
-		[ hwnd => $_[0]->window ],
-		driver => 'BMP24',
-	);
+	my $self = shift;
+	if ( Time::HiRes::time() - $self->{screenshot_time} ) {
+		$self->screenshot_dirty;
+	}
+	unless ( $self->{screenshot} ) {
+		$self->{screenshot} = Imager::Search::Screenshot->new(
+			[ hwnd => $self->window ],
+			driver => 'BMP24',
+		);
+	}
+	return $self->{screenshot};
 }
 
-# Search for a pattern in a screenshot
-sub screenshot_search {
+sub screenshot_dirty {
+	$_[0]->{screenshot} = undef;
+}
+
+# Search for a pattern in a screenshot (should only exist once)
+sub screenshot_has {
 	my $self = shift;
 	my $name = shift;
-	$self->screenshot->find(
+	my @list = $self->screenshot_find($name);
+	if ( @list > 1 ) {
+		$self->throw("Unexpectedly found '$name' more than once");
+	}
+	return $list[0];
+}
+
+# Search for a pattern in a screenshot (more than once)
+sub screenshot_find {
+	my $self = shift;
+	my $name = shift;
+	my @list = $self->screenshot->find(
 		$self->pattern($name)
 	);
+	if ( $self->{debug_pattern} and @list ) {
+		$self->mouse_flicker(@list);
+	}
+	return @list;
 }
 
 
@@ -410,6 +560,41 @@ sub screenshot_search {
 
 #####################################################################
 # Process Mechanics
+
+sub throw {
+	my $self    = shift;
+	my $message = shift;
+	$self->stop if $self->process;
+	Carp::croak($message);
+}
+
+sub coord {
+	my $self = shift;
+	if ( @_ == 1 ) {
+		if ( Params::Util::_INSTANCE($_[0], 'Imager::Search::Match') ) {
+			return [ $_[0]->centre_x, $_[0]->centre_y ];
+
+		} elsif ( $_[0] =~ /^(\d+)[^\d]+(\d+)$/ ) {
+			return [ $1+0, $2+0 ];
+
+		} elsif ( ref $_[0] eq 'ARRAY' ) {
+			Params::Util::_POSINT($_[0]->[0]) or $self->throw("Invalid X position '$_[0]->[0]'");
+			Params::Util::_POSINT($_[0]->[1]) or $self->throw("Invalid Y position '$_[0]->[1]'");
+			return [ $_[0]->[0], $_[0]->[1] ];
+
+		} else {
+			$self->throw("Unrecognised position string '$_[0]'");
+		}
+
+	} elsif ( @_ == 2 ) {
+		Params::Util::_POSINT($_[0]) or $self->throw("Invalid X position '$_[0]'");
+		Params::Util::_POSINT($_[1]) or $self->throw("Invalid Y position '$_[1]'");
+		return [ $_[0], $_[1] ];
+
+	} else {
+		$self->throw("Invalid or unknown position");
+	}
+}
 
 # Launch the executable
 sub launch {
@@ -426,7 +611,7 @@ sub launch {
 		".",
 	);
 	unless ( $rv and $process ){
-		die("Failed to start EVE");
+		$self->throw("Failed to start EVE");
 	}
 
 	return 1;
@@ -473,10 +658,10 @@ sub find_window {
 	my $self    = shift;
 	my @windows = $self->find_windows;
 	unless ( @windows ) {
-		die("EVE is not running");
+		$self->throw("EVE is not running");
 	}
 	unless ( @windows == 1 ) {
-		die("Detected more than one EVE window");
+		$self->throw("Detected more than one EVE window");
 	}
 	return $windows[0];
 }
@@ -486,11 +671,11 @@ sub find_window {
 sub sleep {
 	my $self    = shift;
 	my $seconds = shift;
-	unless ( Params::Util::_POSINT($seconds) ) {
+	unless ( Params::Util::_NUMBER($seconds) ) {
 		$seconds = $self->config->{sleep}->{$seconds};
 	}
-	unless ( Params::Util::_POSINT($seconds) ) {
-		die("Missing or invalid sleep time");
+	unless ( Params::Util::_NUMBER($seconds) ) {
+		$self->throw("Missing or invalid sleep time");
 	}
 
 	# Do the sleep itself
@@ -499,39 +684,10 @@ sub sleep {
 	# Confirm EVE is still running
 	my $window = $self->find_window;
 	unless ( $window == $self->window ) {
-		die("EVE window id has unexpectedly changed");
+		$self->throw("EVE window id has unexpectedly changed");
 	}
 
 	return 1;
-}
-
-
-
-
-
-#####################################################################
-# Support Functions
-
-sub _COORD {
-	if ( @_ == 1 ) {
-		if ( Params::Util::_INSTANCE($_[0], 'Imager::Search::Match') ) {
-			return [ $_[0]->centre_x, $_[0]->centre_y ];
-		} elsif ( $_[0] =~ /^(\d+)[^\d]+(\d+)$/ ) {
-			return [ $1+0, $2+0 ];
-		} elsif ( ref $_[0] eq 'ARRAY' ) {
-			Params::Util::_POSINT($_[0]->[0]) or die("Invalid position X");
-			Params::Util::_POSINT($_[0]->[1]) or die("Invalid position Y");
-			return [ $_[0]->[0], $_[0]->[1] ];
-		} else {
-			die("Unrecognised position string");
-		}
-	} elsif ( @_ == 2 ) {
-		Params::Util::_POSINT($_[0]) or die("Invalid position X");
-		Params::Util::_POSINT($_[1]) or die("Invalid position Y");
-		return [ $_[0], $_[1] ];
-	} else {
-		die("Invalid or unknown position");
-	}
 }
 
 1;
