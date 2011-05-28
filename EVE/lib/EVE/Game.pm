@@ -37,6 +37,7 @@ BEGIN {
 use Object::Tiny 1.08 qw{
 	config
 	config_file
+	paranoid
 	process
 	window
 	marketlogs
@@ -423,9 +424,9 @@ sub mouse_flicker {
 	}
 
 	# Move the mouse to each of the points
-	foreach my $point ( @points x 5 ) {
+	foreach my $point ( ( @points ) x 5 ) {
 		$self->mouse_to($point);
-		$self->sleep(0.1);
+		# $self->sleep(0.05);
 	}
 
 	return 1;
@@ -433,18 +434,18 @@ sub mouse_flicker {
 
 sub left_click {
 	my $self = shift->foreground;
+	my $here = $self->mouse_xy;
 
 	# Move the mouse to the target, allow time for transition effects
 	$self->mouse_to(@_) if @_;
-	$self->sleep(0.5);
 
 	# Click whatever it is nice and slow
 	Win32::GuiTest::SendLButtonDown();
-	$self->sleep(0.5);
+	$self->sleep(0.1);
 	Win32::GuiTest::SendLButtonUp();
 
 	# Return the mouse to the rest position to prevent unwanted tooltips
-	$self->mouse_to( [ 1, 1 ] ) if @_;
+	$self->mouse_to($here) if @_;
 
 	return 1;
 }
@@ -564,7 +565,9 @@ sub screenshot_find {
 sub throw {
 	my $self    = shift;
 	my $message = shift;
-	$self->stop if $self->process;
+	if ( $self->process and $self->paranoid ) {
+		$self->stop;
+	}
 	Carp::croak($message);
 }
 
@@ -599,6 +602,9 @@ sub coord {
 # Launch the executable
 sub launch {
 	my $self = shift;
+
+	# Be paranoid, if not we could just leave the game running
+	$self->{paranoid} = 1;
 
 	# We need an executable location
 	my $process;
