@@ -11,7 +11,7 @@ use File::Spec::Functions ':ALL';
 use EVE ();
 
 # Data files
-my $config = rel2abs(catfile( 'data', 'EVE-Macro.conf' ));
+my $config = rel2abs(catfile( 'data', 'EVE.conf' ));
 ok( -f $config, "Found test config at $config" );
 
 # Bootstrap the game

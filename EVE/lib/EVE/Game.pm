@@ -68,7 +68,7 @@ sub new {
 	# Find and load the config file if it exists
 	unless ( $self->config ) {
 		# Are we looking for a specific config file
-		my $file = $self->config_file || 'EVE-Macro.conf';
+		my $file = $self->config_file || 'EVE.conf';
 		unless ( File::Spec->file_name_is_absolute($file) ) {
 			$file = File::Spec->catfile(
 				File::HomeDir->my_documents,
@@ -118,7 +118,7 @@ sub new {
 	unless ( $self->patterns ) {
 		$self->{patterns} = $self->find_patterns(
 			File::Spec->catdir(
-				File::ShareDir::dist_dir('EVE-Macro-Object'),
+				File::ShareDir::dist_dir('EVE'),
 				'vision',
 			),
 		);
