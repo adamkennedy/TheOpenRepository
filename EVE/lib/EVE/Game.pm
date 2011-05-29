@@ -15,7 +15,7 @@ use Win32::GuiTest        1.58 ();
 use Win32::Process        0.14 ('NORMAL_PRIORITY_CLASS');
 use Win32::Process::List  0.09 ();
 use Win32                 0.39 ();
-use Imager::Search        1.00 ();
+use Imager::Search        1.01 ();
 use Imager::Search::Pattern    ();
 use Imager::Search::Screenshot ();
 
@@ -23,18 +23,9 @@ our $VERSION = '0.01';
 
 BEGIN {
 	$Win32::GuiTest::debug = 0;
-
-	sub Imager::Search::Match::centre_x {
-		$_[0]->{centre_x};
-	}
-
-	sub Imager::Search::Match::centre_y {
-		$_[0]->{centre_y};
-	}
-
 }
 
-use Object::Tiny 1.08 qw{
+use Object::Tiny::XS 1.08 qw{
 	config
 	config_file
 	paranoid
@@ -161,8 +152,8 @@ sub start {
 	$self->launch;
 	sleep 30;
 	$self->attach;
-	sleep 10;
 	$self->connect;
+	$self->want( 20 => 'info-medium' );
 
 	# Check that the screen size is 1024x768
 	my $screenshot = $self->screenshot;
@@ -441,7 +432,7 @@ sub left_click {
 
 	# Click whatever it is nice and slow
 	Win32::GuiTest::SendLButtonDown();
-	$self->sleep(0.1);
+	$self->sleep(0.1d);
 	Win32::GuiTest::SendLButtonUp();
 
 	# Return the mouse to the rest position to prevent unwanted tooltips
@@ -694,6 +685,24 @@ sub sleep {
 	}
 
 	return 1;
+}
+
+sub wait {
+	my $self     = shift;
+	my $time     = time + shift;
+	my @patterns = map { $self->pattern(@_) } @_;
+
+	while ( time < $time ) {
+		# Can we see any of the patterns on the screen
+		my $screenshot = $self->screenshot;
+		my @matches    = map { $screenshot->find($_) } @patterns;
+		return @matches if @matches;
+
+		# Wait a bit
+		$self->sleep(1);
+	}
+
+	return;
 }
 
 1;
