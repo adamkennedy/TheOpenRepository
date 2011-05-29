@@ -10,7 +10,7 @@ use Imager::Search::Driver ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.00';
+	$VERSION = '1.01';
 	@ISA     = 'Imager::Search::Driver';
 }
 

@@ -35,15 +35,15 @@ use 5.006;
 use strict;
 use Carp         ();
 use IO::File     ();
-use Params::Util qw{ _STRING _IDENTIFIER _POSINT _ARRAY _INSTANCE _DRIVER };
+use Params::Util ();
 use Imager       ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.00';
+	$VERSION = '1.01';
 }
 
-use Object::Tiny qw{
+use Object::Tiny::XS qw{
 	name
 	driver
 	cache
@@ -77,15 +77,15 @@ sub new {
 	my $self = shift->SUPER::new(@_);
 
 	# Check params
-	if ( _IDENTIFIER($self->driver) ) {
+	if ( Params::Util::_IDENTIFIER($self->driver) ) {
 		$self->{driver} = "Imager::Search::Driver::" . $self->driver;
 	}
-	if ( _DRIVER($self->driver, 'Imager::Search::Driver') ) {
-		unless ( _INSTANCE($self->driver, 'Imager::Search::Driver') ) {
+	if ( Params::Util::_DRIVER($self->driver, 'Imager::Search::Driver') ) {
+		unless ( Params::Util::_INSTANCE($self->driver, 'Imager::Search::Driver') ) {
 			$self->{driver} = $self->driver->new;
 		}
 	}
-	unless ( _INSTANCE($self->driver, 'Imager::Search::Driver') ) {
+	unless ( Params::Util::_INSTANCE($self->driver, 'Imager::Search::Driver') ) {
 		Carp::croak("Did not provide a valid driver");
 	}
 	if ( defined $self->file and not defined $self->image ) {
@@ -94,20 +94,20 @@ sub new {
 		$self->{image}->read( file => $self->file );
 	}
 	if ( defined $self->image ) {
-		unless( _INSTANCE($self->image, 'Imager') ) {
+		unless( Params::Util::_INSTANCE($self->image, 'Imager') ) {
 			Carp::croak("Did not provide a valid image");
 		}
 		$self->{height} = $self->image->getheight;
 		$self->{width}  = $self->image->getwidth;
 		$self->{lines}  = $self->driver->pattern_lines($self->image);
 	}
-	unless ( _POSINT($self->height) ) {
+	unless ( Params::Util::_POSINT($self->height) ) {
 		Carp::croak("Invalid or missing image height");
 	}
-	unless ( _POSINT($self->width) ) {
+	unless ( Params::Util::_POSINT($self->width) ) {
 		Carp::croak("Invalid or missing image width");
 	}
-	unless ( _ARRAY($self->lines) ) {
+	unless ( Params::Util::_ARRAY($self->lines) ) {
 		Carp::croak("Did not provide an ARRAY of line patterns");
 	}
 
@@ -123,11 +123,11 @@ sub new {
 sub write {
 	my $self = shift;
 	my $io   = undef;
-	if ( _INSTANCE($_[0], 'IO::Handle') ) {
+	if ( Params::Util::_INSTANCE($_[0], 'IO::Handle') ) {
 		$io = $_[0];
-	} elsif ( _STRING($_[0]) ) {
+	} elsif ( Params::Util::_STRING($_[0]) ) {
 		$io = IO::File->new( $_[0], 'w' );
-		unless ( _INSTANCE($io, 'IO::File') ) {
+		unless ( Params::Util::_INSTANCE($io, 'IO::File') ) {
 			Carp::croak("Failed to open $_[0] to write");
 		}
 	} else {
@@ -169,11 +169,11 @@ sub regexp {
 
 	# Get the width param
 	my $width = undef;
-	if ( _INSTANCE($_[0], 'Imager') ) {
+	if ( Params::Util::_INSTANCE($_[0], 'Imager') ) {
 		$width = $_[0]->getwidth;
-	} elsif ( _INSTANCE($_[0], 'Imager::Search::Image') ) {
+	} elsif ( Params::Util::_INSTANCE($_[0], 'Imager::Search::Image') ) {
 		$width = $_[0]->width;
-	} elsif ( _POSINT($_[0]) ) {
+	} elsif ( Params::Util::_POSINT($_[0]) ) {
 		$width = $_[0];
 	} else {
 		Carp::croak("Did not provide a width to Imager::Search::Pattern::regexp");

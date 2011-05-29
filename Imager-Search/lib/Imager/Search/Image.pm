@@ -21,8 +21,25 @@ use Params::Util qw{ _IDENTIFIER _POSINT _INSTANCE _DRIVER };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.00';
+	$VERSION = '1.01';
 }
+
+use Object::Tiny::XS qw{
+	name
+	driver
+	file
+	image
+	height
+	width
+	string
+};
+
+
+
+
+
+######################################################################
+# Constructor and Accessors
 
 sub new {
 	my $class = shift;
@@ -59,34 +76,6 @@ sub new {
 	}
 
 	return $self;
-}
-
-sub name {
-	$_[0]->{name};
-}
-
-sub driver {
-	$_[0]->{driver};
-}
-
-sub file {
-	$_[0]->{file};
-}
-
-sub image {
-	$_[0]->{image};
-}
-
-sub height {
-	$_[0]->{height};
-}
-
-sub width {
-	$_[0]->{width};
-}
-
-sub string {
-	$_[0]->{string};
 }
 
 

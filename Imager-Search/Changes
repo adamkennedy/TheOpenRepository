@@ -1,5 +1,10 @@
 Changes for Perl extension Imager-Search
 
+1.01 Sun 29 May 2011
+	- Upgraded to Module::Install::DSL 1.01
+	- Upgraded from Object::Tiny to faster Object::Tiny::XS
+	- Fixed centre_x vs center_x problem
+	
 1.00 Mon  1 Sep 2008
 	- Further cleaning up of the driver codebase
 	- Documented the driver API

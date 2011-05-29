@@ -7,10 +7,10 @@ use Params::Util qw{ _POSINT _NONNEGINT _INSTANCE };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.00';
+	$VERSION = '1.01';
 }
 
-use Object::Tiny qw{
+use Object::Tiny::XS qw{
 	name
 	top
 	bottom
@@ -42,8 +42,8 @@ sub new {
 	# geometry, and from that derive the rest.
 	$self->{bottom}   = $self->top  + $self->height - 1;
 	$self->{right}    = $self->left + $self->width  - 1;
-	$self->{centre_x} = int( ($self->left + $self->right ) / 2 );
-	$self->{centre_y} = int( ($self->top  + $self->bottom) / 2 );
+	$self->{center_x} = int( ($self->left + $self->right ) / 2 );
+	$self->{center_y} = int( ($self->top  + $self->bottom) / 2 );
 
 	return $self;
 }
@@ -86,6 +86,11 @@ sub from_position {
 		center_x => $center_x,
 		center_y => $center_y,
 	);
+}
+
+BEGIN {
+	*centre_x = *center_x;
+	*centre_y = *center_y;
 }
 
 1;
@@ -148,15 +153,15 @@ the matched area.
 The C<width> accessor returns the integer value of the horizontal width of
 the matched area.
 
-=head1 centre_x
+=head1 center_x
 
-The C<centre_x> accessor returns the integer value of the horizontal centre
+The C<center_x> accessor returns the integer value of the horizontal centre
 pixel of the matched image. If the matched image has an even number of
 horizonal pixels, the value will be rounded to the left.
 
-=head1 centre_y
+=head1 center_y
 
-The C<centre_y> accessor returns the integer value of the vertical centre
+The C<center_y> accessor returns the integer value of the vertical centre
 pixel of the matched image. If the matched image has an even number of
 vertical pixels, the value will be rounded to the top.
 
