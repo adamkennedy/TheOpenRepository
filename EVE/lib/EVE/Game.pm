@@ -51,10 +51,14 @@ use constant {
 	MOUSE_ESCAPE_RESET_TAB        => [ 522, 164 ],
 	MOUSE_ESCAPE_RESET_WINDOWS    => [ 614, 209 ],
 	MOUSE_NEOCOM_MARKET           => [ 18,  262 ],
+	MOUSE_NEOCOM_PLACES           => [ 20,  175 ],
 	MOUSE_MARKET_DETAILS_TAB      => [ 438, 111 ],
 	MOUSE_MARKET_SEARCH_TAB       => [ 195, 200 ],
 	MOUSE_MARKET_SEARCH_TEXT      => [ 121, 226 ],
 	MOUSE_MARKET_EXPORT_TO_FILE   => [ 613, 670 ],
+	MOUSE_PLACES_SEARCH_TEXT      => [ 433, 235 ],
+	MOUSE_PLACES_RESULT_ONE       => [ 403, 388 ],
+	MOUSE_PLACES_SET_DESTINATION  => [ 450, 412 ],
 };
 
 
@@ -305,7 +309,7 @@ sub market_visible {
 sub market_start {
 	my $self = shift;
 
-	# Click the neocom market icon to ensure it should be on the screen
+	# Open the market window
 	$self->left_click( MOUSE_NEOCOM_MARKET );
 	$self->sleep(1);
 	unless ( $self->market_visible ) {
@@ -395,6 +399,40 @@ sub chat_minimize {
 	if ( $self->screenshot_has('chat-open-window') ) {
 		$self->throw("Failed to close chat window");
 	}
+
+	return 1;
+}
+
+
+
+
+
+#####################################################################
+# People and Places
+
+sub set_destination {
+	my $self = shift;
+	my $name = shift;
+
+	# Open the People and Places window
+	$self->left_click( MOUSE_NEOCOM_PLACES );
+	$self->sleep(1);
+
+	# Select the search box
+	$self->left_click( MOUSE_PLACES_SEARCH_TEXT );
+	$self->sleep(1);
+
+	# Enter the name of the system
+	$self->send_keys( $name . '~' );
+	$self->sleep(1);
+
+	# Right click on the first result
+	$self->right_click( MOUSE_PLACES_RESULT_ONE );
+	$self->sleep(1);
+
+	# Left click on Set Destination
+	$self->left_click( MOUSE_PLACES_SET_DESTINATION );
+	$self->sleep(1);
 
 	return 1;
 }
