@@ -2,6 +2,13 @@ Changes for Perl extension FBP
 
 0.30 to be released
 	- Added FBP::BitmapButton class
+	- Added FBP::Frame class
+	- Added FBP::FormPanel class
+	- Added FBP::Form role
+	- Added FBP::TopLevelWindow role
+	- Added FBP::project method
+	- Added FBP::form method
+	- Added FBP::Project::forms method
 
 0.29 Tue 17 May 2011
 	- Added FBP::RadioBox::style method

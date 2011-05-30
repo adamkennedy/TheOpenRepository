@@ -7,13 +7,15 @@ use Params::Util   ();
 use XML::SAX::Base ();
 use FBP            ();
 
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 our @ISA     = 'XML::SAX::Base';
 
 # Object XML class to Perl class mapping
 my %OBJECT_CLASS = (
 	Project            => 'FBP::Project',
 	Dialog             => 'FBP::Dialog',
+	Frame              => 'FBP::Frame',
+	Panel              => 'FBP::FormPanel',
 
 	# Direct Mappings
 	wxBitmapButton     => 'FBP::BitmapButton',

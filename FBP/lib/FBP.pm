@@ -55,6 +55,8 @@ use FBP::DirPickerCtrl    ();
 use FBP::FilePickerCtrl   ();
 use FBP::FlexGridSizer    ();
 use FBP::FontPickerCtrl   ();
+use FBP::FormPanel        ();
+use FBP::Frame            ();
 use FBP::GridSizer        ();
 use FBP::HtmlWindow       ();
 use FBP::Listbook         ();
@@ -73,7 +75,7 @@ use FBP::StaticText       ();
 use FBP::StaticLine       ();
 use FBP::TextCtrl         ();
 
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 
 extends 'FBP::Object';
 with    'FBP::Children';
@@ -87,11 +89,56 @@ with    'FBP::Children';
 
 =pod
 
+=head2 project
+
+  my $project = $FBP->project;
+
+Finds and returns the L<FBP::Project> object for the FBP file, of which there
+should only be one. Throws an exception if the file does not contains a project.
+
+=cut
+
+sub project {
+	my $self = shift;
+	my $project = $self->children->[0];
+	unless ( Params::Util::_INSTANCE($project, 'FBP::Project') ) {
+		die("FBP file does not contain a project");
+	}
+	return $project;
+}
+
+=pod
+
+=head2 form
+
+  my $form = $FBP->form('MyDialog1');
+
+Convenience method which finds and returns the root L<FBP::Form> object for
+a specific named dialog, frame, panel, menu or toolbar in the object model.
+
+=cut
+
+sub form {
+	my $self = shift;
+	my $name = shift;
+
+	# Scan downwards under the project to find it
+	foreach my $form ( $self->project->forms ) {
+		if ( $form->name and $form->name eq $name ) {
+			return $form;
+		}
+	}
+
+	return undef;
+}
+
+=pod
+
 =head2 dialog
 
   my $dialog = $fbp->dialog('MyDialog1');
 
-Convience method which finds and returns the root L<FBP::Dialog> object
+Convenience method which finds and returns the root L<FBP::Dialog> object
 for a specific named dialog box in the object model.
 
 =cut
@@ -101,12 +148,7 @@ sub dialog {
 	my $name = shift;
 
 	# Scan downwards under the project to find it
-	my $project = $self->children->[0];
-	unless ( Params::Util::_INSTANCE($project, 'FBP::Project') ) {
-		return undef;
-	}
-
-	foreach my $dialog ( $project->dialogs ) {
+	foreach my $dialog ( $self->project->dialogs ) {
 		if ( $dialog->name and $dialog->name eq $name ) {
 			return $dialog;
 		}

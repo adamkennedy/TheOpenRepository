@@ -2,14 +2,11 @@ package FBP::Dialog;
 
 use Mouse;
 
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 
 extends 'FBP::Window';
-
-has title => (
-	is  => 'ro',
-	isa => 'Str',
-);
+with    'FBP::Form';
+with    'FBP::TopLevelWindow';
 
 has style => (
 	is  => 'ro',
