@@ -43,6 +43,7 @@ use Mouse            0.61;
 use Params::Util     1.00 ();
 use FBP::Project          ();
 use FBP::Dialog           ();
+use FBP::BitmapButton     ();
 use FBP::BoxSizer         ();
 use FBP::Button           ();
 use FBP::CheckBox         ();

@@ -16,6 +16,7 @@ my %OBJECT_CLASS = (
 	Dialog             => 'FBP::Dialog',
 
 	# Direct Mappings
+	wxBitmapButton     => 'FBP::BitmapButton',
 	wxBoxSizer         => 'FBP::BoxSizer',
 	wxButton           => 'FBP::Button',
 	wxCheckBox         => 'FBP::CheckBox',
