@@ -18,7 +18,9 @@ use Win32                 0.39 ();
 use Imager::Search        1.01 ();
 use Imager::Search::Pattern    ();
 use Imager::Search::Screenshot ();
+use EVE::Config                ();
 use EVE::MarketLogs            ();
+use EVE::API                   ();
 
 our $VERSION = '0.01';
 
@@ -77,7 +79,7 @@ sub new {
 		}
 		if ( -f $file ) {
 			# Load the config file
-			$self->{config} = Config::Tiny->read( $file )
+			$self->{config} = EVE::Config->read( $file )
 				or Carp::croak(
 					"Failed to load config file"
 					. $self->config_file
@@ -130,21 +132,37 @@ sub new {
 	return $self;
 }
 
+sub userid {
+	$_[0]->{userid} || $_[0]->config->userid;
+}
+
 sub username {
-	$_[0]->{username} || $_[0]->config->{'_'}->{username};
+	$_[0]->{username} || $_[0]->config->username;
 }
 
 sub password {
-	$_[0]->{password} || $_[0]->config->{'_'}->{password};
+	$_[0]->{password} || $_[0]->config->password;
 }
 
-# Create a new EVE instance
+sub api_limited {
+	$_[0]->{api_limited} || $_[0]->config->api_limited;
+}
+
+sub api_full {
+	$_[0]->{api_full} || $_[0]->config->api_full;
+}
+
 sub start {
 	my $self = shift->new(@_);
 
 	# Are we already running?
 	if ( $self->find_windows ) {
 		Carp::croak("An instance of EVE is already running");
+	}
+
+	# Is the server up?
+	unless ( EVE::API->server_open ) {
+		Carp::croak("Server is not up");
 	}
 
 	# Launch EVE, wait a bit, then find the login screen.
@@ -227,6 +245,11 @@ sub login {
 	if ( $minimize ) {
 		$self->left_click($minimize);
 		$self->sleep(1);
+	}
+
+	# If we're not docked, panic and quit
+	unless ( $self->docked ) {
+		$self->throw("Not docked! Panic!");
 	}
 
 	# Reset all window positions
@@ -386,8 +409,8 @@ sub chat_minimize {
 # Are we in the main game and docked in a station
 sub docked {
 	my $self = shift;
-	$self->screenshot_has('neocom-character') or return 0;
-	$self->screenshot_has('neocom-undock')    or return 0;
+	$self->screenshot_has('station-information') and return 1;
+	$self->screenshot_has('neocom-undock')       and return 1;
 	return 1;
 }
 

@@ -37,6 +37,8 @@ ok( $game->login, '->login ok' );
 ok( $game->market_start, '->market_start ok' );
 
 # Get the price of several basic materials
-$game->market_scan($_) foreach MARKET_PRODUCTS;
+foreach ( MARKET_PRODUCTS ) {
+	$game->market_scan($_);
+}
 
 ok( $game->stop, '->stop ok' );
