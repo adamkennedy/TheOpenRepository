@@ -45,6 +45,6 @@ is( EVE::DB::Price->count(@WHERE), 0, 'No records when starting' );
 
 # Parse the market directory
 ok( $logs->parse_all, '->parse_all ok' );
-is( EVE::DB::Price->count(@WHERE), 16, 'Inserted expected records' );
+is( EVE::DB::Price->count(@WHERE), 60, 'Inserted expected records' );
 EVE::DB::Price->delete(@WHERE);
 is( EVE::DB::Price->count(@WHERE), 0, 'Cleared test records' );

@@ -210,13 +210,17 @@ sub login {
 	$self->send_keys( "\t~" );
 
 	# Wait till we get to the user screen
-	$self->wait( 20 => 'info-medium' );
+	unless ( $self->wait( 30 => 'info-medium' ) ) {
+		$self->throw("Failed to reach the user selection screen");
+	}
 
 	# Move the mouse to the current user and select
 	$self->left_click( MOUSE_LOGIN_CURRENT_CHARACTER );
 
 	# Wait till we get into the game
-	$self->sleep(20);
+	unless ( $self->wait( 30 => 'neocom-character' ) ) {
+		$self->throw("Failed to reach the main game");
+	}
 
 	# If the neocom is expanded, shrink it.
 	my $minimize = $self->screenshot_has('neocom-minimize');
@@ -249,7 +253,9 @@ sub reset_windows {
 
 	# Hit escape again to exit the escape menu
 	$self->send_keys( '{ESCAPE}' );
-	$self->sleep(3);
+	unless ( $self->wait( 10 => 'neocom-character' ) ) {
+		$self->throw("Failed to return to the main game");
+	}
 
 	return 1;
 }
@@ -285,23 +291,13 @@ sub market_start {
 
 	# Make sure the market is in search mode and details mode
 	$self->left_click( MOUSE_MARKET_SEARCH_TAB  );
+	$self->sleep(0.5);
 	$self->left_click( MOUSE_MARKET_DETAILS_TAB );
 
-	return 1;
-}
-
-sub market_scan {
-	my $self    = shift;
-	my $product = shift;
-
-	# Flush existing market logs
-	$self->marketlogs->flush;
-
-	# Run the in-game search
-	$self->market_search($product);
-
-	# Scan the resulting market logs generated
-	$self->marketlogs->parse_all;
+	# Clear any previous search term
+	$self->left_click( MOUSE_MARKET_SEARCH_TEXT );
+	$self->sleep(0.5);
+	$self->send_keys( '{DELETE 100}' );
 
 	return 1;
 }
@@ -309,14 +305,12 @@ sub market_scan {
 sub market_search {
 	my $self    = shift;
 	my $product = shift;
-
-	# Clear any previous search term
-	$self->left_click( MOUSE_MARKET_SEARCH_TEXT );
-	$self->sleep(0.5);
-	$self->send_keys( '{DELETE 100}' );
+	my $chars   = length $product;
 
 	# Search for what we want
 	$self->send_keys( $product . "~" );
+	$self->sleep(0.5);
+	$self->send_keys( "{DELETE $chars}" );
 	$self->sleep(3);
 
 	# Scan for product hits
@@ -337,6 +331,22 @@ sub market_search {
 
 		$self->left_click( MOUSE_MARKET_EXPORT_TO_FILE );
 	}
+
+	return 1;
+}
+
+sub market_scan {
+	my $self    = shift;
+	my $product = shift;
+
+	# Flush existing market logs
+	$self->marketlogs->flush;
+
+	# Run the in-game search
+	$self->market_search($product);
+
+	# Scan the resulting market logs generated
+	$self->marketlogs->parse_all;
 
 	return 1;
 }

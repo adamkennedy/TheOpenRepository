@@ -30,7 +30,7 @@ my $game = EVE::Game->start(
 	# config_file => $config,
 	# username    => 'Algorithm2',
 	# password    => 'phlegm3{#}',
-	debug_pattern => 1,
+	# debug_pattern => 1,
 );
 isa_ok( $game, 'EVE::Game' );
 ok( $game->login, '->login ok' );
