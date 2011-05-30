@@ -381,7 +381,15 @@ sub chat_minimize {
 
 
 #####################################################################
-# Get Information
+# State Information
+
+# Are we in the main game and docked in a station
+sub docked {
+	my $self = shift;
+	$self->screenshot_has('neocom-character') or return 0;
+	$self->screenshot_has('neocom-undock')    or return 0;
+	return 1;
+}
 
 # Find the current mouse co-ordinate relative to the window
 sub mouse_xy {
