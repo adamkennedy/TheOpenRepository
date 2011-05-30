@@ -21,5 +21,5 @@ my $object = EVE::Game->new(
 isa_ok( $object, 'EVE::Game' );
 ok( $object->username, '->username ok' );
 ok( $object->password, '->password ok' );
-ok( -d $object->marketlogs, '->marketlogs ok' );
+isa_ok( $object->marketlogs, 'EVE::MarketLogs' );
 is( ref($object->patterns), 'HASH', '->patterns ok' );

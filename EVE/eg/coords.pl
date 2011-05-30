@@ -12,7 +12,9 @@ use EVE::Game  ();
 #####################################################################
 # Main Script
 
-my $game = EVE::Game->start;
+my $game = EVE::Game->new;
+$game->attach;
+$game->connect;
 
 while ( 1 ) {
 	my $coord = $game->mouse_xy;

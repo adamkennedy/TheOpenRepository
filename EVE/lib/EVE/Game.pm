@@ -18,6 +18,7 @@ use Win32                 0.39 ();
 use Imager::Search        1.01 ();
 use Imager::Search::Pattern    ();
 use Imager::Search::Screenshot ();
+use EVE::MarketLogs            ();
 
 our $VERSION = '0.01';
 
@@ -25,7 +26,7 @@ BEGIN {
 	$Win32::GuiTest::debug = 0;
 }
 
-use Object::Tiny::XS 1.08 qw{
+use Object::Tiny::XS 1.01 qw{
 	config
 	config_file
 	paranoid
@@ -102,15 +103,14 @@ sub new {
 		Carp::croak("Did not provide a password");
 	}
 
-	# Try to find the market log directory
+	# Set up the market log capture mechanism
 	unless ( $self->marketlogs ) {
-		$self->{marketlogs} = File::Spec->catdir(
-			File::HomeDir->my_documents,
-			'EVE', 'logs', 'Marketlogs',
-		);	
-	}
-	unless ( -d $self->marketlogs ) {
-		Carp::croak("Missing or invalid marketlogs directory");
+		$self->{marketlogs} = EVE::MarketLogs->new(
+			dir => File::Spec->catdir(
+				File::HomeDir->my_documents,
+				'EVE', 'logs', 'Marketlogs',
+			),
+		);
 	}
 
 	# Find the image search patterns
@@ -153,7 +153,6 @@ sub start {
 	sleep 30;
 	$self->attach;
 	$self->connect;
-	$self->want( 20 => 'info-medium' );
 
 	# Check that the screen size is 1024x768
 	my $screenshot = $self->screenshot;
@@ -211,7 +210,7 @@ sub login {
 	$self->send_keys( "\t~" );
 
 	# Wait till we get to the user screen
-	$self->sleep(20);
+	$self->wait( 20 => 'info-medium' );
 
 	# Move the mouse to the current user and select
 	$self->left_click( MOUSE_LOGIN_CURRENT_CHARACTER );
@@ -291,6 +290,22 @@ sub market_start {
 	return 1;
 }
 
+sub market_scan {
+	my $self    = shift;
+	my $product = shift;
+
+	# Flush existing market logs
+	$self->marketlogs->flush;
+
+	# Run the in-game search
+	$self->market_search($product);
+
+	# Scan the resulting market logs generated
+	$self->marketlogs->parse_all;
+
+	return 1;
+}
+
 sub market_search {
 	my $self    = shift;
 	my $product = shift;
@@ -309,10 +324,18 @@ sub market_search {
 		$_->left > 375 and $_->left < 400
 	}$self->screenshot_find('info-small');
 
-	# Click on each of the hits to bring up their market information
+	# Click on each of the hits to bring up their market information and
+	# export it to a file on disk.
 	foreach my $hit ( @hits ) {
 		$self->left_click( $hit->left - 20, $hit->centre_y );
 		$self->sleep(5);
+
+		if ( $self->screenshot_find('market-no-orders-found') > 1 ) {
+			# No buy or sell orders
+			next;
+		}
+
+		$self->left_click( MOUSE_MARKET_EXPORT_TO_FILE );
 	}
 
 	return 1;
@@ -432,7 +455,7 @@ sub left_click {
 
 	# Click whatever it is nice and slow
 	Win32::GuiTest::SendLButtonDown();
-	$self->sleep(0.1d);
+	$self->sleep(0.1);
 	Win32::GuiTest::SendLButtonUp();
 
 	# Return the mouse to the rest position to prevent unwanted tooltips
