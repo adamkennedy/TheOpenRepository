@@ -53,6 +53,7 @@ sub import {
 		array      => 0,
 		xsaccessor => 0,
 		shim       => 0,
+		normalize  => 0,
 		tables     => 1,
 		views      => 0,
 		x_update   => 0,
@@ -155,6 +156,7 @@ sub import {
 	}
 
 	# Prepare to generate code
+	my $normalize  = $params{normalize};
 	my $readonly   = $params{readonly};
 	my $cleanup    = $params{cleanup};
 	my $xsaccessor = $params{xsaccessor};
@@ -351,7 +353,12 @@ END_PERL
 			$table->{qname} = '"' . $table->{name} . '"';
 
 			# What will be the class for this table
-			$table->{class} = ucfirst lc $table->{name};
+			$table->{class} = $table->{name};
+			if ( $normalize and $table->{class} ne lc $table->{class} ) {
+				$table->{class} =~ s/([a-z])([A-Z])/${1}_${2}/g;
+				$table->{class} =~ s/_+/_/g;
+			}
+			$table->{class} = ucfirst lc $table->{class};
 			$table->{class} =~ s/_([a-z])/uc($1)/ge;
 			$table->{class} = "${pkg}::$table->{class}";
 
@@ -362,7 +369,15 @@ END_PERL
 			);
 
 			# Convenience escaping for the column names
-			$_->{qname} = "\"$_->{name}\"" foreach @$columns;
+			foreach my $c ( @$columns ) {
+				$c->{cname} = $c->{name};
+				$c->{qname} = "\"$c->{name}\"";
+				if ( $normalize and $c->{name} ne lc $c->{name} ) {
+					$c->{name} =~ s/([a-z])([A-Z])/${1}_${2}/g;
+					$c->{name} =~ s/_+/_/g;
+					$c->{name} = lc $c->{name};
+				}
+			}
 
 			# Track array vs hash implementation on a per-table
 			# basis so that we can force views to always be done
@@ -381,8 +396,8 @@ END_PERL
 				}
 			} else {
 				foreach my $c ( @$columns ) {
-					$c->{xs}  = "'$c->{name}'";
-					$c->{key} = "{$c->{name}}";
+					$c->{xs}  = "'$c->{cname}'";
+					$c->{key} = "{$c->{cname}}";
 				}
 			}
 
@@ -407,7 +422,7 @@ END_PERL
 			$table->{pl_new} = join "\n", map {
 				$table->{array}
 					? "\t\t\$attr{$_->{name}},"
-					: "\t\t$_->{name} => \$attr{$_->{name}},"
+					: "\t\t$_->{cname} => \$attr{$_->{name}},"
 			} @$columns;
 
 			$table->{pl_insert} = join "\n", map {
