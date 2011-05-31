@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.92;
+use inc::Module::Install::DSL 1.01;
 
 all_from      lib/ORLite/Mirror.pm
 requires_from lib/ORLite/Mirror.pm

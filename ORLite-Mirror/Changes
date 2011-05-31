@@ -1,5 +1,10 @@
 Changes for Perl extension ORLite-Mirror
 
+1.21 Tue 31 May 2011
+	- Updating Module::Install::DSL to 1.01
+	- Updating copyright year
+	- Fixes a warning when the calling package $VERSION is null
+
 1.20 Thu 28 Jan 2010
 	- Switching to use array => 1 by default for all ORLite::Mirror
 	  classes (most notably the ORDB:: family will get faster)

@@ -18,7 +18,7 @@ use ORLite                   1.37 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.20';
+	$VERSION = '1.21';
 	@ISA     = 'ORLite';
 }
 
@@ -63,7 +63,7 @@ sub import {
 	unless ( defined $params{package} ) {
 		$params{package} = scalar caller;
 	}
-	my $pversion = $params{package}->VERSION;
+	my $pversion = $params{package}->VERSION || 0;
 	my $agent    = "$params{package}/$pversion";
 
 	# Normalise boolean settings
@@ -378,7 +378,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2008 - 2010 Adam Kennedy.
+Copyright 2008 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
