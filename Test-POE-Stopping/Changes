@@ -1,5 +1,10 @@
 Changes for Perl extension Test-POE-Stopping
 
+1.09 Tue 31 May 2011
+	- Updated to deal with the changed POE::API::Peek 2.17
+	- We now have a minimum POE version of 1.310 to deal with the
+	  relationship between POE and POE::API::Peek.
+
 1.08 Fri 27 May 2011
 	- Updating to Module::Install::DSL 1.01
 	- Updated to deal with the session management internals change

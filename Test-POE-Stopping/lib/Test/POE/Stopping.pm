@@ -49,13 +49,13 @@ use warnings;
 use YAML::Tiny     1.38 ();
 use Test::More     0.80 ();
 use Test::Builder  0.80 ();
-use POE           1.003 qw( Session );
-use POE::API::Peek      ();
+use POE           1.310 qw( Session );
+use POE::API::Peek 2.17 ();
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
 	require Exporter;
-	$VERSION = '1.08';
+	$VERSION = '1.09';
 	@ISA     = 'Exporter';
 	@EXPORT  = 'poe_stopping';
 }
@@ -187,11 +187,10 @@ sub poe_stopping {
 sub session_summary {
 	my $session  = shift;
 	my $api      = POE::API::Peek->new;
-	my $param    = ($POE::VERSION >= 1.310) ? $session->ID : $session;
 	my $current  = $api->current_session;
-	my @children = $api->get_session_children($param);
+	my @children = $api->get_session_children($session);
 	my %signals  = eval {
-		$api->signals_watched_by_session($param);
+		$api->signals_watched_by_session($session);
 	};
 	if ( $@ and $@ =~ /^Can\'t use an undefined value as a HASH reference/ ) {
 		%signals = ();
@@ -215,10 +214,10 @@ sub session_summary {
 
 	my $summary = {
 		id       => $session->ID,
-		alias    => $api->session_alias_count($param),
-		refs     => $api->get_session_refcount($param),
-		extra    => $api->get_session_extref_count($param),
-		handles  => $api->session_handle_count($param),
+		alias    => $api->session_alias_count($session),
+		refs     => $api->get_session_refcount($session),
+		extra    => $api->get_session_extref_count($session),
+		handles  => $api->session_handle_count($session),
 		signals  => scalar(keys %signals),
 		current  => ($current->ID eq $session->ID) ? 1 : 0,
 		children => scalar(@children),
