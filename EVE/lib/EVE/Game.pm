@@ -15,6 +15,7 @@ use Win32::GuiTest        1.58 ();
 use Win32::Process        0.14 ('NORMAL_PRIORITY_CLASS');
 use Win32::Process::List  0.09 ();
 use Win32                 0.39 ();
+use Imager                0.81 (); # Need Imager::Color->hsv
 use Imager::Search        1.01 ();
 use Imager::Search::Pattern    ();
 use Imager::Search::Screenshot ();
@@ -61,6 +62,9 @@ use constant {
 	MOUSE_PLACES_RESULT_ONE       => [ 403, 388 ],
 	MOUSE_PLACES_RESULT_CLOSE     => [ 513, 562 ],
 	MOUSE_PLACES_SET_DESTINATION  => [ 450, 412 ],
+	COLOR_SELECTED_APPROACH       => [ 778, 78  ],
+	COLOR_SELECTED_WARP_TO        => [ 793, 78  ],
+	COLOR_SELECTED_JUMP           => [ 808, 78  ],
 };
 
 
@@ -410,9 +414,9 @@ sub chat_minimize {
 
 
 #####################################################################
-# People and Places
+# Autopilot
 
-sub set_destination {
+sub autopilot_destination {
 	my $self = shift;
 	my $name = shift;
 
@@ -448,6 +452,89 @@ sub set_destination {
 	return 1;
 }
 
+sub autopilot_engage {
+	my $self  = shift;
+	my $jumps = 0;
+
+	# Constantly look for and mouseover the destination gate
+	while ( 1 ) {
+		my @destination = $self->wait( 30 => 'overview-destination' );
+		unless ( @destination ) {
+			return $jumps;
+		}
+
+		# Select the gate (move the mouse away to prevent tooltips)
+		$self->left_click($destination[0]);
+		$self->mouse_to( 1, 1 );
+
+		# Is the destination gate selected
+		unless ( $self->wait( 2 => 'overview-destination-selected' ) ) {
+			# Did we just click on the wrong thing?
+			next if $self->screenshot_has('overview-destination');
+
+			# Not selected, and can't see it
+			$self->throw("Destination gate misplaced... panic");
+		}
+
+		# We clicked on the correct gate.
+		$self->send_keys('sssss');
+
+		# Wait for the warp to complete for a minute
+		unless ( $self->wait( 60 => 'overview-jump' ) ) {
+			$self->throw("Warp not completed within one minute");
+		}
+
+		# Jump through the gate
+		$self->send_keys('ddddd');
+
+		# Wait to see "NO OBJECT SELECTED" which indicates
+		# successful completion of the jump.
+		unless ( $self->wait( 60 => 'overview-no-object-selected' ) ) {
+			$self->throw("Failed to complete jump to new system");
+		}
+		$jumps++;
+	}
+}
+
+sub autopilot_can_approach {
+	my $self  = shift;
+	my $color = $self->screenshot_color(COLOR_SELECTED_APPROACH);
+	my $value = ($color->hsv)[2];
+	if ( $value > 0.4 ) {
+		return 1;
+	} elsif ( $value > 0.2 ) {
+		return 0;
+	} else {
+		$self->throw("Unexpected color at COLOR_SELECTED_APPROACH");
+	}
+}
+
+sub autopilot_can_warp {
+	my $self  = shift;
+	my $color = $self->screenshot_color(COLOR_SELECTED_WARP_TO);
+	my $value = ($color->hsv)[2];
+	if ( $value > 0.4 ) {
+		return 1;
+	} elsif ( $value > 0.2 ) {
+		return 0;
+	} else {
+		$self->throw("Unexpected color at COLOR_SELECTED_WARP_TO");
+	}
+}
+
+sub autopilot_can_jump {
+	my $self = shift;
+	my $color = $self->screenshot_color(COLOR_SELECTED_JUMP);
+	my $value = ($color->hsv)[2];
+	if ( $value > 0.4 ) {
+		return 1;
+	} elsif ( $value > 0.2 ) {
+		return 0;
+	} else {
+		$self->throw("Unexpected color at COLOR_SELECTED_JUMP");
+	}
+}
+
 
 
 
@@ -463,17 +550,6 @@ sub docked {
 	return 1;
 }
 
-# Find the current mouse co-ordinate relative to the window
-sub mouse_xy {
-	my $self = shift->foreground;
-	return [
-		Win32::GuiTest::ScreenToClient(
-			$self->window,
-			Win32::GuiTest::GetCursorPos(),
-		)
-	];
-}
-
 
 
 
@@ -483,11 +559,18 @@ sub mouse_xy {
 
 # Ensure EVE is the foreground window, returns the object as a convenience
 sub foreground {
-	my $self = shift;
+	my $self  = shift;
+	my $front = Win32::GuiTest::GetForegroundWindow();
+	if ( $self->window == $front ) {
+		# Already front window, nothing to do
+		return $self;
+	}
+
 	Win32::GuiTest::SetForegroundWindow($self->window);
 	Win32::GuiTest::SetActiveWindow($self->window);
 	Win32::GuiTest::SetFocus($self->window);
 	$self->sleep(1);
+
 	return $self;
 }
 
@@ -496,6 +579,17 @@ sub send_keys {
 	my $self = shift->foreground;
 	Win32::GuiTest::SendKeys(shift);
 	return 1;
+}
+
+# Find the current mouse co-ordinate relative to the window
+sub mouse_xy {
+	my $self = shift->foreground;
+	return [
+		Win32::GuiTest::ScreenToClient(
+			$self->window,
+			Win32::GuiTest::GetCursorPos(),
+		)
+	];
 }
 
 # Move the mouse to a particular position
@@ -566,8 +660,8 @@ sub right_click {
 	$self->sleep(0.5);
 	Win32::GuiTest::SendRButtonUp();
 
-	# Return the mouse to the rest position to prevent unwanted tooltips
-	$self->mouse_to( [ 2, 2 ] ) if @_;
+	# Don't return to anywhere on right click, because it could
+	# break the spawning of the context menu.
 
 	return 1;
 }
@@ -657,6 +751,17 @@ sub screenshot_find {
 		$self->mouse_flicker(@list);
 	}
 	return @list;
+}
+
+# Find the current colour at a single co-ordinate.
+# Returns an Imager::Color
+sub screenshot_color {
+	my $self  = shift->foreground;
+	my $coord = $self->coord(@_);
+	$self->screenshot->image->getpixel(
+		x => $coord->[0],
+		y => $coord->[1],
+	);
 }
 
 
@@ -812,7 +917,7 @@ sub wait {
 		return @matches if @matches;
 
 		# Wait a bit
-		$self->sleep(1);
+		$self->sleep(0.5);
 	}
 
 	return;

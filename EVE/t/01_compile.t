@@ -6,6 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 1;
+use Test::More tests => 2;
 
 use_ok( 'EVE' );
+require_ok( 'EVE::Shell' );
