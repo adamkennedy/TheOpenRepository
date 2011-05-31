@@ -56,8 +56,10 @@ use constant {
 	MOUSE_MARKET_SEARCH_TAB       => [ 195, 200 ],
 	MOUSE_MARKET_SEARCH_TEXT      => [ 121, 226 ],
 	MOUSE_MARKET_EXPORT_TO_FILE   => [ 613, 670 ],
+	MOUSE_PLACES_CLOSE            => [ 750, 193 ],
 	MOUSE_PLACES_SEARCH_TEXT      => [ 433, 235 ],
 	MOUSE_PLACES_RESULT_ONE       => [ 403, 388 ],
+	MOUSE_PLACES_RESULT_CLOSE     => [ 513, 562 ],
 	MOUSE_PLACES_SET_DESTINATION  => [ 450, 412 ],
 };
 
@@ -416,23 +418,32 @@ sub set_destination {
 
 	# Open the People and Places window
 	$self->left_click( MOUSE_NEOCOM_PLACES );
-	$self->sleep(1);
+	$self->sleep(0.5);
 
 	# Select the search box
 	$self->left_click( MOUSE_PLACES_SEARCH_TEXT );
-	$self->sleep(1);
+	$self->sleep(0.5);
 
 	# Enter the name of the system
 	$self->send_keys( $name . '~' );
-	$self->sleep(1);
+	$self->sleep(0.5);
 
 	# Right click on the first result
 	$self->right_click( MOUSE_PLACES_RESULT_ONE );
-	$self->sleep(1);
+	$self->sleep(0.5);
 
 	# Left click on Set Destination
 	$self->left_click( MOUSE_PLACES_SET_DESTINATION );
-	$self->sleep(1);
+	$self->sleep(0.5);
+
+	# Close the search results
+	$self->left_click( MOUSE_PLACES_RESULT_CLOSE );
+	$self->mouse_to( MOUSE_PLACES_CLOSE );
+	$self->sleep(0.5);
+
+	# Close places
+	$self->sleep(0.5);
+	$self->left_click( MOUSE_PLACES_CLOSE );
 
 	return 1;
 }
