@@ -4,10 +4,11 @@ use 5.008;
 use strict;
 use warnings;
 use EVE::Config     ();
-use EVE::Trade      ();
 use EVE::API        ();
-use EVE::Game       ();
+use EVE::DB         ();
+use EVE::Trade      ();
 use EVE::MarketLogs ();
+use EVE::Game       ();
 
 our $VERSION = '0.01';
 
