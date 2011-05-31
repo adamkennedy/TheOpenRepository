@@ -9,7 +9,7 @@ use File::Spec       0.80 ();
 use File::Remove     1.48 ();
 use File::Find::Rule 0.32 ();
 use Parse::CSV       1.00 ();
-use EVE::DB               ();
+use EVE::Trade            ();
 
 
 
@@ -78,12 +78,12 @@ sub parse {
 		fields => 'auto',
 	) or die "Failed to create parser for '$path'";
 
-	EVE::DB->begin;
+	EVE::Trade->begin;
 	eval {
 		while ( my $hash = $parser->fetch ) {
 			$hash->{issued} =~ s/\.000$//;
 			$hash->{bid} = ($hash->{bid} eq 'True') ? 1 : 0;
-			EVE::DB::Price->create(
+			EVE::Trade::Price->create(
 				order_id   => $hash->{orderID},
 				timestamp  => $timestamp,
 				region_id  => $hash->{regionID},
@@ -104,10 +104,10 @@ sub parse {
 		}
 	};
 	if ( $@ or $parser->errstr ) {
-		EVE::DB->rollback;
+		EVE::Trade->rollback;
 		die "Failed to parse '$path': " . ($@ || $parser->errstr);
 	}
-	EVE::DB->commit;
+	EVE::Trade->commit;
 
 	return 1;
 }

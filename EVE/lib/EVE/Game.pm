@@ -238,7 +238,7 @@ sub login {
 	$self->send_keys( "\t~" );
 
 	# Wait till we get to the user screen
-	unless ( $self->wait( 30 => 'info-medium' ) ) {
+	unless ( $self->wait_patterns( 30 => 'info-medium' ) ) {
 		$self->throw("Failed to reach the user selection screen");
 	}
 
@@ -246,7 +246,7 @@ sub login {
 	$self->left_click( MOUSE_LOGIN_CURRENT_CHARACTER );
 
 	# Wait till we get into the game
-	unless ( $self->wait( 30 => 'neocom-character' ) ) {
+	unless ( $self->wait_pattern( 30 => 'neocom-character' ) ) {
 		$self->throw("Failed to reach the main game");
 	}
 
@@ -286,7 +286,7 @@ sub reset_windows {
 
 	# Hit escape again to exit the escape menu
 	$self->send_keys( '{ESCAPE}' );
-	unless ( $self->wait( 10 => 'neocom-character' ) ) {
+	unless ( $self->wait_pattern( 10 => 'neocom-character' ) ) {
 		$self->throw("Failed to return to the main game");
 	}
 
@@ -458,17 +458,15 @@ sub autopilot_engage {
 
 	# Constantly look for and mouseover the destination gate
 	while ( 1 ) {
-		my @destination = $self->wait( 30 => 'overview-destination' );
-		unless ( @destination ) {
-			return $jumps;
-		}
+		my $gate = $self->wait_pattern( 30 => 'overview-destination' );
+		return $jumps unless $gate;
 
 		# Select the gate (move the mouse away to prevent tooltips)
-		$self->left_click($destination[0]);
+		$self->left_click($gate);
 		$self->mouse_to( 1, 1 );
 
 		# Is the destination gate selected
-		unless ( $self->wait( 2 => 'overview-destination-selected' ) ) {
+		unless ( $self->wait_pattern( 2 => 'overview-destination-selected' ) ) {
 			# Did we just click on the wrong thing?
 			next if $self->screenshot_has('overview-destination');
 
@@ -480,20 +478,23 @@ sub autopilot_engage {
 		$self->send_keys('sssss');
 
 		# Wait for the warp to complete for a minute
-		unless ( $self->wait( 60 => 'overview-jump' ) ) {
-			$self->throw("Warp not completed within one minute");
-		}
+		$self->wait_until( 60 => sub {
+			$_[0]->autopilot_can_jump
+		} )
+		or $self->throw("Warp not completed within one minute");
 
 		# Jump through the gate
 		$self->send_keys('ddddd');
 
 		# Wait to see "NO OBJECT SELECTED" which indicates
 		# successful completion of the jump.
-		unless ( $self->wait( 60 => 'overview-no-object-selected' ) ) {
-			$self->throw("Failed to complete jump to new system");
-		}
+		$self->wait_pattern( 60 => 'overview-no-object-selected' )
+		or $self->throw("Failed to complete jump to new system");
+
 		$jumps++;
 	}
+
+	return $jumps;
 }
 
 sub autopilot_can_approach {
@@ -881,6 +882,19 @@ sub find_window {
 	return $windows[0];
 }
 
+# Do various cheap checks to confirm things are still ok
+sub check {
+	my $self = shift;
+
+	# Confirm EVE is still running
+	my $window = $self->find_window;
+	unless ( $window == $self->window ) {
+		$self->throw("EVE window id has unexpectedly changed");
+	}
+
+	return 1;
+}
+
 # Sleep for a period of time, and at the end validate EVE is still running
 # and we are attached to it.
 sub sleep {
@@ -896,25 +910,51 @@ sub sleep {
 	# Do the sleep itself
 	Time::HiRes::sleep($seconds);
 
-	# Confirm EVE is still running
-	my $window = $self->find_window;
-	unless ( $window == $self->window ) {
-		$self->throw("EVE window id has unexpectedly changed");
-	}
+	# When we wait for something we expect things to change
+	$self->screenshot_dirty;
+
+	# Make sure things are ok after the sleep
+	$self->check;
 
 	return 1;
 }
 
-sub wait {
+sub wait_pattern {
+	my $self = shift;
+	my @list = $self->wait_patterns(@_);
+	if ( @list > 1 ) {
+		$self->throw("Matched more than one pattern... panic!");
+	}
+	return $list[0];
+}
+
+sub wait_patterns {
 	my $self     = shift;
 	my $time     = time + shift;
-	my @patterns = map { $self->pattern(@_) } @_;
+	my @patterns = map { $self->pattern($_) } @_;
 
 	while ( time < $time ) {
 		# Can we see any of the patterns on the screen
 		my $screenshot = $self->screenshot;
 		my @matches    = map { $screenshot->find($_) } @patterns;
 		return @matches if @matches;
+
+		# Wait a bit
+		$self->sleep(0.5);
+	}
+
+	return;
+}
+
+sub wait_until {
+	my $self = shift;
+	my $time = time + shift;
+	my $code = _CODE(shift) or die "Did not pass a CODE reference";
+
+	while ( time < $time ) {
+		# Is the condition true
+		my $rv = $code->($self);
+		return $rv if $rv;
 
 		# Wait a bit
 		$self->sleep(0.5);

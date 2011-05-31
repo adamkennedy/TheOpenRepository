@@ -8,7 +8,7 @@ BEGIN {
 
 use Test::More tests => 7;
 use File::Spec::Functions ':ALL';
-use EVE::DB;
+use EVE::Trade;
 use EVE::MarketLogs;
 
 my $directory = catdir('t', 'marketlogs');
@@ -40,11 +40,11 @@ is_deeply(
 );
 
 # Flush any existing test files from a previous run
-EVE::DB::Price->delete(@WHERE);
-is( EVE::DB::Price->count(@WHERE), 0, 'No records when starting' );
+EVE::Trade::Price->delete(@WHERE);
+is( EVE::Trade::Price->count(@WHERE), 0, 'No records when starting' );
 
 # Parse the market directory
 ok( $logs->parse_all, '->parse_all ok' );
-is( EVE::DB::Price->count(@WHERE), 60, 'Inserted expected records' );
-EVE::DB::Price->delete(@WHERE);
-is( EVE::DB::Price->count(@WHERE), 0, 'Cleared test records' );
+is( EVE::Trade::Price->count(@WHERE), 60, 'Inserted expected records' );
+EVE::Trade::Price->delete(@WHERE);
+is( EVE::Trade::Price->count(@WHERE), 0, 'Cleared test records' );

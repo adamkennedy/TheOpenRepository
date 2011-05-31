@@ -1,4 +1,4 @@
-package EVE::DB;
+package EVE::Trade;
 
 use 5.008;
 use strict;
@@ -13,7 +13,7 @@ use ORLite::Migrate 1.07 {
 	file          => File::Spec->rel2abs(
 		File::Spec->catfile(
 			File::HomeDir->my_data,
-			'Perl', 'EVE', 'EVE-Market.sqlite',
+			'Perl', 'EVE', 'EVE-Trade.sqlite',
 		),
 	),
 	timeline      => File::Spec->catdir(
