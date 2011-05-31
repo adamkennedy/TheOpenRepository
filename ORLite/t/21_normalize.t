@@ -27,7 +27,7 @@ SCOPE: {
 # Set up again
 my $file = test_db();
 my $dbh  = create_ok(
-	file    => catfile(qw{ t 21_mixed.sql }),
+	file    => catfile(qw{ t 21_normalize.sql }),
 	connect => [ "dbi:SQLite:$file" ],
 );
 
