@@ -31,7 +31,7 @@ use Class::Inspector 1.22 ();
 
 use vars qw{$VERSION $DEBUG};
 BEGIN {
-	$VERSION = '0.55';
+	$VERSION = '0.56';
 	$DEBUG   = !! $DEBUG;
 }
 

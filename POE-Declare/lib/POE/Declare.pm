@@ -246,7 +246,7 @@ use List::Util       1.19 ();
 use Params::Util     1.00 ();
 use POE::Session          ();
 use POE::Declare::Meta    ();
-use POE 1.293;
+use POE 1.310;
 
 # The base class requires POE::Declare to be fully compiled,
 # so load it in post-BEGIN with a require rather than at
@@ -258,7 +258,7 @@ use constant SELF => HEAP;
 
 use vars qw{$VERSION @ISA @EXPORT %ATTR %EVENT %META};
 BEGIN {
-	$VERSION = '0.55';
+	$VERSION = '0.56';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{ SELF declare compile };
 

@@ -46,7 +46,7 @@ use POE::Declare::Meta::Event ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.55';
+	$VERSION = '0.56';
 	@ISA     = 'POE::Declare::Meta::Event';
 }
 
