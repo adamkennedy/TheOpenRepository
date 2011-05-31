@@ -1105,6 +1105,33 @@ The C<shim> option is global. It will alter the structure of all table
 classes at once. However, unless you are making alterations to a class
 the impact of this different class structure should be zero.
 
+=head2 normalize
+
+Some SQLite databases, particularly those exported from languages with
+camelCase tendencies, will have capitalised table and column naming schemes
+that don't generate particularly nice classes and methods.
+
+The C<normalize> option will cause B<ORLite> to try to flatten down naming to
+a more traditional Perl style.
+
+For example, the following column names are all equivalent with C<normalise>
+enabled and will have an accessor method named C<column_id>.
+
+  column_id
+  Column_ID
+  columnId
+  columnID
+  ColumnID
+
+Table names will also be normalised, and a similarly all of the following table
+names will be normalised to the class B<Foo::Bar::TableOne>.
+
+  table_one
+  Table_One
+  tableOne
+  tableONE
+  TableOne
+
 =head1 ROOT PACKAGE METHODS
 
 All ORLite root packages receive an identical set of methods for
