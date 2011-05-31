@@ -9,7 +9,9 @@ use File::Spec       0.80 ();
 use File::Remove     1.48 ();
 use File::Find::Rule 0.32 ();
 use Parse::CSV       1.00 ();
+use EVE::DB               ();
 use EVE::Trade            ();
+
 
 
 
@@ -71,6 +73,14 @@ sub parse {
 	$timestamp =~ s/(\d\d)(\d\d)(\d\d)/$1:$2:$3/;
 	$timestamp =~ s/\./-/g;
 
+	# Does the region name exist
+	my @map_region = EVE::DB::MapRegions->select(
+		'where regionName = ?', $region
+	);
+	unless ( @map_region and @map_region == 1 ) {
+		die "Failed to find region '$region'";
+	}
+
 	# Create the parser
 	my $path   = File::Spec->catfile( $self->dir, $file );
 	my $parser = Parse::CSV->new(
@@ -80,6 +90,14 @@ sub parse {
 
 	EVE::Trade->begin;
 	eval {
+		EVE::Trade::Market->create(
+			market_id    => join( ' ', $region, $product ),
+			region_id    => $map_region[0]->region_id,
+			region_name  => $map_region[0]->region_name,
+			product_id   => 1,
+			product_name => $product,
+			timestamp    => $timestamp,
+		);
 		while ( my $hash = $parser->fetch ) {
 			$hash->{issued} =~ s/\.000$//;
 			$hash->{bid} = ($hash->{bid} eq 'True') ? 1 : 0;

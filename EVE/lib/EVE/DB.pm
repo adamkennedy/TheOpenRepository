@@ -9,6 +9,14 @@ use ORLite::Mirror 1.21 {
 	maxage        => 999999999999,
 	show_progress => 1,
 	normalize     => 1,
+	tables        => [ qw{
+		invTypes
+		invMarketGroups
+		mapRegions
+		mapSolarSystems
+		staStations
+		staStationTypes
+	} ],
 };
 
 our $VERSION = '0.01';
