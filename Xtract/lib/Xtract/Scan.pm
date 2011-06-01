@@ -3,16 +3,19 @@ package Xtract::Scan;
 use 5.008005;
 use strict;
 use warnings;
-use Carp         'croak';
-use Params::Util '_DRIVER';
+use Carp         ();
+use Params::Util ();
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
-use Moose 0.73;
+use Mouse 0.93;
 
-has dbh => ( is => 'ro', isa => 'DBI::db' );
+has dbh => (
+	is  => 'ro',
+	isa => 'DBI::db',
+);
 
-no Moose;
+no Mouse;
 
 sub tables {
 	$_[0]->dbh->tables;
@@ -23,8 +26,8 @@ sub create {
 	my $class  = shift;
 	my $dbh    = shift;
 	my $name   = $dbh->{Driver}->{Name};
-	my $driver = _DRIVER("Xtract::Scan::$name", 'Xtract::Scan')
-		or croak('No driver for the database handle');
+	my $driver = Params::Util::_DRIVER("Xtract::Scan::$name", 'Xtract::Scan')
+		or Carp::croak('No driver for the database handle');
 	$driver->new( dbh => $dbh );
 }
 

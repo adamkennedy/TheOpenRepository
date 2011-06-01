@@ -39,18 +39,19 @@ use Xtract::Scan::mysql         ();
 
 our $VERSION = '0.14';
 
-use Moose 0.73;
-use MooseX::Types::Common::Numeric 0.001 'PositiveInt';
+use Mouse 0.93;
 
-has from         => ( is => 'ro', isa => 'Str' );
-has user         => ( is => 'ro', isa => 'Str' );
-has pass         => ( is => 'ro', isa => 'Str' );
-has to           => ( is => 'ro', isa => 'Str' );
+has from         => ( is => 'ro', isa => 'Str'  );
+has user         => ( is => 'ro', isa => 'Str'  );
+has pass         => ( is => 'ro', isa => 'Str'  );
+has to           => ( is => 'ro', isa => 'Str'  );
 has index        => ( is => 'ro', isa => 'Bool' );
 has trace        => ( is => 'ro', isa => 'Bool' );
-has sqlite_cache => ( is => 'ro', isa => PositiveInt );
+has sqlite_cache => ( is => 'ro', isa => 'Int'  );
 has argv         => ( is => 'ro', isa => 'ArrayRef[Str]' );
 has publish      => ( is => 'rw', isa => 'Xtract::Publish' );
+
+no Mouse;
 
 
 

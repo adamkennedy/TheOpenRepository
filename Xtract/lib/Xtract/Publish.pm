@@ -2,7 +2,7 @@ package Xtract::Publish;
 
 use 5.008005;
 use strict;
-use Carp                      'croak';
+use Carp                      ();
 use File::Copy              0 ();
 use File::Remove         1.42 ();
 use Params::Util         0.35 ();
@@ -10,13 +10,13 @@ use IO::Compress::Gzip  2.008 ();
 use IO::Compress::Bzip2 2.008 ();
 use Xtract::LZMA              ();
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
-use Moose 0.73;
+use Mouse 0.93;
 
 has 'sqlite' => (
 	is        => 'ro',
-	isa       => 'Str',	
+	isa       => 'Str',
 	required  => 1,
 );
 
@@ -43,6 +43,8 @@ flag 'lz'     => 0;
 flag 'atomic' => 0;
 flag 'trace'  => 0;
 
+no Mouse;
+
 
 
 
@@ -55,7 +57,7 @@ sub new {
 
 	# Check params
 	if ( $self->has_from and not -f $self->from ) {
-		croak("Source file '" . $self->from . "' does not exist");
+		Carp::croak("Source file '" . $self->from . "' does not exist");
 	}
 
 	return $self;
@@ -105,7 +107,7 @@ sub run {
 			BinModeIn => 1,
 		);
 		unless ( $rv ) {
-			croak("Failed to create gzip archive '$gz'");
+			Carp::croak("Failed to create gzip archive '$gz'");
 		}
 	}
 
@@ -120,7 +122,7 @@ sub run {
 			BinModeIn => 1,
 		);
 		unless ( $rv ) {
-			croak("Failed to create bzip2 archive '$bz2'");
+			Carp::croak("Failed to create bzip2 archive '$bz2'");
 		}
 	}
 
@@ -233,7 +235,7 @@ sub copy {
 	my $self = shift;
 	$self->say("Copying '$_[0]' to '$_[1]'");
 	unless ( File::Copy::copy(@_) ) {
-		croak("Failed to copy '$_[0]' to '$_[1]'");
+		Carp::croak("Failed to copy '$_[0]' to '$_[1]'");
 	}
 	return 1;
 }
@@ -247,7 +249,7 @@ sub move {
 	}
 	$self->say("Copying '$_[0]' to '$_[1]'");
 	unless ( File::Copy::move(@_) ) {
-		croak("Failed to move '$_[0]' to '$_[1]'");
+		Carp::croak("Failed to move '$_[0]' to '$_[1]'");
 	}
 	return 1;
 }
@@ -260,7 +262,7 @@ sub remove {
 	if ( -f $file ) {
 		$self->say("Removing '$file'");
 		unless ( File::Remove::remove( $file ) ) {
-			croak("Failed to remove existing '$file'");
+			Carp::croak("Failed to remove existing '$file'");
 		}
 	}
 

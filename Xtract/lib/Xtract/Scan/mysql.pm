@@ -6,7 +6,7 @@ use warnings;
 
 our $VERSION = '0.14';
 
-use Moose 0.73;
+use Mouse 0.93;
 
 extends 'Xtract::Scan';
 
@@ -16,6 +16,6 @@ override tables => sub {
 	} super();
 };
 
-no Moose;
+no Mouse;
 
 1;

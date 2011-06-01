@@ -3,27 +3,18 @@ package Xtract::Table;
 # Object that represents a single table in the destination database.
 
 use 5.008005;
-use Moose;
-use MooseX::Types::Common::Numeric 'PositiveInt';
-use Params::Util '_IDENTIFIER';
+use strict;
+use warnings;
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
+
+use Mouse;
 
 has name => {
 	is  => 'ro',
 	isa => 'Str',
 };
 
-subtype XtractTableName
-	=> as 'Str'
-	=> where {
-		defined _IDENTIFIER($_)
-		and
-		$_ eq lc($_)
-	}
-	=> 
-
-no Moose;
-__PACKAGE__->meta->make_immutable;
+no Mouse;
 
 1;

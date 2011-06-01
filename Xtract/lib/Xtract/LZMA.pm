@@ -9,6 +9,8 @@ use Carp        ();
 use File::Which ();
 use IPC::Run3   ();
 
+our $VERSION = '0.15';
+
 my $LZMA  = '';
 my @WHICH = ();
 if ( $^O eq 'MSWin32' ) {
@@ -18,8 +20,6 @@ if ( $^O eq 'MSWin32' ) {
 	$LZMA = 'unix';
 }
 
-our $VERSION = '0.14';
-
 
 
 
@@ -27,7 +27,9 @@ our $VERSION = '0.14';
 #####################################################################
 # API Methods
 
-sub available { !! $LZMA }
+sub available {
+	return !! $LZMA;
+}
 
 sub compress {
 	my $class = shift;
@@ -35,9 +37,8 @@ sub compress {
 		return $class->_win32(@_);
 	} elsif ( $LZMA eq 'unix' ) {
 		return $class->_unix(@_);
-	} else {
-		Carp::croak('LZMA support is not available');
 	}
+	Carp::croak('LZMA support is not available');
 }
 
 sub _win32 {

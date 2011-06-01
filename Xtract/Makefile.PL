@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.95;
+use inc::Module::Install::DSL 1.01;
 
 all_from       lib/Xtract.pm
 requires_from  lib/Xtract.pm
@@ -10,7 +10,7 @@ test_requires  Test::Script            1.03
 test_requires  Test::Database          1.09
 test_requires  File::Spec              0.80
 test_requires  File::Remove            1.42
-test_requires  Aspect                  0.44
+test_requires  Aspect                  1.00
 test_requires  IO::Uncompress::Gunzip
 test_requires  IO::Uncompress::Bunzip2
 install_script xtract

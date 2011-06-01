@@ -9,7 +9,7 @@ BEGIN {
 use Test::More;
 use Test::Database;
 BEGIN {
-	(Test::Database->handles('mysql'))[0];
+	my $handle = (Test::Database->handles('mysql'))[0];
 	if ( $handle ) {
 		plan( tests => 3 );
 	} else {
