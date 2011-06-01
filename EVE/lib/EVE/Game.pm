@@ -57,7 +57,7 @@ use constant {
 	MOUSE_MARKET_SEARCH_TAB       => [ 195, 200 ],
 	MOUSE_MARKET_SEARCH_TEXT      => [ 121, 226 ],
 	MOUSE_MARKET_EXPORT_TO_FILE   => [ 613, 670 ],
-	MOUSE_PLACES_CLOSE            => [ 750, 193 ],
+	MOUSE_PLACES_CLOSE            => [ 745, 190 ],
 	MOUSE_PLACES_SEARCH_TEXT      => [ 433, 235 ],
 	MOUSE_PLACES_RESULT_ONE       => [ 403, 388 ],
 	MOUSE_PLACES_RESULT_CLOSE     => [ 513, 562 ],
@@ -422,31 +422,35 @@ sub autopilot_destination {
 
 	# Open the People and Places window
 	$self->left_click( MOUSE_NEOCOM_PLACES );
-	$self->sleep(0.5);
+	unless ( $self->wait_pattern( 5 => 'places-header' ) ) {
+		$self->throw("Failed to open places dialog");
+	}
 
 	# Select the search box
-	$self->left_click( MOUSE_PLACES_SEARCH_TEXT );
+	$self->send_keys( '{TAB 4}' );
 	$self->sleep(0.5);
 
 	# Enter the name of the system
 	$self->send_keys( $name . '~' );
-	$self->sleep(0.5);
+	unless ( $self->wait_pattern( 5 => 'places-solar-systems' ) ) {
+		$self->throw("Failed to open solar system search");
+	}
 
 	# Right click on the first result
 	$self->right_click( MOUSE_PLACES_RESULT_ONE );
-	$self->sleep(0.5);
+	$self->sleep(1);
 
 	# Left click on Set Destination
 	$self->left_click( MOUSE_PLACES_SET_DESTINATION );
-	$self->sleep(0.5);
+	$self->sleep(1);
 
 	# Close the search results
 	$self->left_click( MOUSE_PLACES_RESULT_CLOSE );
 	$self->mouse_to( MOUSE_PLACES_CLOSE );
-	$self->sleep(0.5);
+	$self->sleep(1);
 
 	# Close places
-	$self->sleep(0.5);
+	$self->sleep(1);
 	$self->left_click( MOUSE_PLACES_CLOSE );
 
 	return 1;
@@ -560,9 +564,8 @@ sub docked {
 
 # Ensure EVE is the foreground window, returns the object as a convenience
 sub foreground {
-	my $self  = shift;
-	my $front = Win32::GuiTest::GetForegroundWindow();
-	if ( $self->window == $front ) {
+	my $self = shift;
+	if ( $self->window == Win32::GuiTest::GetForegroundWindow() ) {
 		# Already front window, nothing to do
 		return $self;
 	}
@@ -570,9 +573,18 @@ sub foreground {
 	Win32::GuiTest::SetForegroundWindow($self->window);
 	Win32::GuiTest::SetActiveWindow($self->window);
 	Win32::GuiTest::SetFocus($self->window);
+	$self->mouse_to(1,1);
+	Win32::GuiTest::SendLButtonDown();
+	$self->sleep(0.2);
+	Win32::GuiTest::SendLButtonUp();
 	$self->sleep(1);
 
-	return $self;
+	if ( $self->window == Win32::GuiTest::GetForegroundWindow() ) {
+		# Already front window, nothing to do
+		return $self;
+	}
+
+	die "Failed to set EVE to front window";
 }
 
 # Type something or send keys
@@ -637,10 +649,11 @@ sub left_click {
 
 	# Move the mouse to the target, allow time for transition effects
 	$self->mouse_to(@_) if @_;
+	$self->sleep(0.5);
 
 	# Click whatever it is nice and slow
 	Win32::GuiTest::SendLButtonDown();
-	$self->sleep(0.1);
+	$self->sleep(0.2);
 	Win32::GuiTest::SendLButtonUp();
 
 	# Return the mouse to the rest position to prevent unwanted tooltips
