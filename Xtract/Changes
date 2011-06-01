@@ -3,6 +3,7 @@ Changes for Perl extension Xtract
 0.15 to be released
 	- Upgrading to Module::Install::DSL 1.01
 	- Upgrading to Aspect 1.00
+	- Migrating from Moose to the lighter Mouse
 
 0.14 Sat  3 Apr 2010
 	- Upgrading test skipping to use Test::Database.
