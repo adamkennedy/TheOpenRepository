@@ -416,7 +416,26 @@ sub chat_minimize {
 #####################################################################
 # Autopilot
 
-sub autopilot_destination {
+sub autopilot_undock {
+	my $self = shift->foreground;
+
+	# We should be docked
+	unless ( $self->docked ) {
+		$self->throw("Can't undock while not docked");
+	}
+
+	# Find the undock button
+	my $undock = $self->screenshot_has('neocom-undock');
+	unless ( $undock ) {
+		$self->throw("Can't find undock");
+	}
+	$self->left_click($undock);
+	$self->sleep(15);
+
+	return 1;
+}
+
+sub autopilot_system {
 	my $self = shift->foreground;
 	my $name = shift;
 
@@ -442,7 +461,62 @@ sub autopilot_destination {
 	}
 
 	# Right click on the first result
-	$self->right_click( MOUSE_PLACES_RESULT_ONE );
+	my $result = $self->screenshot_has('places-search-first-result');
+	$self->throw("Failed to find the first result") unless $result;
+	$self->right_click( $result->center_x + 20, $result->center_y );
+
+	# Click on Set Destination
+	my $set = $self->wait_pattern( 5 => 'context-set-destination' );
+	$self->throw("Failed to find Set Destination context menu") unless $set;
+	$self->left_click($set);
+	$self->sleep(1);
+
+	# Close the search results
+	my $close = $self->screenshot_has('gui-close-window')
+		or $self->throw("Can't find close window control");
+
+	$self->left_click( MOUSE_PLACES_RESULT_CLOSE );
+	$self->mouse_to( MOUSE_PLACES_CLOSE );
+	$self->sleep(1);
+
+	# Close places
+	$self->sleep(1);
+	$self->left_click( MOUSE_PLACES_CLOSE );
+
+	return 1;
+}
+
+sub autopilot_station {
+	my $self = shift->foreground;
+	my $name = shift;
+
+	# Open the People and Places window
+	$self->left_click( MOUSE_NEOCOM_PLACES );
+	unless ( $self->wait_pattern( 5 => 'places-header' ) ) {
+		$self->throw("Failed to open places dialog");
+	}
+
+	# Is it set to solar system search
+	unless ( $self->screenshot_has('places-search-station') ) {
+		$self->throw("Places dialog not set to solar system search");
+	}
+
+	# Select the search box
+	$self->send_keys( '{TAB 4}' );
+	$self->sleep(0.5);
+
+	# Enter the name of the system
+	$self->send_keys( $name . '~' );
+	unless ( $self->wait_pattern( 5 => 'places-stations' ) ) {
+		$self->throw("Failed to open solar system search");
+	}
+
+	# Right click on the first result
+	my $result = $self->screenshot_has('places-search-first-result');
+	unless ( $result ) {
+		$self->throw("Failed to find the first result");
+	}
+	$self->right_click( $result->center_x + 20, $result->center_y );
 	my $set = $self->wait_pattern( 5 => 'context-set-destination' )
 		or $self->throw("Failed to find Set Destination context menu");
 
@@ -451,7 +525,7 @@ sub autopilot_destination {
 	$self->sleep(1);
 
 	# Close the search results
-	my $close = $self->screenshot_has('window-close')
+	my $close = $self->screenshot_has('gui-close-window')
 		or $self->throw("Can't find close window control");
 
 	$self->left_click( MOUSE_PLACES_RESULT_CLOSE );
@@ -515,8 +589,9 @@ sub autopilot_engage {
 			next;
 		}
 
-		# Select the next destination gate
-		my $gate = $self->screenshot_has('overview-destination');
+		# Select the next destination gate.
+		# If it isn't on screen, give it a short time to reappear.
+		my $gate = $self->wait_pattern( 5 => 'overview-destination' );
 		if ( $gate ) {
 			# Select the gate
 			$self->left_click($gate);
