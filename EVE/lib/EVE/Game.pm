@@ -62,8 +62,8 @@ use constant {
 	MOUSE_PLACES_RESULT_ONE       => [ 403, 388 ],
 	MOUSE_PLACES_RESULT_CLOSE     => [ 513, 562 ],
 	MOUSE_PLACES_SET_DESTINATION  => [ 450, 412 ],
-	COLOR_SELECTED_APPROACH       => [ 778, 78  ],
-	COLOR_SELECTED_WARP_TO        => [ 793, 78  ],
+	COLOR_SELECTED_APPROACH       => [ 758, 78  ],
+	COLOR_SELECTED_WARP_TO        => [ 783, 78  ],
 	COLOR_SELECTED_JUMP           => [ 808, 78  ],
 };
 
@@ -417,13 +417,18 @@ sub chat_minimize {
 # Autopilot
 
 sub autopilot_destination {
-	my $self = shift;
+	my $self = shift->foreground;
 	my $name = shift;
 
 	# Open the People and Places window
 	$self->left_click( MOUSE_NEOCOM_PLACES );
 	unless ( $self->wait_pattern( 5 => 'places-header' ) ) {
 		$self->throw("Failed to open places dialog");
+	}
+
+	# Is it set to solar system search
+	unless ( $self->screenshot_has('places-search-solar-system') ) {
+		$self->throw("Places dialog not set to solar system search");
 	}
 
 	# Select the search box
@@ -438,13 +443,17 @@ sub autopilot_destination {
 
 	# Right click on the first result
 	$self->right_click( MOUSE_PLACES_RESULT_ONE );
-	$self->sleep(1);
+	my $set = $self->wait_pattern( 5 => 'context-set-destination' )
+		or $self->throw("Failed to find Set Destination context menu");
 
 	# Left click on Set Destination
-	$self->left_click( MOUSE_PLACES_SET_DESTINATION );
+	$self->left_click($set);
 	$self->sleep(1);
 
 	# Close the search results
+	my $close = $self->screenshot_has('window-close')
+		or $self->throw("Can't find close window control");
+
 	$self->left_click( MOUSE_PLACES_RESULT_CLOSE );
 	$self->mouse_to( MOUSE_PLACES_CLOSE );
 	$self->sleep(1);
@@ -457,52 +466,82 @@ sub autopilot_destination {
 }
 
 sub autopilot_engage {
-	my $self  = shift;
+	my $self  = shift->foreground;
 	my $jumps = 0;
 
 	# Constantly look for and mouseover the destination gate
 	while ( 1 ) {
-		my $gate = $self->wait_pattern( 30 => 'overview-destination' );
-		return $jumps unless $gate;
+		# Is a destination gate selected
+		my $selected = $self->screenshot_has('overview-destination-selected');
+		if ( $selected ) {
+			# Can we jump to a new system
+			if ( $self->autopilot_can_jump ) {
+				# Jump to the new system
+				while ( not $self->screenshot_black(COLOR_SELECTED_JUMP) ) {
+					$self->left_click(COLOR_SELECTED_JUMP);
+					$self->sleep(0.5);
+				}
 
-		# Select the gate (move the mouse away to prevent tooltips)
-		$self->left_click($gate);
-		$self->mouse_to( 1, 1 );
+				# Because the autopilot will never take you into
+				# a dead end system and then take you back out,
+				# there must always be one non-destination gate.
+				# The appearance of such indicates arrival in the
+				# destination system
+				$self->wait_patterns( 60 => 'overview-gate' )
+				or $self->throw("Failed to complete jump to new system");
 
-		# Is the destination gate selected
-		unless ( $self->wait_pattern( 2 => 'overview-destination-selected' ) ) {
-			# Did we just click on the wrong thing?
-			next if $self->screenshot_has('overview-destination');
+				$jumps++;
+				next;
+			}
 
-			# Not selected, and can't see it
-			$self->throw("Destination gate misplaced... panic");
+			# Can we warp to the selected gate
+			if ( $self->autopilot_can_warp ) {
+				# Warp to the gate
+				$self->left_click( COLOR_SELECTED_WARP_TO );
+				$self->sleep(0.5);
+				next;
+			}
+
+			# Can we approach the selected gate
+			if ( $self->autopilot_can_approach ) {
+				# Approach the gate
+				$self->left_click( COLOR_SELECTED_APPROACH );
+				$self->sleep(0.5);
+				next;
+			}
+
+			# No navigation options at all, we are probably in warp
+			$self->sleep(1);
+			next;
 		}
 
-		# We clicked on the correct gate.
-		$self->send_keys('sssss');
+		# Select the next destination gate
+		my $gate = $self->screenshot_has('overview-destination');
+		if ( $gate ) {
+			# Select the gate
+			$self->left_click($gate);
+			$self->mouse_to( 2, 2 );
+			$self->sleep(0.5);
+			next;
+		}
 
-		# Wait for the warp to complete for a minute
-		$self->wait_until( 60 => sub {
-			$_[0]->autopilot_can_jump
-		} )
-		or $self->throw("Warp not completed within one minute");
-
-		# Jump through the gate
-		$self->send_keys('ddddd');
-
-		# Wait to see "NO OBJECT SELECTED" which indicates
-		# successful completion of the jump.
-		$self->wait_pattern( 60 => 'overview-no-object-selected' )
-		or $self->throw("Failed to complete jump to new system");
-
-		$jumps++;
+		# There is no destination gate, exit the autopilot
+		last;
 	}
 
 	return $jumps;
 }
 
 sub autopilot_can_approach {
-	my $self  = shift;
+	my $self = shift;
+
+	# The pixel to the left must be black
+	my $black = $self->screenshot_black(
+		COLOR_SELECTED_APPROACH->[0] - 1,
+		COLOR_SELECTED_APPROACH->[1],
+	) or $self->throw("Pixel left of target not black... panic");
+
+	# Check the intensity of the pixel we care about
 	my $color = $self->screenshot_color(COLOR_SELECTED_APPROACH);
 	my $value = ($color->hsv)[2];
 	if ( $value > 0.4 ) {
@@ -516,6 +555,14 @@ sub autopilot_can_approach {
 
 sub autopilot_can_warp {
 	my $self  = shift;
+
+	# The pixel to the left must be black
+	my $black = $self->screenshot_black(
+		COLOR_SELECTED_WARP_TO->[0] - 1,
+		COLOR_SELECTED_WARP_TO->[1],
+	) or $self->throw("Pixel left of target not black... panic");
+
+	# Check the intensity of the pixel we care about
 	my $color = $self->screenshot_color(COLOR_SELECTED_WARP_TO);
 	my $value = ($color->hsv)[2];
 	if ( $value > 0.4 ) {
@@ -529,6 +576,14 @@ sub autopilot_can_warp {
 
 sub autopilot_can_jump {
 	my $self = shift;
+
+	# The pixel to the left must be black
+	my $black = $self->screenshot_black(
+		COLOR_SELECTED_JUMP->[0] - 1,
+		COLOR_SELECTED_JUMP->[1],
+	) or $self->throw("Pixel left of target not black... panic");
+
+	# Check the intensity of the pixel we care about
 	my $color = $self->screenshot_color(COLOR_SELECTED_JUMP);
 	my $value = ($color->hsv)[2];
 	if ( $value > 0.4 ) {
@@ -649,12 +704,13 @@ sub left_click {
 
 	# Move the mouse to the target, allow time for transition effects
 	$self->mouse_to(@_) if @_;
-	$self->sleep(0.5);
+	$self->sleep(0.2);
 
 	# Click whatever it is nice and slow
 	Win32::GuiTest::SendLButtonDown();
 	$self->sleep(0.2);
 	Win32::GuiTest::SendLButtonUp();
+	$self->screenshot_dirty;
 
 	# Return the mouse to the rest position to prevent unwanted tooltips
 	$self->mouse_to($here) if @_;
@@ -667,12 +723,13 @@ sub right_click {
 
 	# Move the mouse to the target, allow time for transition effects
 	$self->mouse_to(@_) if @_;
-	$self->sleep(0.5);
+	$self->sleep(0.2);
 
 	# Click whatever it is nice and slow
 	Win32::GuiTest::SendRButtonDown();
-	$self->sleep(0.5);
+	$self->sleep(0.2);
 	Win32::GuiTest::SendRButtonUp();
+	$self->screenshot_dirty;
 
 	# Don't return to anywhere on right click, because it could
 	# break the spawning of the context menu.
@@ -772,10 +829,24 @@ sub screenshot_find {
 sub screenshot_color {
 	my $self  = shift->foreground;
 	my $coord = $self->coord(@_);
-	$self->screenshot->image->getpixel(
+	my $color = $self->screenshot->image->getpixel(
 		x => $coord->[0],
 		y => $coord->[1],
 	);
+	# $self->mouse_to( $coord );
+	return $color;
+}
+
+# Is the colour at a particular point black, or very close to it
+sub screenshot_black {
+	my $self  = shift;
+	my $color = $self->screenshot_color(@_);
+	my $value = ($color->hsv)[2];
+	if ( $value < 0.05 ) {
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 
@@ -962,7 +1033,7 @@ sub wait_patterns {
 sub wait_until {
 	my $self = shift;
 	my $time = time + shift;
-	my $code = _CODE(shift) or die "Did not pass a CODE reference";
+	my $code = Params::Util::_CODE(shift) or die "Did not pass a CODE reference";
 
 	while ( time < $time ) {
 		# Is the condition true

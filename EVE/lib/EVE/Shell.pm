@@ -14,11 +14,21 @@ sub import {
 
 sub start {
 	my $class = shift;
-	print "Connecting to EVE... ";
+	$| = 1;
 	$main::game = EVE::Game->new(@_);
-	$main::game->attach;
-	$main::game->connect;
-	print "CONNECTED\n";
+	if ( $main::game->find_windows ) {
+		print "Connecting to EVE... ";
+		$main::game->attach;
+		$main::game->connect;
+		print "CONNECTED\n";
+	} else {
+		print "Launching EVE... ";
+		$main::game->launch;
+		sleep 30;
+		$main::game->attach;
+		$main::game->connect;
+		print "CONNECTED\n";
+	}
 }
 
 BEGIN {
