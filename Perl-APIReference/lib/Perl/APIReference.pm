@@ -20,6 +20,7 @@ sub _par_loader_hint {
 }
 
 our %Perls = (
+  5.014    => 'V5_014_000',
   5.01301  => 'V5_013_010',
   5.012003 => 'V5_012_003',
   5.012002 => 'V5_012_002',
@@ -45,9 +46,10 @@ our %Perls = (
   5.006    => 'V5_006_000',
 );
 
-our $NewestAPI       = '5.013010';
-our $NewestStableAPI = '5.012003';
+our $NewestAPI       = '5.014000';
+our $NewestStableAPI = '5.014000';
 
+$Perls{'5.014000'} = $Perls{5.014};
 $Perls{'5.013010'} = $Perls{5.01301};
 $Perls{'5.012000'} = $Perls{5.012};
 $Perls{'5.011000'} = $Perls{5.011};
