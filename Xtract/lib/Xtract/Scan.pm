@@ -8,20 +8,14 @@ use Params::Util ();
 
 our $VERSION = '0.15';
 
-use Mouse 0.93;
 
-has dbh => (
-	is  => 'ro',
-	isa => 'DBI::db',
-);
 
-no Mouse;
 
-sub tables {
-	$_[0]->dbh->tables;
-}
 
-# Factory method
+######################################################################
+# Class Methods
+
+# Scanner factory
 sub create {
 	my $class  = shift;
 	my $dbh    = shift;
@@ -29,6 +23,44 @@ sub create {
 	my $driver = Params::Util::_DRIVER("Xtract::Scan::$name", 'Xtract::Scan')
 		or Carp::croak('No driver for the database handle');
 	$driver->new( dbh => $dbh );
+}
+
+
+
+
+
+######################################################################
+# Constructor and Accessors
+
+sub new {
+	my $class = shift;
+	my $self  = bless { @_ }, $class;
+
+	# Check params
+	unless ( Params::Util::_INSTANCE($self->dbh, 'DBI::db') ) {
+		Carp::croak("Param 'dbh' is not a 'DBI::db' object");
+	}
+
+	return $self;
+}
+
+sub dbh {
+	$_[0]->{dbh};
+}
+
+
+
+
+
+######################################################################
+# Database Introspection
+
+sub tables {
+	$_[0]->dbh->tables;
+}
+
+sub columns {
+	$_[0]->dbh->column_info
 }
 
 1;

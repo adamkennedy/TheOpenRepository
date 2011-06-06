@@ -32,10 +32,12 @@ use Time::HiRes          1.9709 ();
 use Time::Elapsed          0.24 ();
 use DBI                    1.57 ':sql_types';
 use DBD::SQLite            1.25 ();
-use Xtract::Publish             ();
 use Xtract::Scan                ();
 use Xtract::Scan::SQLite        ();
 use Xtract::Scan::mysql         ();
+use Xtract::Publish             ();
+use Xtract::Column              ();
+use Xtract::Table               ();
 
 our $VERSION = '0.15';
 
@@ -129,7 +131,7 @@ sub run {
 
 	# Generate any required indexes
 	if ( $self->index ) {
-		foreach my $table ( $self->from_tables ) {
+		foreach my $table ( $self->tables ) {
 			$self->say("Indexing table $table");
 			$self->index_table( $table );
 		}
@@ -379,7 +381,7 @@ sub add_select {
 					}
 				}
 				if ( defined Params::Util::_NUMBER($value) ) {
-					$hash->{NUMBER}++;					
+					$hash->{NUMBER}++;
 				}
 				if ( length($value) <= 255 ) {
 					$hash->{TEXT}++;
@@ -485,9 +487,10 @@ sub fill {
 sub index_table {
 	my $self  = shift;
 	my $table = shift;
-	my $info  = $self->to_dbh->selectall_arrayref("PRAGMA table_info($table)");
+	my $name  = $table->name;
+	my $info  = $self->to_dbh->selectall_arrayref("PRAGMA table_info($name)");
 	foreach my $column ( map { $_->[1] } @$info ) {
-		$self->index_column($table, $column);
+		$self->index_column($name, $column);
 	}
 	return 1;
 }
@@ -538,9 +541,31 @@ sub from_scan {
 sub from_tables {
 	my $self = shift;
 	unless ( $self->{from_tables} ) {
-		$self->{from_tables} = [ $self->from_scan->tables ];
+		my $scan = $self->from_scan;
+		$self->{from_tables} = {
+			map {
+				$_ => Xtract::Table->new(
+					name => $_,
+					scan => $scan,
+				)
+			} $scan->tables
+		};
 	}
-	return @{$self->{from_tables}};
+	return map {
+		$self->{from_tables}->{$_}
+	} sort keys %{$self->{from_tables}};
+}
+
+sub from_table {
+	my $self = shift;
+	my $name = shift;
+	unless ( $self->{from_tables} ) {
+		$self->from_tables;
+	}
+	unless ( exists $self->{from_tables}->{$name} ) {
+		 die "No such table '$name'";
+	}
+	return $self->{from_tables}->{$name}
 }
 
 

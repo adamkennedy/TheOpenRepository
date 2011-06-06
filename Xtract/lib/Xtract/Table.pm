@@ -4,17 +4,55 @@ package Xtract::Table;
 
 use 5.008005;
 use strict;
-use warnings;
+use Params::Util   ();
+use Xtract::Column ();
 
 our $VERSION = '0.15';
 
-use Mouse;
 
-has name => {
-	is  => 'ro',
-	isa => 'Str',
-};
 
-no Mouse;
+
+
+######################################################################
+# Constructor and Accessors
+
+sub new {
+	my $class = shift;
+	my $self  = bless { @_ }, $class;
+
+	# Check params
+	unless ( Params::Util::_IDENTIFIER($self->name) ) {
+		my $name = $self->name;
+		Carp::croak("Missing or invalid name '$name'");
+	}
+	unless ( Params::Util::_INSTANCE($self->scan, 'Xtract::Scan') ) {
+		Carp::croak("Param 'scan' is not a 'Xtract::Scan' object");
+	}
+
+	# Capture column information
+	my @columns = $self->columns;
+	
+
+	return $self;
+}
+
+sub name {
+	$_[0]->{name};
+}
+
+sub scan {
+	$_[0]->{scan};
+}
+
+
+
+
+
+######################################################################
+# Introspection Methods
+
+sub columns {
+	
+}
 
 1;

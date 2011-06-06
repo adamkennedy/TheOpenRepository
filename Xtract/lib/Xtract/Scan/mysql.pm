@@ -2,20 +2,22 @@ package Xtract::Scan::mysql;
 
 use 5.008005;
 use strict;
-use warnings;
+use Xtract::Scan ();
 
 our $VERSION = '0.15';
+our @ISA     = 'Xtract::Scan';
 
-use Mouse 0.93;
 
-extends 'Xtract::Scan';
 
-override tables => sub {
+
+
+######################################################################
+# Introspection Methods
+
+sub tables {
 	map {
 		/`([^`]+)`$/ ? "$1" : $_
-	} super();
+	} $_[0]->dbh->tables;
 };
-
-no Mouse;
 
 1;

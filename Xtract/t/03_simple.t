@@ -54,7 +54,7 @@ SCOPE: {
 
 	# Get the list of tables
 	is_deeply(
-		[ $object->from_tables ],
+		[ map { $_->name } $object->from_tables ],
 		[ 'table_one' ],
 		'->tables ok',
 	);
