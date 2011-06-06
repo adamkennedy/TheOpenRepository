@@ -22,6 +22,7 @@ use Imager::Search::Screenshot ();
 use EVE::Config                ();
 use EVE::MarketLogs            ();
 use EVE::API                   ();
+use EVE::TextPattern           ();
 
 our $VERSION = '0.01';
 
@@ -820,9 +821,11 @@ sub right_click {
 # Vision Support
 
 sub pattern {
-	my $self = shift;
-	my $name = shift;
-	my $pattern = $self->patterns->{$name};
+	my $self    = shift;
+	my $name    = shift;
+	my $pattern = ref($name)
+		? EVE::TextPattern->new( name => $$name )
+		: $self->patterns->{$name};
 	unless ( $pattern ) {
 		$self->throw("Image pattern '$name' does not exist");
 	}
