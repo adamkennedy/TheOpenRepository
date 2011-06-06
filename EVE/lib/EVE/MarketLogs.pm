@@ -90,8 +90,9 @@ sub parse {
 
 	EVE::Trade->begin;
 	eval {
+		my $market_id = join( ' ', $region, $product );
 		EVE::Trade::Market->create(
-			market_id    => join( ' ', $region, $product ),
+			market_id    => $market_id,
 			region_id    => $map_region[0]->region_id,
 			region_name  => $map_region[0]->region_name,
 			product_id   => 1,
@@ -103,11 +104,9 @@ sub parse {
 			$hash->{bid} = ($hash->{bid} eq 'True') ? 1 : 0;
 			EVE::Trade::Price->create(
 				order_id   => $hash->{orderID},
-				timestamp  => $timestamp,
-				region_id  => $hash->{regionID},
+				market_id  => $market_id,
 				system_id  => $hash->{solarSystemID},
 				station_id => $hash->{stationID},
-				product    => $product,
 				issued     => $hash->{issued},
 				duration   => $hash->{duration},
 				bid        => $hash->{bid},
