@@ -93,10 +93,16 @@ sub parse {
 	EVE::Trade->begin;
 	eval {
 		my $market_id = join( ' ', $region, $product );
+
+		# Flush old records
+		EVE::Trade::Market->delete('where market_id = ?', $market_id);
+		EVE::Trade::Price->delete('where market_id = ?', $market_id);
+
+		# Create new records
 		EVE::Trade::Market->create(
 			market_id    => $market_id,
-			region_id    => $map_region[0]->region_id,
-			region_name  => $map_region[0]->region_name,
+			region_id    => $map_region[0]->regionID,
+			region_name  => $map_region[0]->regionName,
 			product_id   => 1,
 			product_name => $product,
 			timestamp    => $timestamp,

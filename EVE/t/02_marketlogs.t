@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 10;
+use Test::More tests => 13;
 use File::Spec::Functions ':ALL';
 use EVE::Trade;
 use EVE::MarketLogs;
@@ -50,6 +50,13 @@ is( EVE::Trade::Market->count(@WHERE_MARKET), 0, 'No records when starting' );
 ok( $logs->parse_all, '->parse_all ok' );
 is( EVE::Trade::Price->count(@WHERE_PRICE), 60, 'Inserted expected records' );
 is( EVE::Trade::Market->count(@WHERE_MARKET), 2, 'Inserted expected records' );
+
+# Run again, and expect it to be the same
+ok( $logs->parse_all, '->parse_all ok' );
+is( EVE::Trade::Price->count(@WHERE_PRICE), 60, 'Inserted expected records' );
+is( EVE::Trade::Market->count(@WHERE_MARKET), 2, 'Inserted expected records' );
+
+# Clean up the test data
 EVE::Trade::Price->delete(@WHERE_PRICE);
 EVE::Trade::Market->delete(@WHERE_MARKET);
 is( EVE::Trade::Price->count(@WHERE_PRICE),  0, 'Cleared test records' );

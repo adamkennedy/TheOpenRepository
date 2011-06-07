@@ -46,8 +46,9 @@ use Object::Tiny::XS 1.01 qw{
 
 
 #####################################################################
-# Screen Location Constants
+# Constants
 
+# Screen locations
 use constant {
 	MOUSE_LOGIN_USERNAME          => [ 552, 687 ],
 	MOUSE_LOGIN_CURRENT_CHARACTER => [ 170, 273 ],
@@ -68,6 +69,10 @@ use constant {
 	COLOR_SELECTED_WARP_TO        => [ 783, 78  ],
 	COLOR_SELECTED_JUMP           => [ 808, 78  ],
 };
+
+# Market groups
+use constant TRADE_GROUP_MINERALS => qw{ 18  476     };
+use constant TRADE_GROUP_MOON     => qw{ 499 500 501 };
 
 
 
@@ -315,7 +320,7 @@ sub market_group {
 	# Fetch all types in the group
 	my @types = EVE::DB::InvTypes->select(
 		'where marketGroupID = ?',
-		$group->market_group_id,
+		$group->marketGroupID,
 	) or die "Failed to find any products for group";
 	foreach my $type ( @types ) {
 		$self->market_type($type);
@@ -335,7 +340,7 @@ sub market_type {
 	}
 
 	# Search on the market by name
-	$self->market_scan($type->type_name);
+	$self->market_scan($type->typeName);
 }
 
 sub market_visible {
@@ -389,18 +394,19 @@ sub market_search {
 	$self->sleep(3);
 
 	# Scan for product hits
-	my @hits = grep {
-		$_->left > 275 and $_->left < 320
-	}$self->screenshot_find('info-small');
+	my @hits = sort {
+		$a->top <=> $b->top
+	} grep {
+		$_->left > 275 and $_->left < 325
+	} $self->screenshot_find('info-small');
 
 	# Click on each of the hits to bring up their market information and
 	# export it to a file on disk.
 	foreach my $hit ( @hits ) {
-		$self->left_click( $hit->left - 20, $hit->centre_y );
-		$self->sleep(5);
-
-		if ( $self->screenshot_find('market-no-orders-found') > 1 ) {
-			# No buy or sell orders
+		$self->left_click( $hit->left - 10, $hit->centre_y );
+		$self->sleep(1);
+		unless ( $self->wait_patterns( 10 => 'market-jumps' ) ) {
+			# No buy or sell orders, or super laggy market
 			next;
 		}
 
