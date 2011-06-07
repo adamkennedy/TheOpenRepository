@@ -23,6 +23,7 @@ use EVE::Config                ();
 use EVE::MarketLogs            ();
 use EVE::API                   ();
 use EVE::TextPattern           ();
+use EVE::DB                    ();
 
 our $VERSION = '0.01';
 
@@ -52,12 +53,12 @@ use constant {
 	MOUSE_LOGIN_CURRENT_CHARACTER => [ 170, 273 ],
 	MOUSE_ESCAPE_RESET_TAB        => [ 522, 164 ],
 	MOUSE_ESCAPE_RESET_WINDOWS    => [ 614, 209 ],
-	MOUSE_NEOCOM_MARKET           => [ 18,  262 ],
+	MOUSE_NEOCOM_MARKET           => [ 18,  249 ],
 	MOUSE_NEOCOM_PLACES           => [ 20,  175 ],
-	MOUSE_MARKET_DETAILS_TAB      => [ 438, 111 ],
+	MOUSE_MARKET_DETAILS_TAB      => [ 355, 113 ],
 	MOUSE_MARKET_SEARCH_TAB       => [ 195, 200 ],
 	MOUSE_MARKET_SEARCH_TEXT      => [ 121, 226 ],
-	MOUSE_MARKET_EXPORT_TO_FILE   => [ 613, 670 ],
+	MOUSE_MARKET_EXPORT_TO_FILE   => [ 562, 670 ],
 	MOUSE_PLACES_CLOSE            => [ 745, 190 ],
 	MOUSE_PLACES_SEARCH_TEXT      => [ 433, 235 ],
 	MOUSE_PLACES_RESULT_ONE       => [ 403, 388 ],
@@ -301,6 +302,42 @@ sub reset_windows {
 #####################################################################
 # Market Interface
 
+sub market_group {
+	my $self = shift;
+	my $group = shift;
+	if ( Params::Util::_POSINT($group) ) {
+		$group = EVE::DB::InvMarketGroups->load($group);
+	}
+	unless ( Params::Util::_INSTANCE($group, 'EVE::DB::InvMarketGroups') ) {
+		die "Did not provide an EVE::DB::InvMarketGroups to market_group";
+	}
+
+	# Fetch all types in the group
+	my @types = EVE::DB::InvTypes->select(
+		'where marketGroupID = ?',
+		$group->market_group_id,
+	) or die "Failed to find any products for group";
+	foreach my $type ( @types ) {
+		$self->market_type($type);
+	}
+
+	return 1;
+}
+
+sub market_type {
+	my $self = shift;
+	my $type = shift;
+	if ( Params::Util::_POSINT($type) ) {
+		$type = EVE::DB::InvTypes->load($type);
+	}
+	unless ( Params::Util::_INSTANCE($type, 'EVE::DB::InvTypes') ) {
+		die "Did not provide an EVE::DB::InvTypes to market_type";
+	}
+
+	# Search on the market by name
+	$self->market_scan($type->type_name);
+}
+
 sub market_visible {
 	my $self    = shift;
 	my @matches = $self->screenshot_find('market-window');
@@ -341,15 +378,19 @@ sub market_search {
 	my $product = shift;
 	my $chars   = length $product;
 
+	# Ensure we have selected the search box
+	$self->left_click( MOUSE_MARKET_SEARCH_TEXT );
+	$self->sleep(0.5);
+
 	# Search for what we want
 	$self->send_keys( $product . "~" );
 	$self->sleep(0.5);
-	$self->send_keys( "{DELETE $chars}" );
+	$self->send_keys( "{BACKSPACE $chars}" );
 	$self->sleep(3);
 
 	# Scan for product hits
 	my @hits = grep {
-		$_->left > 375 and $_->left < 400
+		$_->left > 275 and $_->left < 320
 	}$self->screenshot_find('info-small');
 
 	# Click on each of the hits to bring up their market information and

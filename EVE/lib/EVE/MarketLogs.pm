@@ -65,10 +65,12 @@ sub parse {
 	my $file = shift;
 
 	# Parse information from the file name
-	my @parts     = split /-/, $file;
-	my $region    = $parts[-3] or die "Failed to find region in '$file'";
-	my $product   = $parts[-2] or die "Failed to find product in '$file'";
-	my $timestamp = $parts[-1] or die "Failed to find timestamp in '$file'";
+	unless ( $file =~ /^(.+)-(.+)-(.+)$/ ) {
+		die "Failed to parse file name '$file'";
+	}
+	my $region    = $1 or die "Failed to find region in '$file'";
+	my $product   = $2 or die "Failed to find product in '$file'";
+	my $timestamp = $3 or die "Failed to find timestamp in '$file'";
 	$timestamp =~ s/\.txt$//;
 	$timestamp =~ s/(\d\d)(\d\d)(\d\d)/$1:$2:$3/;
 	$timestamp =~ s/\./-/g;
