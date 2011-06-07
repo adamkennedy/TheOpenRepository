@@ -37,8 +37,7 @@ package Foo::Bar;
 
 use strict;
 use ORLite {
-	file      => '$file',
-	normalize => 1,
+	file => '$file',
 };
 
 1;
@@ -81,16 +80,16 @@ is_deeply( $columns, [
 
 # Populate the test table
 ok(
-	Foo::Bar::TableOne->create( column_id => 1, column_two => 'foo' ),
+	Foo::Bar::TableOne->create( columnID => 1, ColumnTwo => 'foo' ),
 	'Created row 1',
 );
 isa_ok( Foo::Bar::TableOne->load(1), 'Foo::Bar::TableOne' );
-my $new = Foo::Bar::TableOne->create( column_two => 'bar' );
+my $new = Foo::Bar::TableOne->create( ColumnTwo => 'bar' );
 isa_ok( $new, 'Foo::Bar::TableOne' );
-is( $new->column_id, 2,     '->column_id ok' );
-is( $new->column_two, 'bar', '->column_two ok' );
+is( $new->columnID, 2,     '->columnID ok' );
+is( $new->ColumnTwo, 'bar', '->ColumnTwo ok' );
 ok(
-	Foo::Bar::TableOne->create( column_two => 'bar' ),
+	Foo::Bar::TableOne->create( ColumnTwo => 'bar' ),
 	'Created row 3',
 );
 
@@ -102,14 +101,14 @@ sub test_ones {
 	my $ones = shift;
 	is( scalar(@$ones), 3, 'Got 3 objects' );
 	isa_ok( $ones->[0], 'Foo::Bar::TableOne' );
-	is( $ones->[0]->column_id, 1,     '->column_id ok' );
-	is( $ones->[0]->column_two, 'foo', '->column_two ok' );
+	is( $ones->[0]->columnID, 1,     '->columnID ok' );
+	is( $ones->[0]->ColumnTwo, 'foo', '->ColumnTwo ok' );
 	isa_ok( $ones->[1], 'Foo::Bar::TableOne' );
-	is( $ones->[1]->column_id, 2,     '->column_id ok' );
-	is( $ones->[1]->column_two, 'bar', '->column_two ok' );
+	is( $ones->[1]->columnID, 2,     '->columnID ok' );
+	is( $ones->[1]->ColumnTwo, 'bar', '->ColumnTwo ok' );
 	isa_ok( $ones->[2], 'Foo::Bar::TableOne' );
-	is( $ones->[2]->column_id, 3,     '->column_id ok' );
-	is( $ones->[2]->column_two, 'bar', '->column_two ok' );
+	is( $ones->[2]->columnID, 3,     '->columnID ok' );
+	is( $ones->[2]->ColumnTwo, 'bar', '->ColumnTwo ok' );
 }
 
 # Fetch the rows (list context)

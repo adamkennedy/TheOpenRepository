@@ -14,7 +14,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.49';
+	$VERSION = '1.50';
 }
 
 # Support for the 'prune' option
@@ -53,7 +53,6 @@ sub import {
 		array      => 0,
 		xsaccessor => 0,
 		shim       => 0,
-		normalize  => 0,
 		tables     => 1,
 		views      => 0,
 		x_update   => 0,
@@ -156,7 +155,6 @@ sub import {
 	}
 
 	# Prepare to generate code
-	my $normalize  = $params{normalize};
 	my $readonly   = $params{readonly};
 	my $cleanup    = $params{cleanup};
 	my $xsaccessor = $params{xsaccessor};
@@ -354,7 +352,7 @@ END_PERL
 
 			# What will be the class for this table
 			$table->{class} = $table->{name};
-			if ( $normalize and $table->{class} ne lc $table->{class} ) {
+			if ( $table->{class} ne lc $table->{class} ) {
 				$table->{class} =~ s/([a-z])([A-Z])/${1}_${2}/g;
 				$table->{class} =~ s/_+/_/g;
 			}
@@ -370,13 +368,7 @@ END_PERL
 
 			# Convenience escaping for the column names
 			foreach my $c ( @$columns ) {
-				$c->{cname} = $c->{name};
 				$c->{qname} = "\"$c->{name}\"";
-				if ( $normalize and $c->{name} ne lc $c->{name} ) {
-					$c->{name} =~ s/([a-z])([A-Z])/${1}_${2}/g;
-					$c->{name} =~ s/_+/_/g;
-					$c->{name} = lc $c->{name};
-				}
 			}
 
 			# Track array vs hash implementation on a per-table
@@ -396,8 +388,8 @@ END_PERL
 				}
 			} else {
 				foreach my $c ( @$columns ) {
-					$c->{xs}  = "'$c->{cname}'";
-					$c->{key} = "{$c->{cname}}";
+					$c->{xs}  = "'$c->{name}'";
+					$c->{key} = "{$c->{name}}";
 				}
 			}
 
@@ -422,7 +414,7 @@ END_PERL
 			$table->{pl_new} = join "\n", map {
 				$table->{array}
 					? "\t\t\$attr{$_->{name}},"
-					: "\t\t$_->{cname} => \$attr{$_->{name}},"
+					: "\t\t$_->{name} => \$attr{$_->{name}},"
 			} @$columns;
 
 			$table->{pl_insert} = join "\n", map {
@@ -1104,33 +1096,6 @@ to do nasty tricks with symbol tables in order to alter or replace methods.
 The C<shim> option is global. It will alter the structure of all table
 classes at once. However, unless you are making alterations to a class
 the impact of this different class structure should be zero.
-
-=head2 normalize
-
-Some SQLite databases, particularly those exported from languages with
-camelCase tendencies, will have capitalised table and column naming schemes
-that don't generate particularly nice classes and methods.
-
-The C<normalize> option will cause B<ORLite> to try to flatten down naming to
-a more traditional Perl style.
-
-For example, the following column names are all equivalent with C<normalise>
-enabled and will have an accessor method named C<column_id>.
-
-  column_id
-  Column_ID
-  columnId
-  columnID
-  ColumnID
-
-Table names will also be normalised, and a similarly all of the following table
-names will be normalised to the class B<Foo::Bar::TableOne>.
-
-  table_one
-  Table_One
-  tableOne
-  tableONE
-  TableOne
 
 =head1 ROOT PACKAGE METHODS
 

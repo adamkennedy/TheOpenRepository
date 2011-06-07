@@ -1,5 +1,11 @@
 Changes for Perl extension ORLite
 
+1.50 Tue 7 Jun 2011
+	- Removed normalize as a supported parameter, normalizing columns turns
+	  out not to work in practice. However, we always normalize tables to
+	  get the class name for the table as that seems to result in class
+	  names that make much more sense.
+
 1.49 Wed 1 Jun 2011
 	- Adding normalize support to turn columnName into column_name
 
