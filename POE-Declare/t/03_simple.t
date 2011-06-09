@@ -9,7 +9,7 @@ BEGIN {
 	# $POE::Declare::Meta::DEBUG = 1;
 }
 
-use Test::More tests => 59;
+use Test::More tests => 61;
 use Test::NoWarnings;
 use Test::Exception;
 
@@ -117,7 +117,13 @@ SCOPE: {
 
 	# Calling finish on an unspawned object should be harmless
 	ok( ! $object->spawned, '->spawned is false for new object' );
-	ok( $object->finish, '->finish on unspawned object ok' );
+	throws_ok(
+		sub {
+			$object->finish;
+		},
+		qr/Called 'finish' for Foo.1 on unspawned/,
+		'->finish on unspawned object throws expected exception',
+	);
 
 	# Test errors
 	throws_ok(
