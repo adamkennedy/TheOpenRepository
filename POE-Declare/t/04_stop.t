@@ -51,6 +51,10 @@ SCOPE: {
 	sub say : Event {
 		order( 2, 'Fired Foo::say' );
 		$_[SELF]->finish;
+
+		# Test that multiple calls to finish are benign
+		# and will not throw an exception.
+		$_[SELF]->finish;
 	}
 
 	sub _stop : Event {
