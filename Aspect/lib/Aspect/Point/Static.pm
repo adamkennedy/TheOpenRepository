@@ -5,7 +5,7 @@ use warnings;
 use Carp          ();
 use Aspect::Point ();
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 our @ISA     = 'Aspect::Point';
 
 

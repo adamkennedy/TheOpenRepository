@@ -31,7 +31,7 @@ It's usage is effectively summarised by the synopsis.
 use strict;
 use warnings;
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 =pod
 
