@@ -31,7 +31,7 @@ use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.56';
+	$VERSION = '0.57';
 }
 
 # Inside-out storage of internal values
@@ -702,9 +702,14 @@ the session alias.
 sub finish {
 	my $self = shift;
 
+	# Check the session actually exists
+	my $alias   = $self->Alias;
+	my $session = $poe_kernel->alias_resolve($alias);
+	unless ( $session ) {
+		Carp::croak("Called 'finish' for $alias on unspawned session");
+	}
+
 	# Check we are in the correct session
-	my $alias      = $self->Alias;
-	my $session    = $poe_kernel->alias_resolve($alias);
 	my $current    = $poe_kernel->get_active_session;
 	my $session_id = $session->ID;
 	my $current_id = $current->ID;

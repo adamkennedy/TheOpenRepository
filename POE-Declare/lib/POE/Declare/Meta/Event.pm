@@ -39,7 +39,7 @@ use POE::Declare::Meta::Slot ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.56';
+	$VERSION = '0.57';
 	@ISA     = 'POE::Declare::Meta::Slot';
 }
 

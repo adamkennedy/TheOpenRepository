@@ -1,5 +1,9 @@
 Changes for Perl extension POE-Declare
 
+0.57 Thu 9 Jun 2011
+	- Improved the error message from ->finish when the session does not
+	  exist at the time that ->finish is called.
+
 0.56 Tue 31 May 2011
 	- Bumping POE and Test::POE::Stopping dependencies to get past the
 	  POE::API::Peek explosion.
