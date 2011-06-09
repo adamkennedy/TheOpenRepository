@@ -1,5 +1,9 @@
 Revision history for Perl extension Aspect
 
+1.01 Thu 9 Jun 2011
+	- Added experimental function interface for the join point context.
+	- Move the library tests into the numeric order
+
 1.00 Thu 26 May 2011
 	- First production release of the second-generation Aspect.pm!
 	- Support passing an explicit function list to import as per Exporter

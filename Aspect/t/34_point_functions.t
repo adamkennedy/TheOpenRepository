@@ -1,14 +1,19 @@
 #!/usr/bin/perl
 
+# This is a duplicate of 22_advice_around.t with all the join point functions
+# changed.
+
 use strict;
 BEGIN {
 	$|  = 1;
 	$^W = 1;
 }
 
-use Test::More tests => 56;
+use Test::More tests => 60;
 use Test::NoWarnings;
+use Test::Exception;
 use Aspect;
+use Aspect::Point::Functions;
 
 # Lexicals to track call counts in the support class
 my $new = 0;
@@ -36,74 +41,92 @@ is( $inc, 1, '->inc is called' );
 
 # Check that the null case does nothing
 SCOPE: {
-	my $aspect = before {
+	my $aspect = around {
 		# It's oh so quiet...
 	} call 'My::One::foo';
-	is( $object->foo, 'foo', 'Null case does not change anything' );
-	is( $foo, 2, '->foo is called' );
+	is( scalar($object->foo), undef, 'Scalar null case returns undef' );
+	is_deeply( [ $object->foo ], [ ], 'Listwise null case returns ()' );
+	is( $foo, 1, '->foo is not called' );
 }
 
 # ... and uninstalls properly
 is( $object->foo, 'foo', 'foo uninstalled' );
-is( $foo, 3, '->foo is called' );
+is( $foo, 2, '->foo is called' );
 
-# Check that return_value works as expected and does not pass through
+# Check that the null pass-through case works properly
 SCOPE: {
-	my $aspect = before {
-		$_->return_value('bar')
-	} call "My::One::foo";
-	is( $object->foo, 'bar', 'before changing return_value' );
-	is( $foo, 3, '->foo is not called' );
+	my $aspect = around {
+		proceed;
+	} call 'My::One::foo';
+	is( $object->foo, 'foo', 'Pass-through null case returns normally' );
+	is( $foo, 3, '->foo is called' );
 }
 
 # ... and uninstalls properly
 is( $object->foo, 'foo', 'foo uninstalled' );
 is( $foo, 4, '->foo is called' );
 
-# Check that proceed works as expected and does not pass through
+# Check that shortcutting return_value works and does not pass through
 SCOPE: {
-	my $aspect = before {
-		$_->return_value;
+	my $aspect = around {
+		return_value('bar')
 	} call "My::One::foo";
-	is( scalar($object->foo), undef, 'scalar process(0) shortcuts to undef' );
-	is_deeply( [ $object->foo ], [ ], 'list process(0) shortcuts to ()' );
+	is( $object->foo, 'bar', 'around changing return_value' );
 	is( $foo, 4, '->foo is not called' );
+}
+
+# Check that return_value is changable after pass-through
+SCOPE: {
+	my $aspect = around {
+		proceed;
+		return_value( return_value . 'bar' );
+	} call "My::One::foo";
+	is( $object->foo, 'foobar', 'around changing return_value' );
+	is( $foo, 5, '->foo is called' );
 }
 
 # ... and uninstalls properly
 is( $object->foo, 'foo', 'foo uninstalled' );
-is( $foo, 5, '->foo is called' );
+is( $foo, 6, '->foo is called' );
+
+# ... and uninstalls properly
+is( $object->foo, 'foo', 'foo uninstalled ok' );
+is( $foo, 7, '->foo is called' );
 
 # Check that params works as expected and does pass through
 SCOPE: {
-	my $aspect = before {
-		my @p = $_->args;
+	my $aspect = around {
+		my @p = args;
 		splice @p, 1, 1, $p[1] + 1;
-		$_->args(@p);
+		args(@p);
+		proceed;
 	} call qr/My::One::inc/;
-	is( $object->inc(2), 4, 'before advice changing params' );
+	is( $object->inc(2), 4, 'around advice changing params' );
 	is( $inc, 2, '->inc is called' );
 }
 
 # Check that we can rehook the same function.
 # Check that we can run several simultaneous hooks.
 SCOPE: {
-	my $aspect1 = before {
-		my @p = $_->args;
+	my $aspect1 = around {
+		my @p = args;
 		splice @p, 1, 1, $p[1] + 1;
-		$_->args(@p);
+		args(@p);
+		proceed;
 	} call qr/My::One::inc/;
-	my $aspect2 = before {
-		my @p = $_->args;
+	my $aspect2 = around {
+		my @p = args;
 		splice @p, 1, 1, $p[1] + 1;
-		$_->args(@p);
+		args(@p);
+		proceed;
 	} call qr/My::One::inc/;
-	my $aspect3 = before {
-		my @p = $_->args;
+	my $aspect3 = around {
+		my @p = args;
 		splice @p, 1, 1, $p[1] + 1;
-		$_->args(@p);
+		args(@p);
+		proceed;
 	} call qr/My::One::inc/;
-	is( $object->inc(2), 6, 'before advice changing params' );
+	is( $object->inc(2), 6, 'around advice changing params' );
 	is( $inc, 3, '->inc is called' );
 }
 
@@ -112,8 +135,8 @@ is( $object->inc(3), 4, 'inc uninstalled' );
 is( $inc, 4, '->inc is called' );
 
 # Check the introduction of a permanent hook
-before {
-	$_->return_value('forever');
+around {
+	return_value('forever');
 } call 'My::One::inc';
 is( $object->inc, 'forever', '->inc hooked forever' );
 is( $inc, 4, '->inc not called' );
@@ -129,28 +152,27 @@ is( $inc, 4, '->inc not called' );
 is( $object->bar, 'foo', 'bar cflow not yet installed' );
 is( $object->foo, 'foo', 'foo cflow not yet installed' );
 is( $bar, 1, '->bar is called' );
-is( $foo, 7, '->foo is called for both ->bar and ->foo' );
+is( $foo, 9, '->foo is called for both ->bar and ->foo' );
 
 SCOPE: {
-	my $advice = before {
-		my $c = shift;
-		$c->return_value($c->my_key->self);
+	my $advice = around {
+		return_value( $_->my_key->self );
 	} call "My::One::foo"
 	& cflow my_key => "My::One::bar";
 
 	# ->foo is hooked when called via ->bar, but not directly
 	is( $object->bar, $object, 'foo cflow installed' );
 	is( $bar, 2, '->bar is called' );
-	is( $foo, 7, '->foo is not called' );
+	is( $foo, 9, '->foo is not called' );
 	is( $object->foo, 'foo', 'foo called out of the cflow' );
-	is( $foo, 8, '->foo is called' );
+	is( $foo, 10, '->foo is called' );
 }
 
 # Confirm original behaviour on uninstallation
 is( $object->bar, 'foo', 'bar cflow uninstalled' );
 is( $object->foo, 'foo', 'foo cflow uninstalled' );
-is( $bar, 3, '->bar is called' );
-is( $foo, 10, '->foo is called for both' );
+is( $bar, 3,  '->bar is called' );
+is( $foo, 12, '->foo is called for both' );
 
 
 
@@ -164,8 +186,8 @@ sub main::with_proto ($) { shift }
 
 # Control case
 SCOPE: {
-	my $advice = before {
-		$_->return_value('wrapped')
+	my $advice = around {
+		return_value('wrapped')
 	} call 'main::no_proto';
 	is( main::no_proto('foo'), 'wrapped', 'No prototype' );
 }
@@ -179,8 +201,8 @@ SCOPE: {
 
 # Confirm correct parameter error during hooking
 SCOPE: {
-	my $advice = before {
-		$_->return_value('wrapped');
+	my $advice = around {
+		return_value('wrapped');
 	} call 'main::with_proto';
 	is( main::with_proto('foo'), 'wrapped', 'With prototype' );
 
@@ -204,20 +226,23 @@ SCOPE: {
 # Caller Correctness
 
 my @CALLER = ();
-my $BEFORE = 0;
+my $AROUND = 0;
 
 SCOPE: {
 	# Set up the Aspect
-	my $aspect = before { $BEFORE++ } call 'My::Three::bar';
+	my $aspect = around {
+		$AROUND++;
+		proceed;
+	} call 'My::Three::bar';
 	isa_ok( $aspect, 'Aspect::Advice' );
-	isa_ok( $aspect, 'Aspect::Advice::Before' );
-	is( $BEFORE,         0, '$BEFORE is false' );
+	isa_ok( $aspect, 'Aspect::Advice::Around' );
+	is( $AROUND,         0, '$AROUND is false' );
 	is( scalar(@CALLER), 0, '@CALLER is empty' );
 
 	# Call a method above the wrapped method
 	my $rv = My::Two->foo;
 	is( $rv, 'value', '->foo is ok' );
-	is( $BEFORE,         1, '$BEFORE is true' );
+	is( $AROUND,         1, '$AROUND is true' );
 	is( scalar(@CALLER), 2, '@CALLER is full' );
 	is( $CALLER[0]->[0], 'My::Two', 'First caller is My::Two' );
 	is( $CALLER[1]->[0], 'main', 'Second caller is main' );
@@ -252,20 +277,13 @@ my @CONTEXT = ();
 
 # Before the aspects
 SCOPE: {
-	() = Foo->before;
-	my $dummy = Foo->before;
-	Foo->before;
+	() = Foo->around;
+	my $dummy = Foo->around;
+	Foo->around;
 }
 
 SCOPE: {
-	my $aspect = before {
-		if ( $_[0]->wantarray ) {
-			push @CONTEXT, 'ARRAY';
-		} elsif ( defined $_[0]->wantarray ) {
-			push @CONTEXT, 'SCALAR';
-		} else {
-			push @CONTEXT, 'VOID';
-		}
+	my $aspect = around {
 		if ( wantarray ) {
 			push @CONTEXT, 'ARRAY';
 		} elsif ( defined wantarray ) {
@@ -273,19 +291,27 @@ SCOPE: {
 		} else {
 			push @CONTEXT, 'VOID';
 		}
-	} call 'Foo::before';
+		if ( CORE::wantarray ) {
+			push @CONTEXT, 'ARRAY';
+		} elsif ( defined CORE::wantarray ) {
+			push @CONTEXT, 'SCALAR';
+		} else {
+			push @CONTEXT, 'VOID';
+		}
+		proceed;
+	} call 'Foo::around';
 
 	# During the aspects
-	() = Foo->before;
-	my $dummy = Foo->before;
-	Foo->before;
+	() = Foo->around;
+	my $dummy = Foo->around;
+	Foo->around;
 }
 
 # After the aspects
 SCOPE: {
-	() = Foo->before;
-	my $dummy = Foo->before;
-	Foo->before;
+	() = Foo->around;
+	my $dummy = Foo->around;
+	Foo->around;
 }
 
 # Check the results in aggregate
@@ -302,16 +328,16 @@ is_deeply(
 		scalar
 		void
 	} ],
-	'All wantarray contexts worked as expected for before',
+	'All wantarray contexts worked as expected for around',
 );
 
 SCOPE: {
 	package Foo;
 
-	sub before {
-		if ( wantarray ) {
+	sub around {
+		if ( CORE::wantarray ) {
 			push @CONTEXT, 'array';
-		} elsif ( defined wantarray ) {
+		} elsif ( defined CORE::wantarray ) {
 			push @CONTEXT, 'scalar';
 		} else {
 			push @CONTEXT, 'void';
