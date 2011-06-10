@@ -258,7 +258,7 @@ use constant SELF => HEAP;
 
 use vars qw{$VERSION @ISA @EXPORT %ATTR %EVENT %META};
 BEGIN {
-	$VERSION = '0.57';
+	$VERSION = '0.58';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{ SELF declare compile };
 

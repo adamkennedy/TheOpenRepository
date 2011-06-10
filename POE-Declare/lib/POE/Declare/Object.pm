@@ -31,7 +31,7 @@ use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.57';
+	$VERSION = '0.58';
 }
 
 # Inside-out storage of internal values
@@ -702,11 +702,20 @@ the session alias.
 sub finish {
 	my $self = shift;
 
-	# Check the session actually exists
+	# Are we running
 	my $alias   = $self->Alias;
+	my $self_id = $ID{Scalar::Util::refaddr($self)};
 	my $session = $poe_kernel->alias_resolve($alias);
-	unless ( $session ) {
+	unless ( $self_id ) {
+		# Trying to finish a session when we aren't even spawned in
+		# POE::Declare terms should be treated strictly.
 		Carp::croak("Called 'finish' for $alias on unspawned session");
+	}
+	unless ( $session ) {
+		# Show some lenience for now and allow double-finishing of an
+		# active POE session (to allow a class to be sure it has
+		# finished everything if there is any doubt).
+		return;
 	}
 
 	# Check we are in the correct session
@@ -721,12 +730,8 @@ sub finish {
 	$poe_kernel->alarm_remove_all;
 
 	# Remove the session alias.
-	my $self_id = $ID{Scalar::Util::refaddr($self)};
-	unless ( defined $session_id and defined $self_id ) {
-		return;
-	}
 	unless ( $session_id == $self_id ) {
-		Carp::croak("Session id mismatch error");
+		die("Session id mismatch error");
 	}
 
 	$poe_kernel->alias_remove($alias);

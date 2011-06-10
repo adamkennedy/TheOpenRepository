@@ -1,5 +1,9 @@
 Changes for Perl extension POE-Declare
 
+0.58 Fri 10 Jun 2011
+	- It is now legal to ->finish a session twice, as long as the session
+	  still exists in POE terms. The second call will silently shortcut.
+
 0.57 Thu 9 Jun 2011
 	- Improved the error message from ->finish when the session does not
 	  exist at the time that ->finish is called.
