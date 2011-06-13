@@ -39,6 +39,7 @@ SCOPE: {
 			README
 			pm_to_blib
                         MYMETA.yml
+                        MYMETA.json
 		};
 		my @files = sort grep {
 			! /^debian\b/

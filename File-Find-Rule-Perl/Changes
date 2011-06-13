@@ -1,5 +1,7 @@
 Revision history for Perl extension File-Find-Rule-Perl
 
+        - Skip MYMETA.json too (CHORNY)
+
 1.10 Wed  6 Sep 2010
 	- Upgrading to Module::Install::DSL 1.00
 	- Removing nasty evil use UNIVERSAL;
