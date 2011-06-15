@@ -53,7 +53,7 @@ sub generate_params {
             my $cur_part;
             foreach (@res) {
                 if (/^\s+(\w):\s*$/) {
-                    $cur_part = $1;
+                    $cur_part = lc($1);
                     next;
                 }
                 if (/^\s*((?:[0-9a-f]{2,2}:?)+)\s*$/) {
