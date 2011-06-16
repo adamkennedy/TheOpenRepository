@@ -1,5 +1,11 @@
 Changes for Perl extension FBP-Perl
 
+0.39 Thu 16 Jun 2011
+	- Bump FBP dependency to 0.30 for Frame/Panel/RadioBox support
+	- Added support for Wx::Frame class generation
+	- Added support for Wx::Panel class generation
+	- The dialog_xxxxx methods are now generalised to form_xxxxx
+
 0.38 Tue 17 May 2011
 	- Added support for Wx::RadioBox
 	- Generalised the generation of style constants a bit more

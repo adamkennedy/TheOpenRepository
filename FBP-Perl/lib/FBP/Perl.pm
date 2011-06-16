@@ -21,10 +21,112 @@ TO BE COMPLETED
 use 5.008005;
 use strict;
 use warnings;
-use FBP           0.29 ();
+use FBP           0.30 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.38';
+our $VERSION = '0.39';
+
+# Event Binding Table
+my %EVENT = (
+	# wxActivateEvent
+	OnActivate                => [ 'EVT_ACTIVATE'                   ],
+	OnActivateApp             => [ 'EVT_ACTIVATE_APP'               ],
+
+	# wxCommandEvent
+	OnButtonClick             => [ 'EVT_BUTTON'                     ],
+	OnCheckBox                => [ 'EVT_CHECKBOX'                   ],
+	OnChoice                  => [ 'EVT_CHOICE'                     ],
+	OnCombobox                => [ 'EVT_COMBOBOX'                   ],
+	OnListBox                 => [ 'EVT_LISTBOX'                    ],
+	OnListBoxDClick           => [ 'EVT_LISTBOX_DCLICK'             ],
+	OnText                    => [ 'EVT_TEXT'                       ],
+	OnTextEnter               => [ 'EVT_TEXT_ENTER'                 ],
+	OnMenu                    => [ 'EVT_MENU'                       ],
+	OnMenuRange               => [ 'EVT_MENU_RANGE'                 ],
+
+	# wxColourPickerCtrl
+	OnColourChanged           => [ 'EVT_COLOURPICKER_CHANGED'      ],
+
+	# wxCloseEvent
+	OnClose                   => [ 'EVT_CLOSE'                      ],
+
+	# wxEraseEvent
+	OnEraseBackground         => [ ''                               ],
+
+	# wxFilePickerCtrl
+	OnFileChanged             => [ 'EVT_FILEPICKER_CHANGED'         ],
+
+	# wxFocusEvent
+	OnKillFocus               => [ 'EVT_KILL_FOCUS'                 ],
+	OnSetFocus                => [ 'EVT_SET_FOCUS'                  ],
+
+	# wxFontPickerCtrl
+	OnFontChanged             => [ 'EVT_FONTPICKER_CHANGED'        ],
+
+	# wxIdleEvent
+	OnIdle                    => [ 'EVT_IDLE'                       ],
+
+	# wxKeyEvent
+	OnChar                    => [ 'EVT_CHAR'                       ],
+	OnKeyDown                 => [ 'EVT_KEY_DOWN'                   ],
+	OnKeyUp                   => [ 'EVT_KEY_UP'                     ],
+
+	# wxHtmlWindow
+	OnHtmlCellClicked         => [ 'EVT_HTML_CELL_CLICKED'          ],
+	OnHtmlCellHover           => [ 'EVT_HTML_CELL_HOVER'            ],
+	OnHtmlLinkClicked         => [ 'EVT_HTML_LINK_CLICKED'          ],
+
+	# wxListEvent
+	OnListBeginDrag           => [ 'EVT_LIST_BEGIN_DRAG'            ],
+	OnListBeginRDrag          => [ 'EVT_LIST_BEGIN_RDRAG'           ],
+	OnListBeginLabelEdit      => [ 'EVT_LIST_BEGIN_LABEL_EDIT'      ],
+	OnListCacheHint           => [ 'EVT_LIST_CACHE_HINT'            ],
+	OnListEndLabelEdit        => [ 'EVT_LIST_END_LABEL_EDIT'        ],
+	OnListDeleteItem          => [ 'EVT_LIST_DELETE_ITEM'           ],
+	OnListDeleteAllItems      => [ 'EVT_LIST_DELETE_ALL_ITEMS'      ],
+	OnListInsertItem          => [ 'EVT_LIST_INSERT_ITEM'           ],
+	OnListItemActivated       => [ 'EVT_LIST_ITEM_ACTIVATED'        ],
+	OnListItemSelected        => [ 'EVT_LIST_ITEM_SELECTED'         ],
+	OnListItemDeselected      => [ 'EVT_LIST_ITEM_DESELECTED'       ],
+	OnListItemFocused         => [ 'EVT_LIST_ITEM_FOCUSED'          ],
+	OnListItemMiddleClick     => [ 'EVT_LIST_MIDDLE_CLICK'          ],
+	OnListItemRightClick      => [ 'EVT_LIST_RIGHT_CLICK'           ],
+	OnListKeyDown             => [ 'EVT_LIST_KEY_DOWN'              ],
+	OnListColClick            => [ 'EVT_LIST_COL_CLICK'             ],
+	OnListColRightClick       => [ 'EVT_LIST_COL_RIGHT_CLICK'       ],
+	OnListColBeginDrag        => [ 'EVT_LIST_COL_BEGIN_DRAG'        ],
+	OnListColDragging         => [ 'EVT_LIST_COL_DRAGGING'          ],
+	OnListColEndDrag          => [ 'EVT_LIST_COL_END_DRAG'          ],
+
+	# wxMouseEvent
+	OnEnterWindow             => [ 'EVT_ENTER_WINDOW'               ],
+	OnLeaveWindow             => [ 'EVT_LEAVE_WINDOW'               ],
+	OnLeftDClick              => [ 'EVT_LEFT_DCLICK'                ],
+	OnLeftDown                => [ 'EVT_LEFT_DOWN'                  ],
+	OnLeftUp                  => [ 'EVT_LEFT_UP'                    ],
+	OnMiddleClick             => [ 'EVT_MIDDLE_CLICK'               ],
+	OnMiddleDown              => [ 'EVT_MIDDLE_DOWN'                ],
+	OnMiddleUp                => [ 'EVT_MIDDLE_UP'                  ],
+	OnMotion                  => [ 'EVT_MOTION'                     ],
+	OnMouseEvents             => [ 'EVT_MOUSE_EVENTS'               ],
+	OnMouseWheel              => [ 'EVT_MOUSE_WHEEL'                ],
+	OnRightDClick             => [ 'EVT_RIGHT_DCLICK'               ],
+	OnRightDown               => [ 'EVT_RIGHT_DOWN'                 ],
+	OnRightUp                 => [ 'EVT_RIGHT_UP'                   ],
+
+	# wxNotebookEvent
+	OnNotebookPageChanging    => [ 'EVT_NOTEBOOK_PAGE_CHANGING'     ],
+	OnNotebookPageChanged     => [ 'EVT_NOTEBOOK_PAGE_CHANGED'      ],
+
+	# wxRadioBox
+	OnRadioBox                => [ 'EVT_RADIOBOX_SELECTED'          ],
+
+	# wxSplitterEvent
+	OnSplitterSashPosChanging => [ 'EVT_SPLITTER_SASH_POS_CHANGING' ],
+	OnSplitterSashPosChanged  => [ 'EVT_SPLITTER_SASH_POS_CHANGED'  ],
+	OnSplitterUnsplit         => [ 'EVT_SPLITTER_UNSPLIT'           ],
+	OnSplitterDClick          => [ 'EVT_SPLITTER_DCLICK'            ],
+);
 
 
 
@@ -73,19 +175,112 @@ sub dialog_write {
 
 
 ######################################################################
-# Dialog Generators
+# Project Generators
+
+sub project_class {
+	my $self    = shift;
+	my $project = shift;
+	my $package = $self->project_package($project);
+	my $pragma  = $self->use_pragma($project);
+	my $wx      = $self->project_wx($project);
+	my $forms   = $self->project_forms($project);
+	my $version = $self->project_version($project);
+	my $isa     = $self->project_isa($project);
+
+	return [
+		"package $package;",
+		"",
+		@$pragma,
+		@$wx,
+		# @$forms,
+		"",
+		@$version,
+		@$isa,
+		"",
+		"1;"
+	];
+}
+
+sub project_package {
+	my $self    = shift;
+	my $project = shift;
+
+	# For the time being just use the plain name
+	return $project->name;
+}
+
+sub project_wx {
+	my $self    = shift;
+	my $project = shift;
+	my @lines   = (
+		"use Wx ':everything';",
+	);
+	if ( $project->internationalize ) {
+		push @lines, "use Wx::Locale ();";
+	}
+	return \@lines;
+}
+
+sub project_forms {
+	my $self    = shift;
+	my $project = shift;
+
+	return [
+		map {
+			"use $_ ();"
+		} map {
+			$self->form_package($_)
+		} $project->forms
+	];
+}
+
+sub project_version {
+	my $self    = shift;
+	my $project = shift;
+
+	return [
+		"our \$VERSION = '0.01';",
+	];
+}
+
+sub project_isa {
+	my $self = shift;
+
+	return [
+		"our \@ISA     = 'Wx::App';",
+	];
+}
+
+
+
+
+
+######################################################################
+# Form Generators
 
 sub dialog_class {
+	shift->form_class(@_);
+}
+
+sub frame_class {
+	shift->form_class(@_);
+}
+
+sub panel_class {
+	shift->form_class(@_);
+}
+
+sub form_class {
 	my $self    = shift;
-	my $dialog  = shift;
-	my $package = $dialog->name;
-	my $pragma  = $self->use_pragma($dialog);
-	my $wx      = $self->use_wx($dialog);
-	my $more    = $self->use_more($dialog);
-	my $version = $self->dialog_version($dialog);
-	my $isa     = $self->dialog_isa($dialog);
-	my $new     = $self->dialog_new($dialog);
-	my $methods = $self->dialog_methods($dialog);
+	my $form    = shift;
+	my $package = $self->form_package($form);
+	my $pragma  = $self->use_pragma($form);
+	my $wx      = $self->form_wx($form);
+	my $more    = $self->form_custom($form);
+	my $version = $self->form_version($form);
+	my $isa     = $self->form_isa($form);
+	my $new     = $self->form_new($form);
+	my $methods = $self->form_methods($form);
 
 	return [
 		"package $package;",
@@ -104,17 +299,82 @@ sub dialog_class {
 	];
 }
 
-sub dialog_new {
+sub form_package {
+	my $self = shift;
+	my $form = shift;
+
+	# For the time being just use the plain name
+	return $form->name;
+}
+
+sub form_wx {
+	my $self  = shift;
+	my $topic = shift;
+
+	return [
+		"use Wx ':everything';",
+	];
+}
+
+sub form_custom {
+	my $self = shift;
+	my $form = shift;
+
+	# Search for all the custom classes and load them
+	my %seen = ();
+	return [
+		map {
+			"use $_ ();"
+		} sort grep {
+			not $seen{$_}++
+		} map {
+			$_->header
+		} $form->find( isa => 'FBP::Window' )
+	];
+}
+
+sub form_version {
+	my $self = shift;
+	my $form = shift;
+
+	# Ignore the form and inherit from the parent project
+	return $self->project_version( $self->project );
+}
+
+sub form_isa {
+	my $self = shift;
+	my $form = shift;
+	if ( $form->isa('FBP::Dialog') ) {
+		return [
+			"our \@ISA     = 'Wx::Dialog';",
+		];
+
+	} elsif ( $form->isa('FBP::Frame') ) {
+		return [
+			"our \@ISA     = 'Wx::Frame';",
+		];
+
+	} elsif ( $form->isa('FBP::Panel') ) {
+		return [
+			"our \@ISA     = 'Wx::Panel';",
+		];
+
+	} else {
+		die "Unsupported form " . ref($form);
+	}
+}
+
+sub form_new {
 	my $self    = shift;
-	my $dialog  = shift;
-	my $super   = $self->dialog_super($dialog);
-	my @windows = $self->dialog_windows($dialog);
-	my @sizers  = $self->dialog_sizers($dialog);
+	my $form    = shift;
+	my $super   = $self->form_super($form);
+	my @windows = $self->children_create($form);
+	my @sizers  = $self->form_sizers($form);
 
 	my @hints = ();
-	if ( $self->dialog_setsizehints($dialog) ) {
-		my $minsize = $self->wxsize($dialog->minimum_size);
-		my $maxsize = $self->wxsize($dialog->maximum_size);
+	if ( $self->form_setsizehints($form) ) {
+		my $minsize = $self->wxsize($form->minimum_size);
+		my $maxsize = $self->wxsize($form->maximum_size);
 		push @hints, "\$self->SetSizeHints( $minsize, $maxsize );";
 	}
 
@@ -126,16 +386,30 @@ sub dialog_new {
 		$super,
 		@hints,
 		"",
-		@windows,
-		( map { @$_, "" } @sizers ),
+		( map { @$_, "" } @windows ),
+		( map { @$_, "" } @sizers  ),
 		"return \$self;",
 		"}",
 	);
 }
 
+sub form_super {
+	my $self = shift;
+	my $form = shift;
+	if ( $form->isa('FBP::Dialog') ) {
+		return $self->dialog_super($form);
+	} elsif ( $form->isa('FBP::Frame') ) {
+		return $self->frame_super($form);
+	} elsif ( $form->isa('FBP::Panel') ) {
+		return $self->panel_super($form);
+	} else {
+		die "Unsupported top class " . ref($form);
+	}
+}
+
 sub dialog_super {
 	my $self     = shift;
-	my $dialog   = shift;
+	my $dialog     = shift;
 	my $id       = $self->wx( $dialog->id );
 	my $title    = $self->text( $dialog->title );
 	my $position = $self->object_position($dialog);
@@ -153,18 +427,48 @@ sub dialog_super {
 	);
 }
 
-# Recurse down the object tree
-sub dialog_windows {
-	my $self    = shift;
-	my $dialog  = shift;
-	my @windows = $self->children_create($dialog);
-	return map { @$_, "" } @windows;
+sub frame_super {
+	my $self     = shift;
+	my $frame     = shift;
+	my $id       = $self->wx( $frame->id );
+	my $title    = $self->text( $frame->title );
+	my $position = $self->object_position($frame);
+	my $size     = $self->object_wxsize($frame);
+
+	return $self->nested(
+		"my \$self = \$class->SUPER::new(",
+		"\$parent,",
+		"$id,",
+		"$title,",
+		"$position,",
+		"$size,",
+		$self->window_style($frame, 'wxDEFAULT_FRAME_STYLE'),
+		");",
+	);
 }
 
-sub dialog_sizers {
+sub panel_super {
 	my $self     = shift;
-	my $dialog   = shift;
-	my $sizer    = $dialog->children->[0];
+	my $panel     = shift;
+	my $id       = $self->wx( $panel->id );
+	my $position = $self->object_position($panel);
+	my $size     = $self->object_wxsize($panel);
+
+	return $self->nested(
+		"my \$self = \$class->SUPER::new(",
+		"\$parent,",
+		"$id,",
+		"$position,",
+		"$size,",
+		$self->window_style($panel),
+		");",
+	);
+}
+
+sub form_sizers {
+	my $self     = shift;
+	my $form     = shift;
+	my $sizer    = $form->children->[0];
 	my $variable = $self->object_variable($sizer);
 
 	# Check the sizer within the dialog
@@ -181,12 +485,12 @@ sub dialog_sizers {
 			"\$self->SetSizer($variable);",
 			"\$self->Layout;",
 			(
-				$self->size($dialog->size)
+				$self->size($form->size)
 				? ()
 				: "$variable->Fit(\$self);"
 			),
 			(
-				$self->dialog_setsizehints($dialog)
+				$self->form_setsizehints($form)
 				? "$variable->SetSizeHints(\$self);"
 				: ()
 			),
@@ -194,42 +498,76 @@ sub dialog_sizers {
 	);
 }
 
-sub dialog_version {
-	my $self   = shift;
-	my $dialog = shift;
+sub form_setsizehints {
+	my $self = shift;
+	my $form = shift;
 
-	return [
-		"our \$VERSION = '0.01';",
-	];
-}
-
-sub dialog_isa {
-	my $self   = shift;
-	my $dialog = shift;
-
-	return [
-		"our \@ISA     = 'Wx::Dialog';",
-	];
-}
-
-sub dialog_setsizehints {
-	my $self   = shift;
-	my $dialog = shift;
-
-	# If our borders are resizable we need to set size hints
-	if ( $dialog->style =~ /\bwxRESIZE_BORDER\b/ ) {
-		return 1;
+	# Only dialogs and frames can resize
+	if ( $form->isa('FBP::Dialog') or $form->isa('FBP::Frame') ) {
+		# If our borders are resizable we need to set size hints
+		if ( $form->style =~ /\bwxRESIZE_BORDER\b/ ) {
+			return 1;
+		}
 	}
 
 	# If the dialog has size hints, we do need them
-	if ( $self->size($dialog->minimum_size) ) {
+	if ( $self->size($form->minimum_size) ) {
 		return 1;
 	}
-	if ( $self->size($dialog->maximum_size) ) {
+	if ( $self->size($form->maximum_size) ) {
 		return 1;
 	}
 
 	return 0;
+}
+
+sub form_methods {
+	my $self    = shift;
+	my $form    = shift;
+	my @windows = $form->find( isa => 'FBP::Window' );
+	my %seen    = ();
+	my %done    = ();
+	my @methods = ();
+
+	# Add the accessor methods
+	foreach my $window ( @windows ) {
+		next unless $window->can('name');
+		next unless $window->can('permission');
+		next unless $window->permission eq 'public';
+
+		# Protect against duplicates
+		my $name = $window->name;
+		if ( $seen{$name}++ ) {
+			die "Duplicate method '$name' detected";
+		}
+
+		push @methods, $self->window_accessor($window);
+	}
+
+	# Add the event handler methods
+	foreach my $window ( @windows ) {
+		foreach my $event ( sort keys %EVENT ) {
+			next unless $window->can($event);
+
+			my $name   = $window->name;
+			my $method = $window->$event();
+			next unless defined $method;
+			next unless length $method;
+
+			# Protect against duplicates
+			if ( $seen{$method} ) {
+				die "Duplicate method '$method' detected";
+			}
+			next if $done{$method}++;
+
+			push @methods, $self->window_event($window, $event);
+		}
+	}
+
+	# Convert back to a single block of lines
+	return [
+		map { ( "", @$_ ) } @methods
+	];
 }
 
 
@@ -1300,107 +1638,6 @@ sub window_hide {
 	return;
 }
 
-my %EVENT = (
-	# wxActivateEvent
-	OnActivate                => [ 'EVT_ACTIVATE'                   ],
-	OnActivateApp             => [ 'EVT_ACTIVATE_APP'               ],
-
-	# wxCommandEvent
-	OnButtonClick             => [ 'EVT_BUTTON'                     ],
-	OnCheckBox                => [ 'EVT_CHECKBOX'                   ],
-	OnChoice                  => [ 'EVT_CHOICE'                     ],
-	OnCombobox                => [ 'EVT_COMBOBOX'                   ],
-	OnListBox                 => [ 'EVT_LISTBOX'                    ],
-	OnListBoxDClick           => [ 'EVT_LISTBOX_DCLICK'             ],
-	OnText                    => [ 'EVT_TEXT'                       ],
-	OnTextEnter               => [ 'EVT_TEXT_ENTER'                 ],
-	OnMenu                    => [ 'EVT_MENU'                       ],
-	OnMenuRange               => [ 'EVT_MENU_RANGE'                 ],
-
-	# wxColourPickerCtrl
-	OnColourChanged           => [ 'EVT_COLOURPICKER_CHANGED'      ],
-
-	# wxCloseEvent
-	OnClose                   => [ 'EVT_CLOSE'                      ],
-
-	# wxEraseEvent
-	OnEraseBackground         => [ ''                               ],
-
-	# wxFilePickerCtrl
-	OnFileChanged             => [ 'EVT_FILEPICKER_CHANGED'         ],
-
-	# wxFocusEvent
-	OnKillFocus               => [ 'EVT_KILL_FOCUS'                 ],
-	OnSetFocus                => [ 'EVT_SET_FOCUS'                  ],
-
-	# wxFontPickerCtrl
-	OnFontChanged             => [ 'EVT_FONTPICKER_CHANGED'        ],
-
-	# wxIdleEvent
-	OnIdle                    => [ 'EVT_IDLE'                       ],
-
-	# wxKeyEvent
-	OnChar                    => [ 'EVT_CHAR'                       ],
-	OnKeyDown                 => [ 'EVT_KEY_DOWN'                   ],
-	OnKeyUp                   => [ 'EVT_KEY_UP'                     ],
-
-	# wxHtmlWindow
-	OnHtmlCellClicked         => [ 'EVT_HTML_CELL_CLICKED'          ],
-	OnHtmlCellHover           => [ 'EVT_HTML_CELL_HOVER'            ],
-	OnHtmlLinkClicked         => [ 'EVT_HTML_LINK_CLICKED'          ],
-
-	# wxListEvent
-	OnListBeginDrag           => [ 'EVT_LIST_BEGIN_DRAG'            ],
-	OnListBeginRDrag          => [ 'EVT_LIST_BEGIN_RDRAG'           ],
-	OnListBeginLabelEdit      => [ 'EVT_LIST_BEGIN_LABEL_EDIT'      ],
-	OnListCacheHint           => [ 'EVT_LIST_CACHE_HINT'            ],
-	OnListEndLabelEdit        => [ 'EVT_LIST_END_LABEL_EDIT'        ],
-	OnListDeleteItem          => [ 'EVT_LIST_DELETE_ITEM'           ],
-	OnListDeleteAllItems      => [ 'EVT_LIST_DELETE_ALL_ITEMS'      ],
-	OnListInsertItem          => [ 'EVT_LIST_INSERT_ITEM'           ],
-	OnListItemActivated       => [ 'EVT_LIST_ITEM_ACTIVATED'        ],
-	OnListItemSelected        => [ 'EVT_LIST_ITEM_SELECTED'         ],
-	OnListItemDeselected      => [ 'EVT_LIST_ITEM_DESELECTED'       ],
-	OnListItemFocused         => [ 'EVT_LIST_ITEM_FOCUSED'          ],
-	OnListItemMiddleClick     => [ 'EVT_LIST_MIDDLE_CLICK'          ],
-	OnListItemRightClick      => [ 'EVT_LIST_RIGHT_CLICK'           ],
-	OnListKeyDown             => [ 'EVT_LIST_KEY_DOWN'              ],
-	OnListColClick            => [ 'EVT_LIST_COL_CLICK'             ],
-	OnListColRightClick       => [ 'EVT_LIST_COL_RIGHT_CLICK'       ],
-	OnListColBeginDrag        => [ 'EVT_LIST_COL_BEGIN_DRAG'        ],
-	OnListColDragging         => [ 'EVT_LIST_COL_DRAGGING'          ],
-	OnListColEndDrag          => [ 'EVT_LIST_COL_END_DRAG'          ],
-
-	# wxMouseEvent
-	OnEnterWindow             => [ 'EVT_ENTER_WINDOW'               ],
-	OnLeaveWindow             => [ 'EVT_LEAVE_WINDOW'               ],
-	OnLeftDClick              => [ 'EVT_LEFT_DCLICK'                ],
-	OnLeftDown                => [ 'EVT_LEFT_DOWN'                  ],
-	OnLeftUp                  => [ 'EVT_LEFT_UP'                    ],
-	OnMiddleClick             => [ 'EVT_MIDDLE_CLICK'               ],
-	OnMiddleDown              => [ 'EVT_MIDDLE_DOWN'                ],
-	OnMiddleUp                => [ 'EVT_MIDDLE_UP'                  ],
-	OnMotion                  => [ 'EVT_MOTION'                     ],
-	OnMouseEvents             => [ 'EVT_MOUSE_EVENTS'               ],
-	OnMouseWheel              => [ 'EVT_MOUSE_WHEEL'                ],
-	OnRightDClick             => [ 'EVT_RIGHT_DCLICK'               ],
-	OnRightDown               => [ 'EVT_RIGHT_DOWN'                 ],
-	OnRightUp                 => [ 'EVT_RIGHT_UP'                   ],
-
-	# wxNotebookEvent
-	OnNotebookPageChanging    => [ 'EVT_NOTEBOOK_PAGE_CHANGING'     ],
-	OnNotebookPageChanged     => [ 'EVT_NOTEBOOK_PAGE_CHANGED'      ],
-
-	# wxRadioBox
-	OnRadioBox                => [ 'EVT_RADIOBOX_SELECTED'          ],
-
-	# wxSplitterEvent
-	OnSplitterSashPosChanging => [ 'EVT_SPLITTER_SASH_POS_CHANGING' ],
-	OnSplitterSashPosChanged  => [ 'EVT_SPLITTER_SASH_POS_CHANGED'  ],
-	OnSplitterUnsplit         => [ 'EVT_SPLITTER_UNSPLIT'           ],
-	OnSplitterDClick          => [ 'EVT_SPLITTER_DCLICK'            ],
-);
-
 sub window_bindings {
 	my $self     = shift;
 	my $window   = shift;
@@ -1428,55 +1665,6 @@ sub window_bindings {
 	}
 
 	return @lines;
-}
-
-sub dialog_methods {
-	my $self    = shift;
-	my $dialog  = shift;
-	my @windows = $dialog->find( isa => 'FBP::Window' );
-	my %seen    = ();
-	my %done    = ();
-	my @methods = ();
-
-	# Add the accessor methods
-	foreach my $window ( @windows ) {
-		next unless $window->can('name');
-		next unless $window->can('permission');
-		next unless $window->permission eq 'public';
-
-		# Protect against duplicates
-		my $name = $window->name;
-		if ( $seen{$name}++ ) {
-			die "Duplicate method '$name' detected";
-		}
-
-		push @methods, $self->window_accessor($window);
-	}
-
-	# Add the event handler methods
-	foreach my $window ( @windows ) {
-		foreach my $event ( sort keys %EVENT ) {
-			next unless $window->can($event);
-
-			my $name   = $window->name;
-			my $method = $window->$event();
-			next unless defined $method;
-			next unless length $method;
-
-			# Protect against duplicates
-			if ( $seen{$method} ) {
-				die "Duplicate method '$method' detected";
-			}
-			next if $done{$method}++;
-
-			push @methods, $self->window_event($window, $event);
-		}
-	}
-
-	# Convert back to a single block of lines
-	return [
-		map { ( "", @$_ ) } @methods
-	];
 }
 
 
@@ -1508,7 +1696,7 @@ sub object_variable {
 sub object_parent {
 	my $self   = shift;
 	my $object = shift;
-	if ( $object and not $object->isa('FBP::Dialog') ) {
+	if ( $object and not $object->DOES('FBP::Form') ) {
 		return $self->object_variable($object);
 	} else {
 		return '$self';
@@ -1530,6 +1718,16 @@ sub object_wxsize {
 	my $self   = shift;
 	my $object = shift;
 	return $self->wxsize($object->size);
+}
+
+# Is an object a top level project asset.
+# i.e. A Dialog, Frame or top level Panel
+sub object_top {
+	my $self   = shift;
+	my $object = shift;
+	return 1 if $object->isa('FBP::Dialog');
+	return 1 if $object->isa('FBP::Frame');
+	return 0;
 }
 
 sub window_new {
@@ -1641,38 +1839,14 @@ sub control_params {
 # Support Methods
 
 sub use_pragma {
-	my $self   = shift;
-	my $dialog = shift;
+	my $self  = shift;
+	my $topic = shift;
+
 	return [
 		"use 5.008;",
 		"use strict;",
 		"use warnings;",
 	]
-}
-
-sub use_wx {
-	my $self   = shift;
-	my $object = shift;
-	return [
-		"use Wx ':everything';",
-	];
-}
-
-sub use_more {
-	my $self   = shift;
-	my $object = shift;
-
-	# Search for all the custom classes and load them
-	my %seen = ();
-	return [
-		map {
-			"use $_ ();"
-		} sort grep {
-			not $seen{$_}++
-		} map {
-			$_->header
-		} $object->find( isa => 'FBP::Window' )
-	];
 }
 
 sub wx {
