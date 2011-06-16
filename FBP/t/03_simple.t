@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 167;
+use Test::More tests => 169;
 use Test::NoWarnings;
 use Scalar::Util 'refaddr';
 use File::Spec::Functions ':ALL';
@@ -36,6 +36,8 @@ ok( $ok, '->parse_file returned true' );
 # Check the project properties
 my $project = $object->project;
 isa_ok( $project, 'FBP::Project' );
+is( $project->name, 'Simple', '->name ok' );
+is( $project->relative_path, '1', '->relative_path ok' );
 is( $project->internationalize, '1', '->internationalize ok' );
 
 # Find a particular named dialog

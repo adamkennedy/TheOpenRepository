@@ -7,6 +7,16 @@ our $VERSION = '0.30';
 extends 'FBP::Object';
 with    'FBP::Children';
 
+has name => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+has relative_path => (
+	is  => 'ro',
+	isa => 'Bool',
+);
+
 has internationalize => (
 	is  => 'ro',
 	isa => 'Bool',

@@ -9,6 +9,8 @@ Changes for Perl extension FBP
 	- Added FBP::project method
 	- Added FBP::form method
 	- Added FBP::Project::forms method
+	- Added FBP::Project::name method
+	- Added FBP::Project::relative_path method
 
 0.29 Tue 17 May 2011
 	- Added FBP::RadioBox::style method
