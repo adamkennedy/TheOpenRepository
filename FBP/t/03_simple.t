@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 161;
+use Test::More tests => 167;
 use Test::NoWarnings;
 use Scalar::Util 'refaddr';
 use File::Spec::Functions ':ALL';
@@ -75,6 +75,18 @@ is( scalar(@window), 38, '->find(multiple) ok' );
 foreach ( @window ) {
 	isa_ok( $_, 'FBP::Window' );
 }
+
+# Frame properties
+my $frame1 = $object->form('MyFrame1');
+isa_ok( $frame1, 'FBP::Frame' );
+ok( $frame1->DOES('FBP::Form'), 'DOES FBP::Form' );
+can_ok( $frame1, 'OnInitDialog' );
+
+# Top level Panel properties
+my $panel1 = $object->form('MyPanel1');
+isa_ok( $panel1, 'FBP::FormPanel' );
+isa_ok( $panel1, 'FBP::Panel' );
+ok( $panel1->DOES('FBP::Form'), 'DOES FBP::Form' );
 
 # Text properties
 my $text = $object->find_first(
