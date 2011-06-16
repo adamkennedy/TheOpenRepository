@@ -1,6 +1,6 @@
 Changes for Perl extension FBP
 
-0.30 to be released
+0.30 Thu 16 Jun 2011
 	- Added FBP::BitmapButton class
 	- Added FBP::Frame class
 	- Added FBP::FormPanel class
