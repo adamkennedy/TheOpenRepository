@@ -11,7 +11,7 @@ use Crypt::DSA::Util qw( bitsize bin2mp mod_inverse mod_exp makerandom );
 
 use vars qw( $VERSION );
 BEGIN {
-    $VERSION = '1.16';
+    $VERSION = '1.17';
 }
 
 sub new {

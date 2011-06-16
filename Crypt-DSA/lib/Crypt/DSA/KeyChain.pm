@@ -11,7 +11,7 @@ use Symbol qw( gensym );
 
 use vars qw{$VERSION};
 BEGIN {
-    $VERSION = '1.16';
+    $VERSION = '1.17';
 }
 
 use Crypt::DSA::Key;

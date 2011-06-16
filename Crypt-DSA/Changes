@@ -1,6 +1,10 @@
 Revision history for Perl extension Crypt-DSA
+
+1.17 2011.06.16
+	- Upgrade to Module::Install 1.01
 	- Added support for OpenSSL 1.0.0 dsaparam format change.
 	- Requires perl 5.6 now
+	- Fixes for 64-bit support
 
 1.16 2009.09.11
 	- Switching to production release
