@@ -2,7 +2,7 @@ package FBP::FormPanel;
 
 use Mouse;
 
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 
 extends 'FBP::Panel';
 with    'FBP::Form';

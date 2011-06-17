@@ -7,7 +7,7 @@ use Params::Util   ();
 use XML::SAX::Base ();
 use FBP            ();
 
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 our @ISA     = 'XML::SAX::Base';
 
 # Object XML class to Perl class mapping
