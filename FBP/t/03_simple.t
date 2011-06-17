@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 169;
+use Test::More tests => 185;
 use Test::NoWarnings;
 use Scalar::Util 'refaddr';
 use File::Spec::Functions ':ALL';
@@ -73,7 +73,7 @@ isa_ok( $dialog4[0], 'FBP::Dialog' );
 
 # Multiple-search query with multiple results
 my @window = $project->find( isa => 'FBP::Window' );
-is( scalar(@window), 38, '->find(multiple) ok' );
+is( scalar(@window), 41, '->find(multiple) ok' );
 foreach ( @window ) {
 	isa_ok( $_, 'FBP::Window' );
 }
@@ -297,3 +297,31 @@ is( $radiobox->choices, '"One" "Two" "Three" "Four"', '->choices ok' );
 is( $radiobox->selection, 2, '->selection ok' );
 is( $radiobox->majorDimension, 2, '->majorDimension ok' );
 is( $radiobox->style, 'wxRA_SPECIFY_COLS', '->style ok' );
+
+# HyperLink properties
+my $hyperlink = $object->find_first(
+	isa => 'FBP::HyperLink',
+);
+isa_ok( $hyperlink, 'FBP::HyperLink' );
+is( $hyperlink->name, 'm_hyperlink1', '->name ok' );
+is( $hyperlink->label, 'wxFormBuilder Website', '->label ok' );
+is( $hyperlink->url, 'http://www.wxformbuilder.org', '->url ok' );
+is( $hyperlink->normal_color, 'wxSYS_COLOUR_WINDOWTEXT', '->normal_color ok' );
+
+# Gauge properties
+my $gauge = $object->find_first(
+	isa => 'FBP::Gauge',
+);
+isa_ok( $gauge, 'FBP::Gauge' );
+is( $gauge->name, 'm_gauge1', '->name ok' );
+is( $gauge->value, 80, '->value ok' );
+is( $gauge->range, 100, '->range ok' );
+
+# SearchCtrl properties
+my $searchctrl = $object->find_first(
+	isa => 'FBP::SearchCtrl',
+);
+isa_ok( $searchctrl, 'FBP::SearchCtrl' );
+is( $searchctrl->value, 'A search', '->value ok' );
+is( $searchctrl->search_button, 1, '->search_button ok' );
+is( $searchctrl->cancel_button, 0, '->cancel_button ok' );

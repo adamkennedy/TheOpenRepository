@@ -1,5 +1,10 @@
 Changes for Perl extension FBP
 
+0.31 to be released
+	- Added FBP::SearchCtrl class
+	- Added FBP::Gauge class
+	- Added FBP::HyperLink class
+
 0.30 Thu 16 Jun 2011
 	- Added FBP::BitmapButton class
 	- Added FBP::Frame class
