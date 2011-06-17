@@ -1,5 +1,10 @@
 Changes for Perl extension FBP-Perl
 
+0.40 Fri 17 Jun 2011
+	- Added support for Wx::Gauge
+	- Added support for Wx::HyperLink
+	- Added support for Wx::SearchCtrl
+
 0.39 Thu 16 Jun 2011
 	- Bump FBP dependency to 0.30 for Frame/Panel/RadioBox support
 	- Added support for Wx::Frame class generation

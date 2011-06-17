@@ -21,10 +21,10 @@ TO BE COMPLETED
 use 5.008005;
 use strict;
 use warnings;
-use FBP           0.30 ();
+use FBP           0.31 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.39';
+our $VERSION = '0.40';
 
 # Event Binding Table
 my %EVENT = (
