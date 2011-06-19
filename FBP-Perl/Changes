@@ -1,5 +1,8 @@
 Changes for Perl extension FBP-Perl
 
+0.41 Mon 20 Jun 2011
+	- Added missing colour settings for Wx::HyperLink
+
 0.40 Sun 19 Jun 2011
 	- Added support for Wx::Gauge
 	- Added support for Wx::HyperLink

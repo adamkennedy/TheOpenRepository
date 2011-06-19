@@ -24,7 +24,7 @@ use warnings;
 use FBP           0.31 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.40';
+our $VERSION = '0.41';
 
 # Event Binding Table
 my %EVENT = (
@@ -913,7 +913,7 @@ sub hyperlink_create {
 	my $position = $self->object_position($control);
 	my $size     = $self->object_wxsize($control);
 
-	return $self->nested(
+	my $lines = $self->nested(
 		$self->window_new($control),
 		"$parent,",
 		"$id,",
@@ -924,6 +924,35 @@ sub hyperlink_create {
 		$self->window_style($control),
 		");",
 	);
+
+	# Set additional properties
+	my $variable = $self->object_variable($control);
+	if ( $control->normal_color ) {
+		my $colour = $self->colour( $control->normal_color );
+		push @$lines, (
+			"$variable->SetNormalColour(",
+			"\t$colour",
+			");",
+		);
+	}
+	if ( $control->hover_color ) {
+		my $colour = $self->colour( $control->hover_color );
+		push @$lines, (
+			"$variable->SetHoverColour(",
+			"\t$colour",
+			");",
+		);
+	}
+	if ( $control->visited_color ) {
+		my $colour = $self->colour( $control->visited_color );
+		push @$lines, (
+			"$variable->SetVisitedColour(",
+			"\t$colour",
+			");",
+		);
+	}
+
+	return $lines;
 }
 
 sub gauge_create {
@@ -1037,7 +1066,6 @@ sub panel_create {
 sub radiobox_create {
 	my $self     = shift;
 	my $control  = shift;
-	my $variable = $self->object_variable($control);
 	my $parent   = $self->object_parent(@_);
 	my $id       = $self->wx( $control->id );
 	my $label    = $self->quote( $control->label );

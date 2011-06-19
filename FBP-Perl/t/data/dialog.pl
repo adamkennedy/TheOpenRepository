@@ -403,6 +403,12 @@ sub new {
 		Wx::wxDefaultSize,
 		Wx::wxHL_DEFAULT_STYLE,
 	);
+	$self->{m_hyperlink1}->SetNormalColour(
+		Wx::SystemSettings::GetColour( Wx::wxSYS_COLOUR_WINDOWTEXT )
+	);
+	$self->{m_hyperlink1}->SetHoverColour(
+		Wx::Colour->new( 255, 128, 0 )
+	);
 
 	$self->{m_button2} = Wx::Button->new(
 		$self->{m_panel6},
