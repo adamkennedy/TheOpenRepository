@@ -394,6 +394,16 @@ sub new {
 		Wx::wxTAB_TRAVERSAL,
 	);
 
+	$self->{m_hyperlink1} = Wx::HyperLink->new(
+		$self->{m_panel6},
+		-1,
+		Wx::gettext("wxFormBuilder Website"),
+		"http://www.wxformbuilder.org",
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxHL_DEFAULT_STYLE,
+	);
+
 	$self->{m_button2} = Wx::Button->new(
 		$self->{m_panel6},
 		-1,
@@ -413,6 +423,26 @@ sub new {
 		-1,
 		Wx::gettext("MyLabel"),
 	);
+
+	$self->{m_searchCtrl1} = Wx::SearchCtrl->new(
+		$self->{m_panel7},
+		-1,
+		"",
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+	);
+	$self->{m_searchCtrl1}->ShowSearchButton(1);
+	$self->{m_searchCtrl1}->ShowCancelButton(0);
+
+	$self->{m_gauge1} = Wx::Gauge->new(
+		$self->{m_panel7},
+		-1,
+		100,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxGA_HORIZONTAL,
+	);
+	$self->{m_gauge1}->SetValue(85);
 
 	my $fgSizer1 = Wx::FlexGridSizer->new( 1, 2, 3, 4 );
 	$fgSizer1->AddGrowableCol(0);
@@ -480,6 +510,7 @@ sub new {
 	$self->{m_listbook1}->AddPage( $self->{m_panel5}, Wx::gettext("Page Three"), 0 );
 
 	my $bSizer5 = Wx::BoxSizer->new(Wx::wxVERTICAL);
+	$bSizer5->Add( $self->{m_hyperlink1}, 0, Wx::wxALL, 5 );
 	$bSizer5->Add( $self->{m_button2}, 0, Wx::wxALL, 5 );
 
 	$self->{m_panel6}->SetSizer($bSizer5);
@@ -487,6 +518,9 @@ sub new {
 
 	my $bSizer6 = Wx::BoxSizer->new(Wx::wxVERTICAL);
 	$bSizer6->Add( $self->{m_staticText3}, 0, Wx::wxALL, 5 );
+	$bSizer6->Add( $self->{m_searchCtrl1}, 0, Wx::wxALL, 5 );
+	$bSizer6->Add( 0, 0, 1, Wx::wxEXPAND, 5 );
+	$bSizer6->Add( $self->{m_gauge1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
 
 	$self->{m_panel7}->SetSizer($bSizer6);
 	$self->{m_panel7}->Layout;

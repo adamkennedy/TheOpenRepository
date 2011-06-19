@@ -1,6 +1,6 @@
 Changes for Perl extension FBP-Perl
 
-0.40 Fri 17 Jun 2011
+0.40 Sun 19 Jun 2011
 	- Added support for Wx::Gauge
 	- Added support for Wx::HyperLink
 	- Added support for Wx::SearchCtrl

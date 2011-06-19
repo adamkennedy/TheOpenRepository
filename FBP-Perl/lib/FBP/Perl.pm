@@ -121,6 +121,10 @@ my %EVENT = (
 	# wxRadioBox
 	OnRadioBox                => [ 'EVT_RADIOBOX_SELECTED'          ],
 
+	# wxSearchCtrl
+	OnSearchButton            => [ 'EVT_SEARCHCTRL_SEARCH_BTN'      ],
+	OnCancelButton            => [ 'EVT_SEARCHCTRL_CANCEL_BTN'      ],
+
 	# wxSplitterEvent
 	OnSplitterSashPosChanging => [ 'EVT_SPLITTER_SASH_POS_CHANGING' ],
 	OnSplitterSashPosChanged  => [ 'EVT_SPLITTER_SASH_POS_CHANGED'  ],
@@ -622,8 +626,12 @@ sub window_create {
 		$lines = $self->filepickerctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::FontPickerCtrl') ) {
 		$lines = $self->fontpickerctrl_create($window, $parent);
+	} elsif ( $window->isa('FBP::Gauge') ) {
+		$lines = $self->gauge_create($window, $parent);
 	} elsif ( $window->isa('FBP::HtmlWindow') ) {
 		$lines = $self->htmlwindow_create($window, $parent);
+	} elsif ( $window->isa('FBP::HyperLink') ) {
+		$lines = $self->hyperlink_create($window, $parent);
 	} elsif ( $window->isa('FBP::Listbook') ) {
 		# We emulate the creation of simple listbooks via treebooks
 		if ( $window->wxclass eq 'Wx::Treebook' ) {
@@ -639,6 +647,8 @@ sub window_create {
 		$lines = $self->panel_create($window, $parent);
 	} elsif ( $window->isa('FBP::RadioBox') ) {
 		$lines = $self->radiobox_create($window, $parent);
+	} elsif ( $window->isa('FBP::SearchCtrl') ) {
+		$lines = $self->searchctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::SpinCtrl') ) {
 		$lines = $self->spinctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::SplitterWindow') ) {
@@ -893,6 +903,59 @@ sub htmlwindow_create {
 	);
 }
 
+sub hyperlink_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->wx( $control->id );
+	my $label    = $self->object_label($control);
+	my $url      = $self->quote( $control->url );
+	my $position = $self->object_position($control);
+	my $size     = $self->object_wxsize($control);
+
+	return $self->nested(
+		$self->window_new($control),
+		"$parent,",
+		"$id,",
+		"$label,",
+		"$url,",
+		"$position,",
+		"$size,",
+		$self->window_style($control),
+		");",
+	);
+}
+
+sub gauge_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->wx( $control->id );
+	my $range    = $control->range;
+	my $position = $self->object_position($control);
+	my $size     = $self->object_wxsize($control);
+
+	my $lines = $self->nested(
+		$self->window_new($control),
+		"$parent,",
+		"$id,",
+		"$range,",
+		"$position,",
+		"$size,",
+		$self->window_style($control),
+		");",
+	);
+
+	# Set the value we are initially at
+	my $variable = $self->object_variable($control);
+	my $value    = $control->value;
+	if ( $value ) {
+		push @$lines, "$variable->SetValue($value);";
+	}
+
+	return $lines;
+}
+
 sub listbook_create {
 	my $self     = shift;
 	my $control  = shift;
@@ -995,6 +1058,36 @@ sub radiobox_create {
 		$self->window_style($control),
 		");",
 	);
+}
+
+sub searchctrl_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->wx( $control->id );
+	my $value    = $self->quote( $control->value );
+	my $position = $self->object_position($control);
+	my $size     = $self->object_wxsize($control);
+
+	my $lines = $self->nested(
+		$self->window_new($control),
+		"$parent,",
+		"$id,",
+		"$value,",
+		"$position,",
+		"$size,",
+		$self->window_style($control),
+		");",
+	);
+
+	# Control which optional features we show
+	my $variable      = $self->object_variable($control);
+	my $search_button = $control->search_button ? 1 : 0;
+	my $cancel_button = $control->cancel_button ? 1 : 0;
+	push @$lines, "$variable->ShowSearchButton($search_button);";
+	push @$lines, "$variable->ShowCancelButton($cancel_button);";
+
+	return $lines;
 }
 
 sub spinctrl_create {
