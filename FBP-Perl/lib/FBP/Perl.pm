@@ -24,7 +24,7 @@ use warnings;
 use FBP           0.31 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.41';
+our $VERSION = '0.42';
 
 # Event Binding Table
 my %EVENT = (
