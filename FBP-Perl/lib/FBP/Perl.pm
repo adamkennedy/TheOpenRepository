@@ -8,11 +8,42 @@ FBP::Perl - Generate Perl GUI code from wxFormBuilder .fbp files
 
 =head1 SYNOPSIS
 
+  my $fbp = FBP->new;
+  $fbp->parse_file( 'MyProject.fbp' );
+  
   my $generator = FBP::Perl->new(
-      dialog => $fbp_object->dialog('MyDialog')
+      project => $fbp->project
   );
+  
+  open( FILE, '>', 'MyDialog.pm');
+  print $generator->flatten(
+      $generator->dialog_class(
+          $fbp->dialog('MyDialog')
+      )
+  );
+  close FILE;
 
 =head1 DESCRIPTION
+
+B<FBP::Perl> is a cross-platform Perl code generator for the cross-platform
+L<wxFormBuilder|http://wxformbuilder.org/> GUI designer application.
+
+Used with the L<FBP> module for parsing native wxFormBuilder save files, it
+allows the production of complete standalone classes representing a complete
+L<Wx> dialog, frame or panel as it appears in wxFormBuilder.
+
+As code generators go, the Wx code produced by B<FBP::Perl> is remarkebly
+readable. The produced code can be used either as a starter template which
+you modify, or as a pristine class which you subclass in order to customise.
+
+Born from the L<Padre> Perl IDE project, the code generation API provided by
+B<FBP::Perl> is also extremely amenable to being itself subclassed.
+
+This allows you to relatively easily write customised code generators that
+produce output more closely tailored to your large Wx-based application, or
+to automatically integrate Perl Tidy or other beautifiers into your workflow.
+
+=head1 METHODS
 
 TO BE COMPLETED
 
@@ -24,7 +55,7 @@ use warnings;
 use FBP           0.31 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.42';
+our $VERSION = '0.43';
 
 # Event Binding Table
 my %EVENT = (
