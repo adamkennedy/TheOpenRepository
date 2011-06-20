@@ -591,6 +591,8 @@ sub children_create {
 		if ( $child->isa('FBP::Window') ) {
 			push @windows, $self->window_create($child, $parent);
 		}
+
+		# Descend to child windows
 		next unless $child->does('FBP::Children');
 		if ( $object->isa('FBP::Window') ) {
 			push @windows, $self->children_create($child, $object);
@@ -657,6 +659,8 @@ sub window_create {
 		$lines = $self->staticline_create($window, $parent);
 	} elsif ( $window->isa('FBP::StaticText') ) {
 		$lines = $self->statictext_create($window, $parent);
+	} elsif ( $window->isa('FBP::StatusBar') ) {
+		$lines = $self->statusbar_create($window, $parent);
 	} elsif ( $window->isa('FBP::TextCtrl') ) {
 		$lines = $self->textctrl_create($window, $parent);
 	} else {
@@ -1220,6 +1224,31 @@ sub staticline_create {
 		"$position,",
 		"$size,",
 		$self->window_style($control),
+		");",
+	);
+}
+
+sub statusbar_create {
+	my $self     = shift;
+	my $object   = shift;
+	my $variable = $self->object_variable($object);
+	my $parent   = $self->object_parent(@_);
+	my $fields   = $object->fields;
+	my $id       = $self->wx( $object->id );
+
+	# If the status bar is not stored for later reference,
+	# don't create the variable at all to avoid perlcritic'ism
+	if ( $self->object_lexical($object) ) {
+		$variable = "";
+	} else {
+		$variable = "$variable = ";
+	}
+
+	return $self->nested(
+		"$variable$parent->CreateStatusBar(",
+		"$fields,",
+		$self->window_style($object, 0),
+		"$id,",
 		");",
 	);
 }

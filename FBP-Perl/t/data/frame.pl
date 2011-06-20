@@ -33,6 +33,12 @@ sub new {
 		Wx::gettext("MyButton"),
 	);
 
+	$self->CreateStatusBar(
+		2,
+		Wx::wxST_SIZEGRIP,
+		-1,
+	);
+
 	my $bSizer7 = Wx::BoxSizer->new(Wx::wxHORIZONTAL);
 	$bSizer7->Add( $self->{m_staticText5}, 0, Wx::wxALIGN_CENTER_VERTICAL | Wx::wxALL, 5 );
 	$bSizer7->Add( $self->{m_button4}, 0, Wx::wxALL, 5 );

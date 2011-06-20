@@ -1,5 +1,8 @@
 Changes for Perl extension FBP-Perl
 
+0.43 to be released
+	- Added support for Wx::StatusBar
+
 0.42 Mon 20 Jun 2011
 	- Don't use Wx::SearchCtrl::ShowSearchButton on Mac
 
