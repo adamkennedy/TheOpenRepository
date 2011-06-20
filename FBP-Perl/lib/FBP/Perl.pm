@@ -1109,11 +1109,16 @@ sub searchctrl_create {
 	);
 
 	# Control which optional features we show
+	my $platform      = $self->wx('wxMAC');
 	my $variable      = $self->object_variable($control);
-	my $search_button = $control->search_button ? 1 : 0;
-	my $cancel_button = $control->cancel_button ? 1 : 0;
-	push @$lines, "$variable->ShowSearchButton($search_button);";
-	push @$lines, "$variable->ShowCancelButton($cancel_button);";
+	my $search_button = $control->search_button;
+	my $cancel_button = $control->cancel_button;
+	push @$lines, (
+		"unless ( $platform ) {",
+		"\t$variable->ShowSearchButton($search_button);",
+		"}",
+		"$variable->ShowCancelButton($cancel_button);",
+	);
 
 	return $lines;
 }

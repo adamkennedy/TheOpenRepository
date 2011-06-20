@@ -1,5 +1,8 @@
 Changes for Perl extension FBP-Perl
 
+0.42 Mon 20 Jun 2011
+	- Don't use Wx::SearchCtrl::ShowSearchButton on Mac
+
 0.41 Mon 20 Jun 2011
 	- Added missing colour settings for Wx::HyperLink
 

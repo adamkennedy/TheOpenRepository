@@ -437,7 +437,9 @@ sub new {
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
 	);
-	$self->{m_searchCtrl1}->ShowSearchButton(1);
+	unless ( Wx::wxMAC ) {
+		$self->{m_searchCtrl1}->ShowSearchButton(1);
+	}
 	$self->{m_searchCtrl1}->ShowCancelButton(0);
 
 	$self->{m_gauge1} = Wx::Gauge->new(
