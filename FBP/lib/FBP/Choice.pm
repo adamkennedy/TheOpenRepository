@@ -2,7 +2,7 @@ package FBP::Choice;
 
 use Mouse;
 
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 
 extends 'FBP::ControlWithItems';
 
