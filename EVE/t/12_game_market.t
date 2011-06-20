@@ -13,14 +13,6 @@ use File::Spec::Functions ':ALL';
 use EVE ();
 use Aspect::Library::Trace qr/^EVE::/;
 
-use constant MARKET_PRODUCTS => qw{
-	Tritanium
-	Mexallon
-	Noxcium
-	Zydrine
-	1600mm
-};
-
 # Data files
 my $config = rel2abs(catfile( 'data', 'EVE.conf' ));
 ok( -f $config, "Found test config at $config" );
@@ -33,12 +25,8 @@ my $game = EVE::Game->start(
 	# debug_pattern => 1,
 );
 isa_ok( $game, 'EVE::Game' );
-ok( $game->login, '->login ok' );
-ok( $game->market_start, '->market_start ok' );
-
-# Get the price of several basic materials
-foreach ( MARKET_PRODUCTS ) {
-	$game->market_scan($_);
-}
-
-ok( $game->stop, '->stop ok' );
+ok( $game->login,            '->login ok'            );
+ok( $game->reset_windows,    '->reset_windows ok'    );
+ok( $game->market_start,     '->market_start ok'     );
+ok( $game->market_group(18), '->market_group(18) ok' );
+ok( $game->stop,             '->stop ok'             );

@@ -9,10 +9,14 @@ use ORLite::Mirror 1.21 {
 	maxage        => 999999999999,
 	show_progress => 1,
 	tables        => [ qw{
-		invTypes
 		invMarketGroups
+		invMetaTypes
+		invTypes
+		invTypeMaterials
+		invTypeReactions
 		mapRegions
 		mapSolarSystems
+		mapSolarSystemJumps
 		staStations
 		staStationTypes
 	} ],

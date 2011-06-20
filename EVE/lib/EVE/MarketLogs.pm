@@ -138,13 +138,14 @@ sub parse {
 }
 
 sub parse_all {
-	my $self = shift;
+	my $self  = shift;
+	my @files = $self->files;
 
-	foreach my $file ( $self->files ) {
+	foreach my $file ( @files ) {
 		$self->parse($file);
 	}
 
-	return 1;
+	return scalar @files;
 }
 
 1;

@@ -56,7 +56,8 @@ use constant {
 	MOUSE_ESCAPE_RESET_WINDOWS    => [ 614, 209 ],
 	MOUSE_NEOCOM_MARKET           => [ 18,  249 ],
 	MOUSE_NEOCOM_PLACES           => [ 20,  175 ],
-	MOUSE_MARKET_DETAILS_TAB      => [ 355, 113 ],
+	MOUSE_MARKET_DETAILS_TAB      => [ 340, 113 ],
+	MOUSE_MARKET_DATA_TAB         => [ 346, 227 ],
 	MOUSE_MARKET_SEARCH_TAB       => [ 195, 200 ],
 	MOUSE_MARKET_SEARCH_TEXT      => [ 121, 226 ],
 	MOUSE_MARKET_EXPORT_TO_FILE   => [ 562, 670 ],
@@ -293,7 +294,7 @@ sub reset_windows {
 
 	# Hit escape again to exit the escape menu
 	$self->send_keys( '{ESCAPE}' );
-	unless ( $self->wait_pattern( 10 => 'neocom-character' ) ) {
+	unless ( $self->wait_pattern( 10 => 'neocom-mail' ) ) {
 		$self->throw("Failed to return to the main game");
 	}
 
@@ -306,6 +307,29 @@ sub reset_windows {
 
 #####################################################################
 # Market Interface
+
+sub market_start {
+	my $self = shift;
+
+	# Open the market window
+	$self->left_click( MOUSE_NEOCOM_MARKET );
+	$self->sleep(1);
+	unless ( $self->market_visible ) {
+		$self->throw("Failed to open market window");
+	}
+
+	# Make sure the market is in search mode and details mode
+	$self->left_click( MOUSE_MARKET_SEARCH_TAB  );
+	$self->sleep(0.5);
+	$self->left_click( MOUSE_MARKET_DETAILS_TAB );
+
+	# Clear any previous search term
+	$self->left_click( MOUSE_MARKET_SEARCH_TEXT );
+	$self->sleep(0.5);
+	$self->send_keys( '{DELETE 100}' );
+
+	return 1;
+}
 
 sub market_group {
 	my $self = shift;
@@ -339,8 +363,73 @@ sub market_type {
 		die "Did not provide an EVE::DB::InvTypes to market_type";
 	}
 
-	# Search on the market by name
-	$self->market_scan($type->typeName);
+	# Determine which search result of N that may return is the real one
+	my $name  = $type->typeName;
+	my @named = EVE::DB::InvTypes->select(
+		'where typeName like ?',
+		'%' . $name . '%',
+	);
+
+	# If we can find a specific nth hit, scan with that number
+	foreach my $i ( 0 .. $#named ) {
+		next unless $named[$i]->typeName eq $name;
+
+		# Flush existing market logs
+		$self->marketlogs->flush;
+
+		# Run the in-game search
+		$self->market_search($name, $i);
+
+		# Scan the resulting market logs generated
+		my $rv = $self->marketlogs->parse_all;
+		unless ( $rv == 1 ) {
+			die "Did not find one market log file (Found $rv)";
+		}
+
+		return 1;
+	}
+
+	die "Failed to pre-calculate nth result for product '$name'";
+}
+
+sub market_search {
+	my $self    = shift;
+	my $product = shift;
+	my $nth     = shift || 1;
+	my $chars   = length $product;
+
+	# Ensure we have selected the search box
+	$self->left_click( MOUSE_MARKET_SEARCH_TEXT );
+	$self->sleep(0.5);
+
+	# Search for what we want
+	$self->send_keys( $product . "~" );
+	$self->sleep(0.5);
+	$self->send_keys( "{BACKSPACE $chars}{ESCAPE}" );
+	$self->sleep(3);
+
+	# Scan for product hits
+	my @hits = sort {
+		$a->top <=> $b->top
+	} grep {
+		$_->left > 275 and $_->left < 325
+	} $self->screenshot_find('info-small');
+
+	# Click on the nth hit
+	my $hit = $hits[$nth];
+	unless ( $hit ) {
+		die "Count not find search hit $nth, only see " . scalar(@hits);
+	}
+
+	$self->left_click( $hit->left - 10, $hit->centre_y );
+	$self->sleep(1);
+	unless ( $self->wait_patterns( 10 => 'market-jumps' ) ) {
+		# No buy or sell orders, or super laggy market
+		die "Failed to find results for $product";
+	}
+	$self->left_click( MOUSE_MARKET_EXPORT_TO_FILE );
+
+	return 1;
 }
 
 sub market_visible {
@@ -353,83 +442,6 @@ sub market_visible {
 	} else {
 		return undef;
 	}
-}
-
-sub market_start {
-	my $self = shift;
-
-	# Open the market window
-	$self->left_click( MOUSE_NEOCOM_MARKET );
-	$self->sleep(1);
-	unless ( $self->market_visible ) {
-		$self->throw("Failed to open market window");
-	}
-
-	# Make sure the market is in search mode and details mode
-	$self->left_click( MOUSE_MARKET_SEARCH_TAB  );
-	$self->sleep(0.5);
-	$self->left_click( MOUSE_MARKET_DETAILS_TAB );
-
-	# Clear any previous search term
-	$self->left_click( MOUSE_MARKET_SEARCH_TEXT );
-	$self->sleep(0.5);
-	$self->send_keys( '{DELETE 100}' );
-
-	return 1;
-}
-
-sub market_search {
-	my $self    = shift;
-	my $product = shift;
-	my $chars   = length $product;
-
-	# Ensure we have selected the search box
-	$self->left_click( MOUSE_MARKET_SEARCH_TEXT );
-	$self->sleep(0.5);
-
-	# Search for what we want
-	$self->send_keys( $product . "~" );
-	$self->sleep(0.5);
-	$self->send_keys( "{BACKSPACE $chars}" );
-	$self->sleep(3);
-
-	# Scan for product hits
-	my @hits = sort {
-		$a->top <=> $b->top
-	} grep {
-		$_->left > 275 and $_->left < 325
-	} $self->screenshot_find('info-small');
-
-	# Click on each of the hits to bring up their market information and
-	# export it to a file on disk.
-	foreach my $hit ( @hits ) {
-		$self->left_click( $hit->left - 10, $hit->centre_y );
-		$self->sleep(1);
-		unless ( $self->wait_patterns( 10 => 'market-jumps' ) ) {
-			# No buy or sell orders, or super laggy market
-			next;
-		}
-
-		$self->left_click( MOUSE_MARKET_EXPORT_TO_FILE );
-	}
-
-	return 1;
-}
-
-sub market_scan {
-	my $self    = shift;
-	my $product = shift;
-
-	# Flush existing market logs
-	$self->marketlogs->flush;
-
-	# Run the in-game search
-	$self->market_search($product);
-
-	# Scan the resulting market logs generated
-	$self->marketlogs->parse_all;
-
-	return 1;
 }
 
 
@@ -607,11 +619,19 @@ sub autopilot_engage {
 				# Because the autopilot will never take you into
 				# a dead end system and then take you back out,
 				# there must always be one non-destination gate.
-				# The appearance of such indicates arrival in the
-				# destination system
-				$self->wait_patterns( 60 => 'overview-gate' )
-				or $self->throw("Failed to complete jump to new system");
-
+				# The appearance of such indicates arrival in
+				# the destination system
+				unless ( $self->wait_patterns( 60 => 'overview-gate' ) ) {
+					# We may have jumped into somewhere like
+					# Jita with so many ships it is
+					# obscuring the gate.
+					# Try engaging the in-game autopilot to
+					# get away from the gate and into
+					# transit to the next gate.
+					$self->send_keys('^s');
+					$self->wait_patterns( 30 => 'overview-gate' )
+					or $self->throw("Failed to complete jump to new system");
+				}
 				$jumps++;
 				next;
 			}
@@ -831,7 +851,7 @@ sub left_click {
 
 	# Click whatever it is nice and slow
 	Win32::GuiTest::SendLButtonDown();
-	$self->sleep(0.2);
+	$self->sleep(0.3);
 	Win32::GuiTest::SendLButtonUp();
 	$self->screenshot_dirty;
 
