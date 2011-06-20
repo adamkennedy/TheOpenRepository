@@ -20,6 +20,14 @@ sub new {
 		Wx::wxDefaultSize,
 		Wx::wxDEFAULT_FRAME_STYLE | Wx::wxTAB_TRAVERSAL,
 	);
+	$self->CreateStatusBar( 2, Wx::wxST_SIZEGRIP, -1 );
+
+	$self->{m_menubar1} = Wx::MenuBar->new(0);
+	$self->{m_menubar1}->Append(
+		$self->{m_menu1},
+		Wx::gettext("File"),
+	);
+	$self->SetMenuBar( $self->{m_menubar1} );
 
 	$self->{m_staticText5} = Wx::StaticText->new(
 		$self,
@@ -31,12 +39,6 @@ sub new {
 		$self,
 		-1,
 		Wx::gettext("MyButton"),
-	);
-
-	$self->CreateStatusBar(
-		2,
-		Wx::wxST_SIZEGRIP,
-		-1,
 	);
 
 	my $bSizer7 = Wx::BoxSizer->new(Wx::wxHORIZONTAL);
