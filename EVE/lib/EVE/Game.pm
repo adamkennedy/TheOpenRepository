@@ -338,14 +338,14 @@ sub market_group {
 		$group = EVE::DB::InvMarketGroups->load($group);
 	}
 	unless ( Params::Util::_INSTANCE($group, 'EVE::DB::InvMarketGroups') ) {
-		die "Did not provide an EVE::DB::InvMarketGroups to market_group";
+		$self->throw("Did not provide an EVE::DB::InvMarketGroups to market_group");
 	}
 
 	# Fetch all types in the group
 	my @types = EVE::DB::InvTypes->select(
 		'where marketGroupID = ?',
 		$group->marketGroupID,
-	) or die "Failed to find any products for group";
+	) or $self->throw("Failed to find any products for group");
 	foreach my $type ( @types ) {
 		$self->market_type($type);
 	}
@@ -360,7 +360,7 @@ sub market_type {
 		$type = EVE::DB::InvTypes->load($type);
 	}
 	unless ( Params::Util::_INSTANCE($type, 'EVE::DB::InvTypes') ) {
-		die "Did not provide an EVE::DB::InvTypes to market_type";
+		$self->throw("Did not provide an EVE::DB::InvTypes to market_type");
 	}
 
 	# Determine which search result of N that may return is the real one
@@ -383,13 +383,13 @@ sub market_type {
 		# Scan the resulting market logs generated
 		my $rv = $self->marketlogs->parse_all;
 		unless ( $rv == 1 ) {
-			die "Did not find one market log file (Found $rv)";
+			$self->throw("Did not find one market log file (Found $rv)");
 		}
 
 		return 1;
 	}
 
-	die "Failed to pre-calculate nth result for product '$name'";
+	$self->throw("Failed to pre-calculate nth result for product '$name'");
 }
 
 sub market_search {
@@ -418,14 +418,14 @@ sub market_search {
 	# Click on the nth hit
 	my $hit = $hits[$nth];
 	unless ( $hit ) {
-		die "Count not find search hit $nth, only see " . scalar(@hits);
+		$self->throw("Count not find search hit $nth, only see " . scalar(@hits));
 	}
 
 	$self->left_click( $hit->left - 10, $hit->centre_y );
 	$self->sleep(1);
 	unless ( $self->wait_patterns( 10 => 'market-jumps' ) ) {
 		# No buy or sell orders, or super laggy market
-		die "Failed to find results for $product";
+		$self->throw("Failed to find results for $product");
 	}
 	$self->left_click( MOUSE_MARKET_EXPORT_TO_FILE );
 
