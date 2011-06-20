@@ -65,6 +65,10 @@ use FBP::Listbook         ();
 use FBP::ListbookPage     ();
 use FBP::ListBox          ();
 use FBP::ListCtrl         ();
+use FBP::Menu             ();
+use FBP::MenuBar          ();
+use FBP::MenuItem         ();
+use FBP::MenuSeparator    ();
 use FBP::Panel            ();
 use FBP::RadioBox         ();
 use FBP::SearchCtrl       ();
@@ -76,7 +80,11 @@ use FBP::SplitterWindow   ();
 use FBP::StaticBoxSizer   ();
 use FBP::StaticText       ();
 use FBP::StaticLine       ();
+use FBP::StatusBar        ();
 use FBP::TextCtrl         ();
+use FBP::Tool             ();
+use FBP::ToolBar          ();
+use FBP::ToolSeparator    ();
 
 our $VERSION = '0.31';
 

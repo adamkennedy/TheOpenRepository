@@ -1,5 +1,15 @@
 Changes for Perl extension FBP
 
+0.32 Mon 20 Jun 2011
+	- Added FBP::Menu class
+	- Added FBP::MenuBar class
+	- Added FBP::MenuItem class
+	- Added FBP::MenuSeparator class
+	- Added FBP::StatusBar class
+	- Added FBP::Tool class
+	- Added FBP::ToolBar class
+	- Added FBP::ToolSeparator class
+
 0.31 Fri 17 Jun 2011
 	- Added FBP::SearchCtrl class
 	- Added FBP::Gauge class

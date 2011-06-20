@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 185;
+use Test::More tests => 226;
 use Test::NoWarnings;
 use Scalar::Util 'refaddr';
 use File::Spec::Functions ':ALL';
@@ -23,27 +23,27 @@ ok( -f $FILE, "Found test file '$FILE'" );
 # Simple Tests
 
 # Create the empty object
-my $object = FBP->new;
-isa_ok( $object, 'FBP' );
+my $fbp = FBP->new;
+isa_ok( $fbp, 'FBP' );
 
 # Parse the file
 my $ok = eval {
-	$object->parse_file( $FILE );
+	$fbp->parse_file( $FILE );
 };
 is( $@, '', "Parsed '$FILE' without error" );
 ok( $ok, '->parse_file returned true' );
 
 # Check the project properties
-my $project = $object->project;
+my $project = $fbp->project;
 isa_ok( $project, 'FBP::Project' );
 is( $project->name, 'Simple', '->name ok' );
 is( $project->relative_path, '1', '->relative_path ok' );
 is( $project->internationalize, '1', '->internationalize ok' );
 
 # Find a particular named dialog
-my $dialog1 = $object->dialog('MyDialog1');
+my $dialog1 = $fbp->dialog('MyDialog1');
 isa_ok( $dialog1, 'FBP::Dialog' );
-my $form1 = $object->form('MyDialog1');
+my $form1 = $fbp->form('MyDialog1');
 isa_ok( $dialog1, 'FBP::Dialog' );
 is( refaddr($form1), refaddr($dialog1), 'Got the same thing with ->form and ->dialog' );
 is( $dialog1->name,     'MyDialog1',  '->name ok'     );
@@ -51,13 +51,13 @@ is( $dialog1->subclass, '',           '->subclass ok' );
 is( $dialog1->wxclass,  'Wx::Dialog', '->class ok'    );
 
 # Repeat using the generic search
-my $dialog2 = $object->find_first(
+my $dialog2 = $fbp->find_first(
 	isa  => 'FBP::Dialog',
 	name => 'MyDialog1',
 );
 isa_ok( $dialog2, 'FBP::Dialog' );
 is(
-	$object->find_first( name => 'does_not_exists' ),
+	$fbp->find_first( name => 'does_not_exists' ),
 	undef,
 	'->find_first(bad) returns undef',
 );
@@ -73,25 +73,25 @@ isa_ok( $dialog4[0], 'FBP::Dialog' );
 
 # Multiple-search query with multiple results
 my @window = $project->find( isa => 'FBP::Window' );
-is( scalar(@window), 41, '->find(multiple) ok' );
+is( scalar(@window), 44, '->find(multiple) ok' );
 foreach ( @window ) {
 	isa_ok( $_, 'FBP::Window' );
 }
 
 # Frame properties
-my $frame1 = $object->form('MyFrame1');
+my $frame1 = $fbp->form('MyFrame1');
 isa_ok( $frame1, 'FBP::Frame' );
 ok( $frame1->DOES('FBP::Form'), 'DOES FBP::Form' );
 can_ok( $frame1, 'OnInitDialog' );
 
 # Top level Panel properties
-my $panel1 = $object->form('MyPanel1');
+my $panel1 = $fbp->form('MyPanel1');
 isa_ok( $panel1, 'FBP::FormPanel' );
 isa_ok( $panel1, 'FBP::Panel' );
 ok( $panel1->DOES('FBP::Form'), 'DOES FBP::Form' );
 
 # Text properties
-my $text = $object->find_first(
+my $text = $fbp->find_first(
 	isa => 'FBP::StaticText',
 );
 isa_ok( $text, 'FBP::StaticText' );
@@ -108,7 +108,7 @@ is(
 );
 
 # TextCtrl properties
-my $textctrl = $object->find_first(
+my $textctrl = $fbp->find_first(
 	isa => 'FBP::TextCtrl',
 );
 isa_ok( $textctrl, 'FBP::TextCtrl' );
@@ -118,7 +118,7 @@ is( $textctrl->fg,        '',          '->fg ok'        );
 is( $textctrl->bg,        '255,128,0', '->bg ok'        );
 
 # Button properties
-my $button = $object->find_first(
+my $button = $fbp->find_first(
 	isa => 'FBP::Button',
 );
 isa_ok( $button, 'FBP::Button' );
@@ -135,7 +135,7 @@ is( $button->tooltip, 'This is a tooltip', '->tooltip ok'       );
 is( $button->OnButtonClick, 'm_button1',   '->OnButtonClick ok' );
 
 # ListCtrl properties
-my $listctrl = $object->find_first(
+my $listctrl = $fbp->find_first(
 	isa => 'FBP::ListCtrl',
 );
 isa_ok( $listctrl, 'FBP::ListCtrl' );
@@ -144,7 +144,7 @@ is( $listctrl->minimum_size, '100,100', '->minimum_size ok' );
 is( $listctrl->maximum_size, '200,200', '->maximum_size ok' );
 
 # Choice box properties
-my $choice = $object->find_first(
+my $choice = $fbp->find_first(
 	isa => 'FBP::Choice',
 );
 isa_ok( $choice, 'FBP::Choice' );
@@ -154,7 +154,7 @@ is( $choice->wxclass, 'Wx::Foo',   '->wxclass ok' );
 is( scalar($choice->header), undef, '->header ok' );
 
 # Combo properties
-my $combo = $object->find_first(
+my $combo = $fbp->find_first(
 	isa => 'FBP::ComboBox',
 );
 isa_ok( $combo, 'FBP::ComboBox' );
@@ -176,7 +176,7 @@ is_deeply(
 );
 
 # Line properties
-my $line = $object->find_first(
+my $line = $fbp->find_first(
 	isa => 'FBP::StaticLine',
 );
 isa_ok( $line, 'FBP::StaticLine' );
@@ -190,7 +190,7 @@ is( $line->window_style, 'wxNO_BORDER',                 '->window_style ok' );
 is( $line->styles,       'wxLI_HORIZONTAL|wxNO_BORDER', '->styles ok'       );
 
 # Sizer properties
-my $sizer = $object->find_first(
+my $sizer = $fbp->find_first(
 	isa => 'FBP::Sizer',
 );
 isa_ok( $sizer, 'FBP::Sizer' );
@@ -199,14 +199,14 @@ is( $sizer->orient,     'wxHORIZONTAL', '->orient ok'     );
 is( $sizer->permission, 'none',         '->permission ok' );
 
 # Listbook properties
-my $listbook = $object->find_first(
+my $listbook = $fbp->find_first(
 	isa => 'FBP::Listbook',
 );
 isa_ok( $listbook, 'FBP::Listbook' );
 is( $listbook->style, 'wxLB_DEFAULT', '->style ok' );
 
 # SplitterWindow properties
-my $splitterwindow = $object->find_first(
+my $splitterwindow = $fbp->find_first(
 	isa => 'FBP::SplitterWindow',
 );
 isa_ok( $splitterwindow, 'FBP::SplitterWindow' );
@@ -219,13 +219,13 @@ is( $splitterwindow->min_pane_size, '0', '->min_pane_size ok' );
 is( $splitterwindow->permission, 'protected', '->permission ok' );
 
 # SplitterItem properties
-my $splitteritem = $object->find_first(
+my $splitteritem = $fbp->find_first(
 	isa => 'FBP::SplitterItem',
 );
 isa_ok( $splitteritem, 'FBP::SplitterItem' );
 
 # ColourPickerCtrl properties
-my @colourpickerctrl = $object->find(
+my @colourpickerctrl = $fbp->find(
 	isa => 'FBP::ColourPickerCtrl',
 );
 isa_ok( $colourpickerctrl[0], 'FBP::ColourPickerCtrl' );
@@ -239,7 +239,7 @@ is( $colourpickerctrl[0]->hidden, 0, '->hidden false for visible element' );
 is( $colourpickerctrl[1]->hidden, 1, '->hidden true for hidden element' );
 
 # FontPickerCtrl properties
-my $fontpickerctrl = $object->find_first(
+my $fontpickerctrl = $fbp->find_first(
 	isa => 'FBP::FontPickerCtrl',
 );
 isa_ok( $fontpickerctrl, 'FBP::FontPickerCtrl' );
@@ -248,7 +248,7 @@ is( $fontpickerctrl->max_point_size, 100, '->max_point_size ok' );
 is( $fontpickerctrl->style, 'wxFNTP_DEFAULT_STYLE', '->stlye ok' );
 
 # FilePickerCtrl properties
-my $filepickerctrl = $object->find_first(
+my $filepickerctrl = $fbp->find_first(
 	isa => 'FBP::FilePickerCtrl',
 );
 isa_ok( $filepickerctrl, 'FBP::FilePickerCtrl' );
@@ -258,7 +258,7 @@ is( $filepickerctrl->wildcard, '*.*', '->wildcard ok' );
 is( $filepickerctrl->style, 'wxFLP_DEFAULT_STYLE', '->stlye ok' );
 
 # DirPickerCtrl properties
-my $dirpickerctrl = $object->find_first(
+my $dirpickerctrl = $fbp->find_first(
 	isa => 'FBP::DirPickerCtrl',
 );
 isa_ok( $dirpickerctrl, 'FBP::DirPickerCtrl' );
@@ -267,7 +267,7 @@ is( $dirpickerctrl->message, 'Select a folder', '->message ok' );
 is( $dirpickerctrl->style, 'wxDIRP_DEFAULT_STYLE', '->style ok' );
 
 # SpinCtrl properties
-my $spinctrl = $object->find_first(
+my $spinctrl = $fbp->find_first(
 	isa => 'FBP::SpinCtrl',
 );
 isa_ok( $spinctrl, 'FBP::SpinCtrl' );
@@ -278,7 +278,7 @@ is( $spinctrl->initial, '5',  '->initial ok' );
 is( $spinctrl->style, 'wxSP_ARROW_KEYS', '->style ok' );
 
 # CustomControl properties
-my $custom = $object->find_first(
+my $custom = $fbp->find_first(
 	isa => 'FBP::CustomControl',
 );
 isa_ok( $custom, 'FBP::CustomControl' );
@@ -288,7 +288,7 @@ is( $custom->include, 'My::Module' );
 is( $custom->header, 'My::Module' );
 
 # RadioBox properties
-my $radiobox = $object->find_first(
+my $radiobox = $fbp->find_first(
 	isa => 'FBP::RadioBox',
 );
 isa_ok( $radiobox, 'FBP::RadioBox' );
@@ -299,7 +299,7 @@ is( $radiobox->majorDimension, 2, '->majorDimension ok' );
 is( $radiobox->style, 'wxRA_SPECIFY_COLS', '->style ok' );
 
 # HyperLink properties
-my $hyperlink = $object->find_first(
+my $hyperlink = $fbp->find_first(
 	isa => 'FBP::HyperLink',
 );
 isa_ok( $hyperlink, 'FBP::HyperLink' );
@@ -309,7 +309,7 @@ is( $hyperlink->url, 'http://www.wxformbuilder.org', '->url ok' );
 is( $hyperlink->normal_color, 'wxSYS_COLOUR_WINDOWTEXT', '->normal_color ok' );
 
 # Gauge properties
-my $gauge = $object->find_first(
+my $gauge = $fbp->find_first(
 	isa => 'FBP::Gauge',
 );
 isa_ok( $gauge, 'FBP::Gauge' );
@@ -318,10 +318,88 @@ is( $gauge->value, 80, '->value ok' );
 is( $gauge->range, 100, '->range ok' );
 
 # SearchCtrl properties
-my $searchctrl = $object->find_first(
+my $searchctrl = $fbp->find_first(
 	isa => 'FBP::SearchCtrl',
 );
 isa_ok( $searchctrl, 'FBP::SearchCtrl' );
 is( $searchctrl->value, 'A search', '->value ok' );
 is( $searchctrl->search_button, 1, '->search_button ok' );
 is( $searchctrl->cancel_button, 0, '->cancel_button ok' );
+
+# StatusBar properties
+my $statusbar = $fbp->find_first(
+	isa => 'FBP::StatusBar',
+);
+isa_ok( $statusbar, 'FBP::StatusBar' );
+is( $statusbar->name, 'm_statusBar1', '->name ok' );
+is( $statusbar->fields, 2, '->fields ok' );
+
+# ToolBar properties
+my $toolbar = $fbp->find_first(
+	isa => 'FBP::ToolBar',
+);
+isa_ok( $toolbar, 'FBP::ToolBar' );
+is( $toolbar->name, 'm_toolBar1', '->name ok' );
+is( $toolbar->packing, 2, '->packing ok' );
+is( $toolbar->separation, 5, '->separation ok' );
+is( $toolbar->bitmapsize, '', '->bitmapsize ok' );
+is( $toolbar->margins, '', '->margins ok' );
+is( $toolbar->style, 'wxTB_HORIZONTAL', '->style ok' );
+
+# Tool properties
+my $tool = $fbp->find_first(
+	isa => 'FBP::Tool',
+);
+isa_ok( $tool, 'FBP::Tool' );
+is( $tool->name, 'm_tool1', '->name ok' );
+is( $tool->label, 'tool', '->label ok' );
+is( $tool->bitmap, '', '->bitmap ok' );
+is( $tool->kind, 'wxITEM_NORMAL', '->kind ok' );
+is( $tool->tooltip, 'Tool 1 tooltip', '->tooltip ok' );
+is( $tool->statusbar, 'Tool 1 status bar', '->statusbar ok' );
+
+# ToolSeparator properties
+my $toolseparator = $fbp->find_first(
+	isa => 'FBP::ToolSeparator',
+);
+isa_ok( $toolseparator, 'FBP::ToolSeparator' );
+is( $toolseparator->permission, 'none', '->permission ok' );
+
+# MenuBar properties
+my $menubar = $fbp->find_first(
+	isa => 'FBP::MenuBar',
+);
+isa_ok( $menubar, 'FBP::MenuBar' );
+is( $menubar->name, 'm_menubar1', '->name ok' );
+is( $menubar->label, 'MyMenuBar', '->label ok' );
+is( $menubar->style, 'wxMB_DOCKABLE', '->style ok' );
+
+# Menu properties
+my $menu = $fbp->find_first(
+	isa => 'FBP::Menu',
+);
+isa_ok( $menu, 'FBP::Menu' );
+is( $menu->name, 'm_menu1', '->name ok' );
+is( $menu->label, 'File', '->label ok' );
+
+# MenuItem properties
+my $menuitem = $fbp->find_first(
+	isa => 'FBP::MenuItem',
+);
+isa_ok( $menuitem, 'FBP::MenuItem' );
+is( $menuitem->name, 'm_menuItem1', '->name ok' );
+is( $menuitem->label, 'This', '->label ok' );
+is( $menuitem->shortcut, '', '->shortcut ok' );
+is( $menuitem->help, 'This is help text', '->help ok' );
+is( $menuitem->bitmap, '; Load From File', '->bitmap ok' );
+is( $menuitem->unchecked_bitmap, '', '->unchecked_bitmap ok' );
+is( $menuitem->checked, 0, '->checked ok' );
+is( $menuitem->enabled, 1, '->enabled ok' );
+is( $menuitem->kind, 'wxITEM_NORMAL', '->kind ok' );
+
+# MenuSeparator properties
+my $menuseparator = $fbp->find_first(
+	isa => 'FBP::MenuSeparator',
+);
+isa_ok( $menuseparator, 'FBP::MenuSeparator' );
+is( $menuseparator->name, 'm_separator1', '->name ok' );
