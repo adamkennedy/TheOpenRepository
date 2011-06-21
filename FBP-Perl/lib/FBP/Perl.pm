@@ -1095,6 +1095,34 @@ sub listctrl_create {
 	);
 }
 
+sub menu_create {
+	my $self     = shift;
+	my $menu     = shift;
+	my $lexical  = $self->object_lexical($menu);
+	my $variable = $self->object_variable($menu);
+
+	# Create the menu
+	my @lines = "$lexical$variable = Wx::Menu->new;";
+	foreach my $child ( @{$menu->children} ) {
+		if ( $child->isa('FBP::MenuItem') ) {
+			push @lines, $self->nested(
+				"$variable->Append(",
+				$self->object_variable($child),
+				");",
+			);
+		} else {
+			push @lines, $self->nested(
+				"$variable->Append(",
+				$self->object_variable($_) . ',',
+				$self->object_label($_) . ',',
+				");",
+			);
+		}
+	}
+
+	return \@lines;
+}
+
 sub menubar_create {
 	my $self     = shift;
 	my $window   = shift;
@@ -1118,6 +1146,27 @@ sub menubar_create {
 		@append,
 		"$parent->SetMenuBar( $variable );",
 	];
+}
+
+sub menuitem_create {
+	my $self     = shift;
+	my $menu     = shift;
+	my $parent   = $self->object_parent(@_);
+	my $lexical  = $self->object_lexical($menu);
+	my $variable = $self->object_variable($menu);
+	my $id       = $self->wx( $menu->id );
+	my $label    = $self->object_label($menu);
+	my $help     = $self->text( $menu->help );
+	my $kind     = $self->wx( $menu->kind );
+
+	return $self->nested(
+		"$lexical$variable = Wx::MenuItem(",
+		"$parent,",
+		"$id,",
+		"$label,",
+		"$help,",
+		"$kind,",
+	);
 }
 
 sub panel_create {
