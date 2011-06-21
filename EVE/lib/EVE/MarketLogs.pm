@@ -14,9 +14,8 @@ use EVE::DB               ();
 use EVE::Trade            ();
 
 # Build a regex for the list of all possible regions
-my $regions = join '|', sort map {
-	$_->regionName
-} EVE::DB::MapRegions->select('where regionName != ?', 'Unknown');
+my $regions = join '|', sort map { $_->regionName }
+EVE::DB::MapRegions->select('where regionName != ?', 'Unknown');
 
 
 
@@ -117,21 +116,17 @@ sub parse {
 	unless ( $file =~ /^($regions)-(.+)-(.+)$/ ) {
 		die "Failed to parse file name '$file'";
 	}
-	my $region    = $1 or die "Failed to find region in '$file'";
-	my $product   = $2 or die "Failed to find product in '$file'";
-	my $timestamp = $3 or die "Failed to find timestamp in '$file'";
+	my $region_name = $1 or die "Failed to find region in '$file'";
+	my $product     = $2 or die "Failed to find product in '$file'";
+	my $timestamp   = $3 or die "Failed to find timestamp in '$file'";
 	$timestamp =~ s/\.txt$//;
 	$timestamp =~ s/(\d\d)(\d\d)(\d\d)/$1:$2:$3/;
 	$timestamp =~ s/\./-/g;
 	$timestamp =~ s/ /T/;
 
-	# Does the region name exist
-	my @map_region = EVE::DB::MapRegions->select(
-		'where regionName = ?', $region
-	);
-	unless ( @map_region and @map_region == 1 ) {
-		die "Failed to find region '$region'";
-	}
+	# Do the product and region exist
+	my $region = EVE::DB::MapRegions->load($region_name);
+	my $type   = EVE::DB::InvTypes->load($product);
 
 	# Create the parser
 	my $path   = File::Spec->catfile( $self->dir, $file );
@@ -152,10 +147,10 @@ sub parse {
 		# Create new records
 		$market = EVE::Trade::Market->create(
 			market_id    => $market_id,
-			region_id    => $map_region[0]->regionID,
-			region_name  => $map_region[0]->regionName,
-			product_id   => 1,
-			product_name => $product,
+			region_id    => $region->regionID,
+			region_name  => $region->regionName,
+			product_id   => $type->typeID,
+			product_name => $type->typeName,
 			timestamp    => $timestamp,
 		);
 		while ( my $hash = $parser->fetch ) {
@@ -166,6 +161,7 @@ sub parse {
 				market_id  => $market_id,
 				system_id  => $hash->{solarSystemID},
 				station_id => $hash->{stationID},
+				type_id    => $hash->{typeID},
 				issued     => $hash->{issued},
 				duration   => $hash->{duration},
 				bid        => $hash->{bid},
@@ -174,7 +170,6 @@ sub parse {
 				entered    => $hash->{volEntered},
 				minimum    => $hash->{minVolume},
 				remaining  => $hash->{volRemaining},
-				type_id    => $hash->{typeID},
 				jumps      => $hash->{jumps},
 			);
 		}

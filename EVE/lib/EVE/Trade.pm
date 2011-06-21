@@ -22,6 +22,10 @@ use ORLite::Migrate 1.07 {
 	),
 }; #, '-DEBUG';
 
+# Load overlay classes
+use EVE::Trade::Market  ();
+use EVE::Trade::MyOrder ();
+
 our $VERSION = '0.01';
 
 1;
