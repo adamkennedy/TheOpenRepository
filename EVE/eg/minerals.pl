@@ -3,8 +3,15 @@
 use 5.008;
 use strict;
 use warnings;
+use EVE::DB   ();
+use EVE::Game ();
+use EVE::Plan ();
 use EVE::Shell;
-use Aspect::Library::Trace qr/EVE::Game::(?:market_group|market_type|market_search)/;
+# use Aspect::Library::Trace qr/EVE::Game::(?:market_group|market_type|market_search)/;
+
+# Reset all records
+EVE::Trade::Market->truncate;
+EVE::Trade::Price->truncate;
 
 # Bootstrap and initialise
 my $game = EVE::Game->new;
@@ -15,8 +22,8 @@ $game->reset_windows;
 $game->market_start;
 
 # Capture all the normal minerals
-foreach my $gid ( EVE::Game::TRADE_GROUP_MINERALS ) {
-	$game->market_group($gid);
-}
+my @result = EVE::Plan->manufacturing($game);
+
+$game->stop;
 
 1;

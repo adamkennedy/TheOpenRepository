@@ -9,8 +9,14 @@ use File::Spec       0.80 ();
 use File::Remove     1.48 ();
 use File::Find::Rule 0.32 ();
 use Parse::CSV       1.00 ();
+use DateTime::Tiny   1.00 ();
 use EVE::DB               ();
 use EVE::Trade            ();
+
+# Build a regex for the list of all possible regions
+my $regions = join '|', sort map {
+	$_->regionName
+} EVE::DB::MapRegions->select('where regionName != ?', 'Unknown');
 
 
 
@@ -65,7 +71,7 @@ sub parse {
 	my $file = shift;
 
 	# Parse information from the file name
-	unless ( $file =~ /^(.+)-(.+)-(.+)$/ ) {
+	unless ( $file =~ /^($regions)-(.+)-(.+)$/ ) {
 		die "Failed to parse file name '$file'";
 	}
 	my $region    = $1 or die "Failed to find region in '$file'";
@@ -74,6 +80,7 @@ sub parse {
 	$timestamp =~ s/\.txt$//;
 	$timestamp =~ s/(\d\d)(\d\d)(\d\d)/$1:$2:$3/;
 	$timestamp =~ s/\./-/g;
+	$timestamp =~ s/ /T/;
 
 	# Does the region name exist
 	my @map_region = EVE::DB::MapRegions->select(
@@ -90,6 +97,7 @@ sub parse {
 		fields => 'auto',
 	) or die "Failed to create parser for '$path'";
 
+	my $market = undef;
 	EVE::Trade->begin;
 	eval {
 		my $market_id = join( ' ', $region, $product );
@@ -99,7 +107,7 @@ sub parse {
 		EVE::Trade::Price->delete('where market_id = ?', $market_id);
 
 		# Create new records
-		EVE::Trade::Market->create(
+		$market = EVE::Trade::Market->create(
 			market_id    => $market_id,
 			region_id    => $map_region[0]->regionID,
 			region_name  => $map_region[0]->regionName,
@@ -134,18 +142,70 @@ sub parse {
 	}
 	EVE::Trade->commit;
 
-	return 1;
+	return $market;
 }
 
 sub parse_all {
-	my $self  = shift;
-	my @files = $self->files;
-
-	foreach my $file ( @files ) {
-		$self->parse($file);
+	my $self    = shift;
+	my @markets = ();
+	my @files   = $self->files;
+	unless ( @files ) {
+		sleep(1);
+		@files = $self->files;
+	}
+	unless ( @files ) {
+		sleep(1);
+		@files = $self->files;
 	}
 
-	return scalar @files;
+	foreach my $file ( @files ) {
+		push @markets, $self->parse($file);
+	}
+
+	return @markets;
+}
+
+sub blank {
+	my $class     = shift;
+	my $region    = shift;
+	my $product   = shift;
+	my $market_id = join( ' ', $region, $product );
+	my $timestamp = DateTime::Tiny->now->as_string;
+
+	# Does the region name exist
+	my @map_region = EVE::DB::MapRegions->select(
+		'where regionName = ?', $region,
+	);
+	unless ( @map_region and @map_region == 1 ) {
+		die "Failed to find region '$region'";
+	}
+
+	# Update the mar
+	my $market = undef;
+	EVE::Trade->begin;
+	eval {
+
+		# Flush old records
+		EVE::Trade::Market->delete('where market_id = ?', $market_id);
+		EVE::Trade::Price->delete('where market_id = ?', $market_id);
+
+		# Create new records
+		$market = EVE::Trade::Market->create(
+			market_id    => $market_id,
+			region_id    => $map_region[0]->regionID,
+			region_name  => $map_region[0]->regionName,
+			product_id   => 1,
+			product_name => $product,
+			timestamp    => $timestamp,
+		);
+	};
+	if ( $@ ) {
+		EVE::Trade->rollback;
+		die "Failed to blank market $market_id: $@";
+	}
+	EVE::Trade->commit;
+
+	return $market;
 }
 
 1;

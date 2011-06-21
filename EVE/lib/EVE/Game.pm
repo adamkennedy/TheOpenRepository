@@ -301,6 +301,10 @@ sub reset_windows {
 	return 1;
 }
 
+sub region {
+	$_[0]->{region} or $_[0]->throw("Have not initialised a region");
+}
+
 
 
 
@@ -326,9 +330,29 @@ sub market_start {
 	# Clear any previous search term
 	$self->left_click( MOUSE_MARKET_SEARCH_TEXT );
 	$self->sleep(0.5);
-	$self->send_keys( '{DELETE 100}' );
+	$self->send_keys( '{DELETE 32}' );
+
+	# Search for Trit so we can capture the current region in advance.
+	$self->marketlogs->flush;
+	unless ( $self->market_search('Tritanium', 2) ) {
+		$self->throw("No trit, can't locate market");
+	}
+	my @trit = $self->marketlogs->parse_all;
+	unless ( @trit == 1 ) {
+		$self->throw("Did not find the trit market");
+	}
+	$self->{region} = $trit[0]->region_name;
 
 	return 1;
+}
+
+sub market_groups {
+	my $self  = shift;
+	my $total = 0;
+	foreach my $group ( @_ ) {
+		$total += $self->market_group($group);
+	}
+	return $total;
 }
 
 sub market_group {
@@ -346,11 +370,18 @@ sub market_group {
 		'where marketGroupID = ?',
 		$group->marketGroupID,
 	) or $self->throw("Failed to find any products for group");
-	foreach my $type ( @types ) {
-		$self->market_type($type);
-	}
 
-	return 1;
+	# Hand off to process the type set
+	$self->market_types(@types);
+}
+
+sub market_types {
+	my $self  = shift;
+	my $total = 0;
+	foreach my $type ( @_ ) {
+		$total += $self->market_type($type);
+	}
+	return $total;
 }
 
 sub market_type {
@@ -366,8 +397,8 @@ sub market_type {
 	# Determine which search result of N that may return is the real one
 	my $name  = $type->typeName;
 	my @named = EVE::DB::InvTypes->select(
-		'where typeName like ?',
-		'%' . $name . '%',
+		'where typeName like ? and marketGroupID is not null order by typeName',
+		'%' . substr($name, 0, 32) . '%',
 	);
 
 	# If we can find a specific nth hit, scan with that number
@@ -378,12 +409,17 @@ sub market_type {
 		$self->marketlogs->flush;
 
 		# Run the in-game search
-		$self->market_search($name, $i);
-
-		# Scan the resulting market logs generated
-		my $rv = $self->marketlogs->parse_all;
-		unless ( $rv == 1 ) {
-			$self->throw("Did not find one market log file (Found $rv)");
+		my $got = $self->market_search( substr($name, 0, 32), $i + 1 );
+		if ( $got ) {
+			# Scan the resulting market logs generated
+			my $rv = $self->marketlogs->parse_all;
+			unless ( $rv == 1 ) {
+				$self->throw("Did not find one market log file (Found $rv)");
+			}
+		} else {
+			# No buy or sell orders, or super laggy market.
+			# Blank the market
+			EVE::MarketLogs->blank( $self->region, $name );
 		}
 
 		return 1;
@@ -406,26 +442,37 @@ sub market_search {
 	$self->send_keys( $product . "~" );
 	$self->sleep(0.5);
 	$self->send_keys( "{BACKSPACE $chars}{ESCAPE}" );
-	$self->sleep(3);
+	$self->sleep(1);
 
 	# Scan for product hits
 	my @hits = sort {
 		$a->top <=> $b->top
 	} grep {
-		$_->left > 275 and $_->left < 325
+		$_->left > 250 and $_->left < 325
 	} $self->screenshot_find('info-small');
 
 	# Click on the nth hit
-	my $hit = $hits[$nth];
-	unless ( $hit ) {
-		$self->throw("Count not find search hit $nth, only see " . scalar(@hits));
+	my $hit = $hits[$nth - 1];
+	if ( $hit ) {
+		# Take the quick option of clicking on it
+		$self->left_click( $hit->left - 10, $hit->centre_y );
+		$self->sleep(3);
+	} elsif ( @hits ) {
+		# Take the slower option of incrementing down
+		$hit = $hits[0];
+		$self->left_click( $hit->left - 10, $hit->centre_y );
+		$self->sleep(1);
+		foreach ( 0 .. $nth - 2 ) {
+			$self->send_keys('{DOWN}');
+			sleep(1);
+		}
+		sleep(2);
+	} else {
+		die "Failed to find any hits, wtf?";
 	}
 
-	$self->left_click( $hit->left - 10, $hit->centre_y );
-	$self->sleep(1);
 	unless ( $self->wait_patterns( 10 => 'market-jumps' ) ) {
-		# No buy or sell orders, or super laggy market
-		$self->throw("Failed to find results for $product");
+		return 0;
 	}
 	$self->left_click( MOUSE_MARKET_EXPORT_TO_FILE );
 
