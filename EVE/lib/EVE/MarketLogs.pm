@@ -65,6 +65,49 @@ sub flush {
 	return 1;
 }
 
+sub blank {
+	my $class     = shift;
+	my $region    = shift;
+	my $product   = shift;
+	my $market_id = join( ' ', $region, $product );
+	my $timestamp = DateTime::Tiny->now->as_string;
+
+	# Does the region name exist
+	my @map_region = EVE::DB::MapRegions->select(
+		'where regionName = ?', $region,
+	);
+	unless ( @map_region and @map_region == 1 ) {
+		die "Failed to find region '$region'";
+	}
+
+	# Update the mar
+	my $market = undef;
+	EVE::Trade->begin;
+	eval {
+
+		# Flush old records
+		EVE::Trade::Market->delete('where market_id = ?', $market_id);
+		EVE::Trade::Price->delete('where market_id = ?', $market_id);
+
+		# Create new records
+		$market = EVE::Trade::Market->create(
+			market_id    => $market_id,
+			region_id    => $map_region[0]->regionID,
+			region_name  => $map_region[0]->regionName,
+			product_id   => 1,
+			product_name => $product,
+			timestamp    => $timestamp,
+		);
+	};
+	if ( $@ ) {
+		EVE::Trade->rollback;
+		die "Failed to blank market $market_id: $@";
+	}
+	EVE::Trade->commit;
+
+	return $market;
+}
+
 # Parse a single file
 sub parse {
 	my $self = shift;
@@ -145,7 +188,7 @@ sub parse {
 	return $market;
 }
 
-sub parse_all {
+sub parse_markets {
 	my $self    = shift;
 	my @markets = ();
 	my @files   = $self->files;
@@ -165,47 +208,81 @@ sub parse_all {
 	return @markets;
 }
 
-sub blank {
-	my $class     = shift;
-	my $region    = shift;
-	my $product   = shift;
-	my $market_id = join( ' ', $region, $product );
-	my $timestamp = DateTime::Tiny->now->as_string;
-
-	# Does the region name exist
-	my @map_region = EVE::DB::MapRegions->select(
-		'where regionName = ?', $region,
-	);
-	unless ( @map_region and @map_region == 1 ) {
-		die "Failed to find region '$region'";
+sub parse_orders {
+	my $self  = shift;
+	my @files = ();
+	foreach ( 1 .. 5 ) {
+		@files = grep { /^My orders/ } $self->files;
+		last if @files;
+	}
+	unless ( @files == 1 ) {
+		my $found = scalar @files;
+		die "Found more or less than 1 file (Found $found)";
 	}
 
-	# Update the mar
-	my $market = undef;
+	# Parse information from the file name
+	# Parse information from the file name
+	my $file = $files[0];
+	unless ( $file =~ /^My orders-(.+)$/ ) {
+		die "Failed to parse file name '$file'";
+	}
+	my $timestamp = $1 or die "Failed to find timestamp in '$file'";
+	$timestamp =~ s/\.txt$//;
+	$timestamp =~ s/(\d\d)(\d\d)(\d\d)/$1:$2:$3/;
+	$timestamp =~ s/\./-/g;
+	$timestamp =~ s/ /T/;
+
+	# Create the parser
+	my $path   = File::Spec->catfile( $self->dir, $file );
+	my $parser = Parse::CSV->new(
+		file   => $path,
+		fields => 'auto',
+	) or die "Failed to create parser for '$path'";
+
+	# Update the orders table
+	my @orders = ();
 	EVE::Trade->begin;
 	eval {
-
-		# Flush old records
-		EVE::Trade::Market->delete('where market_id = ?', $market_id);
-		EVE::Trade::Price->delete('where market_id = ?', $market_id);
-
-		# Create new records
-		$market = EVE::Trade::Market->create(
-			market_id    => $market_id,
-			region_id    => $map_region[0]->regionID,
-			region_name  => $map_region[0]->regionName,
-			product_id   => 1,
-			product_name => $product,
-			timestamp    => $timestamp,
-		);
+		# Update the entire table
+		EVE::Trade::MyOrder->truncate;
+		while ( my $hash = $parser->fetch ) {
+			$hash->{issued} =~ s/\.000$//;
+			$hash->{bid} = ($hash->{bid} eq 'True') ? 1 : 0;
+			$hash->{isCorp} = ($hash->{isCorp} eq 'True') ? 1 : 0;
+			$hash->{contraband} = ($hash->{contraband} eq 'True') ? 1 : 0;
+			push @orders, EVE::Trade::MyOrder->create(
+				order_id     => $hash->{orderID},
+				account_id   => $hash->{accountID},
+				char_id      => $hash->{charID},
+				char_name    => $hash->{charName},
+				region_id    => $hash->{regionID},
+				region_name  => $hash->{regionName},
+				system_id    => $hash->{solarSystemID},
+				system_name  => $hash->{solarSystemName},
+				station_id   => $hash->{stationID},
+				station_name => $hash->{stationName},
+				type_id      => $hash->{typeID},
+				duration     => $hash->{duration},
+				bid          => $hash->{bid},
+				price        => $hash->{price},
+				range        => $hash->{range},
+				entered      => $hash->{volEntered},
+				minimum      => $hash->{minVolume},
+				remaining    => $hash->{volRemaining},
+				is_corp      => $hash->{isCorp},
+				contraband   => $hash->{contraband},
+				escrow       => $hash->{escrow},
+				timestamp    => $timestamp,
+			);
+		}
 	};
-	if ( $@ ) {
+	if ( $@ or $parser->errstr ) {
 		EVE::Trade->rollback;
-		die "Failed to blank market $market_id: $@";
+		die "Failed to parse '$path': " . ($@ || $parser->errstr);
 	}
 	EVE::Trade->commit;
 
-	return $market;
+	return @orders;
 }
 
 1;

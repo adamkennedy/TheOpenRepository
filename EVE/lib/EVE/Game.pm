@@ -58,9 +58,11 @@ use constant {
 	MOUSE_NEOCOM_PLACES           => [ 20,  175 ],
 	MOUSE_MARKET_DETAILS_TAB      => [ 340, 113 ],
 	MOUSE_MARKET_DATA_TAB         => [ 346, 227 ],
+	MOUSE_MARKET_ORDERS_TAB       => [ 439, 114 ],
 	MOUSE_MARKET_SEARCH_TAB       => [ 195, 200 ],
 	MOUSE_MARKET_SEARCH_TEXT      => [ 121, 226 ],
-	MOUSE_MARKET_EXPORT_TO_FILE   => [ 562, 670 ],
+	MOUSE_MARKET_EXPORT_ORDERS    => [ 328, 663 ],
+	MOUSE_MARKET_EXPORT_MARKET    => [ 562, 670 ],
 	MOUSE_PLACES_CLOSE            => [ 745, 190 ],
 	MOUSE_PLACES_SEARCH_TEXT      => [ 433, 235 ],
 	MOUSE_PLACES_RESULT_ONE       => [ 403, 388 ],
@@ -337,13 +339,34 @@ sub market_start {
 	unless ( $self->market_search('Tritanium', 2) ) {
 		$self->throw("No trit, can't locate market");
 	}
-	my @trit = $self->marketlogs->parse_all;
+	my @trit = $self->marketlogs->parse_markets;
 	unless ( @trit == 1 ) {
 		$self->throw("Did not find the trit market");
 	}
 	$self->{region} = $trit[0]->region_name;
 
 	return 1;
+}
+
+sub market_orders {
+	my $self = shift;
+
+	# Open the market window
+	$self->left_click( MOUSE_NEOCOM_MARKET );
+	$self->sleep(1);
+	unless ( $self->market_visible ) {
+		$self->throw("Failed to open market window");
+	}
+
+	# Make sure the market is in search mode and details mode
+	$self->left_click( MOUSE_MARKET_ORDERS_TAB  );
+	$self->sleep(2);
+
+	# Clear any previous search term
+	$self->marketlogs->flush;
+	$self->left_click( MOUSE_MARKET_EXPORT_ORDERS );
+	$self->sleep(2);
+	$self->marketlogs->parse_orders;
 }
 
 sub market_groups {
@@ -412,7 +435,7 @@ sub market_type {
 		my $got = $self->market_search( substr($name, 0, 32), $i + 1 );
 		if ( $got ) {
 			# Scan the resulting market logs generated
-			my $rv = $self->marketlogs->parse_all;
+			my $rv = $self->marketlogs->parse_markets;
 			unless ( $rv == 1 ) {
 				$self->throw("Did not find one market log file (Found $rv)");
 			}
@@ -474,7 +497,7 @@ sub market_search {
 	unless ( $self->wait_patterns( 10 => 'market-jumps' ) ) {
 		return 0;
 	}
-	$self->left_click( MOUSE_MARKET_EXPORT_TO_FILE );
+	$self->left_click( MOUSE_MARKET_EXPORT_MARKET );
 
 	return 1;
 }

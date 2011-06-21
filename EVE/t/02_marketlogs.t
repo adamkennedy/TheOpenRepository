@@ -47,12 +47,12 @@ is( EVE::Trade::Price->count(@WHERE_PRICE),  0, 'No records when starting' );
 is( EVE::Trade::Market->count(@WHERE_MARKET), 0, 'No records when starting' );
 
 # Parse the market directory
-ok( $logs->parse_all, '->parse_all ok' );
+ok( $logs->parse_markets, '->parse_markets ok' );
 is( EVE::Trade::Price->count(@WHERE_PRICE), 60, 'Inserted expected records' );
 is( EVE::Trade::Market->count(@WHERE_MARKET), 2, 'Inserted expected records' );
 
 # Run again, and expect it to be the same
-ok( $logs->parse_all, '->parse_all ok' );
+ok( $logs->parse_markets, '->parse_markets ok' );
 is( EVE::Trade::Price->count(@WHERE_PRICE), 60, 'Inserted expected records' );
 is( EVE::Trade::Market->count(@WHERE_MARKET), 2, 'Inserted expected records' );
 

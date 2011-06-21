@@ -9,7 +9,7 @@ use File::ShareDir  1.00 ();
 use ORLite          1.48 ();
 use ORLite::Migrate 1.07 {
 	create        => 1,
-	user_revision => 1,
+	user_revision => 2,
 	file          => File::Spec->rel2abs(
 		File::Spec->catfile(
 			File::HomeDir->my_data,

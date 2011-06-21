@@ -3,6 +3,7 @@ package EVE::Plan;
 # Decision support tool for calculating profitability of various actions
 
 use strict;
+use List::MoreUtils 'distinct';
 use EVE::DB   ();
 use EVE::Game ();
 
@@ -21,11 +22,14 @@ sub reactions {
 	my $class = shift;
 	my $game  = shift;
 
-	# Capture pricing for all inputs and outputs
+	# Identify inputs used in reactions
 	my @types = EVE::DB::InvTypes->select(
 		'where typeID in ( select typeID from invTypeReactions )'
 		. ' and marketGroupID is not null order by typeName'
 	);
+
+	# Capture pricing for them
+	$game->market_start;
 	$game->market_types(@types);
 
 	1;
@@ -35,7 +39,7 @@ sub manufacturing {
 	my $class = shift;
 	my $game  = shift;
 
-	# Capture pricing for the main inputs
+	# Identify manufacturing inputs
 	my $inputs = EVE::DB->selectall_arrayref(<<'END_SQL');
 select materialTypeID, count(*) as total
 from invTypeMaterials
@@ -45,11 +49,26 @@ where materialTypeID in (
 group by materialTypeID
 order by total desc
 END_SQL
+
+	# Capture pricing for them
+	$game->market_start;
 	$game->market_types(
 		map { $_->[0] } grep { $_->[1] > 0 } @$inputs
 	);
 
 	1;
+}
+
+sub my_orders {
+	my $class = shift;
+	my $game  = shift;
+
+	# Identify the 
+	my @orders = $game->market_orders;
+	$game->market_start;
+	$game->market_types(
+		distinct map { $_->type_id } @orders
+	);
 }
 
 1;
