@@ -307,6 +307,23 @@ sub region {
 	$_[0]->{region} or $_[0]->throw("Have not initialised a region");
 }
 
+sub char_id {
+	$_[0]->{char_id} or
+	$_[0]->{char_id} = $_[0]->_char_id;
+}
+
+sub _char_id {
+	my $self = shift;
+
+	# Capture orders
+	my @orders = $self->market_orders;
+	unless ( @orders ) {
+		die "Can't determine character without orders";
+	}
+
+	return $orders[0]->char_id;
+}
+
 
 
 

@@ -33,6 +33,7 @@ sub sell_margins {
 		my $margin = $order->margin($jita);
 		my $profit = $sold * $margin;
 		push @rows, [
+			$order->system_name,
 			$order->type->typeName,
 			$order->price,
 			$jita->{sell}->{price},
@@ -45,6 +46,7 @@ sub sell_margins {
 	# Sort, format, and display
 	print table(
 		[
+			"System",
 			"Product",
 			{ align => 'right', align_title => 'right', title => "My Sell"   },
 			{ align => 'right', align_title => 'right', title => "Jita Sell" },
@@ -54,11 +56,12 @@ sub sell_margins {
 		],
 		map { [
 			$_->[0],
-			isk($_->[1]),
+			$_->[1],
 			isk($_->[2]),
 			isk($_->[3]),
-			num($_->[4]),
-			isk($_->[5]),
+			isk($_->[4]),
+			num($_->[5]),
+			isk($_->[6]),
 		] } sort {
 			$a->[0] cmp $b->[0]
 		} @rows,
