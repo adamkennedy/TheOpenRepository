@@ -42,11 +42,13 @@ use POE::Wheel::ReadWrite ();
 our $VERSION = '0.01';
 
 use POE::Declare 0.54 {
-	Filename => 'Param',
-	Handle   => 'Param',
-	wheel    => 'Internal',
-	queue    => 'Internal',
-	state    => 'Internal',
+	Filename      => 'Param',
+	Handle        => 'Param',
+	ErrorEvent    => 'Message',
+	ShutdownEvent => 'Message',
+	wheel         => 'Internal',
+	queue         => 'Internal',
+	state         => 'Internal',
 };
 
 
@@ -78,7 +80,7 @@ sub new {
 	if ( $self->Filename and not $self->Handle ) {
 		my $filename = $self->Filename;
 		my $handle   = Symbol::gensym();
-		if ( open( $handle, '>>', $filename ) {
+		if ( open( $handle, '>>', $filename ) ) {
 			$self->{Handle} = $handle;
 		} else {
 			Carp::croak("Failed to open $filename");
@@ -91,6 +93,7 @@ sub new {
 	# Create the message queue
 	$self->{state} = 'STOP';
 	$self->{queue} = [ ];
+	$self->{wheel} = undef;
 
 	return $self;
 }
@@ -148,16 +151,25 @@ sub stop {
 
 Writes one or more messages to the log.
 
+Returns true if the message will be flushed to the file immediately, false if
+the message will be queued for later dispatch, or C<undef> if the logger is
+disabled and the message will be dropped.
+
 =cut
 
 sub print {
 	my $self = shift;
 
-	# Add the messages to the queue of pending output
+	# Has something gone wrong and we shouldn't queue?
+	unless ( $self->{queue} ) {
+		return;
+	}
+
+	# Add any messages to the queue of pending output
 	push @{$self->{queue}}, @_;
 
 	# Initiate a flush event if we aren't doing one already
-	if ( $self->{state} eq 'READY' ) {
+	if ( $self->{state} eq 'IDLE' ) {
 		$self->post('flush');
 		return 1;
 	}
@@ -175,12 +187,86 @@ sub print {
 
 sub startup : Event {
 	# Create the read/write wheel on the filehandle
-	$_[SELF]->{wheel} = 
+	$_[SELF]->{wheel} = POE::Wheel::ReadWrite->new(
+		Handle       => $_[SELF]->Handle,
+		FlushedEvent => 'flush',
+		ErrorEvent   => 'error',
+	);
+
+	# Do an initial queue flush if we have anything
+	if ( @{$_[SELF]->{queue}} ) {
+		$_[SELF]->call('flush');
+	}
+
+	return;
+}
+
+sub flush : Event {
+	if ( scalar @{$_[SELF]->{queue}} ) {
+		if ( $_[SELF]->{state} eq 'IDLE' ) {
+			$_[SELF]->{state} = 'BUSY';
+		}
+
+		# Merge the queued messages ourself to prevent having to use a heavier
+		# POE line filter in the Read/Write wheel.
+		$_[SELF]->{wheel}->put(
+			join("\n", @{$_[SELF]->{queue}}) . "\n"
+		);
+		$_[SELF]->{queue} = [ ];
+
+	} else {
+		# Nothing (left) to do
+		if ( $_[SELF]->{state} eq 'HALT' ) {
+			$_[SELF]->{state} = 'STOP';
+			$_[SELF]->finish;
+			$_[SELF]->Shutdown;
+
+		} else {
+			$_[SELF]->{state} = 'IDLE';
+		}
+	}
+
+	return;
+}
+
+sub error : Event {
+	$_[SELF]->{state} = 'CRASH';
+
+	# Prevent additional message and flush queue
+	$_[SELF]->{queue} = undef;
+
+	# Clean up streaming resources
+	$_[SELF]->clean;
+
+	return;
 }
 
 sub shutdown : Event {
-	$_[SELF]->finish;
-	$_[SELF]->ShutdownEvent;
+	# Superfluous crash shutdown
+	if ( $_[SELF]->{state} eq 'CRASH' ) {
+		$_[SELF]->finish;
+		$_[SELF]->Shutdown;
+		return;
+	}
+
+	# Shutdown with nothing pending to write
+	if ( $_[SELF]->{state} eq 'IDLE' ) {
+		$_[SELF]->{state} = 'STOP';
+		$_[SELF]->finish;
+		$_[SELF]->Shutdown;
+		return;
+	}
+
+	# Shutdown while writing
+	if ( $_[SELF]->{state} eq 'BUSY' ) {
+		# Signal we want to stop as soon as the queue is empty,
+		# but otherwise just wait for the natural end.
+		$_[SELF]->{state} = 'HALT';
+		return;
+	}
+
+	# Must be a shutdown while HALT, just keep waiting
+	return;
 }
 
 
@@ -193,13 +279,26 @@ sub shutdown : Event {
 sub finish {
 	my $self = shift;
 
+	# Clean up streaming resources
+	$self->clean;
+
+	# Pass through as normal
+	$self->SUPER::finish(@_);
+}
+
+sub clean {
+	my $self = shift;
+
+	# Shutdown the wheel
+	$_[SELF]->{wheel}->shutdown_output;
+	$_[SELF]->{wheel} = undef;
+
 	# If we opened a file, close it
-	if ( $self->Filename ) {
+	if ( $self->Filename and $self->{Handle} ) {
 		close delete $self->{Handle};
 	}
 
-	# Clean out the POE::Declare object as normal
-	$self->SUPER::finish(@_);
+	return;
 }
 
 compile;
@@ -210,7 +309,7 @@ compile;
 
 Bugs should be always be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=POE-Declare-HTTP-Client>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=POE-Declare-Log-File>
 
 For other issues, or commercial enhancement or support, contact the author.
 
@@ -220,7 +319,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<POE>, L<http://ali.as/>
+L<POE::Declare>, L<POE>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
