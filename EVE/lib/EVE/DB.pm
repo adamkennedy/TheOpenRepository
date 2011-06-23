@@ -28,4 +28,14 @@ use EVE::DB::MapRegions ();
 
 our $VERSION = '0.01';
 
+sub selectcol_hashref {
+	my $class = shift;
+	my $sql   = shift;
+	my $attr  = shift || {};
+	$attr->{Columns} ||= [ 1, 2 ];
+	my $array = $class->selectcol_arrayref( $sql, $attr, @_ );
+	my %hash  = @$array;
+	return \%hash;
+}
+
 1;

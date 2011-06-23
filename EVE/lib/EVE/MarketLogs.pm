@@ -61,6 +61,10 @@ sub flush {
 		File::Remove::remove($path) or die "Failed to remove '$path'";
 	}
 
+	if ( $self->files ) {
+		die "Failed to remove all files in marketlogs directory";
+	}
+
 	return 1;
 }
 
@@ -81,28 +85,20 @@ sub blank {
 
 	# Update the mar
 	my $market = undef;
-	EVE::Trade->begin;
-	eval {
 
-		# Flush old records
-		EVE::Trade::Market->delete('where market_id = ?', $market_id);
-		EVE::Trade::Price->delete('where market_id = ?', $market_id);
+	# Flush old records
+	EVE::Trade::Market->delete('where market_id = ?', $market_id);
+	EVE::Trade::Price->delete('where market_id = ?', $market_id);
 
-		# Create new records
-		$market = EVE::Trade::Market->create(
-			market_id    => $market_id,
-			region_id    => $map_region[0]->regionID,
-			region_name  => $map_region[0]->regionName,
-			product_id   => 1,
-			product_name => $product,
-			timestamp    => $timestamp,
-		);
-	};
-	if ( $@ ) {
-		EVE::Trade->rollback;
-		die "Failed to blank market $market_id: $@";
-	}
-	EVE::Trade->commit;
+	# Create new records
+	$market = EVE::Trade::Market->create(
+		market_id    => $market_id,
+		region_id    => $map_region[0]->regionID,
+		region_name  => $map_region[0]->regionName,
+		product_id   => 1,
+		product_name => $product,
+		timestamp    => $timestamp,
+	);
 
 	return $market;
 }
@@ -135,50 +131,42 @@ sub parse {
 		fields => 'auto',
 	) or die "Failed to create parser for '$path'";
 
-	my $market = undef;
-	EVE::Trade->begin;
-	eval {
-		my $market_id = join( ' ', $region, $product );
+	my $market    = undef;
+	my $market_id = join( ' ', $region_name, $product );
 
-		# Flush old records
-		EVE::Trade::Market->delete('where market_id = ?', $market_id);
-		EVE::Trade::Price->delete('where market_id = ?', $market_id);
+	# Flush old records
+	EVE::Trade::Market->delete('where market_id = ?', $market_id);
+	EVE::Trade::Price->delete('where market_id = ?', $market_id);
 
-		# Create new records
-		$market = EVE::Trade::Market->create(
-			market_id    => $market_id,
-			region_id    => $region->regionID,
-			region_name  => $region->regionName,
-			product_id   => $type->typeID,
-			product_name => $type->typeName,
-			timestamp    => $timestamp,
+	# Create new records
+	$market = EVE::Trade::Market->create(
+		market_id    => $market_id,
+		region_id    => $region->regionID,
+		region_name  => $region->regionName,
+		product_id   => $type->typeID,
+		product_name => $type->typeName,
+		timestamp    => $timestamp,
+	);
+	while ( my $hash = $parser->fetch ) {
+		$hash->{issueDate} =~ s/\.000$//;
+		$hash->{bid} = ($hash->{bid} eq 'True') ? 1 : 0;
+		EVE::Trade::Price->create(
+			order_id   => $hash->{orderID},
+			market_id  => $market_id,
+			system_id  => $hash->{solarSystemID},
+			station_id => $hash->{stationID},
+			type_id    => $hash->{typeID},
+			issued     => $hash->{issueDate},
+			duration   => $hash->{duration},
+			bid        => $hash->{bid},
+			price      => $hash->{price},
+			range      => $hash->{range},
+			entered    => $hash->{volEntered},
+			minimum    => $hash->{minVolume},
+			remaining  => $hash->{volRemaining},
+			jumps      => $hash->{jumps},
 		);
-		while ( my $hash = $parser->fetch ) {
-			$hash->{issued} =~ s/\.000$//;
-			$hash->{bid} = ($hash->{bid} eq 'True') ? 1 : 0;
-			EVE::Trade::Price->create(
-				order_id   => $hash->{orderID},
-				market_id  => $market_id,
-				system_id  => $hash->{solarSystemID},
-				station_id => $hash->{stationID},
-				type_id    => $hash->{typeID},
-				issued     => $hash->{issued},
-				duration   => $hash->{duration},
-				bid        => $hash->{bid},
-				price      => $hash->{price},
-				range      => $hash->{range},
-				entered    => $hash->{volEntered},
-				minimum    => $hash->{minVolume},
-				remaining  => $hash->{volRemaining},
-				jumps      => $hash->{jumps},
-			);
-		}
-	};
-	if ( $@ or $parser->errstr ) {
-		EVE::Trade->rollback;
-		die "Failed to parse '$path': " . ($@ || $parser->errstr);
 	}
-	EVE::Trade->commit;
 
 	return $market;
 }
@@ -241,10 +229,9 @@ sub parse_orders {
 		# Update the entire table
 		EVE::Trade::MyOrder->truncate;
 		while ( my $hash = $parser->fetch ) {
-			$hash->{issued} =~ s/\.000$//;
-			$hash->{bid} = ($hash->{bid} eq 'True') ? 1 : 0;
-			$hash->{isCorp} = ($hash->{isCorp} eq 'True') ? 1 : 0;
-			$hash->{contraband} = ($hash->{contraband} eq 'True') ? 1 : 0;
+			$hash->{bid}        = ($hash->{bid} eq 'True') ? 1 : 0;
+			$hash->{isCorp}     = ($hash->{isCorp} eq 'True') ? 1 : 0;
+			$hash->{contraband} = 0;
 			push @orders, EVE::Trade::MyOrder->create(
 				order_id     => $hash->{orderID},
 				account_id   => $hash->{accountID},

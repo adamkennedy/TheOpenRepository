@@ -23,7 +23,7 @@ sub type {
 }
 
 sub jita {
-	EVE::Trade::Market->jita( $_[0]->type_id );
+	EVE::Trade::Market->jita( shift->type_id, @_ );
 }
 
 sub margin {

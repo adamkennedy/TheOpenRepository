@@ -3,6 +3,7 @@ use inc::Module::Install::DSL 1.01;
 author        Adam Kennedy
 license       proprietary
 all_from      lib/EVE.pm
+requires_from lib/EVE/API.pm
 requires_from lib/EVE/Game.pm
 requires_from lib/EVE/DB.pm
 requires_from lib/EVE/Plan.pm

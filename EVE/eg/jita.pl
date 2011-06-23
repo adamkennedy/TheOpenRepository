@@ -18,9 +18,11 @@ $game->mouse_xy;
 $game->reset_windows;
 
 # Capture pricing for all my current orders
-EVE::Plan->my_orders($game);
-EVE::Plan->manufacturing($game);
-EVE::Plan->reactions($game);
+EVE::Plan->scan_inelastic($game);
+EVE::Plan->scan_orders($game);
+EVE::Plan->scan_assets($game);
+EVE::Plan->scan_manufacturing($game);
+EVE::Plan->scan_reactions($game);
 
 $game->stop;
 

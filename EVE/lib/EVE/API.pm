@@ -3,8 +3,8 @@ package EVE::API;
 use 5.008;
 use strict;
 use warnings;
-use XML::Tiny::DOM  1.1 ();
-use LWP::UserAgent 6.02 ();
+use XML::Tiny::DOM   1.1 ();
+use LWP::UserAgent 5.835 ();
 
 our $VERSION = '0.01';
 
@@ -14,7 +14,7 @@ sub post {
 	my $class    = shift;
 	my $path     = "http://api.eve-online.com" . shift;
 	my $agent    = LWP::UserAgent->new;
-	my $response = $agent->post( $path, @_ );
+	my $response = $agent->post( $path, { @_ } );
 	if ( $response->is_success ) {
 		$response->content;
 	} else {
@@ -33,9 +33,15 @@ sub char_asset_list {
 	my $class = shift;
 	my $xml   = $class->post( '/char/AssetList.xml.aspx', @_ );
 	my $dom   = XML::Tiny::DOM->new("_TINY_XML_STRING_$xml");
-	my @rows  = $dom->result->rowset->rows;
-
-	$DB::single = 1;
+	my @list  = map { {
+		flag       => $_->flag,
+		itemID     => $_->itemID,
+		locationID => $_->locationID,
+		quantity   => $_->quantity,
+		singleton  => $_->singleton,
+		typeID     => $_->typeID,
+	} } $dom->result->rowset->row('*');
+	return @list;
 }
 
 1;

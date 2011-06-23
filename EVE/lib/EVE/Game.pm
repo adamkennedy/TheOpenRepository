@@ -304,24 +304,36 @@ sub reset_windows {
 }
 
 sub region {
-	$_[0]->{region} or $_[0]->throw("Have not initialised a region");
+	my $self = shift;
+	unless ( $self->{region} ) {
+		$self->market_start;
+	}
+	unless ( $self->{region} ) {
+		$self->throw("Have not initialised a region");
+	}
+	return $self->{region};
+}
+
+sub account_id {
+	my $self = shift;
+	unless ( $self->{account_id} ) {
+		$self->market_orders;
+	}
+	unless ( $self->{account_id} ) {
+		$self->throw("Have not initialised a region");
+	}
+	return $self->{account_id};
 }
 
 sub char_id {
-	$_[0]->{char_id} or
-	$_[0]->{char_id} = $_[0]->_char_id;
-}
-
-sub _char_id {
 	my $self = shift;
-
-	# Capture orders
-	my @orders = $self->market_orders;
-	unless ( @orders ) {
-		die "Can't determine character without orders";
+	unless ( $self->{char_id} ) {
+		$self->market_orders;
 	}
-
-	return $orders[0]->char_id;
+	unless ( $self->{char_id} ) {
+		$self->throw("Have not initialised a region");
+	}
+	return $self->{char_id};
 }
 
 
@@ -354,7 +366,12 @@ sub market_start {
 	# Search for Trit so we can capture the current region in advance.
 	$self->marketlogs->flush;
 	unless ( $self->market_search('Tritanium', 2) ) {
-		$self->throw("No trit, can't locate market");
+		# Maybe we are on the market history tab, try to switch.
+		$self->left_click( MOUSE_MARKET_DATA_TAB );
+		$self->sleep(0.5);
+		unless ( $self->market_search('Tritanium', 2) ) {
+			$self->throw("No trit, can't locate market");
+		}
 	}
 	my @trit = $self->marketlogs->parse_markets;
 	unless ( @trit == 1 ) {
@@ -383,7 +400,15 @@ sub market_orders {
 	$self->marketlogs->flush;
 	$self->left_click( MOUSE_MARKET_EXPORT_ORDERS );
 	$self->sleep(2);
-	$self->marketlogs->parse_orders;
+	my @orders = $self->marketlogs->parse_orders;
+
+	# Capture account and char id from the orders
+	if ( @orders ) {
+		$self->{account_id} = $orders[0]->account_id;
+		$self->{char_id}    = $orders[0]->char_id;
+	}
+
+	return @orders;
 }
 
 sub market_groups {
@@ -432,6 +457,11 @@ sub market_type {
 	}
 	unless ( Params::Util::_INSTANCE($type, 'EVE::DB::InvTypes') ) {
 		$self->throw("Did not provide an EVE::DB::InvTypes to market_type");
+	}
+
+	# Skip materials that are not available on the market
+	unless ( $type->marketGroupID ) {
+		return 0;
 	}
 
 	# Determine which search result of N that may return is the real one
@@ -823,6 +853,37 @@ sub autopilot_can_jump {
 	} else {
 		$self->throw("Unexpected color at COLOR_SELECTED_JUMP");
 	}
+}
+
+
+
+
+
+#####################################################################
+# EVE API Integration
+
+sub asset_list {
+	my $self = shift;
+	my $api  = $self->api_full or die "Full API key required";
+	my $user = $self->userid   or die "User ID required";
+	my @list = EVE::API->char_asset_list(
+		apiKey      => $api,
+		characterID => $self->char_id,
+		userID      => $user,
+	);
+
+	# Flush the table and refill
+	EVE::Trade::Asset->truncate;
+	my @assets = map {
+		EVE::Trade::Asset->create(
+			item_id     => $_->{itemID},
+			location_id => $_->{locationID},
+			type_id     => $_->{typeID},
+			quantity    => $_->{quantity},
+			singleton   => $_->{singleton},
+			flag        => $_->{flag},
+		)
+	} @list;
 }
 
 

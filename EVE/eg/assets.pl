@@ -9,4 +9,4 @@ use EVE::Plan ();
 
 EVE::DB->begin;
 EVE::Trade->begin;
-EVE::Plan->report_sell_orders;
+EVE::Plan->report_assets;
