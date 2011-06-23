@@ -860,6 +860,30 @@ sub autopilot_can_jump {
 
 
 #####################################################################
+# Mining Automation
+
+sub mining_cargo {
+	my $self   = shift;
+
+	# Continuously click and drag
+	while ( 1 ) {
+		# Find the jetcan and our cargo
+		my $cargo  = $self->screenshot_has('my-cargo');
+		my $jetcan = $self->screenshot_has('floating-cargo');
+		$cargo  = [ $cargo->center_x,  $cargo->center_y  + 100 ];
+		$jetcan = [ $jetcan->center_x, $jetcan->center_y + 100 ];
+
+		# Move the first mineral from one to the other
+		$self->left_drag( $cargo => $jetcan );
+		$self->sleep(5);
+	}
+}
+
+
+
+
+
+#####################################################################
 # EVE API Integration
 
 sub asset_list {
@@ -1005,6 +1029,35 @@ sub left_click {
 
 	# Return the mouse to the rest position to prevent unwanted tooltips
 	$self->mouse_to($here) if @_;
+
+	return 1;
+}
+
+sub left_drag {
+	my $self = shift->foreground;
+	my $here = $self->mouse_xy;
+	my $from = shift;
+	my $to   = shift;
+
+	# Move the mouse to the source
+	$self->mouse_to($from);
+	$self->sleep(0.5);
+
+	# Click whatever it is nice and slow
+	Win32::GuiTest::SendLButtonDown();
+	$self->sleep(0.5);
+
+	# Move it to the destination
+	$self->mouse_to($to);
+	$self->sleep(0.5);
+
+	# Release the item at the destination
+	Win32::GuiTest::SendLButtonUp();
+	$self->sleep(0.5);
+	$self->screenshot_dirty;
+
+	# Return the mouse to the original position
+	$self->mouse_to($here);
 
 	return 1;
 }
