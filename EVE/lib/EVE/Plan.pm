@@ -4,6 +4,7 @@ package EVE::Plan;
 
 use strict;
 use Smart::Comments 1.000;
+use List::Util            ();
 use List::MoreUtils  0.26 ();
 use Text::Table     1.114 ();
 use Number::Format   1.73 ();
@@ -90,16 +91,18 @@ sub report_assets {
 	my @assets = EVE::Trade::Asset->select;
 	my @rows   = ();
 
+	# This report is too slow, use naive pricing
+	my $jita_buy  = $class->naive_jita_buy;
+	my $jita_sell = $class->naive_jita_sell;
+
 	foreach my $asset ( @assets ) {   ### Working===[%]     done
 		my $type      = $asset->type;
+		my $type_id   = $asset->type_id;
 		my $name      = $type->typeName;
 		my $quantity  = $asset->quantity;
-		my $each      = $asset->jita                   or next;
-		my $all       = $asset->jita($quantity) or next;
-		my $buy       = $each->{buy}->{ok}  ? $each->{buy}->{price}  : '~';
-		my $sell      = $each->{sell}->{ok} ? $each->{sell}->{price} : '~';
-		my $cash      = ($name =~ /\bI\b/) ? $buy * $quantity : $all->{buy}->{total};
-		my $liquidity = ($each->{buy}->{price} * $quantity) / $cash;
+		my $sell      = $jita_sell->{$type_id} or next;
+		my $buy       = $jita_buy->{$type_id}  or next;
+		my $cash      = $buy * $quantity;
 		push @rows, [
 			$asset->location_id,
 			$name,
@@ -107,9 +110,11 @@ sub report_assets {
 			$sell,
 			$buy,
 			$cash,
-			$liquidity,
 		];
 	}
+
+	# Find the total value
+	my $total = isk(List::Util::sum map { $_->[5] } @rows);
 
 	# Sort, format and display
 	print table(
@@ -117,10 +122,9 @@ sub report_assets {
 			"Location",
 			"Product",
 			{ align => 'right', align_title => 'right', title => "Quantity"  },
-			{ align => 'right', align_title => 'right', title => "Best Sell" },
-			{ align => 'right', align_title => 'right', title => "Best Buy"  },
-			{ align => 'right', align_title => 'right', title => "Jita Sale" },
-			{ align => 'right', align_title => 'right', title => "Liquidity" },
+			{ align => 'right', align_title => 'right', title => "Jita Sell" },
+			{ align => 'right', align_title => 'right', title => "Jita Buy"  },
+			{ align => 'right', align_title => 'right', title => "ISK Value" },
 		],
 		map { [
 			$_->[0],
@@ -134,6 +138,8 @@ sub report_assets {
 			$b->[5] <=> $a->[5]
 		} @rows,
 	);
+
+	print "Estimate ISK Value: $total\n";
 }
 
 
@@ -234,7 +240,7 @@ END_SQL
 	my @order = map {
 		$_->[0]
 	} sort {
-		$b->[1] <=> $a->[1]
+		$a->[1] <=> $b->[1]
 		or
 		$b->[2] <=> $a->[2]
 	} map { [
@@ -246,6 +252,31 @@ END_SQL
 	# Capture market pricing in quantity order
 	$game->market_start;
 	$game->market_types(@order);
+}
+
+
+
+
+
+# ######################################################################
+# Quick and Dirty Queries
+
+sub naive_jita_sell {
+	EVE::Trade->selectcol_hashref(<<'END_SQL');
+select type_id, min(price) from price
+where station_id = 60003760
+and bid = 0
+group by type_id
+END_SQL
+}
+
+sub naive_jita_buy {
+	EVE::Trade->selectcol_hashref(<<'END_SQL');
+select type_id, max(price) from price
+where station_id = 60003760
+and bid = 1
+group by type_id
+END_SQL
 }
 
 
