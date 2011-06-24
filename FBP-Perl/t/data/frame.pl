@@ -32,6 +32,14 @@ sub new {
 		Wx::wxITEM_NORMAL,
 	);
 
+	Wx::Event::EVT_MENU(
+		$self,
+		$m_menuItem1,
+		sub {
+			shift->menu_event(@_);
+		},
+	);
+
 	my $m_menuItem2 = Wx::MenuItem->new(
 		$self->{m_menu1},
 		-1,
@@ -74,6 +82,10 @@ sub new {
 	$bSizer7->Fit($self);
 
 	return $self;
+}
+
+sub menu_event {
+	die 'Handler method menu_event for event m_menuItem1.OnMenuSelection not implemented';
 }
 
 1;

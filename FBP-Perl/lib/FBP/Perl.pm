@@ -55,10 +55,16 @@ use warnings;
 use FBP           0.31 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.44';
+our $VERSION = '0.45';
 
 # Event Binding Table
 my %EVENT = (
+	# Common low level painting events
+	OnEraseBackground         => [ 'EVT_ERASE_BACKGROUND'           ],
+	OnPaint                   => [ 'EVT_PAINT'                      ],
+	OnSize                    => [ 'EVT_SIZE'                       ],
+	OnUpdateUI                => [ 'EVT_UPDATE_UI'                  ],
+
 	# wxActivateEvent
 	OnActivate                => [ 'EVT_ACTIVATE'                   ],
 	OnActivateApp             => [ 'EVT_ACTIVATE_APP'               ],
@@ -106,6 +112,9 @@ my %EVENT = (
 	OnHtmlCellClicked         => [ 'EVT_HTML_CELL_CLICKED'          ],
 	OnHtmlCellHover           => [ 'EVT_HTML_CELL_HOVER'            ],
 	OnHtmlLinkClicked         => [ 'EVT_HTML_LINK_CLICKED'          ],
+
+	# wxMenuEvent
+	OnMenuSelection           => [ 'EVT_MENU'                       ],
 
 	# wxListEvent
 	OnListBeginDrag           => [ 'EVT_LIST_BEGIN_DRAG'            ],
@@ -570,33 +579,36 @@ sub form_setsizehints {
 sub form_methods {
 	my $self    = shift;
 	my $form    = shift;
-	my @windows = $form->find( isa => 'FBP::Window' );
+	my @objects = (
+		$form->find( isa => 'FBP::Window' ),
+		$form->find( isa => 'FBP::MenuItem' ),
+	);
 	my %seen    = ();
 	my %done    = ();
 	my @methods = ();
 
 	# Add the accessor methods
-	foreach my $window ( @windows ) {
-		next unless $window->can('name');
-		next unless $window->can('permission');
-		next unless $window->permission eq 'public';
+	foreach my $object ( @objects ) {
+		next unless $object->can('name');
+		next unless $object->can('permission');
+		next unless $object->permission eq 'public';
 
 		# Protect against duplicates
-		my $name = $window->name;
+		my $name = $object->name;
 		if ( $seen{$name}++ ) {
 			die "Duplicate method '$name' detected";
 		}
 
-		push @methods, $self->window_accessor($window);
+		push @methods, $self->object_accessor($object);
 	}
 
 	# Add the event handler methods
-	foreach my $window ( @windows ) {
+	foreach my $object ( @objects ) {
 		foreach my $event ( sort keys %EVENT ) {
-			next unless $window->can($event);
+			next unless $object->can($event);
 
-			my $name   = $window->name;
-			my $method = $window->$event();
+			my $name   = $object->name;
+			my $method = $object->$event();
 			next unless defined $method;
 			next unless length $method;
 
@@ -606,7 +618,7 @@ sub form_methods {
 			}
 			next if $done{$method}++;
 
-			push @methods, $self->window_event($window, $event);
+			push @methods, $self->object_event($object, $event);
 		}
 	}
 
@@ -724,7 +736,7 @@ sub window_create {
 	push @$lines, $self->window_tooltip($window);
 	push @$lines, $self->window_disable($window);
 	push @$lines, $self->window_hide($window);
-	push @$lines, $self->window_bindings($window);
+	push @$lines, $self->object_bindings($window);
 
 	return $lines;
 }
@@ -1098,12 +1110,12 @@ sub listctrl_create {
 sub menu_create {
 	my $self     = shift;
 	my $menu     = shift;
-	my $lexical  = $self->object_lexical($menu) ? 'my ' : '';
+	my $scope    = $self->object_scope($menu);
 	my $variable = $self->object_variable($menu);
 
 	# Generate our children
 	my @lines = (
-		"$lexical$variable = Wx::Menu->new;",
+		"$scope$variable = Wx::Menu->new;",
 		"",
 	);
 	foreach my $child ( @{$menu->children} ) {
@@ -1144,7 +1156,7 @@ sub menubar_create {
 	my $self     = shift;
 	my $window   = shift;
 	my $parent   = $self->object_parent(@_);
-	my $lexical  = $self->object_lexical($window) ? 'my ' : '';
+	my $scope    = $self->object_scope($window);
 	my $variable = $self->object_variable($window);
 	my $style    = $self->wx($window->styles || 0);
 
@@ -1165,7 +1177,7 @@ sub menubar_create {
  
 	return [
 		( map { @$_, "" } @children ),
-		"$lexical$variable = Wx::MenuBar->new($style);",
+		"$scope$variable = Wx::MenuBar->new($style);",
 		"",
 		@append,
 		"",
@@ -1177,15 +1189,16 @@ sub menuitem_create {
 	my $self     = shift;
 	my $menu     = shift;
 	my $parent   = $self->object_parent(@_);
-	my $lexical  = $self->object_lexical($menu) ? 'my ' : '';
+	my $scope    = $self->object_scope($menu);
 	my $variable = $self->object_variable($menu);
 	my $id       = $self->wx( $menu->id );
 	my $label    = $self->object_label($menu);
 	my $help     = $self->text( $menu->help );
 	my $kind     = $self->wx( $menu->kind );
 
-	return $self->nested(
-		"$lexical$variable = Wx::MenuItem->new(",
+	# Create the menu item
+	my $lines = $self->nested(
+		"$scope$variable = Wx::MenuItem->new(",
 		"$parent,",
 		"$id,",
 		"$label,",
@@ -1193,6 +1206,11 @@ sub menuitem_create {
 		"$kind,",
 		");",
 	);
+
+	# Add the event bindings
+	push @$lines, $self->object_bindings($menu);
+
+	return $lines;
 }
 
 sub panel_create {
@@ -1501,7 +1519,7 @@ sub sizer_pack {
 sub boxsizer_pack {
 	my $self     = shift;
 	my $sizer    = shift;
-	my $lexical  = $self->object_lexical($sizer) ? 'my ' : '';
+	my $scope    = $self->object_scope($sizer);
 	my $variable = $self->object_variable($sizer);
 	my $orient   = $self->wx( $sizer->orient );
 
@@ -1510,7 +1528,7 @@ sub boxsizer_pack {
 
 	# Add the content for this sizer
 	my @lines = (
-		"$lexical$variable = Wx::BoxSizer->new($orient);",
+		"$scope$variable = Wx::BoxSizer->new($orient);",
 	);
 	foreach my $item ( @{$sizer->children} ) {
 		my $child  = $item->children->[0];
@@ -1542,7 +1560,7 @@ sub boxsizer_pack {
 sub staticboxsizer_pack {
 	my $self     = shift;
 	my $sizer    = shift;
-	my $lexical  = $self->object_lexical($sizer) ? 'my ' : '';
+	my $scope    = $self->object_scope($sizer);
 	my $variable = $self->object_variable($sizer);
 	my $label    = $self->object_label($sizer);
 	my $orient   = $self->wx( $sizer->orient );
@@ -1552,7 +1570,7 @@ sub staticboxsizer_pack {
 
 	# Add the content for this sizer
 	my @lines = (
-		"$lexical$variable = Wx::StaticBoxSizer->new(",
+		"$scope$variable = Wx::StaticBoxSizer->new(",
 		"\tWx::StaticBox->new(",
 		"\t\t\$self,",
 		"\t\t-1,",
@@ -1591,7 +1609,7 @@ sub staticboxsizer_pack {
 sub gridsizer_pack {
 	my $self     = shift;
 	my $sizer    = shift;
-	my $lexical  = $self->object_lexical($sizer) ? 'my ' : '';
+	my $scope    = $self->object_scope($sizer);
 	my $variable = $self->object_variable($sizer);
 	my $params   = join( ', ',
 		$sizer->rows,
@@ -1605,7 +1623,7 @@ sub gridsizer_pack {
 
 	# Add the content for this sizer
 	my @lines = (
-		"$lexical$variable = Wx::GridSizer->new( $params );",
+		"$scope$variable = Wx::GridSizer->new( $params );",
 	);
 	foreach my $item ( @{$sizer->children} ) {
 		my $child  = $item->children->[0];
@@ -1637,7 +1655,7 @@ sub gridsizer_pack {
 sub flexgridsizer_pack {
 	my $self      = shift;
 	my $sizer     = shift;
-	my $lexical   = $self->object_lexical($sizer) ? 'my ' : '';
+	my $scope     = $self->object_scope($sizer);
 	my $variable  = $self->object_variable($sizer);
 	my $direction = $self->wx( $sizer->flexible_direction );
 	my $growmode  = $self->wx( $sizer->non_flexible_grow_mode );
@@ -1653,7 +1671,7 @@ sub flexgridsizer_pack {
 
 	# Add the content for this sizer
 	my @lines = (
-		"$lexical$variable = Wx::FlexGridSizer->new( $params );",
+		"$scope$variable = Wx::FlexGridSizer->new( $params );",
 	);
 	foreach my $row ( split /,/, $sizer->growablerows ) {
 		push @lines, "$variable->AddGrowableRow($row);";
@@ -1937,7 +1955,7 @@ sub window_hide {
 	return;
 }
 
-sub window_bindings {
+sub object_bindings {
 	my $self     = shift;
 	my $window   = shift;
 	my $variable = $self->object_variable($window);
@@ -1981,11 +1999,20 @@ sub object_label {
 	$_[0]->text( $_[1]->label );
 }
 
+sub object_scope {
+	my $self   = shift;
+	my $object = shift;
+	if ( $self->object_lexical($object) ) {
+		return 'my ';
+	} else {
+		return '';
+	}
+}
+
 sub object_variable {
-	my $self    = shift;
-	my $object  = shift;
-	my $lexical = $self->object_lexical($object);
-	if ( $lexical ) {
+	my $self   = shift;
+	my $object = shift;
+	if ( $self->object_lexical($object) ) {
 		return '$' . $object->name;
 	} else {
 		return '$self->{' . $object->name . '}';
@@ -2032,10 +2059,10 @@ sub object_top {
 sub window_new {
 	my $self     = shift;
 	my $window   = shift;
-	my $lexical  = $self->object_lexical($window) ? 'my ' : '';
+	my $scope    = $self->object_scope($window);
 	my $variable = $self->object_variable($window);
 	my $wxclass  = $window->wxclass;
-	return "$lexical$variable = $wxclass->new(";
+	return "$scope$variable = $wxclass->new(";
 }
 
 sub window_style {
@@ -2051,7 +2078,7 @@ sub window_style {
 	return;
 }
 
-sub window_accessor {
+sub object_accessor {
 	my $self   = shift;
 	my $object = shift;
 	my $name   = $object->name;
@@ -2063,7 +2090,7 @@ sub window_accessor {
 	);
 }
 
-sub window_event {
+sub object_event {
 	my $self   = shift;
 	my $window = shift;
 	my $event  = shift;

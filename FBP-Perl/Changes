@@ -1,5 +1,11 @@
 Changes for Perl extension FBP-Perl
 
+0.45 Fri 24 Jun 2011
+	- Added Wx::MenuItem.OnMenuSelection event support
+	- Added object_scope method to centralise the "my/our" code generation.
+	- Refactored some window_ methods to object_ now they are usable for
+	  more than just FBP::Window objects.
+
 0.44 Fri 24 Jun 2011
 	- Added support for Wx::MenuBar
 	- Added support for Wx::Menu
