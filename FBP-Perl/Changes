@@ -1,7 +1,10 @@
 Changes for Perl extension FBP-Perl
 
-0.44 to be released
+0.44 Fri 24 Jun 2011
 	- Added support for Wx::MenuBar
+	- Added support for Wx::Menu
+	- Added support for Wx::MenuItem
+	- Added support for menu separators
 	- Always create Wx::StatusBar at the top of the constructor. Adding them
 	  below sizers will confuse them and result in corrupt sizing.
 
