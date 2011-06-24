@@ -22,11 +22,36 @@ sub new {
 	);
 	$self->CreateStatusBar( 2, Wx::wxST_SIZEGRIP, -1 );
 
+	my $m_menuItem1 = Wx::MenuItem->new(
+		$self->{m_menu1},
+		-1,
+		Wx::gettext("MyMenuItem"),
+		'',
+		Wx::wxITEM_NORMAL,
+	);
+
+	my $m_menuItem2 = Wx::MenuItem->new(
+		$self->{m_menu1},
+		-1,
+		Wx::gettext("MyMenuItem"),
+		'',
+		Wx::wxITEM_NORMAL,
+	);
+
+	$self->{m_menu1} = Wx::Menu->new;
+	$self->{m_menu1}->Append(
+		$m_menuItem1
+	);
+	$self->{m_menu1}->Append(
+		$m_menuItem2
+	);
+
 	$self->{m_menubar1} = Wx::MenuBar->new(0);
 	$self->{m_menubar1}->Append(
 		$self->{m_menu1},
 		Wx::gettext("File"),
 	);
+
 	$self->SetMenuBar( $self->{m_menubar1} );
 
 	$self->{m_staticText5} = Wx::StaticText->new(

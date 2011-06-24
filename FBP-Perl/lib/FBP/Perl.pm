@@ -1098,11 +1098,20 @@ sub listctrl_create {
 sub menu_create {
 	my $self     = shift;
 	my $menu     = shift;
-	my $lexical  = $self->object_lexical($menu);
+	my $lexical  = $self->object_lexical($menu) ? 'my ' : '';
 	my $variable = $self->object_variable($menu);
 
+	# Generate our children
+	my @lines = map {
+		@$_, "",
+	} map {
+		$_->isa('FBP::Menu')
+			? $self->menu_create($_, $menu)
+			: $self->menuitem_create($_, $menu)
+	} @{$menu->children};
+
 	# Create the menu
-	my @lines = "$lexical$variable = Wx::Menu->new;";
+	push @lines, "$lexical$variable = Wx::Menu->new;";
 	foreach my $child ( @{$menu->children} ) {
 		if ( $child->isa('FBP::MenuItem') ) {
 			push @lines, $self->nested(
@@ -1127,9 +1136,14 @@ sub menubar_create {
 	my $self     = shift;
 	my $window   = shift;
 	my $parent   = $self->object_parent(@_);
-	my $lexical  = $self->object_lexical($window);
+	my $lexical  = $self->object_lexical($window) ? 'my ' : '';
 	my $variable = $self->object_variable($window);
 	my $style    = $self->wx($window->styles || 0);
+
+	# Generate our children
+	my @children = map {
+		$self->menu_create($_, $self)
+	} @{$window->children};
 
 	# Build the append list
 	my @append = map {
@@ -1142,8 +1156,10 @@ sub menubar_create {
 	} @{$window->children};
 
 	return [
+		( map { @$_, "" } @children ),
 		"$lexical$variable = Wx::MenuBar->new($style);",
 		@append,
+		"",
 		"$parent->SetMenuBar( $variable );",
 	];
 }
@@ -1152,7 +1168,7 @@ sub menuitem_create {
 	my $self     = shift;
 	my $menu     = shift;
 	my $parent   = $self->object_parent(@_);
-	my $lexical  = $self->object_lexical($menu);
+	my $lexical  = $self->object_lexical($menu) ? 'my ' : '';
 	my $variable = $self->object_variable($menu);
 	my $id       = $self->wx( $menu->id );
 	my $label    = $self->object_label($menu);
@@ -1160,12 +1176,13 @@ sub menuitem_create {
 	my $kind     = $self->wx( $menu->kind );
 
 	return $self->nested(
-		"$lexical$variable = Wx::MenuItem(",
+		"$lexical$variable = Wx::MenuItem->new(",
 		"$parent,",
 		"$id,",
 		"$label,",
 		"$help,",
 		"$kind,",
+		");",
 	);
 }
 
