@@ -1102,30 +1102,38 @@ sub menu_create {
 	my $variable = $self->object_variable($menu);
 
 	# Generate our children
-	my @lines = map {
-		@$_, "",
-	} map {
-		$_->isa('FBP::Menu')
-			? $self->menu_create($_, $menu)
-			: $self->menuitem_create($_, $menu)
-	} @{$menu->children};
-
-	# Create the menu
-	push @lines, "$lexical$variable = Wx::Menu->new;";
+	my @lines = (
+		"$lexical$variable = Wx::Menu->new;",
+		"",
+	);
 	foreach my $child ( @{$menu->children} ) {
-		if ( $child->isa('FBP::MenuItem') ) {
-			push @lines, $self->nested(
-				"$variable->Append(",
-				$self->object_variable($child),
-				");",
-			);
+		if ( $child->isa('FBP::Menu') ) {
+			push @lines, @{ $self->menu_create($child, $menu) };
+
+		} elsif ( $child->isa('FBP::MenuItem') ) {
+			push @lines, @{ $self->menuitem_create($child, $menu) };
+
 		} else {
+			next;
+		}
+		push @lines, "";
+	}
+
+	# Fill the menu
+	foreach my $child ( @{$menu->children} ) {
+		if ( $child->isa('FBP::Menu') ) {
 			push @lines, $self->nested(
 				"$variable->Append(",
 				$self->object_variable($_) . ',',
 				$self->object_label($_) . ',',
 				");",
 			);
+		} elsif ( $child->isa('FBP::MenuItem') ) {
+			push @lines, "$variable->Append( "
+				. $self->object_variable($child)
+				. " );";
+		} elsif ( $child->isa('FBP::MenuSeparator') ) {
+			push @lines, "$variable->AppendSeparator;";
 		}
 	}
 
@@ -1154,10 +1162,11 @@ sub menubar_create {
 			");",
 		)
 	} @{$window->children};
-
+ 
 	return [
 		( map { @$_, "" } @children ),
 		"$lexical$variable = Wx::MenuBar->new($style);",
+		"",
 		@append,
 		"",
 		"$parent->SetMenuBar( $variable );",

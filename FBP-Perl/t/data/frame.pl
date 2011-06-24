@@ -22,6 +22,8 @@ sub new {
 	);
 	$self->CreateStatusBar( 2, Wx::wxST_SIZEGRIP, -1 );
 
+	$self->{m_menu1} = Wx::Menu->new;
+
 	my $m_menuItem1 = Wx::MenuItem->new(
 		$self->{m_menu1},
 		-1,
@@ -38,15 +40,12 @@ sub new {
 		Wx::wxITEM_NORMAL,
 	);
 
-	$self->{m_menu1} = Wx::Menu->new;
-	$self->{m_menu1}->Append(
-		$m_menuItem1
-	);
-	$self->{m_menu1}->Append(
-		$m_menuItem2
-	);
+	$self->{m_menu1}->Append( $m_menuItem1 );
+	$self->{m_menu1}->AppendSeparator;
+	$self->{m_menu1}->Append( $m_menuItem2 );
 
 	$self->{m_menubar1} = Wx::MenuBar->new(0);
+
 	$self->{m_menubar1}->Append(
 		$self->{m_menu1},
 		Wx::gettext("File"),
