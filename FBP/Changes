@@ -1,5 +1,11 @@
 Changes for Perl extension FBP
 
+0.33 to be released
+	- Added FBP::Window::OnEraseBackground event
+	- Added FBP::Window::OnPaint event
+	- Added FBP::Window::OnSize event
+	- Added FBP::Window::OnUpdateUI event
+
 0.32 Mon 20 Jun 2011
 	- Added FBP::Menu class
 	- Added FBP::MenuBar class

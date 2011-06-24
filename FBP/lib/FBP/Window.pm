@@ -314,6 +314,33 @@ sub header {
 	return;
 }
 
+
+
+
+
+######################################################################
+# Events
+
+has OnEraseBackground => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+has OnPaint => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+has OnSize => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+has OnUpdateUI => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
 1;
 
 =pod
