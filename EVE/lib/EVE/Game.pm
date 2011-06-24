@@ -24,6 +24,7 @@ use EVE::MarketLogs            ();
 use EVE::API                   ();
 use EVE::TextPattern           ();
 use EVE::DB                    ();
+use EVE::Pattern               ();
 
 our $VERSION = '0.01';
 
@@ -730,6 +731,7 @@ sub autopilot_engage {
 				# Jump to the new system
 				while ( not $self->screenshot_black(COLOR_SELECTED_JUMP) ) {
 					$self->left_click(COLOR_SELECTED_JUMP);
+					# $self->send_keys("d");
 					$self->sleep(0.5);
 				}
 
@@ -757,6 +759,7 @@ sub autopilot_engage {
 			if ( $self->autopilot_can_warp ) {
 				# Warp to the gate
 				$self->left_click( COLOR_SELECTED_WARP_TO );
+				# $self->send_keys("s");
 				$self->sleep(0.5);
 				next;
 			}
@@ -765,6 +768,7 @@ sub autopilot_engage {
 			if ( $self->autopilot_can_approach ) {
 				# Approach the gate
 				$self->left_click( COLOR_SELECTED_APPROACH );
+				# $self->send_keys("a");
 				$self->sleep(0.5);
 				next;
 			}
@@ -868,8 +872,8 @@ sub mining_cargo {
 	# Continuously click and drag
 	while ( 1 ) {
 		# Find the jetcan and our cargo
-		my $cargo  = $self->screenshot_has('my-cargo');
-		my $jetcan = $self->screenshot_has('floating-cargo');
+		my $cargo  = $self->screenshot_has('my-cargo')       or return;
+		my $jetcan = $self->screenshot_has('floating-cargo') or return;
 		$cargo  = [ $cargo->center_x,  $cargo->center_y  + 100 ];
 		$jetcan = [ $jetcan->center_x, $jetcan->center_y + 100 ];
 
@@ -1088,6 +1092,7 @@ sub right_click {
 #####################################################################
 # Vision Support
 
+# Find the transparency colour
 sub pattern {
 	my $self    = shift;
 	my $name    = shift;
@@ -1116,12 +1121,17 @@ sub find_patterns {
 	foreach my $file ( @files ) {
 		my $name = $file;
 		$name =~ s/\.bmp$//;
-		$hash{$name} = Imager::Search::Pattern->new(
+		$hash{$name} = EVE::Pattern->new(
 			name   => $name,
-			driver => 'Imager::Search::Driver::BMP24',
 			file   => File::Spec->catfile( $path, $file ),
-			cache  => 1,
 		);
+	}
+
+	# With the loading pass completed, find the transparent colour
+	# and apply transparency to all the images.
+	my $pink = delete($hash{transparent})->sample(0,0);
+	foreach my $name ( sort keys %hash ) {
+		$hash{$name}->transparent($pink);
 	}
 
 	\%hash;
