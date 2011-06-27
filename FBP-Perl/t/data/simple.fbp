@@ -2780,7 +2780,7 @@
                     <property name="bitmap"></property>
                     <property name="id">wxID_ANY</property>
                     <property name="kind">wxITEM_NORMAL</property>
-                    <property name="label">Tool 2wx</property>
+                    <property name="label">Tool 2</property>
                     <property name="name">m_tool4</property>
                     <property name="statusbar"></property>
                     <property name="tooltip"></property>
