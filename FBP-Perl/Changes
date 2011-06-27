@@ -1,8 +1,9 @@
 Changes for Perl extension FBP-Perl
 
-0.46 to be released
+0.46 Mon 27 Jun 2011
+	- Added Wx::Tool support
 	- Added Wx::ToolBar support
-	- Added Wx::ToolBar separator support
+	- Added Wx::ToolBar separator
 
 0.45 Fri 24 Jun 2011
 	- Added Wx::MenuItem.OnMenuSelection event support

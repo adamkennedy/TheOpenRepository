@@ -1451,6 +1451,27 @@ sub textctrl_create {
 	return $lines;
 }
 
+sub tool_create {
+	my $self    = shift;
+	my $tool    = shift;
+	my $parent  = $self->object_parent(@_);
+	my $id      = $self->wx( $tool->id );
+	my $label   = $self->object_label($tool);
+	my $bitmap  = $self->bitmap( $tool->bitmap );
+	my $tooltip = $self->text( $tool->tooltip );
+	my $kind    = $self->wx( $tool->kind );
+
+	return $self->nested(
+		"$parent->AddTool(",
+		"$id,",
+		"$label,",
+		"$bitmap,",
+		"$tooltip,",
+		"$kind,",
+		");",
+	);
+}
+
 sub toolbar_create {
 	my $self     = shift;
 	my $window   = shift;
@@ -1458,18 +1479,18 @@ sub toolbar_create {
 	my $scope    = $self->object_scope($window);
 	my $variable = $self->object_variable($window);
 	my $style    = $self->wx($window->styles || 0);
-	my $id        = $self->wx( $window->id );
+	my $id       = $self->wx( $window->id );
 
 	# Generate child constructor code
 	my @children = map {
 		$_->isa('FBP::Tool')
-		? '# FBP::Tool support incomplete'
+		? $self->tool_create($_, $window)
 		: "$variable->AddSeparator;"
 	} @{$window->children};
 
 	return [
 		"$scope$variable = $parent->CreateToolBar( $style, $id );",
-		@children,
+		( map { ref $_ ? @$_ : $_ } @children ),
 		"$variable->Realize;",
 	];
 }
@@ -2327,6 +2348,17 @@ sub points {
 		return $size;
 	}
 	$self->wx('wxNORMAL_FONT') . '->GetPointSize';
+}
+
+sub bitmap {
+	my $self   = shift;
+	my $bitmap = shift;
+	unless ( defined $bitmap ) {
+		return $self->wx('wxNullBitmap');
+	}
+
+	### To be completed
+	return $self->wx('wxNullBitmap');
 }
 
 sub indent {

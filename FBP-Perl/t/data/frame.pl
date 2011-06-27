@@ -62,7 +62,21 @@ sub new {
 	$self->SetMenuBar( $self->{m_menubar1} );
 
 	$self->{m_toolBar1} = $self->CreateToolBar( Wx::wxTB_HORIZONTAL, -1 );
+	$self->{m_toolBar1}->AddTool(
+		-1,
+		Wx::gettext("Tool 1"),
+		Wx::wxNullBitmap,
+		'',
+		Wx::wxITEM_NORMAL,
+	);
 	$self->{m_toolBar1}->AddSeparator;
+	$self->{m_toolBar1}->AddTool(
+		-1,
+		Wx::gettext("Tool 2"),
+		Wx::wxNullBitmap,
+		'',
+		Wx::wxITEM_NORMAL,
+	);
 	$self->{m_toolBar1}->Realize;
 
 	$self->{m_staticText5} = Wx::StaticText->new(
