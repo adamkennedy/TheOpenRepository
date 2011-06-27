@@ -170,6 +170,11 @@ my %EVENT = (
 	OnSplitterSashPosChanged  => [ 'EVT_SPLITTER_SASH_POS_CHANGED'  ],
 	OnSplitterUnsplit         => [ 'EVT_SPLITTER_UNSPLIT'           ],
 	OnSplitterDClick          => [ 'EVT_SPLITTER_DCLICK'            ],
+
+	# Toolbar events
+	OnToolClicked             => [ '' ],
+	OnToolRClicked            => [ '' ],
+	OnToolEnter               => [ '' ],
 );
 
 
@@ -722,6 +727,8 @@ sub window_create {
 		$lines = $self->statusbar_create($window, $parent);
 	} elsif ( $window->isa('FBP::TextCtrl') ) {
 		$lines = $self->textctrl_create($window, $parent);
+	} elsif ( $window->isa('FBP::ToolBar') ) {
+		$lines = $self->toolbar_create($window, $parent);
 	} else {
 		die 'Cannot create constructor code for ' . ref($window);
 	}
@@ -1442,6 +1449,21 @@ sub textctrl_create {
 	}
 
 	return $lines;
+}
+
+sub toolbar_create {
+	my $self     = shift;
+	my $window   = shift;
+	my $parent   = $self->object_parent(@_);
+	my $scope    = $self->object_scope($window);
+	my $variable = $self->object_variable($window);
+	my $style    = $self->wx($window->styles || 0);
+	my $id        = $self->wx( $window->id );
+
+	return [
+		"$scope$variable = $parent->CreateToolBar( $style, $id );",
+		"$variable->Realize;",
+	];
 }
 
 sub treebook_create {
