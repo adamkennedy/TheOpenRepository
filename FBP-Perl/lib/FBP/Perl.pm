@@ -1460,8 +1460,16 @@ sub toolbar_create {
 	my $style    = $self->wx($window->styles || 0);
 	my $id        = $self->wx( $window->id );
 
+	# Generate child constructor code
+	my @children = map {
+		$_->isa('FBP::Tool')
+		? '# FBP::Tool support incomplete'
+		: "$variable->AddSeparator;"
+	} @{$window->children};
+
 	return [
 		"$scope$variable = $parent->CreateToolBar( $style, $id );",
+		@children,
 		"$variable->Realize;",
 	];
 }
