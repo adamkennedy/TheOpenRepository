@@ -15,7 +15,7 @@ my $game = EVE::Game->new;
 $game->attach;
 $game->connect;
 $game->mouse_xy;
-$game->reset_windows;
+# $game->reset_windows;
 
 # Capture pricing for all my current orders
 EVE::Plan->scan_inelastic($game);

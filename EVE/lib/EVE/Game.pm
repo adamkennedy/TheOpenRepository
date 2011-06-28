@@ -297,7 +297,7 @@ sub reset_windows {
 
 	# Hit escape again to exit the escape menu
 	$self->send_keys( '{ESCAPE}' );
-	unless ( $self->wait_pattern( 10 => 'neocom-mail' ) ) {
+	unless ( $self->wait_pattern( 10 => 'neocom-undock' ) ) {
 		$self->throw("Failed to return to the main game");
 	}
 
