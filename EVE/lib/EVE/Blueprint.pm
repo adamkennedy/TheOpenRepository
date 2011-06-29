@@ -3,6 +3,7 @@ package EVE::Blueprint;
 # Blueprint calculator
 
 use strict;
+use List::Util   ();
 use Params::Util ();
 use EVE::Market  ();
 
@@ -15,7 +16,7 @@ use Object::Tiny qw{
 	blueprint_mineral_efficiency
 	blueprint_production_efficiency
 	material_base
-	material_cost
+	material_actual
 };
 
 
@@ -52,18 +53,18 @@ sub new {
 	}
 
 	# Derive the actual material consumption
-	$self->{material_cost} = {};
+	$self->{material_actual} = {};
 	foreach my $type_id ( $self->material_type_ids ) {
 		if ( $self->blueprint_mineral_efficiency >= 0 ) {
 			# cost = base * (1 + 0.1 / (ME + 1)) * (1.25 - 0.05 * ProdEff)
-			$self->{material_cost}->{$type_id} = int(
+			$self->{material_actual}->{$type_id} = int(
 				$self->material_base->{$type_id}
 				* ( 1 + 0.1 / ( $self->blueprint_mineral_efficiency + 1 ) )
 				* ( 1.25 - 0.05 * $self->skill_production_efficiency )
 			);
 		} else {
 			# cost = base * (1 + 0.1 - ME / 10) * (1.25 - 0.05 * ProdEff)
-			$self->{material_cost}->{$type_id} = int(
+			$self->{material_actual}->{$type_id} = int(
 				$self->material_base->{$type_id}
 				* ( 1 + 0.1 - $self->blueprint_mineral_efficiency / 10 )
 				* ( 1.25 - 0.05 * $self->skill_production_efficiency )
@@ -109,13 +110,13 @@ sub output_sell {
 	return $self->{output_sell};
 }
 
-sub material_sell {
+sub material_base_sell {
 	my $self = shift;
-	unless ( defined $self->{material_sell} ) {
-		my $sell = $self->{material_sell} = {};
+	unless ( defined $self->{material_base_sell} ) {
+		my $sell = $self->{material_base_sell} = {};
 		my $jita = EVE::Market->jita_naive_sell;
 		foreach my $type_id ( $self->material_type_ids ) {
-			my $quantity = $self->material_cost->{$type_id};
+			my $quantity = $self->material_base->{$type_id};
 			my $price    = $jita->{$type_id};
 			unless ( defined $price ) {
 				die "Missing naive jita sell price for '$type_id'";
@@ -123,7 +124,40 @@ sub material_sell {
 			$sell->{$type_id} = $quantity * $price;
 		}
 	}
-	return $self->{material_sell};
+	return $self->{material_base_sell};
+}
+
+sub material_base_cost {
+	my $self = shift;
+	my $sell = $self->material_base_sell;
+	return List::Util::sum values %$sell;
+}
+
+sub material_actual_sell {
+	my $self = shift;
+	unless ( defined $self->{material_actual_sell} ) {
+		my $sell = $self->{material_actual_sell} = {};
+		my $jita = EVE::Market->jita_naive_sell;
+		foreach my $type_id ( $self->material_type_ids ) {
+			my $quantity = $self->material_actual->{$type_id};
+			my $price    = $jita->{$type_id};
+			unless ( defined $price ) {
+				die "Missing naive jita sell price for '$type_id'";
+			}
+			$sell->{$type_id} = $quantity * $price;
+		}
+	}
+	return $self->{material_actual_sell};
+}
+
+sub material_actual_cost {
+	my $self = shift;
+	my $sell = $self->material_actual_sell;
+	return List::Util::sum values %$sell;
+}
+
+sub material_efficiency {
+	$_[0]->material_actual_cost / $_[0]->material_base_cost;
 }
 
 1;
