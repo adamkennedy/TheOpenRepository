@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 226;
+use Test::More tests => 238;
 use Test::NoWarnings;
 use Scalar::Util 'refaddr';
 use File::Spec::Functions ':ALL';
@@ -73,7 +73,7 @@ isa_ok( $dialog4[0], 'FBP::Dialog' );
 
 # Multiple-search query with multiple results
 my @window = $project->find( isa => 'FBP::Window' );
-is( scalar(@window), 44, '->find(multiple) ok' );
+is( scalar(@window), 45, '->find(multiple) ok' );
 foreach ( @window ) {
 	isa_ok( $_, 'FBP::Window' );
 }
@@ -353,7 +353,7 @@ my $tool = $fbp->find_first(
 isa_ok( $tool, 'FBP::Tool' );
 is( $tool->name, 'm_tool1', '->name ok' );
 is( $tool->label, 'tool', '->label ok' );
-is( $tool->bitmap, '', '->bitmap ok' );
+is( $tool->bitmap, 'x-document-close.png; Load From File', '->bitmap ok' );
 is( $tool->kind, 'wxITEM_NORMAL', '->kind ok' );
 is( $tool->tooltip, 'Tool 1 tooltip', '->tooltip ok' );
 is( $tool->statusbar, 'Tool 1 status bar', '->statusbar ok' );
@@ -403,3 +403,24 @@ my $menuseparator = $fbp->find_first(
 );
 isa_ok( $menuseparator, 'FBP::MenuSeparator' );
 is( $menuseparator->name, 'm_separator1', '->name ok' );
+
+# StaticBitmap properties
+my $staticbitmap = $fbp->find_first(
+	isa => 'FBP::StaticBitmap',
+);
+isa_ok( $staticbitmap, 'FBP::StaticBitmap' );
+is( $staticbitmap->name, 'm_bitmap1', '->name ok' );
+is( $staticbitmap->bitmap, 'x-document-close.png; Load From File', '->bitmap ok' );
+
+# BitmapButton properties
+my $bitmapbutton = $fbp->find_first(
+	isa => 'FBP::BitmapButton',
+);
+isa_ok( $bitmapbutton, 'FBP::BitmapButton' );
+is( $bitmapbutton->name, 'm_bpButton1', '->name ok' );
+is( $bitmapbutton->style, '', '->style ok' );
+is( $bitmapbutton->bitmap, 'x-document-close.png; Load From File', '->bitmap ok' );
+is( $bitmapbutton->disabled, '', '->disabled ok' );
+is( $bitmapbutton->selected, '', '->selected ok' );
+is( $bitmapbutton->focus, '', '->focus ok' );
+is( $bitmapbutton->hover, '', '->hover ok' );

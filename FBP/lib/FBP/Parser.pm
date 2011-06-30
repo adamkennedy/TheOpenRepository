@@ -44,6 +44,7 @@ my %OBJECT_CLASS = (
 	wxSearchCtrl       => 'FBP::SearchCtrl',
 	wxSpinCtrl         => 'FBP::SpinCtrl',
 	wxSplitterWindow   => 'FBP::SplitterWindow',
+	wxStaticBitmap     => 'FBP::StaticBitmap',
 	wxStaticBoxSizer   => 'FBP::StaticBoxSizer',
 	wxStaticText       => 'FBP::StaticText',
 	wxStaticLine       => 'FBP::StaticLine',

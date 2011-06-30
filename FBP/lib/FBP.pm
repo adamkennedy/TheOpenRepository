@@ -77,6 +77,7 @@ use FBP::Spacer           ();
 use FBP::SpinCtrl         ();
 use FBP::SplitterItem     ();
 use FBP::SplitterWindow   ();
+use FBP::StaticBitmap     ();
 use FBP::StaticBoxSizer   ();
 use FBP::StaticText       ();
 use FBP::StaticLine       ();

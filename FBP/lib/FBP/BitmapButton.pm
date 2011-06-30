@@ -1,10 +1,16 @@
 package FBP::BitmapButton;
 
 use Mouse;
+use FBP::Control;
 
 our $VERSION = '0.32';
 
-extends 'FBP::Button';
+extends 'FBP::Control';
+
+has style => (
+	is  => 'ro',
+	isa => 'Str',
+);
 
 has bitmap => (
 	is  => 'ro',
@@ -27,6 +33,11 @@ has focus => (
 );
 
 has hover => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+has OnButtonClick => (
 	is  => 'ro',
 	isa => 'Str',
 );
