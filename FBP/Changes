@@ -5,8 +5,14 @@ Changes for Perl extension FBP
 	- Added FBP::Window::OnPaint event
 	- Added FBP::Window::OnSize event
 	- Added FBP::Window::OnUpdateUI event
+	- Added FBP::Calendar class
+	- Added FBP::DatePickerCtrl class
+	- Added FBP::ScrolledWindow class
+	- Added FBP::Slider class
 	- Added FBP::StaticBitmap class
-	- Added FBP::BitmapButton tests
+	- Added FBP::StdDialogButtonSizer class
+	- Added FBP::ToggleButton class
+	- Added missing tests for FBP::BitmapButton
 
 0.32 Mon 20 Jun 2011
 	- Added FBP::Menu class
