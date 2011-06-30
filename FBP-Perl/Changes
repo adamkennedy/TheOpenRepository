@@ -1,6 +1,6 @@
 Changes for Perl extension FBP-Perl
 
-0.47 to be released
+0.47 Thu 30 Jun 2011
 	- Added generic bitmap "Load From File" support
 	- Added bitmap support for Wx::Tool
 
