@@ -52,8 +52,9 @@ TO BE COMPLETED
 use 5.008005;
 use strict;
 use warnings;
-use FBP           0.31 ();
+use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
+use FBP           0.31 ();
 
 our $VERSION = '0.46';
 
@@ -2353,8 +2354,14 @@ sub points {
 sub bitmap {
 	my $self   = shift;
 	my $bitmap = shift;
-	unless ( defined $bitmap ) {
+	unless ( Params::Util::_STRING($bitmap) ) {
 		return $self->wx('wxNullBitmap');
+	}
+	if ( $bitmap =~ s/; Load From File$// ) {
+		# Use the file path exactly as is for now
+		my $type = $self->wx('wxBITMAP_TYPE_ANY');
+		my $file = $self->quote($bitmap);
+		return "Wx::Bitmap->new( $file, $type )";
 	}
 
 	### To be completed

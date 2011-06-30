@@ -65,7 +65,7 @@ sub new {
 	$self->{m_toolBar1}->AddTool(
 		-1,
 		Wx::gettext("Tool 1"),
-		Wx::wxNullBitmap,
+		Wx::Bitmap->new( "padre-plugin.png", Wx::wxBITMAP_TYPE_ANY ),
 		'',
 		Wx::wxITEM_NORMAL,
 	);
