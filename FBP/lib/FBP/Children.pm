@@ -12,7 +12,7 @@ FBP::Children - Role for objects which can contain other objects
 
 use Mouse::Role;
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 
 has children => (
 	is      => 'ro',

@@ -2,7 +2,7 @@ package FBP::TopLevelWindow;
 
 use Mouse::Role;
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 
 has title => (
 	is  => 'ro',

@@ -3,7 +3,7 @@ package FBP::BitmapButton;
 use Mouse;
 use FBP::Control;
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 
 extends 'FBP::Control';
 
