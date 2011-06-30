@@ -54,9 +54,9 @@ use strict;
 use warnings;
 use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
-use FBP           0.31 ();
+use FBP           0.33 ();
 
-our $VERSION = '0.47';
+our $VERSION = '0.48';
 
 # Event Binding Table
 my %EVENT = (
@@ -714,6 +714,8 @@ sub window_create {
 		$lines = $self->panel_create($window, $parent);
 	} elsif ( $window->isa('FBP::RadioBox') ) {
 		$lines = $self->radiobox_create($window, $parent);
+	} elsif ( $window->isa('FBP::ScrolledWindow') ) {
+		$lines = $self->scrolledwindow_create($window, $parent);
 	} elsif ( $window->isa('FBP::SearchCtrl') ) {
 		$lines = $self->searchctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::SpinCtrl') ) {
@@ -1265,6 +1267,33 @@ sub radiobox_create {
 	);
 }
 
+sub scrolledwindow_create {
+	my $self     = shift;
+	my $window   = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->wx( $window->id );
+	my $position = $self->object_position($window);
+	my $size     = $self->object_wxsize($window);
+	my $variable = $self->object_variable($window);
+	my $scroll_x = $window->scroll_rate_x;
+	my $scroll_y = $window->scroll_rate_y;
+
+	my $lines = $self->nested(
+		$self->window_new($window),
+		"$parent,",
+		"$id,",
+		"$position,",
+		"$size,",
+		$self->wx('wxHSCROLL|wxVSCROLL,'),
+		");",
+	);
+
+	# Set the scroll rate for the window
+	push @$lines, "$variable->SetScrollRate( $scroll_x, $scroll_y );";
+
+	return $lines;
+}
+
 sub searchctrl_create {
 	my $self     = shift;
 	my $control  = shift;
@@ -1541,6 +1570,8 @@ sub children_pack {
 			push @children, $self->panel_pack($child);
 		} elsif ( $child->isa('FBP::SplitterWindow') ) {
 			push @children, $self->splitterwindow_pack($child);
+		} elsif ( $child->isa('FBP::ScrolledWindow') ) {
+			push @children, $self->scrolledwindow_pack($child);
 		} elsif ( $child->does('FBP::Children') ) {
 			if ( @{$child->children} ) {
 				die "Unsupported parent " . ref($child);
@@ -1811,6 +1842,31 @@ sub panel_pack {
 				: "$sizervar->Fit($variable);"
 			),
 		]
+	);
+}
+
+sub scrolledwindow_pack {
+	my $self     = shift;
+	my $window   = shift;
+	my $sizer    = $window->children->[0] or return ();
+	my $variable = $self->object_variable($window);
+	my $sizervar = $self->object_variable($sizer);
+
+	# Generate fragments for our (optional) child sizer
+	my @children = $self->sizer_pack($sizer);
+
+	# Attach the sizer to the panel
+	return (
+		@children,
+		[
+			"$variable->SetSizer($sizervar);",
+			"$variable->Layout;",
+			(
+				$self->size($window->size)
+				? ()
+				: "$sizervar->Fit($variable);"
+			),
+		],
 	);
 }
 

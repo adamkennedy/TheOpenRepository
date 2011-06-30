@@ -194,8 +194,17 @@ sub new {
 		Wx::wxTAB_TRAVERSAL,
 	);
 
-	$self->{m_htmlWin1} = Wx::HtmlWindow->new(
+	$self->{m_scrolledWindow1} = Wx::ScrolledWindow->new(
 		$self->{m_panel4},
+		-1,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxHSCROLL | Wx::wxVSCROLL,
+	);
+	$self->{m_scrolledWindow1}->SetScrollRate( 5, 5 );
+
+	$self->{m_htmlWin1} = Wx::HtmlWindow->new(
+		$self->{m_scrolledWindow1},
 		-1,
 		Wx::wxDefaultPosition,
 		[ 200, 200 ],
@@ -467,6 +476,13 @@ sub new {
 	$self->{m_panel3}->Layout;
 	$fgSizer1->Fit($self->{m_panel3});
 
+	my $bSizer9 = Wx::BoxSizer->new(Wx::wxVERTICAL);
+	$bSizer9->Add( $self->{m_htmlWin1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
+
+	$self->{m_scrolledWindow1}->SetSizer($bSizer9);
+	$self->{m_scrolledWindow1}->Layout;
+	$bSizer9->Fit($self->{m_scrolledWindow1});
+
 	my $sbSizer1 = Wx::StaticBoxSizer->new(
 		Wx::StaticBox->new(
 			$self,
@@ -475,7 +491,7 @@ sub new {
 		),
 		Wx::wxVERTICAL,
 	);
-	$sbSizer1->Add( $self->{m_htmlWin1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
+	$sbSizer1->Add( $self->{m_scrolledWindow1}, 1, Wx::wxEXPAND | Wx::wxALL, 5 );
 
 	$self->{m_panel4}->SetSizer($sbSizer1);
 	$self->{m_panel4}->Layout;
