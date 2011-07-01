@@ -1575,14 +1575,22 @@ sub statusbar_create {
 	];
 }
 
+sub stddialogbuttonsizer {
+	my $self   = shift;
+	my $sizer  = shift;
+	my $parent = $self->object_parent(@_);
+	my $id     = $self->object_id($control);
+
+}
+
 sub textctrl_create {
-	my $self      = shift;
-	my $control   = shift;
-	my $parent    = $self->object_parent(@_);
-	my $id        = $self->object_id($control);
-	my $value     = $self->quote( $control->value );
-	my $position  = $self->object_position($control);
-	my $size      = $self->object_wxsize($control);
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->object_id($control);
+	my $value    = $self->quote( $control->value );
+	my $position = $self->object_position($control);
+	my $size     = $self->object_wxsize($control);
 
 	my $lines = $self->nested(
 		$self->window_new($control),
