@@ -6,7 +6,7 @@ use Test::More;
 use Test::LongString;
 use Exporter ();
 
-our $VERSION = '0.49';
+our $VERSION = '0.50';
 our @ISA     = 'Exporter';
 our @EXPORT  = qw{ code compiles slurp };
 
@@ -30,7 +30,7 @@ sub compiles {
 	SKIP: {
 		skip("Skipping compile test for release", 1) if $ENV{ADAMK_RELEASE};
 		my $rv = eval $code;
-		# diag( $@ ) if $@;
+		diag( $@ ) if $@;
 		ok( $rv, $_[0] );
 	}
 }

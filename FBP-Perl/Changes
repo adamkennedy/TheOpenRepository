@@ -1,5 +1,10 @@
 Changes for Perl extension FBP-Perl
 
+0.50 to be released
+	- Corrected a number of incorrectly mapped event handlers
+	- Load Wx::HTML when Wx::HtmlWindow objects are used
+	- Added Wx::DatePickerCtrl support (disabled as Wx.pm doesn't have it)
+
 0.49 Fri 1 Jul 2011
 	- Added Wx::StdDialogButtonSizer support
 

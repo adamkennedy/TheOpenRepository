@@ -574,8 +574,8 @@
                                 <event name="OnSplitterSashPosChanging"></event>
                                 <event name="OnSplitterUnsplit"></event>
                                 <event name="OnUpdateUI"></event>
-                                <object class="splitteritem" expanded="0">
-                                    <object class="wxPanel" expanded="0">
+                                <object class="splitteritem" expanded="1">
+                                    <object class="wxPanel" expanded="1">
                                         <property name="bg"></property>
                                         <property name="context_help"></property>
                                         <property name="context_menu">1</property>
@@ -622,7 +622,7 @@
                                         <event name="OnSetFocus"></event>
                                         <event name="OnSize"></event>
                                         <event name="OnUpdateUI"></event>
-                                        <object class="wxFlexGridSizer" expanded="0">
+                                        <object class="wxFlexGridSizer" expanded="1">
                                             <property name="cols">2</property>
                                             <property name="flexible_direction">wxBOTH</property>
                                             <property name="growablecols">0,1</property>
@@ -1120,7 +1120,7 @@
                                 </object>
                             </object>
                         </object>
-                        <object class="sizeritem" expanded="0">
+                        <object class="sizeritem" expanded="1">
                             <property name="border">5</property>
                             <property name="flag">wxEXPAND</property>
                             <property name="proportion">0</property>
@@ -1728,11 +1728,11 @@
                                         </object>
                                     </object>
                                 </object>
-                                <object class="listbookpage" expanded="0">
+                                <object class="listbookpage" expanded="1">
                                     <property name="bitmap"></property>
                                     <property name="label">Page Two</property>
                                     <property name="select">0</property>
-                                    <object class="wxPanel" expanded="0">
+                                    <object class="wxPanel" expanded="1">
                                         <property name="bg"></property>
                                         <property name="context_help"></property>
                                         <property name="context_menu">1</property>
@@ -1779,7 +1779,7 @@
                                         <event name="OnSetFocus"></event>
                                         <event name="OnSize"></event>
                                         <event name="OnUpdateUI"></event>
-                                        <object class="wxBoxSizer" expanded="0">
+                                        <object class="wxBoxSizer" expanded="1">
                                             <property name="minimum_size"></property>
                                             <property name="name">bSizer4</property>
                                             <property name="orient">wxVERTICAL</property>

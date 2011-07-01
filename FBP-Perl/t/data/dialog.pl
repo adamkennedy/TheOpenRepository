@@ -4,6 +4,7 @@ use 5.008;
 use strict;
 use warnings;
 use Wx ':everything';
+use Wx::HTML ();
 use t::lib::Custom ();
 use t::lib::MyClass ();
 
@@ -341,7 +342,7 @@ sub new {
 	);
 	$self->{m_radioBox1}->SetSelection(2);
 
-	Wx::Event::EVT_RADIOBOX_SELECTED(
+	Wx::Event::EVT_RADIOBOX(
 		$self,
 		$self->{m_radioBox1},
 		sub {

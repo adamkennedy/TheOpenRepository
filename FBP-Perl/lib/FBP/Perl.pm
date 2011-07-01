@@ -56,10 +56,10 @@ use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
 use FBP           0.33 ();
 
-our $VERSION = '0.49';
+our $VERSION = '0.50';
 
 # Event Binding Table
-my %EVENT = (
+our %EVENT = (
 	# Common low level painting events
 	OnEraseBackground         => [ 'EVT_ERASE_BACKGROUND'           ],
 	OnPaint                   => [ 'EVT_PAINT'                      ],
@@ -83,13 +83,13 @@ my %EVENT = (
 	OnMenuRange               => [ 'EVT_MENU_RANGE'                 ],
 
 	# wxColourPickerCtrl
-	OnColourChanged           => [ 'EVT_COLOURPICKER_CHANGED'      ],
+	OnColourChanged           => [ 'EVT_COLOURPICKER_CHANGED'       ],
 
 	# wxCloseEvent
 	OnClose                   => [ 'EVT_CLOSE'                      ],
 
-	# wxEraseEvent
-	OnEraseBackground         => [ ''                               ],
+	# wxDatePickerCtrl
+	OnDateChanged             => [ 'EVT_DATE_CHANGED'               ],
 
 	# wxFilePickerCtrl
 	OnFileChanged             => [ 'EVT_FILEPICKER_CHANGED'         ],
@@ -99,7 +99,7 @@ my %EVENT = (
 	OnSetFocus                => [ 'EVT_SET_FOCUS'                  ],
 
 	# wxFontPickerCtrl
-	OnFontChanged             => [ 'EVT_FONTPICKER_CHANGED'        ],
+	OnFontChanged             => [ 'EVT_FONTPICKER_CHANGED'         ],
 
 	# wxIdleEvent
 	OnIdle                    => [ 'EVT_IDLE'                       ],
@@ -145,12 +145,12 @@ my %EVENT = (
 	OnLeftDClick              => [ 'EVT_LEFT_DCLICK'                ],
 	OnLeftDown                => [ 'EVT_LEFT_DOWN'                  ],
 	OnLeftUp                  => [ 'EVT_LEFT_UP'                    ],
-	OnMiddleClick             => [ 'EVT_MIDDLE_CLICK'               ],
+	OnMiddleDClick            => [ 'EVT_MIDDLE_DCLICK'              ],
 	OnMiddleDown              => [ 'EVT_MIDDLE_DOWN'                ],
 	OnMiddleUp                => [ 'EVT_MIDDLE_UP'                  ],
 	OnMotion                  => [ 'EVT_MOTION'                     ],
 	OnMouseEvents             => [ 'EVT_MOUSE_EVENTS'               ],
-	OnMouseWheel              => [ 'EVT_MOUSE_WHEEL'                ],
+	OnMouseWheel              => [ 'EVT_MOUSEWHEEL'                 ],
 	OnRightDClick             => [ 'EVT_RIGHT_DCLICK'               ],
 	OnRightDown               => [ 'EVT_RIGHT_DOWN'                 ],
 	OnRightUp                 => [ 'EVT_RIGHT_UP'                   ],
@@ -160,17 +160,17 @@ my %EVENT = (
 	OnNotebookPageChanged     => [ 'EVT_NOTEBOOK_PAGE_CHANGED'      ],
 
 	# wxRadioBox
-	OnRadioBox                => [ 'EVT_RADIOBOX_SELECTED'          ],
+	OnRadioBox                => [ 'EVT_RADIOBOX'                   ],
 
 	# wxStdDialogButtonSizer
-	OnOKButtonClick           => [ ],
-	OnYesButtonClick          => [ ],
-	OnSaveButtonClick         => [ ],
-	OnApplyButtonClick        => [ ],
-	OnNoButtonClick           => [ ],
-	OnCancelButtonClick       => [ ],
-	OnHelpButtonClick         => [ ],
-	OnContextTextButtonClick  => [ ],
+	OnOKButtonClick           => [                                  ],
+	OnYesButtonClick          => [                                  ],
+	OnSaveButtonClick         => [                                  ],
+	OnApplyButtonClick        => [                                  ],
+	OnNoButtonClick           => [                                  ],
+	OnCancelButtonClick       => [                                  ],
+	OnHelpButtonClick         => [                                  ],
+	OnContextTextButtonClick  => [                                  ],
 
 	# wxSearchCtrl
 	OnSearchButton            => [ 'EVT_SEARCHCTRL_SEARCH_BTN'      ],
@@ -182,10 +182,10 @@ my %EVENT = (
 	OnSplitterUnsplit         => [ 'EVT_SPLITTER_UNSPLIT'           ],
 	OnSplitterDClick          => [ 'EVT_SPLITTER_DCLICK'            ],
 
-	# Toolbar events
-	OnToolClicked             => [ '' ],
-	OnToolRClicked            => [ '' ],
-	OnToolEnter               => [ '' ],
+	# wxToolbar events
+	OnToolClicked             => [ 'EVT_TOOL'                       ],
+	OnToolRClicked            => [ 'EVT_TOOL_RCLICKED'              ],
+	OnToolEnter               => [ 'EVT_TOOL_ENTER'                 ],
 );
 
 
@@ -275,6 +275,12 @@ sub project_wx {
 	my @lines   = (
 		"use Wx ':everything';",
 	);
+	if ( $project->find_first( isa => 'FBP::HtmlWindow' ) ) {
+		push @lines, "use Wx::HTML ();";
+	}
+	if ( $project->find_first( isa => 'FBP::DatePickerCtrl' ) ) {
+		push @lines, "use Wx::DateTime ();";
+	}
 	if ( $project->internationalize ) {
 		push @lines, "use Wx::Locale ();";
 	}
@@ -370,10 +376,16 @@ sub form_package {
 sub form_wx {
 	my $self  = shift;
 	my $topic = shift;
-
-	return [
+	my $lines = [
 		"use Wx ':everything';",
 	];
+	if ( $topic->find_first( isa => 'FBP::HtmlWindow' ) ) {
+		push @$lines, "use Wx::HTML ();";
+	}
+	if ( $topic->find_first( isa => 'FBP::DatePickerCtrl' ) ) {
+		push @$lines, "use Wx::DateTime ();";
+	}
+	return $lines;
 }
 
 sub form_custom {
@@ -700,6 +712,9 @@ sub window_create {
 		$lines = $self->colourpickerctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::CustomControl' ) ) {
 		$lines = $self->customcontrol_create($window, $parent);
+	} elsif ( $window->isa('FBP::DatePickerCtrl') ) {
+		die "Wx::DatePickerCtrl is not supported by Wx.pm";
+		$lines = $self->datepickerctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::DirPickerCtrl') ) {
 		$lines = $self->dirpickerctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::FilePickerCtrl') ) {
@@ -965,6 +980,27 @@ sub customcontrol_create {
 		$self->window_new($control),
 		"$parent,",
 		"$id,",
+		");",
+	);
+}
+
+sub datepickerctrl_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->object_id($control);
+	my $value    = $self->wx('wxDefaultDateTime');
+	my $position = $self->object_position($control);
+	my $size     = $self->object_wxsize($control);
+
+	return $self->nested(
+		$self->window_new($control),
+		"$parent,",
+		"$id,",
+		"$value,",
+		"$position,",
+		"$size,",
+		$self->window_style($control),
 		");",
 	);
 }
