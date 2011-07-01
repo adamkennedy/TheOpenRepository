@@ -85,17 +85,38 @@ sub new {
 		Wx::gettext("MyLabel"),
 	);
 
-	$self->{m_button4} = Wx::Button->new(
+	$self->{m_sdbSizer1_yes} = Wx::Button->new(
 		$self,
-		-1,
-		Wx::gettext("MyButton"),
-		Wx::wxDefaultPosition,
-		Wx::wxDefaultSize,
+		Wx::wxID_YES,
 	);
 
-	my $bSizer7 = Wx::BoxSizer->new(Wx::wxHORIZONTAL);
-	$bSizer7->Add( $self->{m_staticText5}, 0, Wx::wxALIGN_CENTER_VERTICAL | Wx::wxALL, 5 );
-	$bSizer7->Add( $self->{m_button4}, 0, Wx::wxALL, 5 );
+	Wx::Event::EVT_BUTTON(
+		$self,
+		$self->{m_sdbSizer1_yes},
+		sub {
+			shift->yes_clicked(@_);
+		},
+	);
+
+	$self->{m_sdbSizer1_no} = Wx::Button->new(
+		$self,
+		Wx::wxID_NO,
+	);
+
+	$self->{m_sdbSizer1_cancel} = Wx::Button->new(
+		$self,
+		Wx::wxID_CANCEL,
+	);
+
+	$self->{m_sdbSizer1} = Wx::StdDialogButtonSizer->new;
+	$self->{m_sdbSizer1}->AddButton( $self->{m_sdbSizer1_yes} );
+	$self->{m_sdbSizer1}->AddButton( $self->{m_sdbSizer1_no} );
+	$self->{m_sdbSizer1}->AddButton( $self->{m_sdbSizer1_cancel} );
+	$self->{m_sdbSizer1}->Realize;
+
+	my $bSizer7 = Wx::BoxSizer->new(Wx::wxVERTICAL);
+	$bSizer7->Add( $self->{m_staticText5}, 1, Wx::wxALIGN_CENTER_HORIZONTAL | Wx::wxALL, 10 );
+	$bSizer7->Add( $self->{m_sdbSizer1}, 0, Wx::wxBOTTOM | Wx::wxEXPAND, 5 );
 
 	$self->SetSizer($bSizer7);
 	$self->Layout;
@@ -106,6 +127,10 @@ sub new {
 
 sub menu_event {
 	die 'Handler method menu_event for event m_menuItem1.OnMenuSelection not implemented';
+}
+
+sub yes_clicked {
+	die 'Handler method yes_clicked for event m_sdbSizer1.OnYesButtonClick not implemented';
 }
 
 1;

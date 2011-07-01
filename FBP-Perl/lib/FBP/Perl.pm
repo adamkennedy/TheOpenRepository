@@ -56,7 +56,7 @@ use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
 use FBP           0.33 ();
 
-our $VERSION = '0.48';
+our $VERSION = '0.49';
 
 # Event Binding Table
 my %EVENT = (
@@ -161,6 +161,16 @@ my %EVENT = (
 
 	# wxRadioBox
 	OnRadioBox                => [ 'EVT_RADIOBOX_SELECTED'          ],
+
+	# wxStdDialogButtonSizer
+	OnOKButtonClick           => [ ],
+	OnYesButtonClick          => [ ],
+	OnSaveButtonClick         => [ ],
+	OnApplyButtonClick        => [ ],
+	OnNoButtonClick           => [ ],
+	OnCancelButtonClick       => [ ],
+	OnHelpButtonClick         => [ ],
+	OnContextTextButtonClick  => [ ],
 
 	# wxSearchCtrl
 	OnSearchButton            => [ 'EVT_SEARCHCTRL_SEARCH_BTN'      ],
@@ -441,8 +451,8 @@ sub form_new {
 		$super,
 		@set,
 		"",
-		( map { @$_, "" } @windows ),
-		( map { @$_, "" } @sizers  ),
+		( map { @$_, "" } grep { scalar @$_ } @windows ),
+		( map { @$_, "" } grep { scalar @$_ } @sizers  ),
 		"return \$self;",
 		"}",
 	);
@@ -588,6 +598,7 @@ sub form_methods {
 	my @objects = (
 		$form->find( isa => 'FBP::Window' ),
 		$form->find( isa => 'FBP::MenuItem' ),
+		$form->find( isa => 'FBP::StdDialogButtonSizer' ),
 	);
 	my %seen    = ();
 	my %done    = ();
@@ -630,7 +641,7 @@ sub form_methods {
 
 	# Convert back to a single block of lines
 	return [
-		map { ( "", @$_ ) } @methods
+		map { ( "", @$_ ) } grep { scalar @$_ } @methods
 	];
 }
 
@@ -653,6 +664,8 @@ sub children_create {
 
 		if ( $child->isa('FBP::Window') ) {
 			push @windows, $self->window_create($child, $parent);
+		} elsif ( $child->isa('FBP::StdDialogButtonSizer') ) {
+			push @windows, $self->stddialogbuttonsizer_create($child, $parent);
 		}
 
 		# Descend to child windows
@@ -1575,12 +1588,58 @@ sub statusbar_create {
 	];
 }
 
-sub stddialogbuttonsizer {
-	my $self   = shift;
-	my $sizer  = shift;
-	my $parent = $self->object_parent(@_);
-	my $id     = $self->object_id($control);
+use constant STDDIALOGBUTTONS => qw{
+	OK Yes Save Apply No Cancel Help ContextHelp
+};
 
+sub stddialogbuttonsizer_create {
+	my $self    = shift;
+	my $sizer   = shift;
+	my $parent  = $self->object_parent(@_);
+	my @windows = ();
+
+	# We don't create the sizer here, but we do create the buttons
+	foreach my $button ( $self->stddialogbuttonsizer_buttons($sizer) ) {
+		my $id = $self->object_id($button);
+
+		my $lines = $self->nested(
+			$self->window_new($button),
+			"$parent,",
+			"$id,",
+			");",
+		);
+
+		push @$lines, $self->object_bindings($button);
+		push @windows, $lines;
+	}
+
+	return @windows;
+}
+
+sub stddialogbuttonsizer_buttons {
+	my $self  = shift;
+	my $sizer = shift;
+	return map {
+		$self->stddialogbuttonsizer_button($sizer, $_)
+	} grep {
+		$sizer->$_()
+	} STDDIALOGBUTTONS;
+}
+
+sub stddialogbuttonsizer_button {
+	my $self  = shift;
+	my $sizer = shift;
+	my $type  = shift;
+	my $name  = $sizer->name . '_' . lc($type);
+	my $id    = 'wxID_' . uc($type);
+	my $click = 'On' . $type . 'ButtonClick';
+	my $event = $sizer->$click();
+	return FBP::Button->new(
+		name          => $name,
+		id            => $id,
+		permission    => $sizer->permission,
+		( $event ? ( OnButtonClick => $event ) : () ),
+	);
 }
 
 sub textctrl_create {
@@ -1753,6 +1812,8 @@ sub sizer_pack {
 		return $self->staticboxsizer_pack($sizer);
 	} elsif ( $sizer->isa('FBP::BoxSizer') ) {
 		return $self->boxsizer_pack($sizer);
+	} elsif ( $sizer->isa('FBP::StdDialogButtonSizer') ) {
+		return $self->stddialogbuttonsizer_pack($sizer);
 	} else {
 		die "Unsupported sizer " . ref($sizer);
 	}
@@ -1948,6 +2009,26 @@ sub flexgridsizer_pack {
 	}
 
 	return ( @children, \@lines );
+}
+
+sub stddialogbuttonsizer_pack {
+	my $self      = shift;
+	my $sizer     = shift;
+	my $scope     = $self->object_scope($sizer);
+	my $variable  = $self->object_variable($sizer);
+
+	# Create the sizer (it can't have child sizers)
+	my @lines = ();
+	foreach my $button ( $self->stddialogbuttonsizer_buttons($sizer) ) {
+		my $button_variable = $self->object_variable($button);
+		push @lines, "$variable->AddButton( $button_variable );";
+	}
+
+	return [
+		"$scope$variable = Wx::StdDialogButtonSizer->new;",
+		@lines,
+		"$variable->Realize;",
+	];
 }
 
 sub listbook_pack {
