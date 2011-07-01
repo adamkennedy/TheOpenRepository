@@ -1,8 +1,9 @@
 Changes for Perl extension FBP-Perl
 
-0.48 to be released
+0.48 Fri 1 Jul 2011
 	- Bump FBP dependency to 0.33 for FBP::ScrolledWindow support
 	- Fixed generation of some labels that weren't being internationalised
+	- Added Wx::BitmapButton support
 	- Added Wx::ScrolledWindow support
 	- Added Wx::Slider support
 	- Added Wx::StaticBitmap support

@@ -98,6 +98,27 @@ sub new {
 		Wx::gettext("Toggle something")
 	);
 
+	$self->{m_bpButton1} = Wx::BitmapButton->new(
+		$self,
+		-1,
+		Wx::Bitmap->new( "padre-plugin.png", Wx::wxBITMAP_TYPE_ANY ),
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxBU_AUTODRAW,
+	);
+	$self->{m_bpButton1}->SetBitmapDisabled(
+		Wx::Bitmap->new( "padre-plugin.png", Wx::wxBITMAP_TYPE_ANY )
+	);
+	$self->{m_bpButton1}->SetBitmapSelected(
+		Wx::Bitmap->new( "padre-plugin.png", Wx::wxBITMAP_TYPE_ANY )
+	);
+	$self->{m_bpButton1}->SetBitmapHover(
+		Wx::Bitmap->new( "padre-plugin.png", Wx::wxBITMAP_TYPE_ANY )
+	);
+	$self->{m_bpButton1}->SetBitmapFocus(
+		Wx::Bitmap->new( "padre-plugin.png", Wx::wxBITMAP_TYPE_ANY )
+	);
+
 	$self->{m_staticline1} = Wx::StaticLine->new(
 		$self,
 		-1,
@@ -502,6 +523,7 @@ sub new {
 	$bSizer10->Add( $self->{m_textCtrl1}, 0, Wx::wxALL, 5 );
 	$bSizer10->Add( $self->{m_button1}, 0, Wx::wxALL, 5 );
 	$bSizer10->Add( $self->{m_toggleBtn1}, 0, Wx::wxALL, 5 );
+	$bSizer10->Add( $self->{m_bpButton1}, 0, Wx::wxALL, 5 );
 
 	my $fgSizer1 = Wx::FlexGridSizer->new( 1, 2, 3, 4 );
 	$fgSizer1->AddGrowableCol(0);

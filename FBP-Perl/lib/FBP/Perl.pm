@@ -673,7 +673,9 @@ sub window_create {
 	my $parent = shift;
 	my $lines  = undef;
 
-	if ( $window->isa('FBP::Button') ) {
+	if ( $window->isa('FBP::BitmapButton') ) {
+		$lines = $self->bitmapbutton_create($window, $parent);
+	} elsif ( $window->isa('FBP::Button') ) {
 		$lines = $self->button_create($window, $parent);
 	} elsif ( $window->isa('FBP::CheckBox') ) {
 		$lines = $self->checkbox_create($window, $parent);
@@ -757,6 +759,69 @@ sub window_create {
 	return $lines;
 }
 
+sub bitmapbutton_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->object_id($control);
+	my $bitmap   = $self->object_bitmap($control);
+	my $position = $self->object_position($control);
+	my $size     = $self->object_wxsize($control);
+	my $variable = $self->object_variable($control);
+	my $disabled = $self->bitmap( $control->disabled );
+	my $selected = $self->bitmap( $control->selected );
+	my $hover    = $self->bitmap( $control->hover    );
+	my $focus    = $self->bitmap( $control->focus    );
+
+	my $lines = $self->nested(
+		$self->window_new($control),
+		"$parent,",
+		"$id,",
+		"$bitmap,",
+		"$position,",
+		"$size,",
+		$self->window_style($control),
+		");",
+	);
+
+	# Set the optional images
+	my $null = $self->bitmap(undef);
+	if ( $disabled ne $null ) {
+		push @$lines, (
+			"$variable->SetBitmapDisabled(",
+			"\t$disabled",
+			");",
+		);
+	}
+	if ( $selected ne $null ) {
+		push @$lines, (
+			"$variable->SetBitmapSelected(",
+			"\t$selected",
+			");",
+		);
+	}
+	if ( $hover ne $null ) {
+		push @$lines, (
+			"$variable->SetBitmapHover(",
+			"\t$hover",
+			");",
+		);
+	}
+	if ( $focus ne $null ) {
+		push @$lines, (
+			"$variable->SetBitmapFocus(",
+			"\t$focus",
+			");",
+		);
+	}
+
+	if ( $control->default ) {
+		push @$lines, "$variable->SetDefault;";
+	}
+
+	return $lines;
+}
+
 sub button_create {
 	my $self     = shift;
 	my $control  = shift;
@@ -765,6 +830,7 @@ sub button_create {
 	my $label    = $self->object_label($control);
 	my $position = $self->object_position($control);
 	my $size     = $self->object_wxsize($control);
+	my $variable = $self->object_variable($control);
 
 	my $lines = $self->nested(
 		$self->window_new($control),
@@ -778,7 +844,6 @@ sub button_create {
 	);
 
 	if ( $control->default ) {
-		my $variable = $self->object_variable($control);
 		push @$lines, "$variable->SetDefault;";
 	}
 
