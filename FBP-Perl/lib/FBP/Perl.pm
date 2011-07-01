@@ -718,6 +718,8 @@ sub window_create {
 		$lines = $self->scrolledwindow_create($window, $parent);
 	} elsif ( $window->isa('FBP::SearchCtrl') ) {
 		$lines = $self->searchctrl_create($window, $parent);
+	} elsif ( $window->isa('FBP::Slider') ) {
+		$lines = $self->slider_create($window, $parent);
 	} elsif ( $window->isa('FBP::SpinCtrl') ) {
 		$lines = $self->spinctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::SplitterWindow') ) {
@@ -1327,6 +1329,32 @@ sub searchctrl_create {
 	);
 
 	return $lines;
+}
+
+sub slider_create {
+	my $self    = shift;
+	my $window  = shift;
+	my $variable = $self->object_variable($window);
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->wx( $window->id );
+	my $value    = $window->value;
+	my $minimum  = $window->minValue;
+	my $maximum  = $window->maxValue;
+	my $position = $self->object_position($window);
+	my $size     = $self->object_wxsize($window);
+
+	return $self->nested(
+		$self->window_new($window),
+		"$parent,",
+		"$id,",
+		"$value,",
+		"$minimum,",
+		"$maximum,",
+		"$position,",
+		"$size,",
+		$self->window_style($window),
+		");",
+	);
 }
 
 sub spinctrl_create {

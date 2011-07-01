@@ -305,6 +305,17 @@ sub new {
 		},
 	);
 
+	$self->{m_slider1} = Wx::Slider->new(
+		$self->{m_panel1},
+		-1,
+		50,
+		0,
+		100,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxSL_HORIZONTAL,
+	);
+
 	$self->{m_panel2} = Wx::Panel->new(
 		$self->{m_listbook1},
 		-1,
@@ -512,6 +523,7 @@ sub new {
 	$bSizer3->Add( $self->{m_staticText2}, 0, Wx::wxALL, 5 );
 	$bSizer3->Add( $self->{m_spinCtrl1}, 0, Wx::wxALL, 5 );
 	$bSizer3->Add( $self->{m_radioBox1}, 0, Wx::wxALL, 5 );
+	$bSizer3->Add( $self->{m_slider1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
 
 	$self->{m_panel1}->SetSizer($bSizer3);
 	$self->{m_panel1}->Layout;
@@ -561,8 +573,8 @@ sub new {
 	$bSizer2->Add( $self->{m_staticline1}, 0, Wx::wxEXPAND | Wx::wxALL, 5 );
 	$bSizer2->Add( $self->{m_splitter1}, 1, Wx::wxEXPAND, 5 );
 	$bSizer2->Add( $gSizer1, 0, Wx::wxEXPAND, 5 );
-	$bSizer2->Add( $self->{m_listbook1}, 1, Wx::wxEXPAND | Wx::wxALL, 5 );
-	$bSizer2->Add( $self->{m_listbook2}, 1, Wx::wxEXPAND | Wx::wxALL, 5 );
+	$bSizer2->Add( $self->{m_listbook1}, 0, Wx::wxEXPAND | Wx::wxALL, 5 );
+	$bSizer2->Add( $self->{m_listbook2}, 0, Wx::wxEXPAND | Wx::wxALL, 5 );
 
 	my $bSizer1 = Wx::BoxSizer->new(Wx::wxHORIZONTAL);
 	$bSizer1->Add( $bSizer2, 1, Wx::wxEXPAND, 5 );

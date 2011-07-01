@@ -3,6 +3,7 @@ Changes for Perl extension FBP-Perl
 0.48 to be released
 	- Bump FBP dependency to 0.33 for FBP::ScrolledWindow support
 	- Added Wx::ScrolledWindow support
+	- Added Wx::Slider support
 
 0.47 Thu 30 Jun 2011
 	- Added generic bitmap "Load From File" support
