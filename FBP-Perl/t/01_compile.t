@@ -13,7 +13,7 @@ use_ok( 'FBP::Perl' );
 
 SKIP: {
 	eval "require Wx";
-	skip("Wx.pm is not available", 80) if $@;
+	skip("Wx.pm is not available", 79) if $@;
 
 	# Confirm that all the event macros exist
 	use_ok( 'Wx', ':everything' );
