@@ -36,6 +36,14 @@ sub new {
 		Wx::gettext("Who is awesome")
 	);
 
+	$self->{m_bitmap1} = Wx::StaticBitmap->new(
+		$self,
+		-1,
+		Wx::Bitmap->new( "padre-plugin.png", Wx::wxBITMAP_TYPE_ANY ),
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+	);
+
 	$self->{m_textCtrl1} = Wx::TextCtrl->new(
 		$self,
 		-1,
@@ -283,7 +291,7 @@ sub new {
 	$self->{m_radioBox1} = Wx::RadioBox->new(
 		$self->{m_panel1},
 		-1,
-		"Radio Gaga",
+		Wx::gettext("Radio Gaga"),
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
 		[
@@ -366,7 +374,7 @@ sub new {
 		$self->{m_panel2},
 		-1,
 		"",
-		"Select a file",
+		Wx::gettext("Select a file"),
 		"*.*",
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
@@ -385,7 +393,7 @@ sub new {
 		$self->{m_panel2},
 		-1,
 		"",
-		"Select a folder",
+		Wx::gettext("Select a folder"),
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
 		Wx::wxDIRP_DEFAULT_STYLE,
@@ -471,6 +479,11 @@ sub new {
 		Wx::wxGA_HORIZONTAL,
 	);
 	$self->{m_gauge1}->SetValue(85);
+
+	my $bSizer10 = Wx::BoxSizer->new(Wx::wxHORIZONTAL);
+	$bSizer10->Add( $self->{m_bitmap1}, 0, Wx::wxALL, 5 );
+	$bSizer10->Add( $self->{m_textCtrl1}, 0, Wx::wxALL, 5 );
+	$bSizer10->Add( $self->{m_button1}, 0, Wx::wxALL, 5 );
 
 	my $fgSizer1 = Wx::FlexGridSizer->new( 1, 2, 3, 4 );
 	$fgSizer1->AddGrowableCol(0);
@@ -568,8 +581,7 @@ sub new {
 	my $bSizer2 = Wx::BoxSizer->new(Wx::wxVERTICAL);
 	$bSizer2->Add( $self->{m_staticText1}, 0, Wx::wxALL, 5 );
 	$bSizer2->Add( 10, 5, 0, Wx::wxEXPAND, 5 );
-	$bSizer2->Add( $self->{m_textCtrl1}, 0, Wx::wxALL, 5 );
-	$bSizer2->Add( $self->{m_button1}, 0, Wx::wxALL, 5 );
+	$bSizer2->Add( $bSizer10, 0, Wx::wxEXPAND, 5 );
 	$bSizer2->Add( $self->{m_staticline1}, 0, Wx::wxEXPAND | Wx::wxALL, 5 );
 	$bSizer2->Add( $self->{m_splitter1}, 1, Wx::wxEXPAND, 5 );
 	$bSizer2->Add( $gSizer1, 0, Wx::wxEXPAND, 5 );
