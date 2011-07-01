@@ -734,6 +734,8 @@ sub window_create {
 		$lines = $self->statusbar_create($window, $parent);
 	} elsif ( $window->isa('FBP::TextCtrl') ) {
 		$lines = $self->textctrl_create($window, $parent);
+	} elsif ( $window->isa('FBP::ToggleButton') ) {
+		$lines = $self->togglebutton_create($window, $parent);
 	} elsif ( $window->isa('FBP::ToolBar') ) {
 		$lines = $self->toolbar_create($window, $parent);
 	} else {
@@ -761,17 +763,22 @@ sub button_create {
 	my $parent   = $self->object_parent(@_);
 	my $id       = $self->object_id($control);
 	my $label    = $self->object_label($control);
-	my $variable = $self->object_variable($control);
+	my $position = $self->object_position($control);
+	my $size     = $self->object_wxsize($control);
 
 	my $lines = $self->nested(
 		$self->window_new($control),
 		"$parent,",
 		"$id,",
 		"$label,",
+		"$position,",
+		"$size,",
+		$self->window_style($control),
 		");",
 	);
 
 	if ( $control->default ) {
+		my $variable = $self->object_variable($control);
 		push @$lines, "$variable->SetDefault;";
 	}
 
@@ -1527,6 +1534,34 @@ sub textctrl_create {
 	if ( $maxlength ) {
 		my $variable = $self->object_variable($control);
 		push @$lines, "$variable->SetMaxLength($maxlength);";
+	}
+
+	return $lines;
+}
+
+sub togglebutton_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->object_id($control);
+	my $label    = $self->object_label($control);
+	my $position = $self->object_position($control);
+	my $size     = $self->object_wxsize($control);
+
+	my $lines = $self->nested(
+		$self->window_new($control),
+		"$parent,",
+		"$id,",
+		"$label,",
+		"$position,",
+		"$size,",
+		$self->window_style($control),
+		");",
+	);
+
+	if ( $control->value ) {
+		my $variable = $self->object_variable($control);
+		push @$lines, "$variable->SetValue(1);";
 	}
 
 	return $lines;

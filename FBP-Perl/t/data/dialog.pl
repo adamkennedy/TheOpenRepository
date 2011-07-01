@@ -69,6 +69,8 @@ sub new {
 		$self,
 		-1,
 		Wx::gettext("MyButton"),
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
 	);
 	$self->{m_button1}->SetDefault;
 	$self->{m_button1}->SetToolTip(
@@ -81,6 +83,19 @@ sub new {
 		sub {
 			shift->m_button1(@_);
 		},
+	);
+
+	$self->{m_toggleBtn1} = Wx::ToggleButton->new(
+		$self,
+		-1,
+		Wx::gettext("Toggle me!"),
+		Wx::wxDefaultPosition,
+		[ 100, -1 ],
+		Wx::wxFULL_REPAINT_ON_RESIZE,
+	);
+	$self->{m_toggleBtn1}->SetValue(1);
+	$self->{m_toggleBtn1}->SetToolTip(
+		Wx::gettext("Toggle something")
 	);
 
 	$self->{m_staticline1} = Wx::StaticLine->new(
@@ -442,6 +457,8 @@ sub new {
 		$self->{m_panel6},
 		-1,
 		Wx::gettext("MyButton"),
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
 	);
 
 	$self->{m_panel7} = Wx::Panel->new(
@@ -484,6 +501,7 @@ sub new {
 	$bSizer10->Add( $self->{m_bitmap1}, 0, Wx::wxALL, 5 );
 	$bSizer10->Add( $self->{m_textCtrl1}, 0, Wx::wxALL, 5 );
 	$bSizer10->Add( $self->{m_button1}, 0, Wx::wxALL, 5 );
+	$bSizer10->Add( $self->{m_toggleBtn1}, 0, Wx::wxALL, 5 );
 
 	my $fgSizer1 = Wx::FlexGridSizer->new( 1, 2, 3, 4 );
 	$fgSizer1->AddGrowableCol(0);

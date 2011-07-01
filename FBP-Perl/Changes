@@ -6,6 +6,7 @@ Changes for Perl extension FBP-Perl
 	- Added Wx::ScrolledWindow support
 	- Added Wx::Slider support
 	- Added Wx::StaticBitmap support
+	- Added Wx::ToggleButton support
 
 0.47 Thu 30 Jun 2011
 	- Added generic bitmap "Load From File" support

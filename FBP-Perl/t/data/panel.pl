@@ -30,6 +30,8 @@ sub new {
 		$self,
 		-1,
 		Wx::gettext("MyButton"),
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
 	);
 
 	my $bSizer8 = Wx::BoxSizer->new(Wx::wxHORIZONTAL);
