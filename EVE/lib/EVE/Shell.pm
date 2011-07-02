@@ -15,7 +15,6 @@ sub import {
 sub start {
 	my $class = shift;
 	$| = 1;
-	$DB::single = 1;
 	$main::game = EVE::Game->new(@_);
 	if ( $main::game->find_windows ) {
 		print "Connecting to EVE... ";

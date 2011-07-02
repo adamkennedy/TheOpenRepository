@@ -153,6 +153,10 @@ sub new {
 	return $self;
 }
 
+sub game {
+	$_[0];
+}
+
 sub userid {
 	$_[0]->{userid} || $_[0]->config->userid;
 }
@@ -297,7 +301,8 @@ sub reset_windows {
 
 	# Hit escape again to exit the escape menu
 	$self->send_keys( '{ESCAPE}' );
-	unless ( $self->wait_pattern( 10 => 'neocom-undock' ) ) {
+	$self->mouse_to( 50, 50 );
+	unless ( $self->wait_pattern( 10 => 'neocom-mail' ) ) {
 		$self->throw("Failed to return to the main game");
 	}
 
