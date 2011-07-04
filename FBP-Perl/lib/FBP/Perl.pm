@@ -54,9 +54,9 @@ use strict;
 use warnings;
 use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
-use FBP           0.33 ();
+use FBP           0.34 ();
 
-our $VERSION = '0.50';
+our $VERSION = '0.51';
 
 # Event Binding Table
 our %EVENT = (
@@ -1840,7 +1840,9 @@ sub sizer_pack {
 	my $self  = shift;
 	my $sizer = shift;
 
-	if ( $sizer->isa('FBP::FlexGridSizer') ) { 
+	if ( $sizer->isa('FBP::GridBagSizer') ) {
+		return $self->gridbagsizer_pack($sizer);
+	} elsif ( $sizer->isa('FBP::FlexGridSizer') ) { 
 		return $self->flexgridsizer_pack($sizer);
 	} elsif ( $sizer->isa('FBP::GridSizer') ) {
 		return $self->gridsizer_pack($sizer);
@@ -1868,101 +1870,6 @@ sub boxsizer_pack {
 	# Add the content for this sizer
 	my @lines = (
 		"$scope$variable = Wx::BoxSizer->new($orient);",
-	);
-	foreach my $item ( @{$sizer->children} ) {
-		my $child  = $item->children->[0];
-		if ( $child->isa('FBP::Spacer') ) {
-			my $params = join(
-				', ',
-				$child->width,
-				$child->height,
-				$item->proportion,
-				$self->wx( $item->flag ),
-				$item->border,
-			);
-			push @lines, "$variable->Add( $params );";
-		} else {
-			my $params = join(
-				', ',
-				$self->object_variable($child),
-				$item->proportion,
-				$self->wx( $item->flag ),
-				$item->border,
-			);
-			push @lines, "$variable->Add( $params );";
-		}
-	}
-
-	return ( @children, \@lines );
-}
-
-sub staticboxsizer_pack {
-	my $self     = shift;
-	my $sizer    = shift;
-	my $scope    = $self->object_scope($sizer);
-	my $variable = $self->object_variable($sizer);
-	my $label    = $self->object_label($sizer);
-	my $orient   = $self->wx( $sizer->orient );
-
-	# Add the content for all our child sizers
-	my @children = $self->children_pack($sizer);
-
-	# Add the content for this sizer
-	my @lines = (
-		"$scope$variable = Wx::StaticBoxSizer->new(",
-		"\tWx::StaticBox->new(",
-		"\t\t\$self,",
-		"\t\t-1,",
-		"\t\t$label,",
-		"\t),",
-		"\t$orient,",
-		");",
-	);
-	foreach my $item ( @{$sizer->children} ) {
-		my $child  = $item->children->[0];
-		if ( $child->isa('FBP::Spacer') ) {
-			my $params = join(
-				', ',
-				$child->width,
-				$child->height,
-				$item->proportion,
-				$self->wx( $item->flag ),
-				$item->border,
-			);
-			push @lines, "$variable->Add( $params );";
-		} else {
-			my $params = join(
-				', ',
-				$self->object_variable($child),
-				$item->proportion,
-				$self->wx( $item->flag ),
-				$item->border,
-			);
-			push @lines, "$variable->Add( $params );";
-		}
-	}
-
-	return ( @children, \@lines );
-}
-
-sub gridsizer_pack {
-	my $self     = shift;
-	my $sizer    = shift;
-	my $scope    = $self->object_scope($sizer);
-	my $variable = $self->object_variable($sizer);
-	my $params   = join( ', ',
-		$sizer->rows,
-		$sizer->cols,
-		$sizer->vgap,
-		$sizer->hgap,
-	);
-
-	# Add the content for all our child sizers
-	my @children = $self->children_pack($sizer);
-
-	# Add the content for this sizer
-	my @lines = (
-		"$scope$variable = Wx::GridSizer->new( $params );",
 	);
 	foreach my $item ( @{$sizer->children} ) {
 		my $child  = $item->children->[0];
@@ -2020,6 +1927,101 @@ sub flexgridsizer_pack {
 	}
 	push @lines, "$variable->SetFlexibleDirection($direction);";
 	push @lines, "$variable->SetNonFlexibleGrowMode($growmode);";
+	foreach my $item ( @{$sizer->children} ) {
+		my $child  = $item->children->[0];
+		if ( $child->isa('FBP::Spacer') ) {
+			my $params = join(
+				', ',
+				$child->width,
+				$child->height,
+				$item->proportion,
+				$self->wx( $item->flag ),
+				$item->border,
+			);
+			push @lines, "$variable->Add( $params );";
+		} else {
+			my $params = join(
+				', ',
+				$self->object_variable($child),
+				$item->proportion,
+				$self->wx( $item->flag ),
+				$item->border,
+			);
+			push @lines, "$variable->Add( $params );";
+		}
+	}
+
+	return ( @children, \@lines );
+}
+
+sub gridbagsizer_pack {
+	my $self      = shift;
+	my $sizer     = shift;
+	my $scope     = $self->object_scope($sizer);
+	my $variable  = $self->object_variable($sizer);
+	my $direction = $self->wx( $sizer->flexible_direction );
+	my $growmode  = $self->wx( $sizer->non_flexible_grow_mode );
+	my $params    = join ', ', $sizer->vgap, $sizer->hgap;
+
+	# Add the content for all our child sizers
+	my @children = $self->children_pack($sizer);
+
+	# Add the content for this sizer
+	my @lines = (
+		"$scope$variable = Wx::GridBagSizer->new( $params );",
+	);
+	foreach my $row ( split /,/, $sizer->growablerows ) {
+		push @lines, "$variable->AddGrowableRow($row);";
+	}
+	foreach my $col ( split /,/, $sizer->growablecols ) {
+		push @lines, "$variable->AddGrowableCol($col);";
+	}
+	push @lines, "$variable->SetFlexibleDirection($direction);";
+	push @lines, "$variable->SetNonFlexibleGrowMode($growmode);";
+	foreach my $item ( @{$sizer->children} ) {
+		my $child  = $item->children->[0];
+		if ( $child->isa('FBP::Spacer') ) {
+			my $params = join(
+				', ',
+				$child->width,
+				$child->height,
+				$self->wx( $item->flag ),
+				$item->border,
+			);
+			push @lines, "$variable->Add( $params );";
+		} else {
+			my $params = join(
+				', ',
+				$self->object_variable($child),
+				$self->wx( $item->flag ),
+				$item->border,
+			);
+			push @lines, "$variable->Add( $params );";
+		}
+	}
+
+	return ( @children, \@lines );
+}
+
+sub gridsizer_pack {
+	my $self     = shift;
+	my $sizer    = shift;
+	my $scope    = $self->object_scope($sizer);
+	my $variable = $self->object_variable($sizer);
+	my $params   = join( ', ',
+		$sizer->rows,
+		$sizer->cols,
+		$sizer->vgap,
+		$sizer->hgap,
+	);
+
+	# Add the content for all our child sizers
+	my @children = $self->children_pack($sizer);
+
+	# Add the content for this sizer
+	my @lines = (
+		"$scope$variable = Wx::GridSizer->new( $params );",
+	);
 	foreach my $item ( @{$sizer->children} ) {
 		my $child  = $item->children->[0];
 		if ( $child->isa('FBP::Spacer') ) {
@@ -2189,6 +2191,55 @@ sub splitterwindow_pack {
 	}
 
 	die "Unexpected number of splitterwindow children";
+}
+
+sub staticboxsizer_pack {
+	my $self     = shift;
+	my $sizer    = shift;
+	my $scope    = $self->object_scope($sizer);
+	my $variable = $self->object_variable($sizer);
+	my $label    = $self->object_label($sizer);
+	my $orient   = $self->wx( $sizer->orient );
+
+	# Add the content for all our child sizers
+	my @children = $self->children_pack($sizer);
+
+	# Add the content for this sizer
+	my @lines = (
+		"$scope$variable = Wx::StaticBoxSizer->new(",
+		"\tWx::StaticBox->new(",
+		"\t\t\$self,",
+		"\t\t-1,",
+		"\t\t$label,",
+		"\t),",
+		"\t$orient,",
+		");",
+	);
+	foreach my $item ( @{$sizer->children} ) {
+		my $child  = $item->children->[0];
+		if ( $child->isa('FBP::Spacer') ) {
+			my $params = join(
+				', ',
+				$child->width,
+				$child->height,
+				$item->proportion,
+				$self->wx( $item->flag ),
+				$item->border,
+			);
+			push @lines, "$variable->Add( $params );";
+		} else {
+			my $params = join(
+				', ',
+				$self->object_variable($child),
+				$item->proportion,
+				$self->wx( $item->flag ),
+				$item->border,
+			);
+			push @lines, "$variable->Add( $params );";
+		}
+	}
+
+	return ( @children, \@lines );
 }
 
 
