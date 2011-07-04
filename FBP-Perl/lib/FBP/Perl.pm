@@ -56,7 +56,7 @@ use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
 use FBP           0.34 ();
 
-our $VERSION = '0.51';
+our $VERSION = '0.52';
 
 # Event Binding Table
 our %EVENT = (
