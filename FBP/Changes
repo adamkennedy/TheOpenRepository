@@ -1,7 +1,13 @@
 Changes for Perl extension FBP
 
-0.34 to be released
+0.34 Mon 4 Jul 2011
+	- Added FBP::AnimationCtrl class
 	- Added FBP::GridBagSizer class
+	- Added FBP::Notebook class
+	- Added FBP::RadioButton class
+	- Added FBP::TreeCtrl class
+	- Abstracted the sizeritem classes into more granular roles
+	- Adding no Mouse and make_immutable to all classes
 
 0.33 Thu 30 Jun 2011
 	- Added FBP::Window::OnEraseBackground event

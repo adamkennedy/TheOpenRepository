@@ -23,6 +23,7 @@ has internationalize => (
 );
 
 no Mouse;
+__PACKAGE__->meta->make_immutable;
 
 
 

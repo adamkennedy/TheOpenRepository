@@ -21,4 +21,7 @@ sub items {
 	return @choices;
 }
 
+no Mouse;
+__PACKAGE__->meta->make_immutable;
+
 1;

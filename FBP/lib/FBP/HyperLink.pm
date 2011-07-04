@@ -6,13 +6,6 @@ our $VERSION = '0.34';
 
 extends 'FBP::Control';
 
-
-
-
-
-######################################################################
-# Properties
-
 has label => (
 	is       => 'ro',
 	isa      => 'Str',
@@ -43,16 +36,12 @@ has style => (
 	isa      => 'Str',
 );
 
-
-
-
-
-######################################################################
-# Events
-
 has OnHyperlink => (
 	is  => 'ro',
 	isa => 'Str',
 );
+
+no Mouse;
+__PACKAGE__->meta->make_immutable;
 
 1;

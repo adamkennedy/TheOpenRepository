@@ -119,6 +119,9 @@ sub find_first {
 	return undef;
 }
 
+no Mouse::Role;
+__PACKAGE__->meta->make_immutable;
+
 1;
 
 =pod

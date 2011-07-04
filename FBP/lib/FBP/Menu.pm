@@ -7,13 +7,6 @@ our $VERSION = '0.34';
 extends 'FBP::Object';
 with    'FBP::Children';
 
-
-
-
-
-######################################################################
-# Properties
-
 has name => (
 	is  => 'ro',
 	isa => 'Str',
@@ -23,5 +16,8 @@ has label => (
 	is  => 'ro',
 	isa => 'Str',
 );
+
+no Mouse;
+__PACKAGE__->meta->make_immutable;
 
 1;

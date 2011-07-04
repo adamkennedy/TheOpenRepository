@@ -1,0 +1,14 @@
+package FBP::TreeCtrl;
+
+use Mouse;
+
+our $VERSION = '0.34';
+
+extends 'FBP::Control';
+
+has style => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+1;

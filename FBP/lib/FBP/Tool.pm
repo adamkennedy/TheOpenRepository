@@ -6,13 +6,6 @@ our $VERSION = '0.34';
 
 extends 'FBP::Object';
 
-
-
-
-
-######################################################################
-# Properties
-
 has id => (
 	is  => 'ro',
 	isa => 'Str',
@@ -48,13 +41,6 @@ has statusbar => (
 	isa => 'Str',
 );
 
-
-
-
-
-######################################################################
-# Events
-
 has OnToolClicked => (
 	is  => 'ro',
 	isa => 'Str',
@@ -79,5 +65,8 @@ has OnUpdateUI => (
 	is  => 'ro',
 	isa => 'Str',
 );
+
+no Mouse;
+__PACKAGE__->meta->make_immutable;
 
 1;

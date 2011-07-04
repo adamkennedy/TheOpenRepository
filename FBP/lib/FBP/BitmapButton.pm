@@ -1,7 +1,6 @@
 package FBP::BitmapButton;
 
 use Mouse;
-use FBP::Control;
 
 our $VERSION = '0.34';
 
@@ -41,5 +40,8 @@ has OnButtonClick => (
 	is  => 'ro',
 	isa => 'Str',
 );
+
+no Mouse;
+__PACKAGE__->meta->make_immutable;
 
 1;

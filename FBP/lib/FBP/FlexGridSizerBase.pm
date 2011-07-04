@@ -1,4 +1,4 @@
-package FBP::FlexSizer;
+package FBP::FlexGridSizerBase;
 
 use Mouse::Role;
 
@@ -37,5 +37,8 @@ has non_flexible_grow_mode => (
 	is  => 'ro',
 	isa => 'Str',
 );
+
+no Mouse::Role;
+__PACKAGE__->meta->make_immutable;
 
 1;

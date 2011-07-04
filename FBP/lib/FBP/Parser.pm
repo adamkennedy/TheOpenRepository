@@ -18,6 +18,7 @@ my %OBJECT_CLASS = (
 	Panel                  => 'FBP::FormPanel',
 
 	# Direct Mappings
+	wxAnimationCtrl        => 'FBP::AnimationCtrl',
 	wxBitmapButton         => 'FBP::BitmapButton',
 	wxBoxSizer             => 'FBP::BoxSizer',
 	wxButton               => 'FBP::Button',
@@ -42,8 +43,10 @@ my %OBJECT_CLASS = (
 	wxMenu                 => 'FBP::Menu',
 	wxMenuBar              => 'FBP::MenuBar',
 	wxMenuItem             => 'FBP::MenuItem',
+	wxNotebook             => 'FBP::Notebook',
 	wxPanel                => 'FBP::Panel',
 	wxRadioBox             => 'FBP::RadioBox',
+	wxRadioButton          => 'FBP::RadioButton',
 	wxScrolledWindow       => 'FBP::ScrolledWindow',
 	wxSearchCtrl           => 'FBP::SearchCtrl',
 	wxSlider               => 'FBP::Slider',
@@ -58,12 +61,14 @@ my %OBJECT_CLASS = (
 	wxTextCtrl             => 'FBP::TextCtrl',
 	wxToggleButton         => 'FBP::ToggleButton',
 	wxToolBar              => 'FBP::ToolBar',
+	wxTreeCtrl             => 'FBP::TreeCtrl',
 
 	# Special Mappings
-	submenu                => 'FBP::Menu',
-	listbookpage           => 'FBP::ListbookPage',
-	sizeritem              => 'FBP::SizerItem',
 	gbsizeritem            => 'FBP::GridBagSizerItem',
+	listbookpage           => 'FBP::ListbookPage',
+	notebookpage           => 'FBP::NotebookPage',
+	sizeritem              => 'FBP::SizerItem',
+	submenu                => 'FBP::Menu',
 	separator              => 'FBP::MenuSeparator',
 	spacer                 => 'FBP::Spacer',
 	splitteritem           => 'FBP::SplitterItem',

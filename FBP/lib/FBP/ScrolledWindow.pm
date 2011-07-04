@@ -16,4 +16,7 @@ has scroll_rate_y => (
 	isa => 'Int',
 );
 
+no Mouse;
+__PACKAGE__->meta->make_immutable;
+
 1;
