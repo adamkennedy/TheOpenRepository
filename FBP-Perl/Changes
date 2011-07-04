@@ -3,6 +3,8 @@ Changes for Perl extension FBP-Perl
 0.51 to be released
 	- Bump FBP dependency to 0.34 for several additional classes
 	- Added Wx::GridBagSizer support
+	- Added Wx::Notebook support
+	- Added Wx::TreeCtrl support
 
 0.50 Fri 1 Jul 2011
 	- Corrected a number of incorrectly mapped event handlers

@@ -186,6 +186,28 @@ our %EVENT = (
 	OnToolClicked             => [ 'EVT_TOOL'                       ],
 	OnToolRClicked            => [ 'EVT_TOOL_RCLICKED'              ],
 	OnToolEnter               => [ 'EVT_TOOL_ENTER'                 ],
+
+	# wxTreeCtrl events
+	OnTreeGetInfo             => [ 'EVT_TREE_GET_INFO'              ],
+	OnTreeSetInfo             => [ 'EVT_TREE_SET_INFO'              ],
+	OnTreeItemGetTooltip      => [ 'EVT_TREE_ITEM_GETTOOLTIP'       ],
+	OnTreeStateImageClick     => [ 'EVT_TREE_STATE_IMAGE_CLICK'     ],
+	OnTreeBeginDrag           => [ 'EVT_TREE_BEGIN_DRAG'            ],
+	OnTreeBeginRDrag          => [ 'EVT_TREE_BEGIN_RDRAG'           ],
+	OnTreeEndDrag             => [ 'EVT_TREE_END_DRAG'              ],
+	OnTreeBeginLabelEdit      => [ 'EVT_TREE_BEGIN_LABEL_EDIT'      ],
+	OnTreeEndLabelEdit        => [ 'EVT_TREE_END_LABEL_EDIT'        ],
+	OnTreeItemActivated       => [ 'EVT_TREE_ITEM_ACTIVATED'        ],
+	OnTreeItemCollapsed       => [ 'EVT_TREE_ITEM_COLLAPSED'        ],
+	OnTreeItemCollapsing      => [ 'EVT_TREE_ITEM_COLLAPSING'       ],
+	OnTreeItemExpanded        => [ 'EVT_TREE_ITEM_EXPANDED'         ],
+	OnTreeItemExpanding       => [ 'EVT_TREE_ITEM_EXPANDING'        ],
+	OnTreeItemRightClick      => [ 'EVT_TREE_ITEM_RIGHT_CLICK'      ],
+	OnTreeItemMiddleClick     => [ 'EVT_TREE_ITEM_MIDDLE_CLICK'     ],
+	OnTreeSelChanged          => [ 'EVT_TREE_SEL_CHANGED'           ],
+	OnTreeSelChanging         => [ 'EVT_TREE_SEL_CHANGING'          ],
+	OnTreeKeyDown             => [ 'EVT_TREE_KEY_DOWN'              ],
+	OnTreeItemMenu            => [ 'EVT_TREE_ITEM_MENU'             ],
 );
 
 
@@ -740,6 +762,8 @@ sub window_create {
 		$lines = $self->listctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::MenuBar') ) {
 		$lines = $self->menubar_create($window, $parent);
+	} elsif ( $window->isa('FBP::Notebook') ) {
+		$lines = $self->notebook_create($window, $parent);
 	} elsif ( $window->isa('FBP::Panel') ) {
 		$lines = $self->panel_create($window, $parent);
 	} elsif ( $window->isa('FBP::RadioBox') ) {
@@ -768,6 +792,8 @@ sub window_create {
 		$lines = $self->togglebutton_create($window, $parent);
 	} elsif ( $window->isa('FBP::ToolBar') ) {
 		$lines = $self->toolbar_create($window, $parent);
+	} elsif ( $window->isa('FBP::TreeCtrl') ) {
+		$lines = $self->treectrl_create($window, $parent);
 	} else {
 		die 'Cannot create constructor code for ' . ref($window);
 	}
@@ -1348,6 +1374,25 @@ sub menuitem_create {
 	return $lines;
 }
 
+sub notebook_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->object_id($control);
+	my $position = $self->object_position($control);
+	my $size     = $self->object_wxsize($control);
+
+	return $self->nested(
+		$self->window_new($control),
+		"$parent,",
+		"$id,",
+		"$position,",
+		"$size,",
+		$self->window_style($control),
+		");",
+	);
+}
+
 sub panel_create {
 	my $self     = shift;
 	my $window   = shift;
@@ -1802,6 +1847,25 @@ sub treebook_create {
 	);
 }
 
+sub treectrl_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->object_id($control);
+	my $position = $self->object_position($control);
+	my $size     = $self->object_wxsize($control);
+
+	return $self->nested(
+		$self->window_new($control),
+		"$parent,",
+		"$id,",
+		"$position,",
+		"$size,",
+		$self->window_style($control),
+		");",
+	);
+}
+
 
 
 
@@ -1820,6 +1884,8 @@ sub children_pack {
 			push @children, $self->sizer_pack($child);
 		} elsif ( $child->isa('FBP::Listbook') ) {
 			push @children, $self->listbook_pack($child);
+		} elsif ( $child->isa('FBP::Notebook') ) {
+			push @children, $self->notebook_pack($child);
 		} elsif ( $child->isa('FBP::Panel') ) {
 			push @children, $self->panel_pack($child);
 		} elsif ( $child->isa('FBP::SplitterWindow') ) {
@@ -1855,6 +1921,36 @@ sub sizer_pack {
 	} else {
 		die "Unsupported sizer " . ref($sizer);
 	}
+}
+
+# Packing for Listbook, Notebook and Treebook
+sub book_pack {
+	my $self     = shift;
+	my $book     = shift;
+	my $variable = $self->object_variable($book);
+
+	# Generate fragments for our child panels
+	my @children = $self->children_pack($book);
+
+	# Add each of our child pages
+	my @lines = ();
+	foreach my $item ( @{$book->children} ) {
+		my $child = $item->children->[0];
+		if ( $child->isa('FBP::Panel') ) {
+			my $params = join(
+				', ',
+				$self->object_variable($child),
+				$self->object_label($item),
+				$item->select ? 1 : 0,
+			);
+			push @lines, "$variable->AddPage( $params );";
+
+		} else {
+			die "Unknown or unsupported book child " . ref($child);
+		}
+	}
+
+	return ( @children, \@lines );
 }
 
 sub boxsizer_pack {
@@ -2083,32 +2179,11 @@ sub stddialogbuttonsizer_pack {
 }
 
 sub listbook_pack {
-	my $self     = shift;
-	my $book     = shift;
-	my $variable = $self->object_variable($book);
+	shift->book_pack(@_);
+}
 
-	# Generate fragments for our child panels
-	my @children = $self->children_pack($book);
-
-	# Add each of our child pages
-	my @lines = ();
-	foreach my $item ( @{$book->children} ) {
-		my $child = $item->children->[0];
-		if ( $child->isa('FBP::Panel') ) {
-			my $params = join(
-				', ',
-				$self->object_variable($child),
-				$self->object_label($item),
-				$item->select ? 1 : 0,
-			);
-			push @lines, "$variable->AddPage( $params );";
-
-		} else {
-			die "Unknown or unsupported book child " . ref($child);
-		}
-	}
-
-	return ( @children, \@lines );
+sub notebook_pack {
+	shift->book_pack(@_);
 }
 
 sub panel_pack {
