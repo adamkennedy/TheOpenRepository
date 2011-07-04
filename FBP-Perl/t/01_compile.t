@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use constant CONSTANTS => 100;
+use constant CONSTANTS => 107;
 
 use Test::More tests => 2 + CONSTANTS;
 use Test::NoWarnings;
@@ -21,6 +21,7 @@ SKIP: {
 	use_ok( 'Wx', ':everything' );
 	use_ok( 'Wx::HTML' );
 	use_ok( 'Wx::DateTime' );
+	use_ok( 'Wx::Calendar' );
 
 	%FBP::Perl::EVENT = %FBP::Perl::EVENT;
 	foreach my $symbol ( sort grep { defined $_ } map { $_->[0] } values %FBP::Perl::EVENT ) {

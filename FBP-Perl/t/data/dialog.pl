@@ -366,6 +366,23 @@ sub new {
 		Wx::Bitmap->new( "padre-plugin.png", Wx::wxBITMAP_TYPE_ANY )
 	);
 
+	$self->{m_panel11} = Wx::Panel->new(
+		$self->{m_notebook1},
+		-1,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxTAB_TRAVERSAL,
+	);
+
+	$self->{m_calendar2} = Wx::CalendarCtrl->new(
+		$self->{m_panel11},
+		-1,
+		undef,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxCAL_MONDAY_FIRST | Wx::wxCAL_SHOW_HOLIDAYS | Wx::wxCAL_SHOW_SURROUNDING_WEEKS,
+	);
+
 	$self->{m_listbook1} = Wx::Listbook->new(
 		$self,
 		-1,
@@ -667,8 +684,16 @@ sub new {
 	$self->{m_panel9}->Layout;
 	$bSizer12->Fit($self->{m_panel9});
 
+	my $bSizer14 = Wx::BoxSizer->new(Wx::wxVERTICAL);
+	$bSizer14->Add( $self->{m_calendar2}, 0, Wx::wxALL, 5 );
+
+	$self->{m_panel11}->SetSizer($bSizer14);
+	$self->{m_panel11}->Layout;
+	$bSizer14->Fit($self->{m_panel11});
+
 	$self->{m_notebook1}->AddPage( $self->{m_panel8}, Wx::gettext("Checkboxes"), 1 );
 	$self->{m_notebook1}->AddPage( $self->{m_panel9}, Wx::gettext("Empty Tree"), 0 );
+	$self->{m_notebook1}->AddPage( $self->{m_panel11}, Wx::gettext("Calendar"), 0 );
 
 	my $bSizer3 = Wx::BoxSizer->new(Wx::wxVERTICAL);
 	$bSizer3->Add( $self->{m_staticText2}, 0, Wx::wxALL, 5 );

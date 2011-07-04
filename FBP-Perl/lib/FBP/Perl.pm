@@ -70,6 +70,14 @@ our %EVENT = (
 	OnActivate                => [ 'EVT_ACTIVATE'                   ],
 	OnActivateApp             => [ 'EVT_ACTIVATE_APP'               ],
 
+	# wxCalendar
+	OnCalendar                => [ 'EVT_CALENDAR'                   ],
+	OnCalendarSelChanged      => [ 'EVT_CALENDAR_SEL_CHANGED'       ],
+	OnCalendarDay             => [ 'EVT_CALENDAR_DAY'               ],
+	OnCalendarMonth           => [ 'EVT_CALENDAR_MONTH'             ],
+	OnCalendarYear            => [ 'EVT_CALENDAR_YEAR'              ],
+	OnCalendarWeekDayClicked  => [ 'EVT_CALENDAR_WEEKDAY_CLICKED'   ],
+
 	# wxCommandEvent
 	OnButtonClick             => [ 'EVT_BUTTON'                     ],
 	OnCheckBox                => [ 'EVT_CHECKBOX'                   ],
@@ -407,7 +415,10 @@ sub form_wx {
 	if ( $topic->find_first( isa => 'FBP::HtmlWindow' ) ) {
 		push @$lines, "use Wx::HTML ();";
 	}
-	if ( $topic->find_first( isa => 'FBP::DatePickerCtrl' ) ) {
+	if ( $topic->find_first( isa => 'FBP::Calendar' ) ) {
+		push @$lines, "use Wx::Calendar ();";
+		push @$lines, "use Wx::DateTime ();";
+	} elsif ( $topic->find_first( isa => 'FBP::DatePickerCtrl' ) ) {
 		push @$lines, "use Wx::DateTime ();";
 	}
 	return $lines;
@@ -729,6 +740,8 @@ sub window_create {
 		$lines = $self->bitmapbutton_create($window, $parent);
 	} elsif ( $window->isa('FBP::Button') ) {
 		$lines = $self->button_create($window, $parent);
+	} elsif ( $window->isa('FBP::CalendarCtrl') ) {
+		$lines = $self->calendarctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::CheckBox') ) {
 		$lines = $self->checkbox_create($window, $parent);
 	} elsif ( $window->isa('FBP::Choice') ) {
@@ -832,7 +845,7 @@ sub animationctrl_create {
 	my $bitmap    = $self->bitmap($control->inactive_bitmap);
 
 	my $lines = $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$animation,",
@@ -872,7 +885,7 @@ sub bitmapbutton_create {
 	my $focus    = $self->bitmap( $control->focus    );
 
 	my $lines = $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$bitmap,",
@@ -931,7 +944,7 @@ sub button_create {
 	my $variable = $self->object_variable($control);
 
 	my $lines = $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$label,",
@@ -948,6 +961,27 @@ sub button_create {
 	return $lines;
 }
 
+sub calendarctrl_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->object_id($control);
+	# my $value    = $self->wx('wxDefaultDateTime'); # NOT IMPLEMENTED
+	my $position = $self->object_position($control);
+	my $size     = $self->object_wxsize($control);
+
+	return $self->nested(
+		$self->object_new($control),
+		"$parent,",
+		"$id,",
+		"undef,",
+		"$position,",
+		"$size,",
+		$self->window_style($control),
+		");",
+	);
+}
+
 sub checkbox_create {
 	my $self     = shift;
 	my $control  = shift;
@@ -958,7 +992,7 @@ sub checkbox_create {
 	my $size     = $self->object_wxsize($control);
 
 	return $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$label,",
@@ -979,7 +1013,7 @@ sub choice_create {
 	my $items     = $self->control_items($control);
 
 	return $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$position,",
@@ -1000,7 +1034,7 @@ sub combobox_create {
 	my $items    = $self->control_items($control);
 
 	return $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$value,",
@@ -1028,7 +1062,7 @@ sub colourpickerctrl_create {
 	}
 
 	return $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$colour,",
@@ -1047,7 +1081,7 @@ sub customcontrol_create {
 	my $id       = $self->object_id($control);
 
 	return $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		");",
@@ -1064,7 +1098,7 @@ sub datepickerctrl_create {
 	my $size     = $self->object_wxsize($control);
 
 	return $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$value,",
@@ -1086,7 +1120,7 @@ sub dirpickerctrl_create {
 	my $size     = $self->object_wxsize($control);
 
 	return $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$value,",
@@ -1110,7 +1144,7 @@ sub filepickerctrl_create {
 	my $size     = $self->object_wxsize($control);
 
 	return $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$value,",
@@ -1134,7 +1168,7 @@ sub fontpickerctrl_create {
 	my $size     = $self->object_wxsize($control);
 
 	my $lines = $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$font,",
@@ -1161,7 +1195,7 @@ sub htmlwindow_create {
 	my $size     = $self->object_wxsize($control);
 
 	return $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$position,",
@@ -1182,7 +1216,7 @@ sub hyperlink_create {
 	my $size     = $self->object_wxsize($control);
 
 	my $lines = $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$label,",
@@ -1233,7 +1267,7 @@ sub gauge_create {
 	my $size     = $self->object_wxsize($control);
 
 	my $lines = $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$range,",
@@ -1262,7 +1296,7 @@ sub listbook_create {
 	my $size     = $self->object_wxsize($control);
 
 	return $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$position,",
@@ -1282,7 +1316,7 @@ sub listbox_create {
 	my $items    = $self->control_items($control);
 
 	return $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$position,",
@@ -1302,7 +1336,7 @@ sub listctrl_create {
 	my $size     = $self->object_wxsize($control);
 
 	return $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$position,",
@@ -1427,7 +1461,7 @@ sub notebook_create {
 	my $size     = $self->object_wxsize($control);
 
 	return $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$position,",
@@ -1446,7 +1480,7 @@ sub panel_create {
 	my $size     = $self->object_wxsize($window);
 
 	return $self->nested(
-		$self->window_new($window),
+		$self->object_new($window),
 		"$parent,",
 		"$id,",
 		"$position,",
@@ -1468,7 +1502,7 @@ sub radiobox_create {
 	my $major    = $control->majorDimension || 1;
 
 	return $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$label,",
@@ -1491,7 +1525,7 @@ sub radiobutton_create {
 	my $size     = $self->object_wxsize($control);
 
 	my $lines = $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$label,",
@@ -1521,7 +1555,7 @@ sub scrolledwindow_create {
 	my $scroll_y = $window->scroll_rate_y;
 
 	my $lines = $self->nested(
-		$self->window_new($window),
+		$self->object_new($window),
 		"$parent,",
 		"$id,",
 		"$position,",
@@ -1546,7 +1580,7 @@ sub searchctrl_create {
 	my $size     = $self->object_wxsize($control);
 
 	my $lines = $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$value,",
@@ -1584,7 +1618,7 @@ sub slider_create {
 	my $size     = $self->object_wxsize($window);
 
 	return $self->nested(
-		$self->window_new($window),
+		$self->object_new($window),
 		"$parent,",
 		"$id,",
 		"$value,",
@@ -1612,7 +1646,7 @@ sub spinctrl_create {
 	my $initial  = $control->initial;
 
 	return $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$value,",
@@ -1637,7 +1671,7 @@ sub splitterwindow_create {
 
 	# Object constructor
 	my $lines = $self->nested(
-		$self->window_new($window),
+		$self->object_new($window),
 		"$parent,",
 		"$id,",
 		"$position,",
@@ -1673,7 +1707,7 @@ sub staticbitmap_create {
 	my $size     = $self->object_wxsize($window);
 
 	return $self->nested(
-		$self->window_new($window),
+		$self->object_new($window),
 		"$parent,",
 		"$id,",
 		"$bitmap,",
@@ -1693,7 +1727,7 @@ sub staticline_create {
 	my $size     = $self->object_wxsize($control);
 
 	return $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$position,",
@@ -1711,7 +1745,7 @@ sub statictext_create {
 	my $label   = $self->object_label($control);
 
 	return $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$label,",
@@ -1756,7 +1790,7 @@ sub stddialogbuttonsizer_create {
 		my $id = $self->object_id($button);
 
 		my $lines = $self->nested(
-			$self->window_new($button),
+			$self->object_new($button),
 			"$parent,",
 			"$id,",
 			");",
@@ -1805,7 +1839,7 @@ sub textctrl_create {
 	my $size     = $self->object_wxsize($control);
 
 	my $lines = $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$value,",
@@ -1834,7 +1868,7 @@ sub togglebutton_create {
 	my $size     = $self->object_wxsize($control);
 
 	my $lines = $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$label,",
@@ -1909,7 +1943,7 @@ sub treebook_create {
 	);
 
 	return $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$position,",
@@ -1928,7 +1962,7 @@ sub treectrl_create {
 	my $size     = $self->object_wxsize($control);
 
 	return $self->nested(
-		$self->window_new($control),
+		$self->object_new($control),
 		"$parent,",
 		"$id,",
 		"$position,",
@@ -2651,13 +2685,25 @@ sub object_top {
 	return 0;
 }
 
-sub window_new {
+sub object_new {
 	my $self     = shift;
-	my $window   = shift;
-	my $scope    = $self->object_scope($window);
-	my $variable = $self->object_variable($window);
-	my $wxclass  = $window->wxclass;
+	my $object   = shift;
+	my $scope    = $self->object_scope($object);
+	my $variable = $self->object_variable($object);
+	my $wxclass  = $object->wxclass;
 	return "$scope$variable = $wxclass->new(";
+}
+
+sub window_new {
+	my $self    = shift;
+	my $window  = shift;
+	my $parent  = $self->object_parent(@_);
+	my $id      = $self->object_id($window);
+	return (
+		$self->object_new($window),
+		"$parent,",
+		"$id,",
+	);
 }
 
 sub window_style {
