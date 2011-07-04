@@ -354,6 +354,18 @@ sub new {
 	);
 	$self->{m_radioBtn4}->SetValue(1);
 
+	$self->{m_animCtrl1} = Wx::AnimationCtrl->new(
+		$self->{m_panel9},
+		-1,
+		Wx::wxNullAnimation,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxAC_DEFAULT_STYLE,
+	);
+	$self->{m_animCtrl1}->SetInactiveBitmap(
+		Wx::Bitmap->new( "padre-plugin.png", Wx::wxBITMAP_TYPE_ANY )
+	);
+
 	$self->{m_listbook1} = Wx::Listbook->new(
 		$self,
 		-1,
@@ -649,6 +661,7 @@ sub new {
 	$bSizer12->Add( $self->{m_radioBtn2}, 0, Wx::wxALL, 5 );
 	$bSizer12->Add( $self->{m_radioBtn3}, 0, Wx::wxALL, 5 );
 	$bSizer12->Add( $self->{m_radioBtn4}, 0, Wx::wxALL, 5 );
+	$bSizer12->Add( $self->{m_animCtrl1}, 0, Wx::wxALL, 5 );
 
 	$self->{m_panel9}->SetSizer($bSizer12);
 	$self->{m_panel9}->Layout;

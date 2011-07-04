@@ -1,5 +1,8 @@
 Changes for Perl extension FBP-Perl
 
+0.52 to be released
+	- Added Wx::AnimationCtrl support
+
 0.51 Mon 4 Jul 2011
 	- Bump FBP dependency to 0.34 for several additional classes
 	- Added Wx::GridBagSizer support

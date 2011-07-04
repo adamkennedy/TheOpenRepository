@@ -165,7 +165,7 @@ our %EVENT = (
 	# wxRadioButton
 	OnRadioButton             => [ 'EVT_RADIOBUTTON'                ],
 
-	# wxStdDialogButtonSizer
+	# wxStdDialogButtonSizer (placeholders)
 	OnOKButtonClick           => [                                  ],
 	OnYesButtonClick          => [                                  ],
 	OnSaveButtonClick         => [                                  ],
@@ -723,7 +723,9 @@ sub window_create {
 	my $parent = shift;
 	my $lines  = undef;
 
-	if ( $window->isa('FBP::BitmapButton') ) {
+	if ( $window->isa('FBP::AnimationCtrl') ) {
+		$lines = $self->animationctrl_create($window, $parent);
+	} elsif ( $window->isa('FBP::BitmapButton') ) {
 		$lines = $self->bitmapbutton_create($window, $parent);
 	} elsif ( $window->isa('FBP::Button') ) {
 		$lines = $self->button_create($window, $parent);
@@ -814,6 +816,43 @@ sub window_create {
 	push @$lines, $self->window_disable($window);
 	push @$lines, $self->window_hide($window);
 	push @$lines, $self->object_bindings($window);
+
+	return $lines;
+}
+
+sub animationctrl_create {
+	my $self      = shift;
+	my $control   = shift;
+	my $parent    = $self->object_parent(@_);
+	my $id        = $self->object_id($control);
+	my $animation = $self->animation($control->animation);
+	my $position  = $self->object_position($control);
+	my $size      = $self->object_wxsize($control);
+	my $variable  = $self->object_variable($control);
+	my $bitmap    = $self->bitmap($control->inactive_bitmap);
+
+	my $lines = $self->nested(
+		$self->window_new($control),
+		"$parent,",
+		"$id,",
+		"$animation,",
+		"$position,",
+		"$size,",
+		$self->window_style($control),
+		");",
+	);
+
+	unless ( $bitmap eq $self->bitmap(undef) ) {
+		push @$lines, $self->nested(
+			"$variable->SetInactiveBitmap(",
+			$bitmap,
+			");",
+		);
+	}
+
+	if ( $control->play ) {
+		push @$lines, "$variable->Play;";
+	}
 
 	return $lines;
 }
@@ -2869,19 +2908,30 @@ sub points {
 
 sub bitmap {
 	my $self   = shift;
-	my $bitmap = shift;
-	unless ( Params::Util::_STRING($bitmap) ) {
+	my $string = shift;
+	unless ( Params::Util::_STRING($string) ) {
 		return $self->wx('wxNullBitmap');
 	}
-	if ( $bitmap =~ s/; Load From File$// ) {
+	if ( $string =~ s/; Load From File$// ) {
 		# Use the file path exactly as is for now
 		my $type = $self->wx('wxBITMAP_TYPE_ANY');
-		my $file = $self->quote($bitmap);
+		my $file = $self->quote($string);
 		return "Wx::Bitmap->new( $file, $type )";
 	}
 
 	### To be completed
 	return $self->wx('wxNullBitmap');
+}
+
+sub animation {
+	my $self   = shift;
+	my $string = shift;
+	unless ( Params::Util::_STRING($string) ) {
+		return $self->wx('wxNullAnimation');
+	}
+
+	### To be completed
+	return $self->wx('wxNullAnimation');
 }
 
 sub indent {
