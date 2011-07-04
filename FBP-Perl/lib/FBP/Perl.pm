@@ -1979,24 +1979,37 @@ sub gridbagsizer_pack {
 	push @lines, "$variable->SetFlexibleDirection($direction);";
 	push @lines, "$variable->SetNonFlexibleGrowMode($growmode);";
 	foreach my $item ( @{$sizer->children} ) {
-		my $child  = $item->children->[0];
+		my $child   = $item->children->[0];
+		my $row     = $item->row;
+		my $column  = $item->column;
+		my $rowspan = $item->rowspan;
+		my $colspan = $item->colspan;
+		my $flag    = $self->wx( $item->flag );
+		my $border  = $item->border;
 		if ( $child->isa('FBP::Spacer') ) {
-			my $params = join(
-				', ',
-				$child->width,
-				$child->height,
-				$self->wx( $item->flag ),
-				$item->border,
+			my $width  = $child->width;
+			my $height = $child->height;
+			push @lines, $self->nested(
+				"$variable->AddSpacer(",
+				"$width,",
+				"$height,",
+				"Wx::GBPosition->new( $row, $column ),",
+				"Wx::GBSpan->new( $rowspan, $colspan ),",
+				"$flag,",
+				"$border,",
+				");",
 			);
-			push @lines, "$variable->Add( $params );";
 		} else {
-			my $params = join(
-				', ',
-				$self->object_variable($child),
-				$self->wx( $item->flag ),
-				$item->border,
+			my $type = $child->isa('FBP::Sizer') ? 'Sizer' : 'Window';
+			push @lines, $self->nested(
+				"$variable->Add$type(",
+				$self->object_variable($child) . ',',
+				"Wx::GBPosition->new( $row, $column ),",
+				"Wx::GBSpan->new( $rowspan, $colspan ),",
+				"$flag,",
+				"$border,",
+				");",
 			);
-			push @lines, "$variable->Add( $params );";
 		}
 	}
 

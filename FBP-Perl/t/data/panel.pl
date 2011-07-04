@@ -42,12 +42,48 @@ sub new {
 		Wx::wxDefaultSize,
 	);
 
+	$self->{m_staticText61} = Wx::StaticText->new(
+		$self,
+		-1,
+		Wx::gettext("Don't press this"),
+	);
+
+	my $bSizer11 = Wx::BoxSizer->new(Wx::wxVERTICAL);
+	$bSizer11->Add( $self->{m_button51}, 0, Wx::wxALL, 5 );
+	$bSizer11->Add( $self->{m_staticText61}, 0, Wx::wxALL, 5 );
+
 	my $gbSizer2 = Wx::GridBagSizer->new( 0, 0 );
 	$gbSizer2->SetFlexibleDirection(Wx::wxBOTH);
 	$gbSizer2->SetNonFlexibleGrowMode(Wx::wxFLEX_GROWMODE_SPECIFIED);
-	$gbSizer2->Add( $self->{m_staticText6}, Wx::wxALIGN_CENTER_HORIZONTAL | Wx::wxALL, 5 );
-	$gbSizer2->Add( $self->{m_button5}, Wx::wxALL, 5 );
-	$gbSizer2->Add( $self->{m_button51}, Wx::wxALL, 5 );
+	$gbSizer2->AddWindow(
+		$self->{m_staticText6},
+		Wx::GBPosition->new( 0, 0 ),
+		Wx::GBSpan->new( 1, 3 ),
+		Wx::wxALIGN_CENTER_HORIZONTAL | Wx::wxALL,
+		5,
+	);
+	$gbSizer2->AddWindow(
+		$self->{m_button5},
+		Wx::GBPosition->new( 1, 0 ),
+		Wx::GBSpan->new( 1, 1 ),
+		Wx::wxALL,
+		5,
+	);
+	$gbSizer2->AddSpacer(
+		20,
+		10,
+		Wx::GBPosition->new( 1, 1 ),
+		Wx::GBSpan->new( 1, 1 ),
+		Wx::wxEXPAND,
+		5,
+	);
+	$gbSizer2->AddSizer(
+		$bSizer11,
+		Wx::GBPosition->new( 1, 2 ),
+		Wx::GBSpan->new( 1, 1 ),
+		Wx::wxEXPAND,
+		5,
+	);
 
 	my $bSizer8 = Wx::BoxSizer->new(Wx::wxHORIZONTAL);
 	$bSizer8->Add( $gbSizer2, 1, Wx::wxEXPAND, 5 );
