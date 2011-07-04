@@ -1,5 +1,8 @@
 Changes for Perl extension FBP
 
+0.34 to be released
+	- Added FBP::GridBagSizer class
+
 0.33 Thu 30 Jun 2011
 	- Added FBP::Window::OnEraseBackground event
 	- Added FBP::Window::OnPaint event

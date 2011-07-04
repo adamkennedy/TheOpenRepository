@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 273;
+use Test::More tests => 291;
 use Test::NoWarnings;
 use Scalar::Util 'refaddr';
 use File::Spec::Functions ':ALL';
@@ -73,7 +73,7 @@ isa_ok( $dialog4[0], 'FBP::Dialog' );
 
 # Multiple-search query with multiple results
 my @window = $project->find( isa => 'FBP::Window' );
-is( scalar(@window), 50, '->find(multiple)' );
+is( scalar(@window), 51, '->find(multiple)' );
 foreach ( @window ) {
 	isa_ok( $_, 'FBP::Window' );
 }
@@ -484,3 +484,30 @@ is( $buttonsizer->No,          1, '->No'          );
 is( $buttonsizer->Cancel,      1, '->Cancel'      );
 is( $buttonsizer->Help,        0, '->Help'        );
 is( $buttonsizer->ContextHelp, 0, '->ContextHelp' );
+
+# GridBagSizer properties
+my $gridbag = $fbp->find_first(
+	isa => 'FBP::GridBagSizer',
+);
+isa_ok( $gridbag, 'FBP::GridBagSizer' );
+is( $gridbag->name, 'gbSizer1', '->name' );
+is( $gridbag->empty_cell_size, '', '->empty_cell_sizer' );
+is( $gridbag->vgap, '0', '->vgap' );
+is( $gridbag->hgap, '10', '->hgap' );
+is( $gridbag->growablerows, '0', '->growablerows' );
+is( $gridbag->growablecols, '0', '->growablecols' );
+is( $gridbag->flexible_direction, 'wxBOTH', '->flexible_direction' );
+is( $gridbag->non_flexible_grow_mode, 'wxFLEX_GROWMODE_SPECIFIED', '->non_flexible_grow_mode' );
+
+# GridBagSizerItem properties
+my $gridbagsizeritem = $fbp->find_first(
+	isa => 'FBP::GridBagSizerItem',
+);
+isa_ok( $gridbagsizeritem, 'FBP::GridBagSizerItem' );
+ok( $gridbagsizeritem->does('FBP::SizerItemBase'), 'DOES sizer item base' );
+is( $gridbagsizeritem->row, 0, '->row' );
+is( $gridbagsizeritem->column, 0, '->column' );
+is( $gridbagsizeritem->rowspan, 1, '->rowspan' );
+is( $gridbagsizeritem->colspan, 2, '->colspan' );
+is( $gridbagsizeritem->border, 5, '->border' );
+is( $gridbagsizeritem->flag, 'wxALIGN_CENTER_HORIZONTAL|wxALL', '->flag' );
