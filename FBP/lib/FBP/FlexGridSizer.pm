@@ -2,7 +2,7 @@ package FBP::FlexGridSizer;
 
 use Mouse;
 
-our $VERSION = '0.33';
+our $VERSION = '0.34';
 
 extends 'FBP::Sizer';
 with    'FBP::FlexGridSizerBase';

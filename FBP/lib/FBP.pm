@@ -97,7 +97,7 @@ use FBP::Tool                 ();
 use FBP::ToolBar              ();
 use FBP::ToolSeparator        ();
 
-our $VERSION = '0.33';
+our $VERSION = '0.34';
 
 extends 'FBP::Object';
 with    'FBP::Children';

@@ -2,7 +2,7 @@ package FBP::FlexSizer;
 
 use Mouse::Role;
 
-our $VERSION = '0.33';
+our $VERSION = '0.34';
 
 has vgap => (
 	is       => 'ro',
