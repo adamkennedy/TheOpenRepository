@@ -39,6 +39,5 @@ has non_flexible_grow_mode => (
 );
 
 no Mouse::Role;
-__PACKAGE__->meta->make_immutable;
 
 1;
