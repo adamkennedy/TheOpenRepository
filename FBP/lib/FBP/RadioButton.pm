@@ -21,4 +21,12 @@ has value => (
 	isa => 'Bool',
 );
 
+has OnRadioButton => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+no Mouse;
+__PACKAGE__->meta->make_immutable;
+
 1;

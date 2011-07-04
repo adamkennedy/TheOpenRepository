@@ -16,4 +16,17 @@ has style => (
 	isa => 'Str',
 );
 
+has OnNotebookPageChanged => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+has OnNotebookPageChanging => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+no Mouse;
+__PACKAGE__->meta->make_immutable;
+
 1;
