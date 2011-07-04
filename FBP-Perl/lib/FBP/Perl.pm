@@ -162,6 +162,9 @@ our %EVENT = (
 	# wxRadioBox
 	OnRadioBox                => [ 'EVT_RADIOBOX'                   ],
 
+	# wxRadioButton
+	OnRadioButton             => [ 'EVT_RADIOBUTTON'                ],
+
 	# wxStdDialogButtonSizer
 	OnOKButtonClick           => [                                  ],
 	OnYesButtonClick          => [                                  ],
@@ -768,6 +771,8 @@ sub window_create {
 		$lines = $self->panel_create($window, $parent);
 	} elsif ( $window->isa('FBP::RadioBox') ) {
 		$lines = $self->radiobox_create($window, $parent);
+	} elsif ( $window->isa('FBP::RadioButton') ) {
+		$lines = $self->radiobutton_create($window, $parent);
 	} elsif ( $window->isa('FBP::ScrolledWindow') ) {
 		$lines = $self->scrolledwindow_create($window, $parent);
 	} elsif ( $window->isa('FBP::SearchCtrl') ) {
@@ -1435,6 +1440,34 @@ sub radiobox_create {
 		$self->window_style($control),
 		");",
 	);
+}
+
+sub radiobutton_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->object_id($control);
+	my $label    = $self->object_label($control);
+	my $position = $self->object_position($control);
+	my $size     = $self->object_wxsize($control);
+
+	my $lines = $self->nested(
+		$self->window_new($control),
+		"$parent,",
+		"$id,",
+		"$label,",
+		"$position,",
+		"$size,",
+		$self->window_style($control),
+		");",
+	);
+
+	if ( $control->value ) {
+		my $variable = $self->object_variable($control);
+		push @$lines, "$variable->SetValue(1);";
+	}
+
+	return $lines;
 }
 
 sub scrolledwindow_create {

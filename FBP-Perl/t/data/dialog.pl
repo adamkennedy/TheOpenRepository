@@ -319,6 +319,41 @@ sub new {
 		Wx::wxTR_DEFAULT_STYLE,
 	);
 
+	$self->{m_radioBtn1} = Wx::RadioButton->new(
+		$self->{m_panel9},
+		-1,
+		Wx::gettext("One"),
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+	);
+
+	$self->{m_radioBtn2} = Wx::RadioButton->new(
+		$self->{m_panel9},
+		-1,
+		Wx::gettext("Two"),
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+	);
+	$self->{m_radioBtn2}->SetValue(1);
+
+	$self->{m_radioBtn3} = Wx::RadioButton->new(
+		$self->{m_panel9},
+		-1,
+		Wx::gettext("This"),
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxRB_GROUP,
+	);
+
+	$self->{m_radioBtn4} = Wx::RadioButton->new(
+		$self->{m_panel9},
+		-1,
+		Wx::gettext("That"),
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+	);
+	$self->{m_radioBtn4}->SetValue(1);
+
 	$self->{m_listbook1} = Wx::Listbook->new(
 		$self,
 		-1,
@@ -610,6 +645,10 @@ sub new {
 
 	my $bSizer12 = Wx::BoxSizer->new(Wx::wxHORIZONTAL);
 	$bSizer12->Add( $self->{m_treeCtrl1}, 0, Wx::wxALL, 5 );
+	$bSizer12->Add( $self->{m_radioBtn1}, 0, Wx::wxALL, 5 );
+	$bSizer12->Add( $self->{m_radioBtn2}, 0, Wx::wxALL, 5 );
+	$bSizer12->Add( $self->{m_radioBtn3}, 0, Wx::wxALL, 5 );
+	$bSizer12->Add( $self->{m_radioBtn4}, 0, Wx::wxALL, 5 );
 
 	$self->{m_panel9}->SetSizer($bSizer12);
 	$self->{m_panel9}->Layout;
