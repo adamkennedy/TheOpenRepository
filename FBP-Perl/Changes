@@ -1,6 +1,6 @@
 Changes for Perl extension FBP-Perl
 
-0.52 to be released
+0.52 Tue 5 Jul 2011
 	- Bump FBP dependency to 0.36 to get complete widget support
 	- Added Wx::AnimationCtrl support
 	- Added Wx::CalendarCtrl support
@@ -10,6 +10,7 @@ Changes for Perl extension FBP-Perl
 	- Added Wx::SpinButton support
 	- Added Wx::Grid support
 	- Added Wx::GenericDirCtrl support
+	- Completes the basic implementation of all core classes
 
 0.51 Mon 4 Jul 2011
 	- Bump FBP dependency to 0.34 for several additional classes
