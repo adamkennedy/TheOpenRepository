@@ -2,7 +2,7 @@ package FBP::SizerItemBase;
 
 use Mouse::Role;
 
-our $VERSION = '0.35';
+our $VERSION = '0.36';
 
 has border => (
 	is  => 'ro',

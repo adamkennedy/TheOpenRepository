@@ -11,10 +11,9 @@ FBP::Window - Base class for all graphical wxWindow objects
 use Mouse;
 use Scalar::Util ();
 
-our $VERSION = '0.35';
+our $VERSION = '0.36';
 
 extends 'FBP::Object';
-with    'FBP::Children';
 with    'FBP::KeyEvent';
 with    'FBP::MouseEvent';
 with    'FBP::FocusEvent';

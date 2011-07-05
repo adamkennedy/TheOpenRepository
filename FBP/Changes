@@ -1,5 +1,10 @@
 Changes for Perl extension FBP
 
+0.36 Wed 6 Jul 2011
+	- Added missing rows methods to FBP::Grid
+	- FBP::Window no longer inherits from FBP::Children, but instead
+	  each class that has children inherits FBP::Children themselves.
+
 0.35 Tue 5 Jul 2011
 	- Completed all possible non-AUI widgets for Dialog, Frame and Panel
 	- Added FBP::Choicebook class

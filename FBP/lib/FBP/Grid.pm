@@ -2,7 +2,7 @@ package FBP::Grid;
 
 use Mouse;
 
-our $VERSION = '0.35';
+our $VERSION = '0.36';
 
 extends 'FBP::Window';
 
@@ -86,6 +86,43 @@ has col_label_horiz_alignment => (
 );
 
 has col_label_vert_alignment => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+# Rows
+
+has row_sizes => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+has autosize_rows => (
+	is  => 'ro',
+	isa => 'Bool',
+);
+
+has drag_row_size => (
+	is  => 'ro',
+	isa => 'Bool',
+);
+
+has row_label_size => (
+	is  => 'ro',
+	isa => 'Int',
+);
+
+has row_label_values => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+has row_label_horiz_alignment => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+has row_label_vert_alignment => (
 	is  => 'ro',
 	isa => 'Str',
 );
