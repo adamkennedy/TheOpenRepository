@@ -6,6 +6,7 @@ use warnings;
 use Wx ':everything';
 use Wx::STC ();
 use Wx::HTML ();
+use Wx::Grid ();
 use t::lib::Custom ();
 use t::lib::MyClass ();
 
@@ -656,6 +657,49 @@ sub new {
 		Wx::wxTAB_TRAVERSAL,
 	);
 
+	$self->{m_grid1} = Wx::Grid->new(
+		$self->{m_panel12},
+		-1,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+	);
+	$self->{m_grid1}->CreateGrid( 5, 5 );
+	$self->{m_grid1}->EnableEditing(1);
+	$self->{m_grid1}->EnableGridLines(1);
+	$self->{m_grid1}->SetGridLineColour(
+		Wx::Colour->new( 255, 0, 0 )
+	);
+	$self->{m_grid1}->EnableDragGridSize(0);
+	$self->{m_grid1}->SetMargins( 1, 0 );
+	$self->{m_grid1}->SetColSize( 0, 10 );
+	$self->{m_grid1}->SetColSize( 1, 20 );
+	$self->{m_grid1}->SetColSize( 2, 30 );
+	$self->{m_grid1}->SetColSize( 3, 40 );
+	$self->{m_grid1}->SetColSize( 4, 50 );
+	$self->{m_grid1}->AutoSizeColumns;
+	$self->{m_grid1}->EnableDragColMove(0);
+	$self->{m_grid1}->EnableDragColSize(1);
+	$self->{m_grid1}->SetColLabelSize(30);
+	$self->{m_grid1}->SetColLabelValue( 0, Wx::gettext("A") );
+	$self->{m_grid1}->SetColLabelValue( 1, Wx::gettext("B") );
+	$self->{m_grid1}->SetColLabelValue( 2, Wx::gettext("C") );
+	$self->{m_grid1}->SetColLabelValue( 3, Wx::gettext("D") );
+	$self->{m_grid1}->SetColLabelValue( 4, Wx::gettext("E") );
+	$self->{m_grid1}->SetColLabelAlignment( Wx::wxALIGN_CENTRE, Wx::wxALIGN_CENTRE );
+	$self->{m_grid1}->SetLabelBackgroundColour(
+		Wx::SystemSettings::GetColour( Wx::wxSYS_COLOUR_INFOBK )
+	);
+	$self->{m_grid1}->SetLabelFont(
+		Wx::Font->new( Wx::wxNORMAL_FONT->GetPointSize, 75, 90, 90, 0, "" )
+	);
+	$self->{m_grid1}->SetLabelTextColour(
+		Wx::Colour->new( 0, 255, 0 )
+	);
+	$self->{m_grid1}->SetDefaultCellBackgroundColour(
+		Wx::SystemSettings::GetColour( Wx::wxSYS_COLOUR_WINDOW )
+	);
+	$self->{m_grid1}->SetDefaultCellAlignment( Wx::wxALIGN_LEFT, Wx::wxALIGN_TOP );
+
 	$self->{m_scrollBar1} = Wx::ScrollBar->new(
 		$self->{m_panel12},
 		-1,
@@ -800,6 +844,7 @@ sub new {
 	$bSizer15->Fit($self->{m_panel13});
 
 	my $bSizer151 = Wx::BoxSizer->new(Wx::wxVERTICAL);
+	$bSizer151->Add( $self->{m_grid1}, 0, 0, 5 );
 	$bSizer151->Add( $self->{m_scrollBar1}, 0, Wx::wxEXPAND, 5 );
 
 	$self->{m_panel12}->SetSizer($bSizer151);

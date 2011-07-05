@@ -8,6 +8,7 @@ Changes for Perl extension FBP-Perl
 	- Added Wx::RichTextCtrl support
 	- Added Wx::ScrollBar support
 	- Added Wx::SpinButton support
+	- Added Wx::Grid support
 
 0.51 Mon 4 Jul 2011
 	- Bump FBP dependency to 0.34 for several additional classes

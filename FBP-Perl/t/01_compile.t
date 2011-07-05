@@ -6,20 +6,21 @@ BEGIN {
 	$^W = 1;
 }
 
-use constant CONSTANTS => 112;
+use constant CONSTANTS => 140;
 
-use Test::More tests => 2 + CONSTANTS;
+use Test::More tests => 7 + CONSTANTS;
 use Test::NoWarnings;
 
 use_ok( 'FBP::Perl' );
 
 SKIP: {
 	eval "require Wx";
-	skip("Wx.pm is not available", CONSTANTS) if $@;
+	skip( "Wx.pm is not available", CONSTANTS + 5 ) if $@;
 
 	# Confirm that all the event macros exist
 	use_ok( 'Wx', ':everything' );
 	use_ok( 'Wx::HTML' );
+	use_ok( 'Wx::Grid' );
 	use_ok( 'Wx::DateTime' );
 	use_ok( 'Wx::Calendar' );
 

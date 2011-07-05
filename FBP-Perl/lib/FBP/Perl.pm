@@ -113,6 +113,48 @@ our %EVENT = (
 	# wxFontPickerCtrl
 	OnFontChanged             => [ 'EVT_FONTPICKER_CHANGED'         ],
 
+	# wxGrid
+	OnGridCellLeftClick       => [ 'EVT_GRID_CELL_LEFT_CLICK'       ],
+	OnGridCellRightClick      => [ 'EVT_GRID_CELL_RIGHT_CLICK'      ],
+	OnGridCellLeftDClick      => [ 'EVT_GRID_CELL_LEFT_DCLICK'      ],
+	OnGridCellRightDClick     => [ 'EVT_GRID_CELL_RIGHT_DCLICK'     ],
+	OnGridLabelLeftClick      => [ 'EVT_GRID_LABEL_LEFT_CLICK'      ],
+	OnGridLabelRightClick     => [ 'EVT_GRID_LABEL_RIGHT_CLICK'     ],
+	OnGridLabelLeftDClick     => [ 'EVT_GRID_LABEL_LEFT_DCLICK'     ],
+	OnGridLabelRightDClick    => [ 'EVT_GRID_LABEL_RIGHT_DCLICK'    ],
+	OnGridCellChange          => [ 'EVT_GRID_CELL_CHANGE'           ],
+	OnGridSelectCell          => [ 'EVT_GRID_SELECT_CELL'           ],
+	OnGridEditorHidden        => [ 'EVT_GRID_EDITOR_HIDDEN'         ],
+	OnGridEditorShown         => [ 'EVT_GRID_EDITOR_SHOWN'          ],
+	OnGridColSize             => [ 'EVT_GRID_COL_SIZE'              ],
+	OnGridRowSize             => [ 'EVT_GRID_ROW_SIZE'              ],
+	OnGridRangeSelect         => [ 'EVT_GRID_RANGE_SELECT'          ],
+	OnGridEditorCreated       => [ 'EVT_GRID_EDITOR_CREATED'        ],
+
+	# Not sure why wxFormBuilder makes these grid event duplicates
+	# so we just slavishly cargo cult what they do in the C code.
+	OnGridCmdCellLeftClick    => [ 'EVT_GRID_CELL_LEFT_CLICK'       ],
+	OnGridCmdCellRightClick   => [ 'EVT_GRID_CELL_RIGHT_CLICK'      ],
+	OnGridCmdCellLeftDClick   => [ 'EVT_GRID_CELL_LEFT_DCLICK'      ],
+	OnGridCmdCellRightDClick  => [ 'EVT_GRID_CELL_RIGHT_DCLICK'     ],
+	OnGridCmdLabelLeftClick   => [ 'EVT_GRID_LABEL_LEFT_CLICK'      ],
+	OnGridCmdLabelRightClick  => [ 'EVT_GRID_LABEL_RIGHT_CLICK'     ],
+	OnGridCmdLabelLeftDClick  => [ 'EVT_GRID_LABEL_LEFT_DCLICK'     ],
+	OnGridCmdLabelRightDClick => [ 'EVT_GRID_LABEL_RIGHT_DCLICK'    ],
+	OnGridCmdCellChange       => [ 'EVT_GRID_CELL_CHANGE'           ],
+	OnGridCmdSelectCell       => [ 'EVT_GRID_SELECT_CELL'           ],
+	OnGridCmdEditorHidden     => [ 'EVT_GRID_EDITOR_HIDDEN'         ],
+	OnGridCmdEditorShown      => [ 'EVT_GRID_EDITOR_SHOWN'          ],
+	OnGridCmdColSize          => [ 'EVT_GRID_COL_SIZE'              ],
+	OnGridCmdRowSize          => [ 'EVT_GRID_ROW_SIZE'              ],
+	OnGridCmdRangeSelect      => [ 'EVT_GRID_RANGE_SELECT'          ],
+	OnGridCmdEditorCreated    => [ 'EVT_GRID_EDITOR_CREATED'        ],
+
+	# wxHtmlWindow
+	OnHtmlCellClicked         => [ 'EVT_HTML_CELL_CLICKED'          ],
+	OnHtmlCellHover           => [ 'EVT_HTML_CELL_HOVER'            ],
+	OnHtmlLinkClicked         => [ 'EVT_HTML_LINK_CLICKED'          ],
+
 	# wxIdleEvent
 	OnIdle                    => [ 'EVT_IDLE'                       ],
 
@@ -120,14 +162,6 @@ our %EVENT = (
 	OnChar                    => [ 'EVT_CHAR'                       ],
 	OnKeyDown                 => [ 'EVT_KEY_DOWN'                   ],
 	OnKeyUp                   => [ 'EVT_KEY_UP'                     ],
-
-	# wxHtmlWindow
-	OnHtmlCellClicked         => [ 'EVT_HTML_CELL_CLICKED'          ],
-	OnHtmlCellHover           => [ 'EVT_HTML_CELL_HOVER'            ],
-	OnHtmlLinkClicked         => [ 'EVT_HTML_LINK_CLICKED'          ],
-
-	# wxMenuEvent
-	OnMenuSelection           => [ 'EVT_MENU'                       ],
 
 	# wxListEvent
 	OnListBeginDrag           => [ 'EVT_LIST_BEGIN_DRAG'            ],
@@ -150,6 +184,9 @@ our %EVENT = (
 	OnListColBeginDrag        => [ 'EVT_LIST_COL_BEGIN_DRAG'        ],
 	OnListColDragging         => [ 'EVT_LIST_COL_DRAGGING'          ],
 	OnListColEndDrag          => [ 'EVT_LIST_COL_END_DRAG'          ],
+
+	# wxMenuEvent
+	OnMenuSelection           => [ 'EVT_MENU'                       ],
 
 	# wxMouseEvent
 	OnEnterWindow             => [ 'EVT_ENTER_WINDOW'               ],
@@ -426,6 +463,9 @@ sub form_wx {
 	}
 	if ( $topic->find_first( isa => 'FBP::HtmlWindow' ) ) {
 		push @$lines, "use Wx::HTML ();";
+	}
+	if ( $topic->find_first( isa => 'FBP::Grid' ) ) {
+		push @$lines, "use Wx::Grid ();";
 	}
 	if ( $topic->find_first( isa => 'FBP::Calendar' ) ) {
 		push @$lines, "use Wx::Calendar ();";
@@ -777,6 +817,8 @@ sub window_create {
 		$lines = $self->fontpickerctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::Gauge') ) {
 		$lines = $self->gauge_create($window, $parent);
+	} elsif ( $window->isa('FBP::Grid') ) {
+		$lines = $self->grid_create($window, $parent);
 	} elsif ( $window->isa('FBP::HtmlWindow') ) {
 		$lines = $self->htmlwindow_create($window, $parent);
 	} elsif ( $window->isa('FBP::HyperLink') ) {
@@ -1225,6 +1267,199 @@ sub fontpickerctrl_create {
 	return $lines;
 }
 
+sub gauge_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->object_id($control);
+	my $range    = $control->range;
+	my $position = $self->object_position($control);
+	my $size     = $self->object_wxsize($control);
+
+	my $lines = $self->nested(
+		$self->object_new($control),
+		"$parent,",
+		"$id,",
+		"$range,",
+		"$position,",
+		"$size,",
+		$self->window_style($control),
+		");",
+	);
+
+	# Set the value we are initially at
+	my $variable = $self->object_variable($control);
+	my $value    = $control->value;
+	if ( $value ) {
+		push @$lines, "$variable->SetValue($value);";
+	}
+
+	return $lines;
+}
+
+sub grid_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->object_id($control);
+	my $position = $self->object_position($control);
+	my $size     = $self->object_wxsize($control);
+
+	my $lines = $self->nested(
+		$self->object_new($control),
+		"$parent,",
+		"$id,",
+		"$position,",
+		"$size,",
+		$self->window_style($control),
+		");",
+	);
+
+	# Grid
+	my $variable         = $self->object_variable($control);
+	my $rows             = $control->rows;
+	my $cols             = $control->cols;
+	my $editing          = $control->editing;
+	my $grid_lines       = $control->grid_lines;
+	my $drag_grid_size   = $control->drag_grid_size;
+	my $margin_width     = $control->margin_width;
+	my $margin_height    = $control->margin_height;
+
+	push @$lines, (
+		"$variable->CreateGrid( $rows, $cols );",
+		"$variable->EnableEditing($editing);",
+		"$variable->EnableGridLines($grid_lines);",
+	);
+	if ( $control->grid_line_color ) {
+		push @$lines, $self->nested(
+			"$variable->SetGridLineColour(",
+			$self->colour( $control->grid_line_color ),
+			");",
+		);
+	}
+	push @$lines, (
+		"$variable->EnableDragGridSize($drag_grid_size);",
+		"$variable->SetMargins( $margin_width, $margin_height );",
+	);
+
+	# Columns
+	my $drag_col_move             = $control->drag_col_move;
+	my $drag_col_size             = $control->drag_col_size;
+	my $col_label_size            = $control->col_label_size;
+	my $col_label_horiz_alignment = $self->wx( $control->col_label_horiz_alignment );
+	my $col_label_vert_alignment  = $self->wx( $control->col_label_vert_alignment );
+
+	if ( $control->column_sizes ) {
+		my @sizes = split /\s*,\s*/, $control->column_sizes;
+
+		push @$lines, map {
+			"$variable->SetColSize( $_, $sizes[$_] );"
+		} ( 0 .. $#sizes );
+	}
+	if ( $control->autosize_cols ) {
+		push @$lines, "$variable->AutoSizeColumns;";
+	}
+	push @$lines, (
+		"$variable->EnableDragColMove($drag_col_move);",
+		"$variable->EnableDragColSize($drag_col_size);",
+		"$variable->SetColLabelSize($col_label_size);",
+	);
+	if ( $control->col_label_values ) {
+		my @values = map {
+			$self->text($_)
+		} $self->list( $control->col_label_values );
+
+		push @$lines, map {
+			"$variable->SetColLabelValue( $_, $values[$_] );"
+		} ( 0 .. $#values );
+	}
+	push @$lines, "$variable->SetColLabelAlignment( $col_label_horiz_alignment, $col_label_vert_alignment );";
+
+	# Rows
+	# my $drag_row_size = $control->drag_row_size;
+	# my $row_label_horiz_alignment = $self->wx( $control->row_label_horiz_alignment );
+	# my $row_label_vert_alignment  = $self->wx( $control->row_label_vert_alignment );
+# 
+	# if ( $control->autosize_rows ) {
+		# push @$lines, "$variable->AutoSizeRows;";
+	# }
+	# if ( $control->row_sizes ) {
+		# my @sizes = split /\s*,\s*/, $control->row_sizes;
+# 
+		# push @$lines, map {
+			# "$variable->SetRowSize( $_, $sizes[$_] );"
+		# } ( 0 .. $#sizes );
+	# }
+	# push @$lines, "$variable->EnableDragRowSize($drag_row_size);";
+	# if ( $control->row_label_values ) {
+		# my @values = map {
+			# $self->text($_)
+		# } $self->list( $control->row_label_values );
+# 
+		# push @$lines, map {
+			# "$variable->SetRowLabelValue( $_, $values[$_] );"
+		# } ( 0 .. $#values );
+	# }
+	# push @$lines, "$variable->SetRowLabelAlignment( $row_label_horiz_alignment, $row_label_vert_alignment );";
+
+	# Label Appearance
+	if ( $control->label_bg ) {
+		my $colour = $self->colour( $control->label_bg );
+		push @$lines, (
+			"$variable->SetLabelBackgroundColour(",
+			"\t$colour",
+			");",
+		);
+	}
+	if ( $control->label_font ) {
+		my $font = $self->font( $control->label_font );
+		push @$lines, (
+			"$variable->SetLabelFont(",
+			"\t$font",
+			");",
+		);
+	}
+	if ( $control->label_text ) {
+		my $colour = $self->colour( $control->label_text );
+		push @$lines, (
+			"$variable->SetLabelTextColour(",
+			"\t$colour",
+			");",
+		);
+	}
+
+	# Cell Defaults
+	my $cell_horiz_alignment = $self->wx( $control->cell_horiz_alignment );
+	my $cell_vert_alignment  = $self->wx( $control->cell_vert_alignment );
+	if ( $control->cell_bg ) {
+		my $colour = $self->colour( $control->cell_bg );
+		push @$lines, (
+			"$variable->SetDefaultCellBackgroundColour(",
+			"\t$colour",
+			");",
+		);
+	}
+	if ( $control->cell_font ) {
+		my $font = $self->font( $control->cell_font );
+		push @$lines, (
+			"$variable->SetDefaultCellFont(",
+			"\t$font",
+			");",
+		);
+	}
+	if ( $control->cell_text ) {
+		my $colour = $self->colour( $control->cell_text );
+		push @$lines, (
+			"$variable->SetDefaultCellColour(",
+			"\t$colour",
+			");",
+		);
+	}
+	push @$lines, "$variable->SetDefaultCellAlignment( $cell_horiz_alignment, $cell_vert_alignment );";
+
+	return $lines;
+}
+
 sub htmlwindow_create {
 	my $self     = shift;
 	my $control  = shift;
@@ -1291,36 +1526,6 @@ sub hyperlink_create {
 			"\t$colour",
 			");",
 		);
-	}
-
-	return $lines;
-}
-
-sub gauge_create {
-	my $self     = shift;
-	my $control  = shift;
-	my $parent   = $self->object_parent(@_);
-	my $id       = $self->object_id($control);
-	my $range    = $control->range;
-	my $position = $self->object_position($control);
-	my $size     = $self->object_wxsize($control);
-
-	my $lines = $self->nested(
-		$self->object_new($control),
-		"$parent,",
-		"$id,",
-		"$range,",
-		"$position,",
-		"$size,",
-		$self->window_style($control),
-		");",
-	);
-
-	# Set the value we are initially at
-	my $variable = $self->object_variable($control);
-	my $value    = $control->value;
-	if ( $value ) {
-		push @$lines, "$variable->SetValue($value);";
 	}
 
 	return $lines;
@@ -2221,10 +2426,10 @@ sub flexgridsizer_pack {
 	my @lines = (
 		"$scope$variable = Wx::FlexGridSizer->new( $params );",
 	);
-	foreach my $row ( split /,/, $sizer->growablerows ) {
+	foreach my $row ( split /\s*,\s*/, $sizer->growablerows ) {
 		push @lines, "$variable->AddGrowableRow($row);";
 	}
-	foreach my $col ( split /,/, $sizer->growablecols ) {
+	foreach my $col ( split /\s*,\s*/, $sizer->growablecols ) {
 		push @lines, "$variable->AddGrowableCol($col);";
 	}
 	push @lines, "$variable->SetFlexibleDirection($direction);";
@@ -2930,6 +3135,15 @@ sub use_pragma {
 		"use strict;",
 		"use warnings;",
 	]
+}
+
+sub list {
+	my $self = shift;
+	my @list = $_[0] =~ /" ( (?: \\. | . )+? ) "/xg;
+	foreach ( @list ) {
+		s/\\(.)/$1/g;
+	}
+	return @list;
 }
 
 sub wx {
