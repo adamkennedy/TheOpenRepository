@@ -721,6 +721,26 @@ sub new {
 		Wx::wxSB_HORIZONTAL,
 	);
 
+	$self->{m_panel131} = Wx::Panel->new(
+		$self->{m_choicebook1},
+		-1,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxTAB_TRAVERSAL,
+	);
+
+	$self->{m_genericDirCtrl1} = Wx::GenericDirCtrl->new(
+		$self->{m_panel131},
+		-1,
+		"default/folder",
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxDIRCTRL_3D_INTERNAL | Wx::wxSUNKEN_BORDER,
+		"*.txt",
+		0,
+	);
+	$self->{m_genericDirCtrl1}->ShowHidden(0);
+
 	my $bSizer10 = Wx::BoxSizer->new(Wx::wxHORIZONTAL);
 	$bSizer10->Add( $self->{m_bitmap1}, 0, Wx::wxALL, 5 );
 	$bSizer10->Add( $self->{m_textCtrl1}, 0, Wx::wxALL, 5 );
@@ -864,8 +884,16 @@ sub new {
 	$self->{m_panel12}->Layout;
 	$bSizer151->Fit($self->{m_panel12});
 
+	my $bSizer16 = Wx::BoxSizer->new(Wx::wxVERTICAL);
+	$bSizer16->Add( $self->{m_genericDirCtrl1}, 1, Wx::wxEXPAND | Wx::wxALL, 5 );
+
+	$self->{m_panel131}->SetSizer($bSizer16);
+	$self->{m_panel131}->Layout;
+	$bSizer16->Fit($self->{m_panel131});
+
 	$self->{m_choicebook1}->AddPage( $self->{m_panel13}, Wx::gettext("Rich Text Control"), 1 );
 	$self->{m_choicebook1}->AddPage( $self->{m_panel12}, Wx::gettext("Grid"), 0 );
+	$self->{m_choicebook1}->AddPage( $self->{m_panel131}, Wx::gettext("Directory"), 0 );
 
 	my $bSizer2 = Wx::BoxSizer->new(Wx::wxVERTICAL);
 	$bSizer2->Add( $self->{m_staticText1}, 0, Wx::wxALL, 5 );

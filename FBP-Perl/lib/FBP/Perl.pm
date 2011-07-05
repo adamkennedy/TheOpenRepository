@@ -817,6 +817,8 @@ sub window_create {
 		$lines = $self->fontpickerctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::Gauge') ) {
 		$lines = $self->gauge_create($window, $parent);
+	} elsif ( $window->isa('FBP::GenericDirCtrl') ) {
+		$lines = $self->genericdirctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::Grid') ) {
 		$lines = $self->grid_create($window, $parent);
 	} elsif ( $window->isa('FBP::HtmlWindow') ) {
@@ -1293,6 +1295,37 @@ sub gauge_create {
 	if ( $value ) {
 		push @$lines, "$variable->SetValue($value);";
 	}
+
+	return $lines;
+}
+
+sub genericdirctrl_create {
+	my $self          = shift;
+	my $control       = shift;
+	my $parent        = $self->object_parent(@_);
+	my $id            = $self->object_id($control);
+	my $defaultfolder = $self->quote( $control->defaultfolder );
+	my $position      = $self->object_position($control);
+	my $size          = $self->object_wxsize($control);
+	my $filter        = $self->quote( $control->filter );
+	my $defaultfilter = $control->defaultfilter;
+
+	my $lines = $self->nested(
+		$self->object_new($control),
+		"$parent,",
+		"$id,",
+		"$defaultfolder,",
+		"$position,",
+		"$size,",
+		$self->window_style($control, 0),
+		"$filter,",
+		"$defaultfilter,",
+		");",
+	);
+
+	my $variable    = $self->object_variable($control);
+	my $show_hidden = $control->show_hidden;
+	push @$lines, "$variable->ShowHidden($show_hidden);";
 
 	return $lines;
 }
