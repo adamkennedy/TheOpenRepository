@@ -1,6 +1,6 @@
 package FBP::Notebook;
 
-our $VERSION = '0.34';
+our $VERSION = '0.35';
 
 use Mouse;
 

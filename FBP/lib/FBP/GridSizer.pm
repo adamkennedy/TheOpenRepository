@@ -2,7 +2,7 @@ package FBP::GridSizer;
 
 use Mouse;
 
-our $VERSION = '0.34';
+our $VERSION = '0.35';
 
 extends 'FBP::Sizer';
 
@@ -29,7 +29,8 @@ has hgap => (
 	isa      => 'Int',
 	required => 1,
 );
-no Mouse;
+
+no Mouse;
 __PACKAGE__->meta->make_immutable;
 
 1;

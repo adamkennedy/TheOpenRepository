@@ -1,6 +1,7 @@
 Changes for Perl extension FBP
 
 0.35 Tue 5 Jul 2011
+	- Completed all possible non-AUI widgets for Dialog, Frame and Panel
 	- Added FBP::Choicebook class
 	- Added FBP::RichTextCtrl class
 	- Added FBP::Grid class
