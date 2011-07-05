@@ -686,6 +686,19 @@ sub new {
 	$self->{m_grid1}->SetColLabelValue( 3, Wx::gettext("D") );
 	$self->{m_grid1}->SetColLabelValue( 4, Wx::gettext("E") );
 	$self->{m_grid1}->SetColLabelAlignment( Wx::wxALIGN_CENTRE, Wx::wxALIGN_CENTRE );
+	$self->{m_grid1}->SetRowSize( 0, 10 );
+	$self->{m_grid1}->SetRowSize( 1, 20 );
+	$self->{m_grid1}->SetRowSize( 2, 30 );
+	$self->{m_grid1}->SetRowSize( 3, 40 );
+	$self->{m_grid1}->SetRowSize( 4, 50 );
+	$self->{m_grid1}->AutoSizeRows;
+	$self->{m_grid1}->EnableDragRowSize(1);
+	$self->{m_grid1}->SetRowLabelValue( 0, Wx::gettext(1) );
+	$self->{m_grid1}->SetRowLabelValue( 1, Wx::gettext(2) );
+	$self->{m_grid1}->SetRowLabelValue( 2, Wx::gettext(3) );
+	$self->{m_grid1}->SetRowLabelValue( 3, Wx::gettext(4) );
+	$self->{m_grid1}->SetRowLabelValue( 4, Wx::gettext(5) );
+	$self->{m_grid1}->SetRowLabelAlignment( Wx::wxALIGN_CENTRE, Wx::wxALIGN_CENTRE );
 	$self->{m_grid1}->SetLabelBackgroundColour(
 		Wx::SystemSettings::GetColour( Wx::wxSYS_COLOUR_INFOBK )
 	);

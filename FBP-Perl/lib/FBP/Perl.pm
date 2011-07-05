@@ -54,7 +54,7 @@ use strict;
 use warnings;
 use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
-use FBP           0.35 ();
+use FBP           0.36 ();
 
 our $VERSION = '0.52';
 
@@ -1376,31 +1376,31 @@ sub grid_create {
 	push @$lines, "$variable->SetColLabelAlignment( $col_label_horiz_alignment, $col_label_vert_alignment );";
 
 	# Rows
-	# my $drag_row_size = $control->drag_row_size;
-	# my $row_label_horiz_alignment = $self->wx( $control->row_label_horiz_alignment );
-	# my $row_label_vert_alignment  = $self->wx( $control->row_label_vert_alignment );
-# 
-	# if ( $control->autosize_rows ) {
-		# push @$lines, "$variable->AutoSizeRows;";
-	# }
-	# if ( $control->row_sizes ) {
-		# my @sizes = split /\s*,\s*/, $control->row_sizes;
-# 
-		# push @$lines, map {
-			# "$variable->SetRowSize( $_, $sizes[$_] );"
-		# } ( 0 .. $#sizes );
-	# }
-	# push @$lines, "$variable->EnableDragRowSize($drag_row_size);";
-	# if ( $control->row_label_values ) {
-		# my @values = map {
-			# $self->text($_)
-		# } $self->list( $control->row_label_values );
-# 
-		# push @$lines, map {
-			# "$variable->SetRowLabelValue( $_, $values[$_] );"
-		# } ( 0 .. $#values );
-	# }
-	# push @$lines, "$variable->SetRowLabelAlignment( $row_label_horiz_alignment, $row_label_vert_alignment );";
+	my $drag_row_size = $control->drag_row_size;
+	my $row_label_horiz_alignment = $self->wx( $control->row_label_horiz_alignment );
+	my $row_label_vert_alignment  = $self->wx( $control->row_label_vert_alignment );
+
+	if ( $control->row_sizes ) {
+		my @sizes = split /\s*,\s*/, $control->row_sizes;
+
+		push @$lines, map {
+			"$variable->SetRowSize( $_, $sizes[$_] );"
+		} ( 0 .. $#sizes );
+	}
+	if ( $control->autosize_rows ) {
+		push @$lines, "$variable->AutoSizeRows;";
+	}
+	push @$lines, "$variable->EnableDragRowSize($drag_row_size);";
+	if ( $control->row_label_values ) {
+		my @values = map {
+			$self->text($_)
+		} $self->list( $control->row_label_values );
+
+		push @$lines, map {
+			"$variable->SetRowLabelValue( $_, $values[$_] );"
+		} ( 0 .. $#values );
+	}
+	push @$lines, "$variable->SetRowLabelAlignment( $row_label_horiz_alignment, $row_label_vert_alignment );";
 
 	# Label Appearance
 	if ( $control->label_bg ) {

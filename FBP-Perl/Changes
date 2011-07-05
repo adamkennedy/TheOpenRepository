@@ -1,7 +1,7 @@
 Changes for Perl extension FBP-Perl
 
 0.52 to be released
-	- Bump FBP dependency to 0.35 to get complete widget support
+	- Bump FBP dependency to 0.36 to get complete widget support
 	- Added Wx::AnimationCtrl support
 	- Added Wx::CalendarCtrl support
 	- Added Wx::Choicebook support
