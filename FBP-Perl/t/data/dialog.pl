@@ -4,6 +4,7 @@ use 5.008;
 use strict;
 use warnings;
 use Wx ':everything';
+use Wx::STC ();
 use Wx::HTML ();
 use t::lib::Custom ();
 use t::lib::MyClass ();
@@ -118,6 +119,14 @@ sub new {
 	);
 	$self->{m_bpButton1}->SetBitmapFocus(
 		Wx::Bitmap->new( "padre-plugin.png", Wx::wxBITMAP_TYPE_ANY )
+	);
+
+	$self->{m_spinBtn1} = Wx::SpinButton->new(
+		$self,
+		-1,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxSP_HORIZONTAL,
 	);
 
 	$self->{m_staticline1} = Wx::StaticLine->new(
@@ -614,12 +623,54 @@ sub new {
 	);
 	$self->{m_gauge1}->SetValue(85);
 
+	$self->{m_choicebook1} = Wx::Choicebook->new(
+		$self,
+		-1,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxCHB_DEFAULT,
+	);
+
+	$self->{m_panel13} = Wx::Panel->new(
+		$self->{m_choicebook1},
+		-1,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxTAB_TRAVERSAL,
+	);
+
+	$self->{m_richText1} = Wx::RichTextCtrl->new(
+		$self->{m_panel13},
+		-1,
+		undef,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxVSCROLL | Wx::wxHSCROLL | Wx::wxNO_BORDER | Wx::wxWANTS_CHARS,
+	);
+
+	$self->{m_panel12} = Wx::Panel->new(
+		$self->{m_choicebook1},
+		-1,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxTAB_TRAVERSAL,
+	);
+
+	$self->{m_scrollBar1} = Wx::ScrollBar->new(
+		$self->{m_panel12},
+		-1,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxSB_HORIZONTAL,
+	);
+
 	my $bSizer10 = Wx::BoxSizer->new(Wx::wxHORIZONTAL);
 	$bSizer10->Add( $self->{m_bitmap1}, 0, Wx::wxALL, 5 );
 	$bSizer10->Add( $self->{m_textCtrl1}, 0, Wx::wxALL, 5 );
 	$bSizer10->Add( $self->{m_button1}, 0, Wx::wxALL, 5 );
 	$bSizer10->Add( $self->{m_toggleBtn1}, 0, Wx::wxALL, 5 );
 	$bSizer10->Add( $self->{m_bpButton1}, 0, Wx::wxALL, 5 );
+	$bSizer10->Add( $self->{m_spinBtn1}, 0, Wx::wxALL, 5 );
 
 	my $fgSizer1 = Wx::FlexGridSizer->new( 1, 2, 3, 4 );
 	$fgSizer1->AddGrowableCol(0);
@@ -741,6 +792,23 @@ sub new {
 	$self->{m_listbook2}->AddPage( $self->{m_panel6}, Wx::gettext("Page One"), 0 );
 	$self->{m_listbook2}->AddPage( $self->{m_panel7}, Wx::gettext("Page Two"), 1 );
 
+	my $bSizer15 = Wx::BoxSizer->new(Wx::wxVERTICAL);
+	$bSizer15->Add( $self->{m_richText1}, 1, Wx::wxEXPAND, 5 );
+
+	$self->{m_panel13}->SetSizer($bSizer15);
+	$self->{m_panel13}->Layout;
+	$bSizer15->Fit($self->{m_panel13});
+
+	my $bSizer151 = Wx::BoxSizer->new(Wx::wxVERTICAL);
+	$bSizer151->Add( $self->{m_scrollBar1}, 0, Wx::wxEXPAND, 5 );
+
+	$self->{m_panel12}->SetSizer($bSizer151);
+	$self->{m_panel12}->Layout;
+	$bSizer151->Fit($self->{m_panel12});
+
+	$self->{m_choicebook1}->AddPage( $self->{m_panel13}, Wx::gettext("Rich Text Control"), 1 );
+	$self->{m_choicebook1}->AddPage( $self->{m_panel12}, Wx::gettext("Grid"), 0 );
+
 	my $bSizer2 = Wx::BoxSizer->new(Wx::wxVERTICAL);
 	$bSizer2->Add( $self->{m_staticText1}, 0, Wx::wxALL, 5 );
 	$bSizer2->Add( 10, 5, 0, Wx::wxEXPAND, 5 );
@@ -750,6 +818,7 @@ sub new {
 	$bSizer2->Add( $self->{m_notebook1}, 0, Wx::wxEXPAND | Wx::wxALL, 5 );
 	$bSizer2->Add( $self->{m_listbook1}, 0, Wx::wxEXPAND | Wx::wxALL, 5 );
 	$bSizer2->Add( $self->{m_listbook2}, 0, Wx::wxEXPAND | Wx::wxALL, 5 );
+	$bSizer2->Add( $self->{m_choicebook1}, 1, Wx::wxEXPAND | Wx::wxALL, 5 );
 
 	my $bSizer1 = Wx::BoxSizer->new(Wx::wxHORIZONTAL);
 	$bSizer1->Add( $bSizer2, 1, Wx::wxEXPAND, 5 );

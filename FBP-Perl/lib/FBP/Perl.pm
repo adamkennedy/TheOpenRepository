@@ -54,7 +54,7 @@ use strict;
 use warnings;
 use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
-use FBP           0.34 ();
+use FBP           0.35 ();
 
 our $VERSION = '0.52';
 
@@ -77,6 +77,10 @@ our %EVENT = (
 	OnCalendarMonth           => [ 'EVT_CALENDAR_MONTH'             ],
 	OnCalendarYear            => [ 'EVT_CALENDAR_YEAR'              ],
 	OnCalendarWeekDayClicked  => [ 'EVT_CALENDAR_WEEKDAY_CLICKED'   ],
+
+	# wxChoicebook
+	OnChoicebookPageChanged   => [ 'EVT_CHOICEBOOK_PAGE_CHANGED'    ],
+	OnChoicebookPageChanging  => [ 'EVT_CHOICEBOOK_PAGE_CHANGING'   ],
 
 	# wxCommandEvent
 	OnButtonClick             => [ 'EVT_BUTTON'                     ],
@@ -186,6 +190,11 @@ our %EVENT = (
 	# wxSearchCtrl
 	OnSearchButton            => [ 'EVT_SEARCHCTRL_SEARCH_BTN'      ],
 	OnCancelButton            => [ 'EVT_SEARCHCTRL_CANCEL_BTN'      ],
+
+	# wxSpinButton
+	OnSpin                    => [ 'EVT_SCROLL_THUMBTRACK'          ],
+	OnSpinUp                  => [ 'EVT_SCROLL_LINEUP'              ],
+	OnSpinDown                => [ 'EVT_SCROLL_LINEDOWN'            ],
 
 	# wxSplitterEvent
 	OnSplitterSashPosChanging => [ 'EVT_SPLITTER_SASH_POS_CHANGING' ],
@@ -412,6 +421,9 @@ sub form_wx {
 	my $lines = [
 		"use Wx ':everything';",
 	];
+	if ( $topic->find_first( isa => 'FBP::RichTextCtrl' ) ) {
+		push @$lines, "use Wx::STC ();";
+	}
 	if ( $topic->find_first( isa => 'FBP::HtmlWindow' ) ) {
 		push @$lines, "use Wx::HTML ();";
 	}
@@ -746,6 +758,8 @@ sub window_create {
 		$lines = $self->checkbox_create($window, $parent);
 	} elsif ( $window->isa('FBP::Choice') ) {
 		$lines = $self->choice_create($window, $parent);
+	} elsif ( $window->isa('FBP::Choicebook') ) {
+		$lines = $self->choicebook_create($window, $parent);
 	} elsif ( $window->isa('FBP::ComboBox') ) {
 		$lines = $self->combobox_create($window, $parent);
 	} elsif ( $window->isa('FBP::ColourPickerCtrl') ) {
@@ -788,12 +802,18 @@ sub window_create {
 		$lines = $self->radiobox_create($window, $parent);
 	} elsif ( $window->isa('FBP::RadioButton') ) {
 		$lines = $self->radiobutton_create($window, $parent);
+	} elsif ( $window->isa('FBP::RichTextCtrl') ) {
+		$lines = $self->richtextctrl_create($window, $parent);
+	} elsif ( $window->isa('FBP::ScrollBar') ) {
+		$lines = $self->scrollbar_create($window, $parent);
 	} elsif ( $window->isa('FBP::ScrolledWindow') ) {
 		$lines = $self->scrolledwindow_create($window, $parent);
 	} elsif ( $window->isa('FBP::SearchCtrl') ) {
 		$lines = $self->searchctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::Slider') ) {
 		$lines = $self->slider_create($window, $parent);
+	} elsif ( $window->isa('FBP::SpinButton') ) {
+		$lines = $self->spinbutton_create($window, $parent);
 	} elsif ( $window->isa('FBP::SpinCtrl') ) {
 		$lines = $self->spinctrl_create($window, $parent);
 	} elsif ( $window->isa('FBP::SplitterWindow') ) {
@@ -1019,6 +1039,25 @@ sub choice_create {
 		"$position,",
 		"$size,",
 		$items,
+		");",
+	);
+}
+
+sub choicebook_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->object_id($control);
+	my $position = $self->object_position($control);
+	my $size     = $self->object_wxsize($control);
+
+	return $self->nested(
+		$self->object_new($control),
+		"$parent,",
+		"$id,",
+		"$position,",
+		"$size,",
+		$self->window_style($control),
 		");",
 	);
 }
@@ -1543,6 +1582,46 @@ sub radiobutton_create {
 	return $lines;
 }
 
+sub richtextctrl_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->object_id($control);
+	# my $value    = $self->wx('wxEmptyString'); # NOT IMPLEMENTED
+	my $position = $self->object_position($control);
+	my $size     = $self->object_wxsize($control);
+
+	return $self->nested(
+		$self->object_new($control),
+		"$parent,",
+		"$id,",
+		"undef,",
+		"$position,",
+		"$size,",
+		$self->window_style($control),
+		");",
+	);
+}
+
+sub scrollbar_create {
+	my $self     = shift;
+	my $control   = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->object_id($control);
+	my $position = $self->object_position($control);
+	my $size     = $self->object_wxsize($control);
+
+	return $self->nested(
+		$self->object_new($control),
+		"$parent,",
+		"$id,",
+		"$position,",
+		"$size,",
+		$self->window_style($control),
+		");",
+	);
+}
+
 sub scrolledwindow_create {
 	my $self     = shift;
 	my $window   = shift;
@@ -1627,6 +1706,25 @@ sub slider_create {
 		"$position,",
 		"$size,",
 		$self->window_style($window),
+		");",
+	);
+}
+
+sub spinbutton_create {
+	my $self     = shift;
+	my $control   = shift;
+	my $parent   = $self->object_parent(@_);
+	my $id       = $self->object_id($control);
+	my $position = $self->object_position($control);
+	my $size     = $self->object_wxsize($control);
+
+	return $self->nested(
+		$self->object_new($control),
+		"$parent,",
+		"$id,",
+		"$position,",
+		"$size,",
+		$self->window_style($control),
 		");",
 	);
 }
@@ -1988,6 +2086,8 @@ sub children_pack {
 		my $child = $item->children->[0];
 		if ( $child->isa('FBP::Sizer') ) {
 			push @children, $self->sizer_pack($child);
+		} elsif ( $child->isa('FBP::Choicebook') ) {
+			push @children, $self->choicebook_pack($child);
 		} elsif ( $child->isa('FBP::Listbook') ) {
 			push @children, $self->listbook_pack($child);
 		} elsif ( $child->isa('FBP::Notebook') ) {
@@ -2282,6 +2382,10 @@ sub stddialogbuttonsizer_pack {
 		@lines,
 		"$variable->Realize;",
 	];
+}
+
+sub choicebook_pack {
+	shift->book_pack(@_);
 }
 
 sub listbook_pack {
