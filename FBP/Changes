@@ -1,5 +1,13 @@
 Changes for Perl extension FBP
 
+0.35 Tue 5 Jul 2011
+	- Added FBP::Choicebook class
+	- Added FBP::RichTextCtrl class
+	- Added FBP::Grid class
+	- Added FBP::ScrollBar class
+	- Added FBP::GenericDirCtrl class
+	- Added FBP::SpinButton class
+
 0.34 Mon 4 Jul 2011
 	- Added FBP::AnimationCtrl class
 	- Added FBP::GridBagSizer class

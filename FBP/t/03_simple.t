@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 323;
+use Test::More tests => 351;
 use Test::NoWarnings;
 use Scalar::Util 'refaddr';
 use File::Spec::Functions ':ALL';
@@ -73,7 +73,7 @@ isa_ok( $dialog4[0], 'FBP::Dialog' );
 
 # Multiple-search query with multiple results
 my @window = $project->find( isa => 'FBP::Window' );
-is( scalar(@window), 61, '->find(multiple)' );
+is( scalar(@window), 70, '->find(multiple)' );
 foreach ( @window ) {
 	isa_ok( $_, 'FBP::Window' );
 }
@@ -558,3 +558,47 @@ my $treectrl = $fbp->find_first(
 isa_ok( $treectrl, 'FBP::TreeCtrl' );
 is( $treectrl->name, 'm_treeCtrl1', '->name' );
 is( $treectrl->style, 'wxTR_DEFAULT_STYLE', '->style' );
+
+# Choicebook properties
+my $choicebook = $fbp->find_first(
+	isa => 'FBP::Choicebook',
+);
+isa_ok( $choicebook, 'FBP::Choicebook' );
+is( $choicebook->name, 'm_choicebook1', '->name' );
+is( $choicebook->style, 'wxCHB_DEFAULT', '->style' );
+
+# RichTextCtrl properties
+my $richtext = $fbp->find_first(
+	isa => 'FBP::RichTextCtrl',
+);
+isa_ok( $richtext, 'FBP::RichTextCtrl' );
+is( $richtext->name, 'm_richText1', '->name' );
+
+# wxGrid properties
+my $grid = $fbp->find_first(
+	isa => 'FBP::Grid',
+);
+isa_ok( $grid, 'FBP::Grid' );
+is( $grid->name, 'm_grid1', '->name' );
+is( $grid->rows, 5, '->rows' );
+is( $grid->cols, 5, '->cols' );
+
+# wxScrollBar properties
+my $scroll = $fbp->find_first(
+	isa => 'FBP::ScrollBar',
+);
+isa_ok( $scroll, 'FBP::ScrollBar' );
+is( $scroll->name, 'm_scrollBar1', '->name' );
+is( $scroll->value, 0, '->value' );
+is( $scroll->range, 100, '->range' );
+is( $scroll->thumbsize, 1, '->thumbsize' );
+is( $scroll->pagesize, 1, '->pagesize' );
+is( $scroll->style, 'wxSB_HORIZONTAL', '->style' );
+
+# wxSpinButton properties
+my $spin = $fbp->find_first(
+	isa => 'FBP::SpinButton',
+);
+isa_ok( $spin, 'FBP::SpinButton' );
+is( $spin->name, 'm_spinBtn1', '->name' );
+is( $spin->style, 'wxSP_HORIZONTAL', '->style' );
