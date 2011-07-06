@@ -10,6 +10,7 @@ use ORLite::Mirror 1.21 {
 	show_progress => 1,
 	shim          => 1,
 	tables        => [ qw{
+		invBlueprintTypes
 		invMarketGroups
 		invMetaTypes
 		invTypes
