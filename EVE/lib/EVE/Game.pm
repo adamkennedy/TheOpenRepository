@@ -25,6 +25,7 @@ use EVE::API                   ();
 use EVE::TextPattern           ();
 use EVE::DB                    ();
 use EVE::Pattern               ();
+use EVE::Pricing               ();
 
 our $VERSION = '0.01';
 
@@ -444,6 +445,12 @@ sub market_group {
 
 	# Hand off to process the type set
 	$self->market_types(@types);
+}
+
+sub market_pricing {
+	my $self    = shift;
+	my $pricing = EVE::Pricing->new(@_);
+	return $self->market_types($pricing->types);
 }
 
 sub market_types {
