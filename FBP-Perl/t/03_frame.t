@@ -27,7 +27,8 @@ my $project = $fbp->find_first(
 	isa => 'FBP::Project',
 );
 my $code = FBP::Perl->new(
-	project => $project,
+	project  => $project,
+	nocritic => 1,
 );
 isa_ok( $project, 'FBP::Project' );
 isa_ok( $code, 'FBP::Perl' );

@@ -1,5 +1,9 @@
 Changes for Perl extension FBP-Perl
 
+0.54 Thu 7 Jul 2011
+	- Expanded header comment support to all generated file types
+	- Added tests for nocritic support
+
 0.53 Thu 7 Jul 2011
 	- Added a form_header method to the API that subclasses can use to
 	  add introductory comment blocks at the top of generated files.

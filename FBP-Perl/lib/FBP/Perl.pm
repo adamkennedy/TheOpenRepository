@@ -56,7 +56,7 @@ use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
 use FBP           0.36 ();
 
-our $VERSION = '0.53';
+our $VERSION = '0.54';
 
 # Event Binding Table
 our %EVENT = (
@@ -327,6 +327,7 @@ sub project_class {
 	my $self    = shift;
 	my $project = shift;
 	my $package = $self->project_package($project);
+	my $header  = $self->project_header($project);
 	my $pragma  = $self->use_pragma($project);
 	my $wx      = $self->project_wx($project);
 	my $forms   = $self->project_forms($project);
@@ -336,6 +337,7 @@ sub project_class {
 	return [
 		"package $package;",
 		"",
+		@$header,
 		@$pragma,
 		@$wx,
 		# @$forms,
@@ -353,6 +355,10 @@ sub project_package {
 
 	# For the time being just use the plain name
 	return $project->name;
+}
+
+sub project_header {
+	shift->package_header(@_);
 }
 
 sub project_wx {
@@ -438,6 +444,7 @@ sub form_class {
 	return [
 		"package $package;",
 		"",
+		@$header,
 		@$pragma,
 		@$wx,
 		@$more,
@@ -461,21 +468,7 @@ sub form_package {
 }
 
 sub form_header {
-	my $self  = shift;
-	my $form  = shift;
-	my $lines = [];
-
-	# If the code is being generated for use in a project that uses
-	# Perl::Critic then we could generate all kinds of critic warnings the
-	# maintainer can't do anything about it. So we nocritic the whole file.
-	if ( $self->nocritic ) {
-		push @$lines, (
-			"## no critic",
-			"",
-		);
-	}
-
-	return $lines;
+	shift->package_header(@_);
 }
 
 sub form_wx {
@@ -3184,6 +3177,23 @@ sub control_params {
 
 ######################################################################
 # Support Methods
+
+sub package_header {
+	my $self   = shift;
+	my $object = shift;	my $lines  = [];
+
+	# If the code is being generated for use in a project that uses
+	# Perl::Critic then we could generate all kinds of critic warnings the
+	# maintainer can't do anything about it. So we nocritic the whole file.
+	if ( $self->nocritic ) {
+		push @$lines, (
+			"## no critic",
+			"",
+		);
+	}
+
+	return $lines;
+}
 
 sub use_pragma {
 	my $self  = shift;
