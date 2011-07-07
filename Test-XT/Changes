@@ -1,5 +1,9 @@
 Changes for Perl extension Test-XT
 
+0.04 Thu 7 Jul 2011
+	- No functional changes, moving to production release
+	- Updating to Module::Install::DSL 1.01 (ADAMK)
+
 0.03_02 Thu 10 Feb 2011
 	- Updating to Module::Install::DSL 1.00 (ADAMK)
 	- Updated copyright year (ADAMK)

@@ -93,8 +93,8 @@ use Carp     ();
 
 use vars qw{$VERSION @ISA @EXPORT_OK};
 BEGIN {
-	$VERSION   = '0.03_02';
-	$VERSION   = eval $VERSION; # For dev release only
+	$VERSION   = '0.04';
+	# $VERSION   = eval $VERSION; # For dev release only
 	@ISA       = 'Exporter';
 	@EXPORT_OK = qw{
 		WriteTest

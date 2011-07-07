@@ -1,4 +1,4 @@
-use inc::Module::Install 1.00;
+use inc::Module::Install 1.01;
 
 all_from      'lib/Test/XT.pm';
 test_requires 'Test::More'   => 0.42;
