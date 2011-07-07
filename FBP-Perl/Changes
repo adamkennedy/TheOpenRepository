@@ -1,5 +1,12 @@
 Changes for Perl extension FBP-Perl
 
+0.53 Thu 7 Jul 2011
+	- Added a form_header method to the API that subclasses can use to
+	  add introductory comment blocks at the top of generated files.
+	- Add support for generating a ## no critic at the top of the form so
+	  that generated code won't produce endless critic complaints that the
+	  user can't do anything to fix.
+
 0.52 Tue 5 Jul 2011
 	- Bump FBP dependency to 0.36 to get complete widget support
 	- Added Wx::AnimationCtrl support

@@ -56,7 +56,7 @@ use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
 use FBP           0.36 ();
 
-our $VERSION = '0.52';
+our $VERSION = '0.53';
 
 # Event Binding Table
 our %EVENT = (
@@ -282,6 +282,13 @@ has project => (
 	required => 1,
 );
 
+has nocritic => (
+	is       => 'ro',
+	isa      => 'Bool',
+	required => 1,
+	default  => 0,
+);
+
 no Mouse;
 
 
@@ -419,6 +426,7 @@ sub form_class {
 	my $self    = shift;
 	my $form    = shift;
 	my $package = $self->form_package($form);
+	my $header  = $self->form_header($form);
 	my $pragma  = $self->use_pragma($form);
 	my $wx      = $self->form_wx($form);
 	my $more    = $self->form_custom($form);
@@ -450,6 +458,24 @@ sub form_package {
 
 	# For the time being just use the plain name
 	return $form->name;
+}
+
+sub form_header {
+	my $self  = shift;
+	my $form  = shift;
+	my $lines = [];
+
+	# If the code is being generated for use in a project that uses
+	# Perl::Critic then we could generate all kinds of critic warnings the
+	# maintainer can't do anything about it. So we nocritic the whole file.
+	if ( $self->nocritic ) {
+		push @$lines, (
+			"## no critic",
+			"",
+		);
+	}
+
+	return $lines;
 }
 
 sub form_wx {
