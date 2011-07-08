@@ -10,17 +10,15 @@ use EVE::Game ();
 use EVE::Plan ();
 use EVE::Shell;
 
+unless ( @ARGV ) {
+	die "Did not provide any market segments to scan";
+}
+
 # Bootstrap and initialise
 my $game = EVE::Game->new;
 $game->attach;
 $game->connect;
 $game->mouse_xy;
-# $game->reset_windows;
-
-# Capture pricing for all my current orders
-EVE::Plan->scan_inelastic($game);
-EVE::Plan->scan_orders($game);
-
+#$game->reset_windows;
+$game->market_pricing(@ARGV);
 $game->stop;
-
-1;

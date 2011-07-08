@@ -6,6 +6,8 @@ use strict;
 use EVE::DB;
 use EVE::Trade;
 
+use constant JITA => 60003760;
+
 # We don't list bother with completely raw materials
 use constant PLANETARY => qw{
 	3645 3683 2393 2396 3779 2401 2390 2397 2392 2389 2399 2395 2398 9828
@@ -60,7 +62,7 @@ sub types {
 
 sub add_planetary {
 	my $self = shift;
-	push @$self, PLANETARY_INTERACTION;
+	push @$self, PLANETARY;
 }
 
 sub add_inelastic {
@@ -82,7 +84,7 @@ group by materialTypeID
 order by total desc
 END_SQL
 
-	push @$self, map { $_->[0] } grep { $_->[1] > 0 };
+	push @$self, map { $_->[0] } grep { $_->[1] > 0 } @$inputs;
 }
 
 sub add_orders {

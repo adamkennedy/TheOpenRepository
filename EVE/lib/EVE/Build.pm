@@ -1,4 +1,4 @@
-package EVE::Blueprint;
+package EVE::Build;
 
 # Blueprint calculator
 
@@ -10,6 +10,7 @@ use EVE::Market  ();
 our $VERSION = '0.01';
 
 use Object::Tiny qw{
+	blueprint_id
 	output_type_id
 	output_quantity
 	skill_production_efficiency

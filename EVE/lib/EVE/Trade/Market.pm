@@ -114,11 +114,12 @@ sub fill {
 	}
 
 	# Can't fill the order
+	my $price = ($quantity - $need) ? $cost / ($quantity - $need) : $cost;
 	return {
 		ok     => 0,
 		filled => $quantity - $need,
 		total  => $cost,
-		price  => $cost / ($quantity - $need),
+		price  => $price,
 	};
 }
 
