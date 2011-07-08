@@ -1,5 +1,9 @@
 Release history for Perl module LWP::Online
 
+1.08 Fri  9 Jul 2011
+	- Updated to Module::Install::DSL 1.01
+	- Added the Microsoft NCSI URL to the list of sites probed
+
 1.07 Mon  7 Jul 2008
 	- More diag in 01_compile.t to catch what I think is a CPAN
 	  Testers with broken setups.

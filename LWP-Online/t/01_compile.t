@@ -8,9 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 3;
-
-ok( $] >= 5.005, "Your perl is new enough" );
+use Test::More tests => 2;
 
 use_ok('LWP::Online');
 
