@@ -36,6 +36,7 @@ use 5.008;
 use strict;
 use Carp                  ();
 use Symbol                ();
+use File::Spec       0.80 ();
 use POE             1.293 ();
 use POE::Wheel::ReadWrite ();
 
@@ -44,6 +45,7 @@ our $VERSION = '0.01';
 use POE::Declare 0.54 {
 	Filename      => 'Param',
 	Handle        => 'Param',
+	Lazy          => 'Param',
 	ErrorEvent    => 'Message',
 	ShutdownEvent => 'Message',
 	wheel         => 'Internal',
@@ -77,17 +79,24 @@ sub new {
 	my $self  = $class->SUPER::new(@_);
 
 	# Open the file if needed
-	if ( $self->Filename and not $self->Handle ) {
-		my $filename = $self->Filename;
-		my $handle   = Symbol::gensym();
-		if ( open( $handle, '>>', $filename ) ) {
-			$self->{Handle} = $handle;
+	if ( $self->Lazy ) {
+		if ( $self->Handle ) {
+			Carp::croak("Cannot load Lazy when Handle is provided");
+		} else ( $self->Filename ) {
+			### TODO: Check if the filename is future-writable
 		} else {
-			Carp::croak("Failed to open $filename");
+			Carp::croak("Did not provide a Filename or Handle");
+		}
+	} else {
+		if ( $self->Filename and $self->Handle ) {
+			Carp::croak("Filename and Handle are mutually exclusive");
+		} elsif ( $self->Filename ) {
+			# Try to open the file immediately
+			$self->{Handle} = $self->_handle;
 		}
 	}
 	unless ( $self->Handle ) {
-		Carp::croak("Did not provide a Filename or Handle param");
+		Carp::croak("Did not provide a Filename or Handle")
 	}
 
 	# Create the message queue
@@ -168,6 +177,12 @@ sub print {
 	# Add any messages to the queue of pending output
 	push @{$self->{queue}}, @_;
 
+	# Do a lazy connection to the file if needed
+	if ( $self->{state} eq 'LAZY' ) {
+		$self->{Handle} = $self->_handle;
+		$self->{state}  = 'IDLE';
+	}
+
 	# Initiate a flush event if we aren't doing one already
 	if ( $self->{state} eq 'IDLE' ) {
 		$self->post('flush');
@@ -186,6 +201,17 @@ sub print {
 # Event Methods
 
 sub startup : Event {
+	if ( $_[SELF]->Lazy ) {
+		if ( @{$_[SELF]->{queue}} ) {
+			# Open the file immediately
+			$self->{Handle} = $self->_handle;
+		} else {
+			# Switch to lazy start mode
+			$self->{state} = 'LAZY';
+			return;
+		}
+	}
+
 	# Create the read/write wheel on the filehandle
 	$_[SELF]->{wheel} = POE::Wheel::ReadWrite->new(
 		Handle       => $_[SELF]->Handle,
@@ -242,15 +268,17 @@ sub error : Event {
 }
 
 sub shutdown : Event {
+	my $state = $_[SELF]->{state};
+
 	# Superfluous crash shutdown
-	if ( $_[SELF]->{state} eq 'CRASH' ) {
+	if ( $state eq 'CRASH' ) {
 		$_[SELF]->finish;
 		$_[SELF]->Shutdown;
 		return;
 	}
 
 	# Shutdown with nothing pending to write
-	if ( $_[SELF]->{state} eq 'IDLE' ) {
+	if ( $state eq 'IDLE' or $state eq 'LAZY') {
 		$_[SELF]->{state} = 'STOP';
 		$_[SELF]->finish;
 		$_[SELF]->Shutdown;
@@ -258,7 +286,7 @@ sub shutdown : Event {
 	}
 
 	# Shutdown while writing
-	if ( $_[SELF]->{state} eq 'BUSY' ) {
+	if ( $state eq 'BUSY' ) {
 		# Signal we want to stop as soon as the queue is empty,
 		# but otherwise just wait for the natural end.
 		$_[SELF]->{state} = 'HALT';
@@ -290,8 +318,10 @@ sub clean {
 	my $self = shift;
 
 	# Shutdown the wheel
-	$_[SELF]->{wheel}->shutdown_output;
-	$_[SELF]->{wheel} = undef;
+	if ( $_[SELF]->{wheel} ) {
+		$_[SELF]->{wheel}->shutdown_output;
+		$_[SELF]->{wheel} = undef;
+	}
 
 	# If we opened a file, close it
 	if ( $self->Filename and $self->{Handle} ) {
@@ -299,6 +329,23 @@ sub clean {
 	}
 
 	return;
+}
+
+
+
+
+
+######################################################################
+# Support Methods
+
+sub _connect {
+	my $self = shift;
+	my $filename = $self->Filename;
+	my $handle   = Symbol::gensym();
+	if ( open( $handle, '>>', $filename ) ) {
+		return $handle;
+	}
+	Carp::croak("Failed to open $filename");
 }
 
 compile;
