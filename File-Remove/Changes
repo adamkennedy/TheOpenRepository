@@ -1,5 +1,8 @@
 Revision history for Perl extension File-Remove
 
+1.50 Mon 11 Jul 2011 - Adam Kennedy
+	- Adding a second skip for the known-bad cygwin file permissions problem
+
 1.49 Wed 14 Mar 2011 - Adam Kennedy
 	- Restoring 02_directoreis to no_plan as it runs different test counts
 	  on different systems.

@@ -8,8 +8,6 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 2;
-
-ok( $] >= 5.00503, "Your perl is new enough" );
+use Test::More tests => 1;
 
 use_ok( 'File::Remove' );

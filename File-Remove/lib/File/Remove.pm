@@ -6,23 +6,16 @@ use strict;
 use vars qw{ $VERSION @ISA @EXPORT_OK };
 use vars qw{ $DEBUG $unlink $rmdir    };
 BEGIN {
-	$VERSION   = '1.49';
+	$VERSION   = '1.50';
 	# $VERSION   = eval $VERSION;
 	@ISA       = qw{ Exporter };
 	@EXPORT_OK = qw{ remove rm clear trash };
 }
 
-# If we ever need a Mac::Glue object we will want to cache it.
-my $glue;
-
 use File::Path ();
 use File::Glob ();
 use File::Spec 3.2701 ();
 use Cwd        3.2701 ();
-
-sub expand (@) {
-	map { -e $_ ? $_ : File::Glob::bsd_glob($_) } @_;
-}
 
 # $debug variable must be set before loading File::Remove.
 # Convert to a constant to allow debugging code to be pruned out.
@@ -40,6 +33,9 @@ use constant IS_MAC   => !! ( $^O eq 'darwin' );
 # If so write permissions does not imply deletion permissions
 use constant IS_WIN32 => !! ( $^O =~ /^MSWin/ or $^O eq 'cygwin' );
 
+# If we ever need a Mac::Glue object we will want to cache it.
+my $glue;
+
 
 
 
@@ -47,7 +43,7 @@ use constant IS_WIN32 => !! ( $^O =~ /^MSWin/ or $^O eq 'cygwin' );
 #####################################################################
 # Main Functions
 
-my @END_DELETE = ();
+my @CLEANUP = ();
 
 sub clear (@) {
 	my @files = expand( @_ );
@@ -59,17 +55,17 @@ sub clear (@) {
 	}
 
 	# Delete again at END-time
-	push @END_DELETE, @files;
+	push @CLEANUP, @files;
 }
 
 END {
-	foreach my $file ( @END_DELETE ) {
+	foreach my $file ( @CLEANUP ) {
 		next unless -e $file;
 		remove( \1, $file );
 	}
 }
 
-# acts like unlink would until given a directory as an argument, then
+# Acts like unlink would until given a directory as an argument, then
 # it acts like rm -rf ;) unless the recursive arg is zero which it is by
 # default
 sub remove (@) {
@@ -222,6 +218,10 @@ sub undelete (@) {
 
 ######################################################################
 # Support Functions
+
+sub expand (@) {
+	map { -e $_ ? $_ : File::Glob::bsd_glob($_) } @_;
+}
 
 # Do we need to move to a different directory to delete a directory,
 # and if so which.

@@ -11,7 +11,7 @@ use File::Spec::Functions ':ALL';
 use File::Remove ();
 
 unless( eval { symlink("",""); 1 } ) {
-	plan("skip_all" => "Operating system does not support Unix-like symlinks");
+	plan("skip_all" => "No Unix-like symlinks");
 	exit(0);
 }
 
