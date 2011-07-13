@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 1;
+use Test::More tests => 6;
 use File::Spec::Functions ':ALL';
 use File::Remove 'clear';
 use POE::Declare::Log::File ();

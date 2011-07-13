@@ -10,7 +10,8 @@ POE::Declare::Log::File - A simple HTTP client based on POE::Declare
 
     # Create the web server
     my $http = POE::Declare::Log::File->new(
-        File => '/var/log/my.log',
+        Filename => '/var/log/my.log',
+        Lazy     => 1,
     );
     
     # Control with methods
@@ -38,6 +39,8 @@ use Carp                  ();
 use Symbol                ();
 use File::Spec       0.80 ();
 use POE             1.293 ();
+use POE::Driver::SysRW    ();
+use POE::Filter::Stream   ();
 use POE::Wheel::ReadWrite ();
 
 our $VERSION = '0.01';
@@ -78,15 +81,19 @@ sub new {
 	my $class = shift;
 	my $self  = $class->SUPER::new(@_);
 
+	# Set the starting state
+	$self->{state} = 'STOP';
+
 	# Open the file if needed
 	if ( $self->Lazy ) {
 		if ( $self->Handle ) {
 			Carp::croak("Cannot load Lazy when Handle is provided");
-		} else ( $self->Filename ) {
+		} elsif ( $self->Filename ) {
 			### TODO: Check if the filename is future-writable
 		} else {
 			Carp::croak("Did not provide a Filename or Handle");
 		}
+
 	} else {
 		if ( $self->Filename and $self->Handle ) {
 			Carp::croak("Filename and Handle are mutually exclusive");
@@ -94,15 +101,10 @@ sub new {
 			# Try to open the file immediately
 			$self->{Handle} = $self->_handle;
 		}
+		unless ( $self->Handle ) {
+			Carp::croak("Did not provide a Filename or Handle")
+		}
 	}
-	unless ( $self->Handle ) {
-		Carp::croak("Did not provide a Filename or Handle")
-	}
-
-	# Create the message queue
-	$self->{state} = 'STOP';
-	$self->{queue} = [ ];
-	$self->{wheel} = undef;
 
 	return $self;
 }
@@ -170,21 +172,27 @@ sub print {
 	my $self = shift;
 
 	# Has something gone wrong and we shouldn't queue?
-	unless ( $self->{queue} ) {
-		return;
-	}
+	return unless @_;
+	return unless exists $self->{buffer};
 
 	# Add any messages to the queue of pending output
-	push @{$self->{queue}}, @_;
+	unless ( defined $self->{buffer} ) {
+		$self->{buffer} = shift . "\n";
+	}
+	while ( @_ ) {
+		$self->{buffer} .= shift . "\n";
+	}
 
-	# Do a lazy connection to the file if needed
+	# Do a lazy connection to the file if needed.
+	# The startup will do the equivalent of the below for us.
 	if ( $self->{state} eq 'LAZY' ) {
-		$self->{Handle} = $self->_handle;
-		$self->{state}  = 'IDLE';
+		$self->call('startup');
+		return 1;
 	}
 
 	# Initiate a flush event if we aren't doing one already
 	if ( $self->{state} eq 'IDLE' ) {
+		$self->{state} = 'BUSY';
 		$self->post('flush');
 		return 1;
 	}
@@ -202,50 +210,59 @@ sub print {
 
 sub startup : Event {
 	if ( $_[SELF]->Lazy ) {
-		if ( @{$_[SELF]->{queue}} ) {
+		if ( defined $_[SELF]->{buffer} ) {
 			# Open the file immediately
-			$self->{Handle} = $self->_handle;
+			$_[SELF]->{Handle} = $_[SELF]->_handle;
 		} else {
 			# Switch to lazy start mode
-			$self->{state} = 'LAZY';
+			$_[SELF]->{state} = 'LAZY';
 			return;
 		}
 	}
 
+	# Connect to the handle
+	$_[SELF]->post('connect');
+}
+
+sub connect : Event {
 	# Create the read/write wheel on the filehandle
 	$_[SELF]->{wheel} = POE::Wheel::ReadWrite->new(
 		Handle       => $_[SELF]->Handle,
+		Filter       => POE::Filter::Stream->new,
+		AutoFlush    => 1,
 		FlushedEvent => 'flush',
 		ErrorEvent   => 'error',
 	);
+	$_[SELF]->{state} = 'IDLE';
 
 	# Do an initial queue flush if we have anything
-	if ( @{$_[SELF]->{queue}} ) {
-		$_[SELF]->call('flush');
+	if ( defined $_[SELF]->{buffer} ) {
+		$_[SELF]->{state} = 'BUSY';
+		$_[SELF]->post('flush');
 	}
 
 	return;
 }
 
 sub flush : Event {
-	if ( scalar @{$_[SELF]->{queue}} ) {
+	if ( defined $_[SELF]->{buffer} ) {
+		# Almost all the time we should arrive here already
+		# busy. But if we do arrive IDLE accidentally, set as well.
 		if ( $_[SELF]->{state} eq 'IDLE' ) {
 			$_[SELF]->{state} = 'BUSY';
 		}
 
 		# Merge the queued messages ourself to prevent having to use a heavier
 		# POE line filter in the Read/Write wheel.
-		$_[SELF]->{wheel}->put(
-			join("\n", @{$_[SELF]->{queue}}) . "\n"
-		);
-		$_[SELF]->{queue} = [ ];
+		$_[SELF]->{wheel}->put( delete $_[SELF]->{buffer} );
+		$_[SELF]->{buffer} = undef;
 
 	} else {
 		# Nothing (left) to do
 		if ( $_[SELF]->{state} eq 'HALT' ) {
 			$_[SELF]->{state} = 'STOP';
 			$_[SELF]->finish;
-			$_[SELF]->Shutdown;
+			$_[SELF]->ShutdownEvent;
 
 		} else {
 			$_[SELF]->{state} = 'IDLE';
@@ -259,7 +276,7 @@ sub error : Event {
 	$_[SELF]->{state} = 'CRASH';
 
 	# Prevent additional message and flush queue
-	$_[SELF]->{queue} = undef;
+	delete $_[SELF]->{buffer};
 
 	# Clean up streaming resources
 	$_[SELF]->clean;
@@ -273,7 +290,7 @@ sub shutdown : Event {
 	# Superfluous crash shutdown
 	if ( $state eq 'CRASH' ) {
 		$_[SELF]->finish;
-		$_[SELF]->Shutdown;
+		$_[SELF]->ShutdownEvent;
 		return;
 	}
 
@@ -281,7 +298,7 @@ sub shutdown : Event {
 	if ( $state eq 'IDLE' or $state eq 'LAZY') {
 		$_[SELF]->{state} = 'STOP';
 		$_[SELF]->finish;
-		$_[SELF]->Shutdown;
+		$_[SELF]->ShutdownEvent;
 		return;
 	}
 
@@ -318,9 +335,9 @@ sub clean {
 	my $self = shift;
 
 	# Shutdown the wheel
-	if ( $_[SELF]->{wheel} ) {
-		$_[SELF]->{wheel}->shutdown_output;
-		$_[SELF]->{wheel} = undef;
+	if ( $self->{wheel} ) {
+		$self->{wheel}->shutdown_output;
+		delete $self->{wheel};
 	}
 
 	# If we opened a file, close it
@@ -338,11 +355,12 @@ sub clean {
 ######################################################################
 # Support Methods
 
-sub _connect {
+sub _handle {
 	my $self = shift;
 	my $filename = $self->Filename;
 	my $handle   = Symbol::gensym();
 	if ( open( $handle, '>>', $filename ) ) {
+		$handle->autoflush(1);
 		return $handle;
 	}
 	Carp::croak("Failed to open $filename");
