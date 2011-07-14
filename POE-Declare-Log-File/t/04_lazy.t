@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 22;
+use Test::More tests => 24;
 use Test::POE::Stopping;
 use File::Spec::Functions ':ALL';
 use File::Remove 'clear';
@@ -55,19 +55,18 @@ POE::Session->create(
 			# Start the server
 			order( 0, 'Fired main::_start' );
 
-			$_[KERNEL]->delay_set( startup => 1 );
-			$_[KERNEL]->delay_set( running => 2 );
-			$_[KERNEL]->delay_set( flushed => 3 );
-			$_[KERNEL]->delay_set( stopped => 4 );
-			$_[KERNEL]->delay_set( timeout => 5 );
+			$_[KERNEL]->delay_set( startup => 0.2 );
+			$_[KERNEL]->delay_set( running => 0.4 );
+			$_[KERNEL]->delay_set( flushed => 0.6 );
+			$_[KERNEL]->delay_set( stopped => 0.8 );
+			$_[KERNEL]->delay_set( timeout => 1.0 );
 		},
 
 		startup => sub {
 			order( 1, 'Fired main::startup' );
 
 			# Start the log stream
-			ok( exists $log->{buffer}, 'Buffer exists' );
-			ok( ! defined $log->{buffer}, 'Buffer is empty' );
+			ok( ! exists $log->{buffer}, 'Buffer does not exist' );
 			is( $log->{state}, 'STOP', 'STOP' );
 			ok( $log->start, '->start ok' );
 		},
@@ -98,6 +97,7 @@ POE::Session->create(
 		stopped => sub {
 			order( 4, 'Fired main::stopped' );
 			is( $log->{state}, 'STOP', 'STOP' );
+			ok( ! exists $log->{buffer}, 'Buffer does not exist' );
 		},
 
 		timeout => sub {
@@ -108,3 +108,11 @@ POE::Session->create(
 );
 
 POE::Kernel->run;
+
+# With the event sequence completed, the file should exist
+ok( -f $file, "Created file $file" );
+my $size = (stat($file))[7];
+ok(
+	($size >= 7 and $size <= 8),
+	'File is the expected size',
+);

@@ -25,7 +25,7 @@ This module provides a simple logging module which spools output to a file,
 queueing and batching messages in memory if the message rate exceeds the
 responsiveness of the filesystem.
 
-The implemenetation is intentionally minimalist and has no dependencies beyond
+The implementation is intentionally minimalist and has no dependencies beyond
 those of L<POE::Declare> itself, which makes this module useful for simple
 utility logging or debugging systems.
 
@@ -134,6 +134,13 @@ sub start {
 		$self->spawn;
 		$self->post('startup');
 	}
+
+	# Allow calling print immediately after start before the POE
+	# startup has completed
+	unless ( exists $self->{buffer} ) {
+		$self->{buffer} = undef;
+	}
+
 	return 1;
 }
 
@@ -323,6 +330,9 @@ sub shutdown : Event {
 
 sub finish {
 	my $self = shift;
+
+	# Prevent additional messages and flush the queue
+	delete $self->{buffer};
 
 	# Clean up streaming resources
 	$self->clean;
