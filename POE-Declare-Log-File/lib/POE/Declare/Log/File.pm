@@ -184,10 +184,10 @@ sub print {
 
 	# Add any messages to the queue of pending output
 	unless ( defined $self->{buffer} ) {
-		$self->{buffer} = shift . "\n";
+		$self->{buffer} = shift() . "\n";
 	}
 	while ( @_ ) {
-		$self->{buffer} .= shift . "\n";
+		$self->{buffer} .= shift() . "\n";
 	}
 
 	# Do a lazy connection to the file if needed.
