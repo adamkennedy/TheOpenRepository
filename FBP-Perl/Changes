@@ -1,5 +1,9 @@
 Changes for Perl extension FBP-Perl
 
+0.55 Mon 18 Jul 2011
+	- Separating out file path generation from bitmap generation to make
+	  it easier to customise file management in subclasses.
+
 0.54 Thu 7 Jul 2011
 	- Expanded header comment support to all generated file types
 	- Added tests for nocritic support
