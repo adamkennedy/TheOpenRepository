@@ -19,7 +19,7 @@ SKIP: {
 
 	# Confirm that all the event macros exist
 	use_ok( 'Wx', ':everything' );
-	use_ok( 'Wx::HTML' );
+	use_ok( 'Wx::Html' );
 	use_ok( 'Wx::Grid' );
 	use_ok( 'Wx::DateTime' );
 	use_ok( 'Wx::Calendar' );

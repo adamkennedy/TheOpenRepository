@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Wx ':everything';
 use Wx::STC ();
-use Wx::HTML ();
+use Wx::Html ();
 use Wx::Grid ();
 use t::lib::Custom ();
 use t::lib::MyClass ();

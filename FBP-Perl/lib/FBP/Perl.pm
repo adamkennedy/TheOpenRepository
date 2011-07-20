@@ -54,9 +54,9 @@ use strict;
 use warnings;
 use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
-use FBP           0.36 ();
+use FBP           0.37 ();
 
-our $VERSION = '0.55';
+our $VERSION = '0.56';
 
 # Event Binding Table
 our %EVENT = (
@@ -368,7 +368,7 @@ sub project_wx {
 		"use Wx ':everything';",
 	);
 	if ( $project->find_first( isa => 'FBP::HtmlWindow' ) ) {
-		push @lines, "use Wx::HTML ();";
+		push @lines, "use Wx::Html ();";
 	}
 	if ( $project->find_first( isa => 'FBP::DatePickerCtrl' ) ) {
 		push @lines, "use Wx::DateTime ();";
@@ -481,7 +481,7 @@ sub form_wx {
 		push @$lines, "use Wx::STC ();";
 	}
 	if ( $topic->find_first( isa => 'FBP::HtmlWindow' ) ) {
-		push @$lines, "use Wx::HTML ();";
+		push @$lines, "use Wx::Html ();";
 	}
 	if ( $topic->find_first( isa => 'FBP::Grid' ) ) {
 		push @$lines, "use Wx::Grid ();";
