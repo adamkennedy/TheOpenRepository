@@ -39,7 +39,7 @@ The C<new> constructor takes no arguments and creates a new parser/model object.
 =cut
 
 use 5.008005;
-use Mouse            0.61;
+use Mouse                0.90;
 use Params::Util         1.00 ();
 use FBP::Project              ();
 use FBP::Dialog               ();
@@ -107,7 +107,7 @@ use FBP::ToolBar              ();
 use FBP::ToolSeparator        ();
 use FBP::TreeCtrl             ();
 
-our $VERSION = '0.36';
+our $VERSION = '0.37';
 
 extends 'FBP::Object';
 with    'FBP::Children';

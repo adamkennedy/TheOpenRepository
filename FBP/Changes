@@ -1,5 +1,8 @@
 Changes for Perl extension FBP
 
+0.37 Wed 20 Jul 2011
+	- Updating Mouse dependency to 0.90 to get ->DOES support
+
 0.36 Wed 6 Jul 2011
 	- Added missing rows methods to FBP::Grid
 	- FBP::Window no longer inherits from FBP::Children, but instead
