@@ -16,12 +16,14 @@ use Class::XSAccessor
 
 sub _par_loader_hint {
   require Perl::APIReference::Generator;
-  require Perl::APIReference::V5_014_000;
+  require Perl::APIReference::V5_014_001;
 }
 
 our %Perls = (
+  5.015001 => 'V5_015_001',
+  5.014001 => 'V5_014_001',
   5.014    => 'V5_014_000',
-  5.01301  => 'V5_013_010',
+  5.012004 => 'V5_012_004',
   5.012003 => 'V5_012_003',
   5.012002 => 'V5_012_002',
   5.012001 => 'V5_012_001',
@@ -43,11 +45,10 @@ our %Perls = (
   5.006    => 'V5_006_000',
 );
 
-our $NewestAPI       = '5.014000';
-our $NewestStableAPI = '5.014000';
+our $NewestAPI       = '5.015001';
+our $NewestStableAPI = '5.014001';
 
 $Perls{'5.014000'} = $Perls{5.014};
-$Perls{'5.013010'} = $Perls{5.01301};
 $Perls{'5.012000'} = $Perls{5.012};
 $Perls{'5.010000'} = $Perls{5.01};
 $Perls{'5.010'}    = $Perls{5.01};
@@ -156,7 +157,7 @@ Perl::APIReference - Programmatically query the perlapi
 =head1 SYNOPSIS
 
   use Perl::APIReference;
-  my $api = Perl::APIReference->new(perl_version => '5.12.3');
+  my $api = Perl::APIReference->new(perl_version => '5.12.4');
   my $api_index_hash = $api->index;
 
 =head1 DESCRIPTION
@@ -164,13 +165,13 @@ Perl::APIReference - Programmatically query the perlapi
 This module allows accessing the perlapi documentation for multiple
 releases of perl as an index (a hash).
 
-Currently, the stable releases perl 5.14.0,
-5.12.0-3, 5.10.0-1, 5.8.0-9, and 5.6.0-2
+Currently, the stable releases perl 5.14.0-1,
+5.12.0-4, 5.10.0-1, 5.8.0-9, and 5.6.0-2
 are supported. To add support for another release, simply send me the
 release's F<perlapi.pod> via email or via an RT ticket and I'll add it
 in the next release.
 
-Additionally, the development release 5.13.10 is included.
+Additionally, the development release 5.15.1 is included.
 API docs for development may be dropped from the distribution
 at any time. The general policy on this is to try
 and ship the APIs for the newest development release.
