@@ -2,7 +2,7 @@ package t::lib::Test;
 
 use strict;
 use warnings;
-use Test::More;
+use Test::Builder;
 use Test::LongString;
 use Exporter ();
 
@@ -19,6 +19,7 @@ sub code {
 	if ( ref $right ) {
 		$right = join '', map { "$_\n" } @$right;
 	}
+	local $Test::Builder::Level = $Test::Builder::Level + 1;
 	is_string( $left, $right, $_[0] );
 }
 
@@ -28,10 +29,12 @@ sub compiles {
 		$code = join '', map { "$_\n" } @$code;
 	}
 	SKIP: {
-		skip("Skipping compile test for release", 1) if $ENV{ADAMK_RELEASE};
+		local $Test::Builder::Level = $Test::Builder::Level + 1;
+		my $Test = Test::Builder->new;
+		$Test->skip("Skipping compile test for release", 1) if $ENV{ADAMK_RELEASE};
 		my $rv = eval $code;
-		diag( $@ ) if $@;
-		ok( $rv, $_[0] );
+		$Test->diag( $@ ) if $@;
+		$Test->ok( $rv, $_[0] );
 	}
 }
 
