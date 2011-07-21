@@ -8,7 +8,7 @@ use Getopt::Long ();
 use Params::Util ();
 use ORLite::Pod  ();
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 my $AUTHOR = undef;
 my $EMAIL  = undef;

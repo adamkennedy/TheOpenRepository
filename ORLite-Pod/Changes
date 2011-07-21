@@ -1,6 +1,9 @@
 Changes for Perl extension ORLite-Pod
 
-0.10 Sun 11 Jel 2010
+0.11 Thu 21 Jul 2011
+	- Fixing whitespace separation on the ->create method
+
+0.10 Sun 11 Jul 2010
 	- Fixing a small typo
 
 0.09 Sun 11 Jul 2010

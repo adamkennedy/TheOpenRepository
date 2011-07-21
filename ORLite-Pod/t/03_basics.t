@@ -3,7 +3,6 @@
 # Tests the basic functionality of SQLite.
 
 use strict;
-
 BEGIN {
 	$|  = 1;
 	$^W = 1;

@@ -3,7 +3,6 @@
 # Tests the beautification of SQL
 
 use strict;
-
 BEGIN {
 	$|  = 1;
 	$^W = 1;
