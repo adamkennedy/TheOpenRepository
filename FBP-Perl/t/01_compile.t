@@ -14,6 +14,9 @@ use Test::NoWarnings;
 use_ok( 'FBP::Perl' );
 
 SKIP: {
+	if ( $ENV{ADAMK_RELEASE} ) {
+		skip( "Skipping Wx tests for release", CONSTANTS + 5 );
+	}
 	eval "require Wx";
 	skip( "Wx.pm is not available", CONSTANTS + 5 ) if $@;
 
