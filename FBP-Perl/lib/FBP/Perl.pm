@@ -3262,10 +3262,10 @@ sub text {
 			return $self->quote($string);
 		}
 		if ( $string =~ s/^([ :]+)//s ) {
-			$leading = $1;
+			$leading = $self->quote("$1");
 		}
 		if ( $string =~ s/([ :]+)\z//s ) {
-			$trailing = $2;
+			$trailing = $self->quote("$1");
 		}
 	}
 
@@ -3275,10 +3275,10 @@ sub text {
 
 	# Put leading and trailing punctuation back on
 	if ( length $leading ) {
-		$string = $self->quote($string) . " . $string";
+		$string = "$leading . $string";
 	}
 	if ( length $trailing ) {
-		$string = "$string . " . $self->quote($string);
+		$string = "$string . $trailing";
 	}
 
 	return $string;

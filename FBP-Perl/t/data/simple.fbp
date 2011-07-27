@@ -4015,7 +4015,7 @@
                                 <property name="font"></property>
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
-                                <property name="label">Long 2 column spanning text</property>
+                                <property name="label">: Long 2 column spanning text :  </property>
                                 <property name="maximum_size"></property>
                                 <property name="minimum_size"></property>
                                 <property name="name">m_staticText6</property>
@@ -4213,7 +4213,7 @@
                                         <property name="font"></property>
                                         <property name="hidden">0</property>
                                         <property name="id">wxID_ANY</property>
-                                        <property name="label">Don&apos;t press this</property>
+                                        <property name="label">Don&apos;t press this:</property>
                                         <property name="maximum_size"></property>
                                         <property name="minimum_size"></property>
                                         <property name="name">m_staticText61</property>

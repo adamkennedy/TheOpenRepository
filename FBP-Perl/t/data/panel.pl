@@ -23,7 +23,7 @@ sub new {
 	$self->{m_staticText6} = Wx::StaticText->new(
 		$self,
 		-1,
-		Wx::gettext("Long 2 column spanning text"),
+		Wx::gettext(": Long 2 column spanning text :"),
 	);
 
 	$self->{m_button5} = Wx::Button->new(
@@ -45,7 +45,7 @@ sub new {
 	$self->{m_staticText61} = Wx::StaticText->new(
 		$self,
 		-1,
-		Wx::gettext("Don't press this"),
+		Wx::gettext("Don't press this:"),
 	);
 
 	my $bSizer11 = Wx::BoxSizer->new(Wx::wxVERTICAL);
