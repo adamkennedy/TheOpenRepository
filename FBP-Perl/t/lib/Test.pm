@@ -31,10 +31,13 @@ sub compiles {
 	SKIP: {
 		local $Test::Builder::Level = $Test::Builder::Level + 1;
 		my $Test = Test::Builder->new;
-		$Test->skip("Skipping compile test for release", 1) if $ENV{ADAMK_RELEASE};
-		my $rv = eval $code;
-		$Test->diag( $@ ) if $@;
-		$Test->ok( $rv, $_[0] );
+		if ( $ENV{ADAMK_RELEASE} ) {
+			$Test->ok( 1, "Skipped $_[0]" );
+		} else {
+			my $rv = eval $code;
+			$Test->diag( $@ ) if $@;
+			$Test->ok( $rv, $_[0] );
+		}
 	}
 }
 
