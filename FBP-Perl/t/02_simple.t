@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 10;
+use Test::More tests => 12;
 use Test::NoWarnings;
 use t::lib::Test;
 use FBP::Perl;
@@ -31,6 +31,8 @@ my $code = FBP::Perl->new(
 );
 isa_ok( $project, 'FBP::Project' );
 isa_ok( $code, 'FBP::Perl' );
+is( $code->i18n,      1, '->i18n'      );
+is( $code->i18n_trim, 0, '->i18n_trim' );
 
 # Test Dialog string generators
 my $dialog = $fbp->form('MyDialog1');

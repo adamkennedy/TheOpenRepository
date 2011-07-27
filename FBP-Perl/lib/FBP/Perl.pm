@@ -56,7 +56,7 @@ use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
 use FBP           0.37 ();
 
-our $VERSION = '0.56';
+our $VERSION = '0.57';
 
 # Event Binding Table
 our %EVENT = (
@@ -289,6 +289,22 @@ has nocritic => (
 	default  => 0,
 );
 
+has i18n => (
+	is       => 'ro',
+	isa      => 'Bool',
+	required => 1,
+	builder  => sub {
+		$_[0]->project->internationalize;
+	},
+);
+
+has i18n_trim => (
+	is       => 'ro',
+	isa      => 'Str',
+	required => 1,
+	default  => 0,
+);
+
 no Mouse;
 
 
@@ -373,7 +389,7 @@ sub project_wx {
 	if ( $project->find_first( isa => 'FBP::DatePickerCtrl' ) ) {
 		push @lines, "use Wx::DateTime ();";
 	}
-	if ( $project->internationalize ) {
+	if ( $self->i18n ) {
 		push @lines, "use Wx::Locale ();";
 	}
 	return \@lines;
@@ -3233,10 +3249,36 @@ sub text {
 		return "''";
 	}
 
-	# Quote and translate the label
+	# Handle the simple boring case
+	unless ( $self->i18n ) {
+		return $self->quote($string);
+	}
+
+	# Trim off leading and trailing punctuation
+	my $leading  = '';
+	my $trailing = '';
+	if ( $self->i18n_trim ) {
+		if ( $string =~ /^[ :]+$/ ) {
+			return $self->quote($string);
+		}
+		if ( $string =~ s/^([ :]+)//s ) {
+			$leading = $1;
+		}
+		if ( $string =~ s/([ :]+)\z//s ) {
+			$trailing = $2;
+		}
+	}
+
+	# Translate the remaining part of the string
 	$string = $self->quote($string);
-	if ( $self->project->internationalize ) {
-		$string = "Wx::gettext($string)";
+	$string = "Wx::gettext($string)";
+
+	# Put leading and trailing punctuation back on
+	if ( length $leading ) {
+		$string = $self->quote($string) . " . $string";
+	}
+	if ( length $trailing ) {
+		$string = "$string . " . $self->quote($string);
 	}
 
 	return $string;

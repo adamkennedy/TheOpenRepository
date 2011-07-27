@@ -1,5 +1,10 @@
 Changes for Perl extension FBP-Perl
 
+0.57 to be released
+	- Added i18n to override wxFormBuilder setting
+	- Added i18n_trim to provide a set of characters that we should strip
+	  out of the call to gettext.
+
 0.56 Wed 20 Jul 2011
 	- Updating FBP dependency to 0.37 to get Mouse version fix
 	- Correcting Wx::HTML to Wx::Html
