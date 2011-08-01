@@ -339,16 +339,16 @@ sub dialog_write {
 ######################################################################
 # Project Generators
 
-sub project_class {
+sub app_class {
 	my $self    = shift;
 	my $project = shift;
-	my $package = $self->project_package($project);
-	my $header  = $self->project_header($project);
+	my $package = $self->app_package($project);
+	my $header  = $self->app_header($project);
 	my $pragma  = $self->use_pragma($project);
-	my $wx      = $self->project_wx($project);
-	my $forms   = $self->project_forms($project);
-	my $version = $self->project_version($project);
-	my $isa     = $self->project_isa($project);
+	my $wx      = $self->app_wx($project);
+	my $forms   = $self->app_forms($project);
+	my $version = $self->app_version($project);
+	my $isa     = $self->app_isa($project);
 
 	return [
 		"package $package;",
@@ -365,7 +365,7 @@ sub project_class {
 	];
 }
 
-sub project_package {
+sub app_package {
 	my $self    = shift;
 	my $project = shift;
 
@@ -373,11 +373,11 @@ sub project_package {
 	return $project->name;
 }
 
-sub project_header {
+sub app_header {
 	shift->package_header(@_);
 }
 
-sub project_wx {
+sub app_wx {
 	my $self    = shift;
 	my $project = shift;
 	my @lines   = (
@@ -395,7 +395,7 @@ sub project_wx {
 	return \@lines;
 }
 
-sub project_forms {
+sub app_forms {
 	my $self    = shift;
 	my $project = shift;
 
@@ -408,7 +408,7 @@ sub project_forms {
 	];
 }
 
-sub project_version {
+sub app_version {
 	my $self    = shift;
 	my $project = shift;
 
@@ -417,12 +417,44 @@ sub project_version {
 	];
 }
 
-sub project_isa {
+sub app_isa {
 	my $self = shift;
 
 	return [
 		"our \@ISA     = 'Wx::App';",
 	];
+}
+
+
+
+
+
+######################################################################
+# Script Generator
+
+sub script_app {
+	my $self    = shift;
+	my $project = $self->project;
+	my $package = $self->app_package($project);
+	my $pragma  = $self->use_pragma($project);
+	my $version = $self->script_version;
+
+	return [
+		"#!/usr/bin/perl",
+		"",
+		@$pragma,
+		"use $app ();",
+		"",
+		@$version,
+		"",
+		"$package->run;",
+		"",
+		"exit(0);",
+	];
+}
+
+sub script_version {
+	$_[0]->app_version( $_[0]->project );
 }
 
 
@@ -533,7 +565,7 @@ sub form_version {
 	my $form = shift;
 
 	# Ignore the form and inherit from the parent project
-	return $self->project_version( $self->project );
+	return $self->app_version( $self->project );
 }
 
 sub form_isa {

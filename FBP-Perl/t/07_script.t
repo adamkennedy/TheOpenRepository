@@ -13,7 +13,7 @@ use FBP::Perl;
 
 # Find the sample files
 my $input  = File::Spec->catfile( 't', 'data', 'simple.fbp' );
-my $output = File::Spec->catfile( 't', 'data', 'project.pl'  );
+my $output = File::Spec->catfile( 't', 'data', 'script.pl'  );
 ok( -f $input,  "Found test file $input"  );
 ok( -f $output, "Found test file $output" );
 
@@ -34,7 +34,7 @@ isa_ok( $project, 'FBP::Project' );
 isa_ok( $code, 'FBP::Perl' );
 
 # Generate the entire dialog constructor
-my $have = $code->app_class($project);
+my $have = $code->script_app;
 my $want = slurp($output);
 code( $have, $want, '->app_class ok' );
 compiles( $have, 'Project class compiled' );
