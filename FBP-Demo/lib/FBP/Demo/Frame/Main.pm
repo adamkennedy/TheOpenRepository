@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use FBP::Demo::FBP::Main ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 our @ISA     = 'FBP::Demo::FBP::Main';
 
 1;

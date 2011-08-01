@@ -5,8 +5,15 @@ use strict;
 use warnings;
 use Wx ':everything';
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 our @ISA     = 'Wx::App';
+
+sub run {
+	my $class = shift;
+	my $self  = $class->new(@_);
+	$self->MainLoop;
+	return 1;
+}
 
 sub OnInit {
 	my $self = shift;

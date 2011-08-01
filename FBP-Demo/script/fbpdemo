@@ -5,13 +5,8 @@ use strict;
 use warnings;
 use FBP::Demo ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
-my $application = FBP::Demo->new;
-unless ( $application ) {
-	die "Failed to create FBP::Demo application";
-}
-
-$application->MainLoop;
+FBP::Demo->run;
 
 exit(0);
