@@ -56,7 +56,8 @@ use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
 use FBP           0.37 ();
 
-our $VERSION = '0.57';
+our $VERSION    = '0.58';
+our $COMPATIBLE = '0.57';
 
 # Event Binding Table
 our %EVENT = (
@@ -282,11 +283,11 @@ has project => (
 	required => 1,
 );
 
-has nocritic => (
+has version => (
 	is       => 'ro',
-	isa      => 'Bool',
+	isa      => 'Str',
 	required => 1,
-	default  => 0,
+	default  => '0.01',
 );
 
 has i18n => (
@@ -305,6 +306,13 @@ has i18n_trim => (
 	default  => 0,
 );
 
+has nocritic => (
+	is       => 'ro',
+	isa      => 'Bool',
+	required => 1,
+	default  => 0,
+);
+
 no Mouse;
 
 
@@ -314,9 +322,29 @@ no Mouse;
 ######################################################################
 # Project Wide Generators
 
+sub project_header {
+	my $self  = shift;
+	my $lines = [];
+
+	# If the code is being generated for use in a project that uses
+	# Perl::Critic then we could generate all kinds of critic warnings the
+	# maintainer can't do anything about it. So we nocritic the whole file.
+	if ( $self->nocritic ) {
+		push @$lines, (
+			"## no critic",
+		);
+	}
+
+	# Add an extra spacer line if needed
+	if ( @$lines ) {
+		push @$lines, "";
+	}
+
+	return $lines;
+}
+
 sub project_pragma {
 	my $self  = shift;
-	my $topic = shift;
 
 	return [
 		"use 5.008;",
@@ -325,22 +353,13 @@ sub project_pragma {
 	]
 }
 
-sub project_header {
-	my $self   = shift;
-	my $object = shift;
-	my $lines  = [];
+sub project_version {
+	my $self    = shift;
+	my $version = $self->version;
 
-	# If the code is being generated for use in a project that uses
-	# Perl::Critic then we could generate all kinds of critic warnings the
-	# maintainer can't do anything about it. So we nocritic the whole file.
-	if ( $self->nocritic ) {
-		push @$lines, (
-			"## no critic",
-			"",
-		);
-	}
-
-	return $lines;
+	return [
+		"our \$VERSION = '$version';",
+	];
 }
 
 
@@ -352,13 +371,15 @@ sub project_header {
 
 sub script_app {
 	my $self    = shift;
-	my $pragma  = $self->project_pragma( $self->project );
+	my $pragma  = $self->script_pragma;
+	my $header  = $self->script_header;
 	my $package = $self->app_package;
 	my $version = $self->script_version;
 
 	return [
 		"#!/usr/bin/perl",
 		"",
+		@$header,
 		@$pragma,
 		"use $package ();",
 		"",
@@ -370,8 +391,16 @@ sub script_app {
 	];
 }
 
+sub script_header {
+	shift->project_header(@_);
+}
+
+sub script_pragma {
+	shift->project_pragma(@_);
+}
+
 sub script_version {
-	$_[0]->app_version( $_[0]->project );
+	$_[0]->project_version;
 }
 
 
@@ -383,16 +412,18 @@ sub script_version {
 
 sub app_class {
 	my $self    = shift;
-	my $project = $self->project;
-	my $frame   = $project->find_first( isa => 'FBP::Frame' );
-	my $require = $self->form_package($frame);
 	my $package = $self->app_package;
-	my $header  = $self->app_header($project);
+	my $header  = $self->app_header;
 	my $pragma  = $self->app_pragma;
-	my $wx      = $self->app_wx($project);
-	my $forms   = $self->app_forms($project);
-	my $version = $self->app_version($project);
-	my $isa     = $self->app_isa($project);
+	my $wx      = $self->app_wx;
+	my $forms   = $self->app_forms;
+	my $version = $self->app_version;
+	my $isa     = $self->app_isa;
+
+	# Find the first frame, our default top frame
+	my $require = $self->form_package(
+		$self->project->find_first( isa => 'FBP::Frame' )
+	);
 
 	return [
 		"package $package;",
@@ -406,24 +437,28 @@ sub app_class {
 		@$isa,
 		"",
 		"sub run {",
-		$self->indent( [
+		$self->indent(
 			"shift->new(\@_)->MainLoop;",
-		] ),
+		),
 		"}",
 		"",
 		"sub OnInit {",
-		$self->indent( [
+		$self->indent(
 			"my \$self = shift;",
 			"",
+			"# Create the primary frame",
 			"require $require;",
-			"\$self->SetTopWindow(",
-			$self->indent( [
-				"$require->new",
-			] ),
-			")->Show(1);",
+			"\$self->SetTopWindow( $require->new );",
+			"",
+			"# Don't flash frames on the screen in tests",
+			"unless ( \$ENV{HARNESS_ACTIVE} ) {",
+			$self->indent(
+				"\$self->GetTopWindow->Show(1);",
+			),
+			"}",
 			"",
 			"return 1;",
-		] ),
+		),
 		"}",
 		"",
 		"1;"
@@ -445,7 +480,7 @@ sub app_pragma {
 
 sub app_wx {
 	my $self    = shift;
-	my $project = shift;
+	my $project = $self->project;
 	my @lines   = (
 		"use Wx ':everything';",
 	);
@@ -462,25 +497,19 @@ sub app_wx {
 }
 
 sub app_forms {
-	my $self    = shift;
-	my $project = shift;
+	my $self = shift;
 
 	return [
 		map {
 			"use $_ ();"
 		} map {
 			$self->form_package($_)
-		} $project->forms
+		} $self->project->forms
 	];
 }
 
 sub app_version {
-	my $self    = shift;
-	my $project = shift;
-
-	return [
-		"our \$VERSION = '0.01';",
-	];
+	shift->project_version(@_);
 }
 
 sub app_isa {
@@ -599,7 +628,7 @@ sub form_version {
 	my $form = shift;
 
 	# Ignore the form and inherit from the parent project
-	return $self->app_version( $self->project );
+	return $self->project_version;
 }
 
 sub form_isa {
@@ -3451,7 +3480,9 @@ sub file {
 }
 
 sub indent {
-	map { /\S/ ? "\t$_" : $_ } @{$_[1]};
+	map { /\S/ ? "\t$_" : $_ } (
+		ref($_[1]) ? @{$_[1]} : @_[1..$#_]
+	);
 }
 
 # Indent except for the first and last lines.

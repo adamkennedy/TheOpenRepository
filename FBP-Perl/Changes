@@ -1,8 +1,18 @@
 Changes for Perl extension FBP-Perl
 
-0.58 Thu 28 Jul 2011
+0.58 Tue 2 Aug 2011
+	- Major API overhaul and normalisation
+	- Added support for generating Wx::App main classes
+	- Added support for generating launch script for the Wx::App class
 	- Fix to wxSplitterWindow to allow horizontal splitting
-	- 
+	- Fix for explicit falsely setting negative splitter handle size
+	- Added $COMPATIBLE version for future use with Padre plugin
+	  dependency system.
+	- Added version param for setting a common project version
+	- Extended ## no critic and custom header support to the Wx::App and
+	  script generators.
+	- Removed the need to explicitly pass around the project object in 
+	  many different methods.
 
 0.57 Wed 27 Jul 2011
 	- Added i18n to override wxFormBuilder setting

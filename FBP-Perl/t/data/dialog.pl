@@ -10,7 +10,7 @@ use Wx::Grid ();
 use t::lib::Custom ();
 use t::lib::MyClass ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.58';
 our @ISA     = 'Wx::Dialog';
 
 sub new {

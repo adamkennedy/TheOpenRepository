@@ -28,6 +28,7 @@ my $project = $fbp->find_first(
 );
 my $code = FBP::Perl->new(
 	project   => $project,
+	version   => $FBP::Perl::VERSION,
 	i18n      => 1,
 	i18n_trim => 1,
 );
