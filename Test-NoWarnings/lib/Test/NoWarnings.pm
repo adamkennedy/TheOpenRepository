@@ -10,7 +10,7 @@ use Test::NoWarnings::Warning ();
 
 use vars qw( $VERSION @EXPORT_OK @ISA $do_end_test );
 BEGIN {
-	$VERSION   = '1.02';
+	$VERSION   = '1.03';
 	@ISA       = 'Exporter';
 	@EXPORT_OK = qw(
 		clear_warnings had_no_warnings warnings

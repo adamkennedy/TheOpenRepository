@@ -11,10 +11,10 @@ WriteMakefile(
 	MIN_PERL_VERSION => '5.006',
 	BUILD_REQUIRES   => {
 		'Test::More'    => '0.47',
-		'Test::Builder' => '0.86',
+		'Test::Tester'  => '0.107',
 	},
 	PREREQ_PM => {
-		'Test::Tester' => '0.107',
+		'Test::Builder' => '0.86',
 	},
 	META_MERGE => {
 		resources => {
