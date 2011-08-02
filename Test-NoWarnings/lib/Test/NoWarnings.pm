@@ -290,7 +290,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 Copyright 2003 - 2007 Fergal Daly.
 
-Some parts copyright 2010 Adam Kennedy.
+Some parts copyright 2010 - 2011 Adam Kennedy.
 
 This program is free software and comes with no warranty. It is distributed
 under the LGPL license
