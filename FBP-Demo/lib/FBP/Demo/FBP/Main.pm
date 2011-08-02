@@ -1,7 +1,5 @@
 package FBP::Demo::FBP::Main;
 
-## no critic
-
 use 5.008;
 use strict;
 use warnings;
