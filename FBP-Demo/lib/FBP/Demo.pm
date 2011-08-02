@@ -9,24 +9,16 @@ our $VERSION = '0.02';
 our @ISA     = 'Wx::App';
 
 sub run {
-	my $class = shift;
-	my $self  = $class->new(@_);
-	$self->MainLoop;
-	return 1;
+	shift->new(@_)->MainLoop;
 }
 
 sub OnInit {
 	my $self = shift;
 
-	# Set the application name
-	$self->SetAppName('FBP Demonstration Application');
-
-	# Create the main window
 	require FBP::Demo::Frame::Main;
 	$self->SetTopWindow(
 		FBP::Demo::Frame::Main->new
-	);
-	$self->GetTopWindow->Show(1);
+	)->Show(1);
 
 	return 1;
 }
