@@ -7,7 +7,7 @@ use strict;
 use warnings;
 use Wx ':everything';
 
-our $VERSION = '0.58';
+our $VERSION = '0.59';
 our @ISA     = 'Wx::Frame';
 
 sub new {
@@ -120,9 +120,8 @@ sub new {
 	$bSizer7->Add( $self->{m_staticText5}, 1, Wx::wxALIGN_CENTER_HORIZONTAL | Wx::wxALL, 10 );
 	$bSizer7->Add( $self->{m_sdbSizer1}, 0, Wx::wxBOTTOM | Wx::wxEXPAND, 5 );
 
-	$self->SetSizer($bSizer7);
+	$self->SetSizerAndFit($bSizer7);
 	$self->Layout;
-	$bSizer7->Fit($self);
 
 	return $self;
 }

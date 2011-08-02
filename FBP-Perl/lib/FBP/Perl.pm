@@ -56,7 +56,7 @@ use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
 use FBP           0.37 ();
 
-our $VERSION    = '0.58';
+our $VERSION    = '0.59';
 our $COMPATIBLE = '0.57';
 
 # Event Binding Table
@@ -766,22 +766,13 @@ sub form_sizers {
 	my $sizer    = $self->form_rootsizer($form);
 	my $variable = $self->object_variable($sizer);
 	my @children = $self->sizer_pack($sizer);
+	my $setsize  = $self->window_setsize($form);
 
 	return (
 		@children,
 		[
-			"\$self->SetSizer($variable);",
+			"\$self->$setsize($variable);",
 			"\$self->Layout;",
-			(
-				$self->size($form->size)
-				? ()
-				: "$variable->Fit(\$self);"
-			),
-			(
-				$self->form_setsizehints($form)
-				? "$variable->SetSizeHints(\$self);"
-				: ()
-			),
 		]
 	);
 }
@@ -805,18 +796,13 @@ sub form_setsizehints {
 
 	# Only dialogs and frames can resize
 	if ( $form->isa('FBP::Dialog') or $form->isa('FBP::Frame') ) {
-		# If our borders are resizable we need to set size hints
-		if ( $form->style =~ /\bwxRESIZE_BORDER\b/ ) {
+		# If the dialog has size hints, we do need them
+		if ( $self->size($form->minimum_size) ) {
 			return 1;
 		}
-	}
-
-	# If the dialog has size hints, we do need them
-	if ( $self->size($form->minimum_size) ) {
-		return 1;
-	}
-	if ( $self->size($form->maximum_size) ) {
-		return 1;
+		if ( $self->size($form->maximum_size) ) {
+			return 1;
+		}
 	}
 
 	return 0;
@@ -2770,6 +2756,7 @@ sub panel_pack {
 	my $sizer    = $panel->children->[0] or return ();
 	my $variable = $self->object_variable($panel);
 	my $sizervar = $self->object_variable($sizer);
+	my $setsize  = $self->window_setsize($panel);
 
 	# Generate fragments for our (optional) child sizer
 	my @children = $self->sizer_pack($sizer);
@@ -2778,13 +2765,8 @@ sub panel_pack {
 	return (
 		@children,
 		[
-			"$variable->SetSizer($sizervar);",
+			"$variable->$setsize($sizervar);",
 			"$variable->Layout;",
-			(
-				$self->size($panel->size)
-				? ()
-				: "$sizervar->Fit($variable);"
-			),
 		]
 	);
 }
@@ -2795,6 +2777,7 @@ sub scrolledwindow_pack {
 	my $sizer    = $window->children->[0] or return ();
 	my $variable = $self->object_variable($window);
 	my $sizervar = $self->object_variable($sizer);
+	my $setsize  = $self->window_setsize($window);
 
 	# Generate fragments for our (optional) child sizer
 	my @children = $self->sizer_pack($sizer);
@@ -2803,13 +2786,8 @@ sub scrolledwindow_pack {
 	return (
 		@children,
 		[
-			"$variable->SetSizer($sizervar);",
+			"$variable->$setsize($sizervar);",
 			"$variable->Layout;",
-			(
-				$self->size($window->size)
-				? ()
-				: "$sizervar->Fit($variable);"
-			),
 		],
 	);
 }
@@ -3189,6 +3167,13 @@ sub window_style {
 	}
 
 	return;
+}
+
+sub window_setsize {
+	my $self     = shift;
+	my $window   = shift;
+	return 'SetSizer' if $self->size( $window->size );
+	return 'SetSizerAndFit';
 }
 
 sub object_id {

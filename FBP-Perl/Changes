@@ -1,5 +1,9 @@
 Changes for Perl extension FBP-Perl
 
+0.59 Tue 2 Aug 2011
+	- Changed the generated Layout and Fit code to be smaller, faster and
+	  hopefully much less buggy on Mac.
+
 0.58 Tue 2 Aug 2011
 	- Major API overhaul and normalisation
 	- Added support for generating Wx::App main classes

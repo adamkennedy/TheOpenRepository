@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Wx ':everything';
 
-our $VERSION = '0.58';
+our $VERSION = '0.59';
 our @ISA     = 'Wx::Panel';
 
 sub new {
@@ -88,9 +88,8 @@ sub new {
 	my $bSizer8 = Wx::BoxSizer->new(Wx::wxHORIZONTAL);
 	$bSizer8->Add( $gbSizer2, 1, Wx::wxEXPAND, 5 );
 
-	$self->SetSizer($bSizer8);
+	$self->SetSizerAndFit($bSizer8);
 	$self->Layout;
-	$bSizer8->Fit($self);
 
 	return $self;
 }

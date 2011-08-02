@@ -10,7 +10,7 @@ use Wx::Grid ();
 use t::lib::Custom ();
 use t::lib::MyClass ();
 
-our $VERSION = '0.58';
+our $VERSION = '0.59';
 our @ISA     = 'Wx::Dialog';
 
 sub new {
@@ -25,7 +25,6 @@ sub new {
 		Wx::wxDefaultSize,
 		Wx::wxDEFAULT_DIALOG_STYLE | Wx::wxRESIZE_BORDER,
 	);
-	$self->SetSizeHints( Wx::wxDefaultSize, Wx::wxDefaultSize );
 
 	$self->{m_staticText1} = t::lib::MyClass->new(
 		$self,
@@ -760,16 +759,14 @@ sub new {
 	$fgSizer1->Add( $self->{m_listCtrl1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
 	$fgSizer1->Add( $self->{m_customControl1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
 
-	$self->{m_panel3}->SetSizer($fgSizer1);
+	$self->{m_panel3}->SetSizerAndFit($fgSizer1);
 	$self->{m_panel3}->Layout;
-	$fgSizer1->Fit($self->{m_panel3});
 
 	my $bSizer9 = Wx::BoxSizer->new(Wx::wxVERTICAL);
 	$bSizer9->Add( $self->{m_htmlWin1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
 
-	$self->{m_scrolledWindow1}->SetSizer($bSizer9);
+	$self->{m_scrolledWindow1}->SetSizerAndFit($bSizer9);
 	$self->{m_scrolledWindow1}->Layout;
-	$bSizer9->Fit($self->{m_scrolledWindow1});
 
 	my $sbSizer1 = Wx::StaticBoxSizer->new(
 		Wx::StaticBox->new(
@@ -781,9 +778,8 @@ sub new {
 	);
 	$sbSizer1->Add( $self->{m_scrolledWindow1}, 1, Wx::wxEXPAND | Wx::wxALL, 5 );
 
-	$self->{m_panel4}->SetSizer($sbSizer1);
+	$self->{m_panel4}->SetSizerAndFit($sbSizer1);
 	$self->{m_panel4}->Layout;
-	$sbSizer1->Fit($self->{m_panel4});
 
 	$self->{m_splitter1}->SplitVertically(
 		$self->{m_panel3},
@@ -796,9 +792,8 @@ sub new {
 	$gSizer1->Add( $self->{m_checkBox3}, 0, Wx::wxALL, 5 );
 	$gSizer1->Add( $self->{m_checkBox4}, 0, Wx::wxALL, 5 );
 
-	$self->{m_panel8}->SetSizer($gSizer1);
+	$self->{m_panel8}->SetSizerAndFit($gSizer1);
 	$self->{m_panel8}->Layout;
-	$gSizer1->Fit($self->{m_panel8});
 
 	my $bSizer12 = Wx::BoxSizer->new(Wx::wxHORIZONTAL);
 	$bSizer12->Add( $self->{m_treeCtrl1}, 0, Wx::wxALL, 5 );
@@ -808,16 +803,14 @@ sub new {
 	$bSizer12->Add( $self->{m_radioBtn4}, 0, Wx::wxALL, 5 );
 	$bSizer12->Add( $self->{m_animCtrl1}, 0, Wx::wxALL, 5 );
 
-	$self->{m_panel9}->SetSizer($bSizer12);
+	$self->{m_panel9}->SetSizerAndFit($bSizer12);
 	$self->{m_panel9}->Layout;
-	$bSizer12->Fit($self->{m_panel9});
 
 	my $bSizer14 = Wx::BoxSizer->new(Wx::wxVERTICAL);
 	$bSizer14->Add( $self->{m_calendar2}, 0, Wx::wxALL, 5 );
 
-	$self->{m_panel11}->SetSizer($bSizer14);
+	$self->{m_panel11}->SetSizerAndFit($bSizer14);
 	$self->{m_panel11}->Layout;
-	$bSizer14->Fit($self->{m_panel11});
 
 	$self->{m_notebook1}->AddPage( $self->{m_panel8}, Wx::gettext("Checkboxes"), 1 );
 	$self->{m_notebook1}->AddPage( $self->{m_panel9}, Wx::gettext("Empty Tree"), 0 );
@@ -829,9 +822,8 @@ sub new {
 	$bSizer3->Add( $self->{m_radioBox1}, 0, Wx::wxALL, 5 );
 	$bSizer3->Add( $self->{m_slider1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
 
-	$self->{m_panel1}->SetSizer($bSizer3);
+	$self->{m_panel1}->SetSizerAndFit($bSizer3);
 	$self->{m_panel1}->Layout;
-	$bSizer3->Fit($self->{m_panel1});
 
 	my $bSizer4 = Wx::BoxSizer->new(Wx::wxVERTICAL);
 	$bSizer4->Add( $self->{m_textCtrl2}, 0, Wx::wxALL, 5 );
@@ -841,9 +833,8 @@ sub new {
 	$bSizer4->Add( $self->{m_filePicker1}, 0, Wx::wxALL, 5 );
 	$bSizer4->Add( $self->{m_dirPicker1}, 0, Wx::wxALL, 5 );
 
-	$self->{m_panel2}->SetSizer($bSizer4);
+	$self->{m_panel2}->SetSizerAndFit($bSizer4);
 	$self->{m_panel2}->Layout;
-	$bSizer4->Fit($self->{m_panel2});
 
 	$self->{m_listbook1}->AddPage( $self->{m_panel1}, Wx::gettext("Page One"), 1 );
 	$self->{m_listbook1}->AddPage( $self->{m_panel2}, Wx::gettext("Page Two"), 0 );
@@ -862,9 +853,8 @@ sub new {
 	$bSizer6->Add( 0, 0, 1, Wx::wxEXPAND, 5 );
 	$bSizer6->Add( $self->{m_gauge1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
 
-	$self->{m_panel7}->SetSizer($bSizer6);
+	$self->{m_panel7}->SetSizerAndFit($bSizer6);
 	$self->{m_panel7}->Layout;
-	$bSizer6->Fit($self->{m_panel7});
 
 	$self->{m_listbook2}->AddPage( $self->{m_panel6}, Wx::gettext("Page One"), 0 );
 	$self->{m_listbook2}->AddPage( $self->{m_panel7}, Wx::gettext("Page Two"), 1 );
@@ -872,24 +862,21 @@ sub new {
 	my $bSizer15 = Wx::BoxSizer->new(Wx::wxVERTICAL);
 	$bSizer15->Add( $self->{m_richText1}, 1, Wx::wxEXPAND, 5 );
 
-	$self->{m_panel13}->SetSizer($bSizer15);
+	$self->{m_panel13}->SetSizerAndFit($bSizer15);
 	$self->{m_panel13}->Layout;
-	$bSizer15->Fit($self->{m_panel13});
 
 	my $bSizer151 = Wx::BoxSizer->new(Wx::wxVERTICAL);
 	$bSizer151->Add( $self->{m_grid1}, 0, 0, 5 );
 	$bSizer151->Add( $self->{m_scrollBar1}, 0, Wx::wxEXPAND, 5 );
 
-	$self->{m_panel12}->SetSizer($bSizer151);
+	$self->{m_panel12}->SetSizerAndFit($bSizer151);
 	$self->{m_panel12}->Layout;
-	$bSizer151->Fit($self->{m_panel12});
 
 	my $bSizer16 = Wx::BoxSizer->new(Wx::wxVERTICAL);
 	$bSizer16->Add( $self->{m_genericDirCtrl1}, 1, Wx::wxEXPAND | Wx::wxALL, 5 );
 
-	$self->{m_panel131}->SetSizer($bSizer16);
+	$self->{m_panel131}->SetSizerAndFit($bSizer16);
 	$self->{m_panel131}->Layout;
-	$bSizer16->Fit($self->{m_panel131});
 
 	$self->{m_choicebook1}->AddPage( $self->{m_panel13}, Wx::gettext("Rich Text Control"), 1 );
 	$self->{m_choicebook1}->AddPage( $self->{m_panel12}, Wx::gettext("Grid"), 0 );
@@ -909,10 +896,8 @@ sub new {
 	my $bSizer1 = Wx::BoxSizer->new(Wx::wxHORIZONTAL);
 	$bSizer1->Add( $bSizer2, 1, Wx::wxEXPAND, 5 );
 
-	$self->SetSizer($bSizer1);
+	$self->SetSizerAndFit($bSizer1);
 	$self->Layout;
-	$bSizer1->Fit($self);
-	$bSizer1->SetSizeHints($self);
 
 	return $self;
 }
