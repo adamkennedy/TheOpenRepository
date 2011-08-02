@@ -1,5 +1,9 @@
 Changes for Perl extension FBP-Perl
 
+0.58 Thu 28 Jul 2011
+	- Fix to wxSplitterWindow to allow horizontal splitting
+	- 
+
 0.57 Wed 27 Jul 2011
 	- Added i18n to override wxFormBuilder setting
 	- Added i18n_trim to provide a set of characters that we should strip

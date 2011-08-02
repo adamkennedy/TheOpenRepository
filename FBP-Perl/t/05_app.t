@@ -13,7 +13,7 @@ use FBP::Perl;
 
 # Find the sample files
 my $input  = File::Spec->catfile( 't', 'data', 'simple.fbp' );
-my $output = File::Spec->catfile( 't', 'data', 'project.pl'  );
+my $output = File::Spec->catfile( 't', 'lib', 'Simple.pm'  );
 ok( -f $input,  "Found test file $input"  );
 ok( -f $output, "Found test file $output" );
 

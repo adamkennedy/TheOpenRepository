@@ -13,7 +13,7 @@ use FBP::Perl;
 
 # Find the sample files
 my $input  = File::Spec->catfile( 't', 'data', 'simple.fbp' );
-my $output = File::Spec->catfile( 't', 'data', 'frame.pl'  );
+my $output = File::Spec->catfile( 't', 'lib', 'MyFrame1.pm'  );
 ok( -f $input,  "Found test file $input"  );
 ok( -f $output, "Found test file $output" );
 
@@ -34,7 +34,7 @@ isa_ok( $project, 'FBP::Project' );
 isa_ok( $code, 'FBP::Perl' );
 
 # Test Dialog string generators
-my $frame = $fbp->form('MyFrame1');
+my $frame = $fbp->form('t::lib::MyFrame1');
 isa_ok( $frame, 'FBP::Frame' );
 
 # Generate the entire dialog constructor

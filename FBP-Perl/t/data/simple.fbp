@@ -13,7 +13,7 @@
         <property name="first_id">1000</property>
         <property name="help_provider">none</property>
         <property name="internationalize">1</property>
-        <property name="name">Simple</property>
+        <property name="name">t::lib::Simple</property>
         <property name="namespace"></property>
         <property name="path">.</property>
         <property name="precompiled_header"></property>
@@ -4276,7 +4276,7 @@
             <property name="id">wxID_ANY</property>
             <property name="maximum_size"></property>
             <property name="minimum_size"></property>
-            <property name="name">MyFrame1</property>
+            <property name="name">t::lib::MyFrame1</property>
             <property name="pos"></property>
             <property name="size">-1,-1</property>
             <property name="style">wxDEFAULT_FRAME_STYLE</property>

@@ -34,7 +34,8 @@ sub compiles {
 		if ( $ENV{ADAMK_RELEASE} ) {
 			$Test->ok( 1, "Skipped $_[0]" );
 		} else {
-			my $rv = eval $code;
+			local $@;
+			my $rv = do { eval "return 1;\n$code"; };
 			$Test->diag( $@ ) if $@;
 			$Test->ok( $rv, $_[0] );
 		}

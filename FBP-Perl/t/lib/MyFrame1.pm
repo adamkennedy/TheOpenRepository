@@ -1,4 +1,4 @@
-package MyFrame1;
+package t::lib::MyFrame1;
 
 ## no critic
 

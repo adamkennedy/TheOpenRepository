@@ -312,24 +312,35 @@ no Mouse;
 
 
 ######################################################################
-# High Level Methods
+# Project Wide Generators
 
-sub dialog_write {
+sub project_pragma {
+	my $self  = shift;
+	my $topic = shift;
+
+	return [
+		"use 5.008;",
+		"use strict;",
+		"use warnings;",
+	]
+}
+
+sub project_header {
 	my $self   = shift;
-	my $dialog = shift;
-	my $path   = shift;
+	my $object = shift;
+	my $lines  = [];
 
-	# Generate the code
-	my $code = $self->flatten(
-		$self->dialog_class($dialog)
-	);
+	# If the code is being generated for use in a project that uses
+	# Perl::Critic then we could generate all kinds of critic warnings the
+	# maintainer can't do anything about it. So we nocritic the whole file.
+	if ( $self->nocritic ) {
+		push @$lines, (
+			"## no critic",
+			"",
+		);
+	}
 
-	# Write it to the file
-	open( my $file, '>', $path ) or die "open($path): $!";
-	$file->print( $code );
-	$file->close;
-
-	return 1;
+	return $lines;
 }
 
 
@@ -337,14 +348,47 @@ sub dialog_write {
 
 
 ######################################################################
-# Project Generators
+# Launch Script Generator
+
+sub script_app {
+	my $self    = shift;
+	my $pragma  = $self->project_pragma( $self->project );
+	my $package = $self->app_package;
+	my $version = $self->script_version;
+
+	return [
+		"#!/usr/bin/perl",
+		"",
+		@$pragma,
+		"use $package ();",
+		"",
+		@$version,
+		"",
+		"$package->run;",
+		"",
+		"exit(0);",
+	];
+}
+
+sub script_version {
+	$_[0]->app_version( $_[0]->project );
+}
+
+
+
+
+
+######################################################################
+# Wx::App Generators
 
 sub app_class {
 	my $self    = shift;
-	my $project = shift;
-	my $package = $self->app_package($project);
+	my $project = $self->project;
+	my $frame   = $project->find_first( isa => 'FBP::Frame' );
+	my $require = $self->form_package($frame);
+	my $package = $self->app_package;
 	my $header  = $self->app_header($project);
-	my $pragma  = $self->use_pragma($project);
+	my $pragma  = $self->app_pragma;
 	my $wx      = $self->app_wx($project);
 	my $forms   = $self->app_forms($project);
 	my $version = $self->app_version($project);
@@ -361,20 +405,42 @@ sub app_class {
 		@$version,
 		@$isa,
 		"",
+		"sub run {",
+		$self->indent( [
+			"shift->new(\@_)->MainLoop;",
+		] ),
+		"}",
+		"",
+		"sub OnInit {",
+		$self->indent( [
+			"my \$self = shift;",
+			"",
+			"require $require;",
+			"\$self->SetTopWindow(",
+			$self->indent( [
+				"$require->new",
+			] ),
+			")->Show(1);",
+			"",
+			"return 1;",
+		] ),
+		"}",
+		"",
 		"1;"
 	];
 }
 
+# For the time being just use the plain name
 sub app_package {
-	my $self    = shift;
-	my $project = shift;
-
-	# For the time being just use the plain name
-	return $project->name;
+	$_[0]->project->name;
 }
 
 sub app_header {
-	shift->package_header(@_);
+	shift->project_header(@_);
+}
+
+sub app_pragma {
+	shift->project_pragma(@_);
 }
 
 sub app_wx {
@@ -430,38 +496,6 @@ sub app_isa {
 
 
 ######################################################################
-# Script Generator
-
-sub script_app {
-	my $self    = shift;
-	my $project = $self->project;
-	my $package = $self->app_package($project);
-	my $pragma  = $self->use_pragma($project);
-	my $version = $self->script_version;
-
-	return [
-		"#!/usr/bin/perl",
-		"",
-		@$pragma,
-		"use $app ();",
-		"",
-		@$version,
-		"",
-		"$package->run;",
-		"",
-		"exit(0);",
-	];
-}
-
-sub script_version {
-	$_[0]->app_version( $_[0]->project );
-}
-
-
-
-
-
-######################################################################
 # Form Generators
 
 sub dialog_class {
@@ -481,7 +515,7 @@ sub form_class {
 	my $form    = shift;
 	my $package = $self->form_package($form);
 	my $header  = $self->form_header($form);
-	my $pragma  = $self->use_pragma($form);
+	my $pragma  = $self->project_pragma($form);
 	my $wx      = $self->form_wx($form);
 	my $more    = $self->form_custom($form);
 	my $version = $self->form_version($form);
@@ -516,7 +550,7 @@ sub form_package {
 }
 
 sub form_header {
-	shift->package_header(@_);
+	shift->project_header(@_);
 }
 
 sub form_wx {
@@ -2087,13 +2121,13 @@ sub splitterwindow_create {
 	my $sashsize      = $window->sashsize;
 	my $sashgravity   = $window->sashgravity;
 	my $min_pane_size = $window->min_pane_size;
-	if ( $sashgravity > 0 ) {
+	if ( length $sashgravity and $sashgravity >= 0 ) {
 		push @$lines, "$variable->SetSashGravity($sashgravity);";
 	}
-	if ( $sashsize >= 0 ) {
+	if ( length $sashsize and $sashsize >= 0 ) {
 		push @$lines, "$variable->SetSashSize($sashsize);";
 	}
-	if ( $min_pane_size ) {
+	if ( $min_pane_size and $min_pane_size > 0 ) {
 		push @$lines, "$variable->SetMinimumPaneSize($min_pane_size);";
 	}
 
@@ -2778,7 +2812,7 @@ sub splitterwindow_pack {
 		my $sashpos = $window->sashpos;
 		my $window1 = $self->object_variable($windows[0]);
 		my $window2 = $self->object_variable($windows[1]);
-		my $method  = $window->splitmode eq 'wxVERTICAL'
+		my $method  = $window->splitmode eq 'wxSPLIT_HORIZONTAL'
 		            ? 'SplitHorizontally'
 		            : 'SplitVertically';
 		return (
@@ -3225,35 +3259,6 @@ sub control_params {
 
 ######################################################################
 # Support Methods
-
-sub package_header {
-	my $self   = shift;
-	my $object = shift;
-	my $lines  = [];
-
-	# If the code is being generated for use in a project that uses
-	# Perl::Critic then we could generate all kinds of critic warnings the
-	# maintainer can't do anything about it. So we nocritic the whole file.
-	if ( $self->nocritic ) {
-		push @$lines, (
-			"## no critic",
-			"",
-		);
-	}
-
-	return $lines;
-}
-
-sub use_pragma {
-	my $self  = shift;
-	my $topic = shift;
-
-	return [
-		"use 5.008;",
-		"use strict;",
-		"use warnings;",
-	]
-}
 
 sub list {
 	my $self = shift;
