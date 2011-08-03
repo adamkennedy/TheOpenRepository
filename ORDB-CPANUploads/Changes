@@ -1,5 +1,9 @@
 Changes for Perl extension ORDB-CPANUploads
 
+1.07 Wed 3 Aug 2011
+	- Upgrading to Module::Install::DSL 1.01
+	- Adding the age method
+
 1.06 Mon 29 Nov 2010
 	- Upgrading to Module::Install::DSL 1.00
 	- Upgrading various dependencies

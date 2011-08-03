@@ -16,6 +16,15 @@ L<ORDB::CPANUploads::Uploads>.
 
 =head1 METHODS
 
+=head2 age
+
+  my $seconds = ORDB::CPANUploads->age;
+
+The C<age> method uses the release time of the most recent upload contained
+in the upload archive to estimate the approximate age of the SQLite database.
+
+Returns duration in integer seconds or throws an exception on error.
+
 =head2 dsn
 
   my $string = ORDB::CPANUploads->dsn;

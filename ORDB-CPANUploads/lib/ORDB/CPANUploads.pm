@@ -23,4 +23,19 @@ sub import {
 	return 1;
 }
 
+sub age {
+	my $class = shift;
+
+	# Find the most recent upload
+	my @latest = ORDB::CPANUploads::Uploads->select(
+		'ORDER BY released DESC LIMIT 1',
+	);
+	unless ( @latest == 1 ) {
+		die "Unexpected number of uploads";
+	}
+
+	# Compare to the current time
+	return time - $latest[0]->released;
+}
+
 1;
