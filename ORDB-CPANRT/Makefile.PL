@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.96;
+use inc::Module::Install::DSL 1.01;
 
 all_from      lib/ORDB/CPANRT.pm
 requires_from lib/ORDB/CPANRT.pm

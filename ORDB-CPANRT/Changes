@@ -1,5 +1,9 @@
 Changes for Perl extension ORDB-CPANRT
 
+0.04 to be released
+	- Updating to Module::Install::DSL 1.01
+	- Updating ORLite::Mirror to 1.21
+
 0.03 Tue 11 May 2010
 	- Miscellaneous small pod fixes
 

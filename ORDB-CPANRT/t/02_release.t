@@ -9,14 +9,19 @@ BEGIN {
 }
 
 use Test::More;
+use Params::Util ();
 use LWP::Online ':skip_all';
 unless ( $ENV{RELEASE_TESTING} ) {
 	plan( skip_all => "Author tests not required for installation" );
 	exit(0);
 }
 
-plan( tests => 2 );
-
-ok( $] >= 5.008005, 'Perl version is new enough' );
+plan tests => 2;
 
 use_ok( 'ORDB::CPANRT' );
+
+my $latest = ORDB::CPANRT->latest;
+ok( $latest, 'Got latest record' );
+
+my $age = ORDB::CPANRT->age;
+ok( Params::Util::_POSINT($age), 'Got positive integer for ->age' );
