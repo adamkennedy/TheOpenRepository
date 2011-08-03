@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite-Mirror
 
+1.22 Wed 2 Aug 2011
+	- Added env_proxy => 1 to enable LWP proxy support
+
 1.21 Tue 31 May 2011
 	- Updating Module::Install::DSL to 1.01
 	- Updating copyright year

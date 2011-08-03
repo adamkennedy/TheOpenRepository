@@ -18,7 +18,7 @@ use ORLite                   1.37 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.21';
+	$VERSION = '1.22';
 	@ISA     = 'ORLite';
 }
 
@@ -68,6 +68,7 @@ sub import {
 
 	# Normalise boolean settings
 	my $show_progress = $params{show_progress} ? 1 : 0;
+	my $env_proxy     = $params{env_proxy}     ? 1 : 0;
 
 	# Use array-based objects by default, they are smaller and faster
 	unless ( defined $params{array} ) {
@@ -163,6 +164,7 @@ sub import {
 				agent         => $agent,
 				timeout       => 30,
 				show_progress => $show_progress,
+				env_proxy     => $env_proxy,
 			);
 		}
 
@@ -310,6 +312,7 @@ sub connect {
 	unless ( \$REFRESHED ) {
 		\$class->refresh(
 			show_progress => $show_progress,
+			env_proxy     => $env_proxy,
 		);
 	}
 	DBI->connect( \$class->dsn, undef, undef, {
@@ -340,14 +343,21 @@ ORLite::Mirror - Extend ORLite to support remote SQLite databases
   # Regular ORLite on a readonly SQLite database
   use ORLite 'path/mydb.sqlite';
   
-  # The equivalent for a remote SQLite database
-  use ORLite::Mirror 'http://myserver/path/mydb.sqlite';
-  
-  # You can read compressed SQLite databases as well
+  # The equivalent for a remote (optionally compressed) SQLite database
   use ORLite::Mirror 'http://myserver/path/mydb.sqlite.gz';
-  use ORLite::Mirror 'http://myserver/path/mydb.sqlite.bz2';
   
-  (Of course you can only do one of the above)
+  # All available additional options specified
+  use ORLite::Mirror {
+      url           => 'http://myserver/path/mydb.sqlite.gz',
+      maxage        => 3600,
+      show_progress => 1,
+      env_proxy     => 1,
+      prune         => 1,
+      index         => [
+          'table1.column1',
+          'table1.column2',
+      ],
+  };
 
 =head1 DESCRIPTION
 
