@@ -1,5 +1,8 @@
 Revision history for Perl extension Math::ThinPlateSpline.
 
+0.06  Wed Aug  3 19:26 2011
+  - ExtUtils::Typemap is now called ExtUtils::Typemaps
+
 0.05  Thu Aug 19 20:00 2010
   - evaluate_many
 

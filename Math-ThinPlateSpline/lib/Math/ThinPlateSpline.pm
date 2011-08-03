@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Carp 'croak';
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 require XSLoader;
 XSLoader::load('Math::ThinPlateSpline', $VERSION);
@@ -89,7 +89,7 @@ Steffen Mueller, E<lt>smueller@cpan.orgE<gt>
 
 The Math::ThinPlateSpline module is
 
-Copyright (C) 2010 by Steffen Mueller
+Copyright (C) 2010, 2011 by Steffen Mueller
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.0 or,
