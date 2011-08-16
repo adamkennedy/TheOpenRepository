@@ -7,7 +7,7 @@ use strict;
 use warnings;
 use Wx ':everything';
 
-our $VERSION = '0.59';
+our $VERSION = '0.60';
 our @ISA     = 'Wx::Frame';
 
 sub new {
@@ -45,7 +45,7 @@ sub new {
 	my $m_menuItem2 = Wx::MenuItem->new(
 		$self->{m_menu1},
 		-1,
-		Wx::gettext("MyMenuItem"),
+		Wx::gettext("MyMenuItem..."),
 		'',
 		Wx::wxITEM_NORMAL,
 	);
@@ -84,7 +84,7 @@ sub new {
 	$self->{m_staticText5} = Wx::StaticText->new(
 		$self,
 		-1,
-		Wx::gettext("MyLabel"),
+		Wx::gettext("MyLabel:"),
 	);
 
 	$self->{m_sdbSizer1_yes} = Wx::Button->new(

@@ -10,7 +10,7 @@ use Wx::Grid ();
 use t::lib::Custom ();
 use t::lib::MyClass ();
 
-our $VERSION = '0.59';
+our $VERSION = '0.60';
 our @ISA     = 'Wx::Dialog';
 
 sub new {
@@ -70,7 +70,7 @@ sub new {
 	$self->{m_button1} = Wx::Button->new(
 		$self,
 		-1,
-		Wx::gettext("MyButton"),
+		Wx::gettext("MyButton..."),
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
 	);

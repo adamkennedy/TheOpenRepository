@@ -56,7 +56,7 @@ use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
 use FBP           0.37 ();
 
-our $VERSION    = '0.59';
+our $VERSION    = '0.60';
 our $COMPATIBLE = '0.57';
 
 # Event Binding Table
@@ -3309,13 +3309,15 @@ sub text {
 	my $leading  = '';
 	my $trailing = '';
 	if ( $self->i18n_trim ) {
-		if ( $string =~ /^[ :]+$/ ) {
+		if ( $string =~ /^[ :]+\z/ ) {
 			return $self->quote($string);
 		}
 		if ( $string =~ s/^([ :]+)//s ) {
 			$leading = $self->quote("$1");
 		}
-		if ( $string =~ s/([ :]+)\z//s ) {
+		if ( $string =~ s/(\s*\.\.\.)\z//s ) {
+			$trailing = $self->quote("$1");
+		} elsif ( $string =~ s/([ :]+)\z//s ) {
 			$trailing = $self->quote("$1");
 		}
 	}

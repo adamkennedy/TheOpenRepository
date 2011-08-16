@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Wx ':everything';
 
-our $VERSION = '0.59';
+our $VERSION = '0.60';
 our @ISA     = 'Wx::Panel';
 
 sub new {
@@ -37,7 +37,7 @@ sub new {
 	$self->{m_button51} = Wx::Button->new(
 		$self,
 		-1,
-		Wx::gettext("Right Button"),
+		Wx::gettext("Right Button") . "...",
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
 	);

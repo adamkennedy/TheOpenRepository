@@ -9,7 +9,7 @@ use Wx ':everything';
 use Wx::Html ();
 use Wx::Locale ();
 
-our $VERSION = '0.59';
+our $VERSION = '0.60';
 our @ISA     = 'Wx::App';
 
 sub run {

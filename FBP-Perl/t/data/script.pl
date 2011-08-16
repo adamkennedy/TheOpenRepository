@@ -7,7 +7,7 @@ use strict;
 use warnings;
 use t::lib::Simple ();
 
-our $VERSION = '0.59';
+our $VERSION = '0.60';
 
 t::lib::Simple->run;
 

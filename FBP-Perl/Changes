@@ -1,5 +1,8 @@
 Changes for Perl extension FBP-Perl
 
+0.60 Tue 16 Aug 2011
+	- When trim is enabled we now also trim out trailing ...
+
 0.59 Tue 2 Aug 2011
 	- Changed the generated Layout and Fit code to be smaller, faster and
 	  hopefully much less buggy on Mac.
