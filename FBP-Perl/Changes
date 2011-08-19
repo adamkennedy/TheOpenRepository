@@ -1,5 +1,10 @@
 Changes for Perl extension FBP-Perl
 
+0.61 Fri 19 Aug 2011
+	- Removed redundant control_params method
+	- Moved all constant generation to using ->wx to normalise values
+	- Added prefix param to make constants load as Wx::wxFOO
+
 0.60 Tue 16 Aug 2011
 	- When trim is enabled we now also trim out trailing ...
 

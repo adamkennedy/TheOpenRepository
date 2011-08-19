@@ -30,6 +30,7 @@ my $code = FBP::Perl->new(
 	project  => $project,
 	version  => $FBP::Perl::VERSION,
 	nocritic => 1,
+	prefix   => 1,
 );
 isa_ok( $project, 'FBP::Project' );
 isa_ok( $code, 'FBP::Perl' );

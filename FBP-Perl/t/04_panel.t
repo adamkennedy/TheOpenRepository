@@ -29,6 +29,7 @@ my $project = $fbp->find_first(
 my $code = FBP::Perl->new(
 	project => $project,
 	version => $FBP::Perl::VERSION,
+	prefix  => 1,
 );
 isa_ok( $project, 'FBP::Project' );
 isa_ok( $code, 'FBP::Perl' );

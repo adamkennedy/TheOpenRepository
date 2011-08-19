@@ -56,7 +56,7 @@ use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
 use FBP           0.37 ();
 
-our $VERSION    = '0.60';
+our $VERSION    = '0.61';
 our $COMPATIBLE = '0.57';
 
 # Event Binding Table
@@ -288,6 +288,13 @@ has version => (
 	isa      => 'Str',
 	required => 1,
 	default  => '0.01',
+);
+
+has prefix => (
+	is       => 'ro',
+	isa      => 'Int',
+	required => 1,
+	default  => 0,
 );
 
 has i18n => (
@@ -3113,7 +3120,7 @@ sub object_position {
 	my $object   = shift;
 	my $position = $object->pos;
 	unless ( $position ) {
-		return 'Wx::wxDefaultPosition';
+		return $self->wx('wxDefaultPosition');
 	}
 	$position =~ s/,/, /;
 	return "[ $position ]";
@@ -3229,44 +3236,6 @@ sub control_items {
 	);
 }
 
-sub control_params {
-	my $self   = shift;
-	my @params = @_;
-
-	# Trim params off the end if the Wx defaults are valid
-	while ( @params >= 2 ) {
-		my $value = pop @params;
-		my $key   = pop @params;
-		if ( $key eq 'style' ) {
-			next unless $value;
-		} elsif ( $key eq 'size' ) {
-			next if $value eq 'Wx::wxDefaultSize';
-		} elsif ( $key eq 'position' ) {
-			next if $value eq 'Wx::wxDefaultPosition';
-		} elsif ( $key eq 'id' ) {
-			next if $value eq '-1';
-		}
-
-		# We want to keep these, and everything else before it
-		push @params, $key, $value;
-		last;
-	}
-
-	# Turn the remaining params into a list
-	my @list = ();
-	while ( @params ) {
-		my $key   = shift @params;
-		my $value = shift @params;
-		if ( @params ) {
-			push @list, "$value,";
-		} else {
-			push @list, $value;
-		}
-	}
-
-	return @list;
-}
-
 
 
 
@@ -3288,8 +3257,19 @@ sub wx {
 	my $string = shift;
 	return 0  if $string eq '';
 	return -1 if $string eq 'wxID_ANY';
-	$string =~ s/\bwx/Wx::wx/g;
+
+	# Apply constant prefix policy
+	if ( $self->prefix ) {
+		# The capture here keeps Wx::WXK_KEYNAME sane
+		$string =~ s/\b(wx[A-Z])/Wx::$1/g;
+	} else {
+		# For a limited group of constants we must be explicit
+		$string =~ s/\bwxMAC\b/Wx::wxMAC/;
+	}
+
+	# Tidy a collection of multiple constants
 	$string =~ s/\s*\|\s*/ | /g;
+
 	return $string;
 }
 
@@ -3387,7 +3367,8 @@ sub colour {
 
 	# System colour
 	if ( $string =~ /^wx/ ) {
-		return "Wx::SystemSettings::GetColour( Wx::$string )";
+		my $string = $self->wx($string);
+		return "Wx::SystemSettings::GetColour( $string )";
 	}
 
 	die "Invalid or unsupported colour '$string'";
@@ -3399,7 +3380,7 @@ sub font {
 
 	# Default font
 	unless ( length $string ) {
-		return 'Wx::wxNullFont';
+		return $self->wx('wxNullFont');
 	}
 
 	# Generate a font from the overcompact FBP format.
