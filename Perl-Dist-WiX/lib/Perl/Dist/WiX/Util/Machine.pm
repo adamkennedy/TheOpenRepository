@@ -309,7 +309,7 @@ sub BUILD {
 	}
 
 	my $output = $self->_get_output();
-	if ( not -d $output or not -w $output ) {
+	if ( not -d $output or not -x $output ) {
 		PDWiX->throw( "The output directory '$output' does not "
 			  . 'exist, or is not writable' );
 	}
