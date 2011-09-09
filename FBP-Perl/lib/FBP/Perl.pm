@@ -56,7 +56,7 @@ use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
 use FBP           0.37 ();
 
-our $VERSION    = '0.61';
+our $VERSION    = '0.62';
 our $COMPATIBLE = '0.57';
 
 # Event Binding Table
@@ -595,19 +595,19 @@ sub form_wx {
 	my $lines = [
 		"use Wx ':everything';",
 	];
-	if ( $topic->find_first( isa => 'FBP::RichTextCtrl' ) ) {
+	if ( $self->find_plain( $topic => 'FBP::RichTextCtrl' ) ) {
 		push @$lines, "use Wx::STC ();";
 	}
-	if ( $topic->find_first( isa => 'FBP::HtmlWindow' ) ) {
+	if ( $self->find_plain( $topic => 'FBP::HtmlWindow' ) ) {
 		push @$lines, "use Wx::Html ();";
 	}
-	if ( $topic->find_first( isa => 'FBP::Grid' ) ) {
+	if ( $self->find_plain( $topic => 'FBP::Grid' ) ) {
 		push @$lines, "use Wx::Grid ();";
 	}
-	if ( $topic->find_first( isa => 'FBP::Calendar' ) ) {
+	if ( $self->find_plain( $topic => 'FBP::Calendar' ) ) {
 		push @$lines, "use Wx::Calendar ();";
 		push @$lines, "use Wx::DateTime ();";
-	} elsif ( $topic->find_first( isa => 'FBP::DatePickerCtrl' ) ) {
+	} elsif ( $self->find_plain( $topic => 'FBP::DatePickerCtrl' ) ) {
 		push @$lines, "use Wx::DateTime ();";
 	}
 	return $lines;
@@ -3469,6 +3469,19 @@ sub nested {
 
 sub flatten {
 	join '', map { "$_\n" } @{$_[1]};
+}
+
+# Are there any FBP objects of a particular type in a FBP tree
+# that do NOT use a custom subclass.
+sub find_plain {
+	my $self  = shift;
+	my $topic = shift;
+	my $plain = shift;
+
+	# Search for all objects of that type
+	return !! scalar grep {
+		not $_->subclass
+	} $topic->find( isa => $plain );
 }
 
 1;

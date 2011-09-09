@@ -5,12 +5,12 @@ use strict;
 use warnings;
 use Wx ':everything';
 use Wx::STC ();
-use Wx::Html ();
 use Wx::Grid ();
 use t::lib::Custom ();
 use t::lib::MyClass ();
+use t::lib::MyHtmlWindow ();
 
-our $VERSION = '0.61';
+our $VERSION = '0.62';
 our @ISA     = 'Wx::Dialog';
 
 sub new {
@@ -257,7 +257,7 @@ sub new {
 	);
 	$self->{m_scrolledWindow1}->SetScrollRate( 5, 5 );
 
-	$self->{m_htmlWin1} = Wx::HtmlWindow->new(
+	$self->{m_htmlWin1} = t::lib::MyHtmlWindow->new(
 		$self->{m_scrolledWindow1},
 		-1,
 		wxDefaultPosition,

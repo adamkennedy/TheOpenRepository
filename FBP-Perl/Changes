@@ -1,5 +1,10 @@
 Changes for Perl extension FBP-Perl
 
+0.62 Fri 9 Sep 2011
+	- When an object such as a Wx::HtmlWindow is using a subclass it is not
+	  necesary to load Wx::Html as we loading the subclass will achieve the
+	  same thing.
+
 0.61 Fri 19 Aug 2011
 	- Removed redundant control_params method
 	- Moved all constant generation to using ->wx to normalise values
