@@ -292,7 +292,7 @@ sub new {
 	unless ( defined $self->prefix ) {
 		$self->{prefix} = 0;
 	}
-	unless ( Params::Util::_POSINT($self->prefix) ) {
+	unless ( defined Params::Util::_NONNEGINT($self->prefix) ) {
 		die "Missing of invalid 'prefix' param";
 	}
 	unless ( defined $self->i18n ) {
