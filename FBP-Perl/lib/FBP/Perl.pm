@@ -56,7 +56,7 @@ use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
 use FBP           0.37 ();
 
-our $VERSION    = '0.62';
+our $VERSION    = '0.63';
 our $COMPATIBLE = '0.57';
 
 # Event Binding Table
@@ -273,54 +273,66 @@ our %EVENT = (
 
 
 ######################################################################
-# Class Definition
+# Constructor
 
-use Mouse 0.61;
+sub new {
+	my $class = shift;
+	my $self  = bless { @_ }, $class;
 
-has project => (
-	is       => 'ro',
-	isa      => 'FBP::Project',
-	required => 1,
-);
+	# Check params and apply defaults
+	unless ( Params::Util::_INSTANCE($self->project, 'FBP::Project') ) {
+		die "Missing or invalid 'project' param";
+	}
+	unless ( defined $self->version ) {
+		$self->{version} = '0.01';
+	}
+	unless ( defined Params::Util::_STRING($self->version) ) {
+		die "Missing or invalid 'version' param";
+	}
+	unless ( defined $self->prefix ) {
+		$self->{prefix} = 0;
+	}
+	unless ( Params::Util::_POSINT($self->prefix) ) {
+		die "Missing of invalid 'prefix' param";
+	}
+	unless ( defined $self->i18n ) {
+		$self->{i18n} = $self->project->internationalize;
+	}
+	unless ( defined $self->i18n_trim ) {
+		$self->{i18n_trim} = 0;
+	}
+	$self->{i18n_trim} = $self->i18n_trim ? 1 : 0;
+	unless ( defined $self->nocritic ) {
+		$self->{nocritic} = 0;
+	}
+	$self->{nocritic} = $self->nocritic ? 1 : 0;
 
-has version => (
-	is       => 'ro',
-	isa      => 'Str',
-	required => 1,
-	default  => '0.01',
-);
+	return $self;
+}
 
-has prefix => (
-	is       => 'ro',
-	isa      => 'Int',
-	required => 1,
-	default  => 0,
-);
+sub project {
+	$_[0]->{project};
+}
 
-has i18n => (
-	is       => 'ro',
-	isa      => 'Bool',
-	required => 1,
-	builder  => sub {
-		$_[0]->project->internationalize;
-	},
-);
+sub version {
+	$_[0]->{version};
+}
 
-has i18n_trim => (
-	is       => 'ro',
-	isa      => 'Str',
-	required => 1,
-	default  => 0,
-);
+sub prefix {
+	$_[0]->{prefix};
+}
 
-has nocritic => (
-	is       => 'ro',
-	isa      => 'Bool',
-	required => 1,
-	default  => 0,
-);
+sub i18n {
+	$_[0]->{i18n};
+}
 
-no Mouse;
+sub i18n_trim {
+	$_[0]->{i18n_trim};
+}
+
+sub nocritic {
+	$_[0]->{nocritic};
+}
 
 
 

@@ -1,5 +1,8 @@
 Changes for Perl extension FBP-Perl
 
+0.63 Sat 10 Sep 2011
+	- Removing the use of Mouse so we subclass properly
+
 0.62 Fri 9 Sep 2011
 	- When an object such as a Wx::HtmlWindow is using a subclass it is not
 	  necesary to load Wx::Html as we loading the subclass will achieve the

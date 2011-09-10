@@ -10,7 +10,7 @@ use t::lib::Custom ();
 use t::lib::MyClass ();
 use t::lib::MyHtmlWindow ();
 
-our $VERSION = '0.62';
+our $VERSION = '0.63';
 our @ISA     = 'Wx::Dialog';
 
 sub new {
