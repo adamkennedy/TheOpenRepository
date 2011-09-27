@@ -54,9 +54,9 @@ use strict;
 use warnings;
 use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
-use FBP           0.37 ();
+use FBP           0.38 ();
 
-our $VERSION    = '0.63';
+our $VERSION    = '0.64';
 our $COMPATIBLE = '0.57';
 
 # Event Binding Table
@@ -486,7 +486,15 @@ sub app_class {
 
 # For the time being just use the plain name
 sub app_package {
-	$_[0]->project->name;
+	my $self = shift;
+
+	# Use the C++ namespace setting if we can
+	if ( $self->project->namespace ) {
+		return join '::', $self->list( $self->project->namespace );
+	}
+
+	# Fall back to the plain name
+	return $self->project->name;
 }
 
 sub app_header {
@@ -593,7 +601,12 @@ sub form_package {
 	my $self = shift;
 	my $form = shift;
 
-	# For the time being just use the plain name
+	# If the project has a namespace nest the name inside it
+	if ( $self->project->namespace ) {
+		return join '::', $self->app_package, $form->name;
+	}
+
+	# Otherwise the name is the full namespace
 	return $form->name;
 }
 

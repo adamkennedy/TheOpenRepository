@@ -1,5 +1,10 @@
 Changes for Perl extension FBP-Perl
 
+0.64 Thu 27 Sep 2011
+	- Updating FBP dependency to 0.38 to get namespace attribute
+	- If the project defines a namespace, we now use it across the
+	  generation of all classes, prepending it to the form packages
+
 0.63 Sat 10 Sep 2011
 	- Removing the use of Mouse so we subclass properly
 

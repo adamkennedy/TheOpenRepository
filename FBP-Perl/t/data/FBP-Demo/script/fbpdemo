@@ -5,10 +5,10 @@
 use 5.008;
 use strict;
 use warnings;
-use t::lib::Simple ();
+use FBP::Demo ();
 
-our $VERSION = '0.64';
+our $VERSION = '0.01';
 
-t::lib::Simple->run;
+FBP::Demo->run;
 
 exit(0);
