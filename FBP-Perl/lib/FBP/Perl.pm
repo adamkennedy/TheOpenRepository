@@ -457,7 +457,9 @@ sub app_class {
 		"",
 		"sub run {",
 		$self->indent(
-			"shift->new(\@_)->MainLoop;",
+			"my \$class = shift;",
+			"my \$self  = \$class->new(\@_);",
+			"return \$self->MainLoop;",
 		),
 		"}",
 		"",

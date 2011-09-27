@@ -127,11 +127,11 @@ sub new {
 }
 
 sub menu_event {
-	die 'Handler method menu_event for event m_menuItem1.OnMenuSelection not implemented';
+	warn 'Handler method menu_event for event m_menuItem1.OnMenuSelection not implemented';
 }
 
 sub yes_clicked {
-	die 'Handler method yes_clicked for event m_sdbSizer1.OnYesButtonClick not implemented';
+	warn 'Handler method yes_clicked for event m_sdbSizer1.OnYesButtonClick not implemented';
 }
 
 1;

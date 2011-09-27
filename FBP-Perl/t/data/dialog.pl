@@ -907,31 +907,31 @@ sub m_htmlWin1 {
 }
 
 sub refresh {
-	die 'Handler method refresh for event m_textCtrl1.OnText not implemented';
+	warn 'Handler method refresh for event m_textCtrl1.OnText not implemented';
 }
 
 sub m_button1 {
-	die 'Handler method m_button1 for event m_button1.OnButtonClick not implemented';
+	warn 'Handler method m_button1 for event m_button1.OnButtonClick not implemented';
 }
 
 sub list_col_click {
-	die 'Handler method list_col_click for event m_listCtrl1.OnListColClick not implemented';
+	warn 'Handler method list_col_click for event m_listCtrl1.OnListColClick not implemented';
 }
 
 sub list_item_activated {
-	die 'Handler method list_item_activated for event m_listCtrl1.OnListItemActivated not implemented';
+	warn 'Handler method list_item_activated for event m_listCtrl1.OnListItemActivated not implemented';
 }
 
 sub list_item_selected {
-	die 'Handler method list_item_selected for event m_listCtrl1.OnListItemSelected not implemented';
+	warn 'Handler method list_item_selected for event m_listCtrl1.OnListItemSelected not implemented';
 }
 
 sub on_radio_box {
-	die 'Handler method on_radio_box for event m_radioBox1.OnRadioBox not implemented';
+	warn 'Handler method on_radio_box for event m_radioBox1.OnRadioBox not implemented';
 }
 
 sub m_filePicker1_changed {
-	die 'Handler method m_filePicker1_changed for event m_filePicker1.OnFileChanged not implemented';
+	warn 'Handler method m_filePicker1_changed for event m_filePicker1.OnFileChanged not implemented';
 }
 
 1;

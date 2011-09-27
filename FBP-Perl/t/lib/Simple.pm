@@ -13,7 +13,9 @@ our $VERSION = '0.64';
 our @ISA     = 'Wx::App';
 
 sub run {
-	shift->new(@_)->MainLoop;
+	my $class = shift;
+	my $self  = $class->new(@_);
+	return $self->MainLoop;
 }
 
 sub OnInit {
