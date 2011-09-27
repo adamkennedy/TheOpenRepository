@@ -3,7 +3,9 @@ Changes for Perl extension FBP-Perl
 0.64 Thu 27 Sep 2011
 	- Updating FBP dependency to 0.38 to get namespace attribute
 	- If the project defines a namespace, we now use it across the
-	  generation of all classes, prepending it to the form packages
+	  generation of all classes, prepending it to the form packages.
+	- The default event handler now warns instead of dies as the latter
+	  seems to cause Wx to segfault on exit.
 
 0.63 Sat 10 Sep 2011
 	- Removing the use of Mouse so we subclass properly

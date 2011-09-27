@@ -3241,7 +3241,7 @@ sub object_event {
 
 	return $self->nested(
 		"sub $method {",
-		"die 'Handler method $method for event $name.$event not implemented';",
+		"warn 'Handler method $method for event $name.$event not implemented';",
 		"}",
 	);
 }
