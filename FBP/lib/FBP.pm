@@ -107,7 +107,7 @@ use FBP::ToolBar              ();
 use FBP::ToolSeparator        ();
 use FBP::TreeCtrl             ();
 
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 
 extends 'FBP::Object';
 with    'FBP::Children';

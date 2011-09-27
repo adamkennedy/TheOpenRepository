@@ -2,7 +2,7 @@ package FBP::ToolBar;
 
 use Mouse;
 
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 
 extends 'FBP::Window';
 with    'FBP::Children';

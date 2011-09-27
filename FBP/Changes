@@ -1,5 +1,9 @@
 Changes for Perl extension FBP
 
+0.38 Tue 27 Sep 2011
+	- Added FBP::Project::encoding method
+	- Added FBP::Project::namespace method
+
 0.37 Wed 20 Jul 2011
 	- Updating Mouse dependency to 0.90 to get ->DOES support
 

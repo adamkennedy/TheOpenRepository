@@ -2,7 +2,7 @@ package FBP::StaticBoxSizer;
 
 use Mouse;
 
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 
 extends 'FBP::BoxSizer';
 

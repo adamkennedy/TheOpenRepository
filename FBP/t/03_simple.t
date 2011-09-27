@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 351;
+use Test::More tests => 353;
 use Test::NoWarnings;
 use Scalar::Util 'refaddr';
 use File::Spec::Functions ':ALL';
@@ -39,6 +39,8 @@ isa_ok( $project, 'FBP::Project' );
 is( $project->name, 'Simple', '->name' );
 is( $project->relative_path, '1', '->relative_path' );
 is( $project->internationalize, '1', '->internationalize' );
+is( $project->encoding, 'UTF-8', '->encoding' );
+is( $project->namespace, '', '->namespace' );
 
 # Find a particular named dialog
 my $dialog1 = $fbp->dialog('MyDialog1');

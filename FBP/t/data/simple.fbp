@@ -1187,7 +1187,7 @@
                                                                 <property name="pos"></property>
                                                                 <property name="size">200,200</property>
                                                                 <property name="style">wxHW_SCROLLBAR_AUTO</property>
-                                                                <property name="subclass"></property>
+                                                                <property name="subclass">t::lib::MyHtmlWindow; t::lib::MyHtmlWindow</property>
                                                                 <property name="tooltip"></property>
                                                                 <property name="validator_data_type"></property>
                                                                 <property name="validator_style">wxFILTER_NONE</property>

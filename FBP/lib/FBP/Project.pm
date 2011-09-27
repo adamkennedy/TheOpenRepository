@@ -2,7 +2,7 @@ package FBP::Project;
 
 use Mouse;
 
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 
 extends 'FBP::Object';
 with    'FBP::Children';
@@ -20,6 +20,16 @@ has relative_path => (
 has internationalize => (
 	is  => 'ro',
 	isa => 'Bool',
+);
+
+has encoding => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+has namespace => (
+	is  => 'ro',
+	isa => 'Str',
 );
 
 no Mouse;
