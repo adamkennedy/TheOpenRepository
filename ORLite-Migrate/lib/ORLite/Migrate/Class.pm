@@ -172,7 +172,7 @@ sub upgrade {
 		}
 
 		# Confirm completion
-		$self->user_version($have);
+		$self->pragma( 'user_version' => $have );
 	}
 
 	return 1;
