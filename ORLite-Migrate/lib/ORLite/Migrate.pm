@@ -62,6 +62,7 @@ sub import {
 	unless ( Params::Util::_CLASS($params{package}) ) {
 		Carp::croak("Missing or invalid package class");
 	}
+	
 	unless ( $params{timeline} and -d $params{timeline} and -r $params{timeline} ) {
 		Carp::croak("Missing or invalid timeline directory");
 	}
