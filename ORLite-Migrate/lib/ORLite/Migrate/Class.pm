@@ -13,9 +13,18 @@ ORLite::Migrate::Class - ORLite::Migrate timelines contained in a single class
   use strict;
   use base 'ORLite::Migrate::Class';
   
-  sub upgrade1 {
+  sub upgrade1 { $_[0]->do(<<'END_SQL') }
+  CREATE TABLE foo (
+      bar INTEGER NOT NULL PRIMARY KEY,
+  )
+  END_SQL
+  
+  sub upgrade2 {
       my $self = shift;
-      $self->do('CREATE TABLE foo ( bar integer not null primary key )');
+      $self->do('TRUNCATE TABLE foo');
+      foreach ( 1 .. 10 ) {
+          $self->do( 'INSERT INTO foo VALUES ( ? )', {}, $_ );
+      }
   }
   
   1;
@@ -116,10 +125,37 @@ sub new {
 #######################################################################
 # Internal Methods
 
+=pod
+
+=head2 upgrade
+
+  $timeline->upgrade(10);
+
+The C<update> method is called on the timeline object by L<ORLite::Migrate>
+to trigger the sequential execution of the individual C<upgradeN> methods.
+
+The first method to be called will be the method one greater than the current
+value of the C<user_revision> pragma, and the last method to be called will be
+the target revision, the first parameter to the method.
+
+As all upgrade methods are contained in a single class, a high level of control
+is assumed and so the execution plan will not be calculated in advance. The 
+C<upgrade> method will simply start rolling forwards and keep going until it
+reaches the target version (or die's trying).
+
+Returns true if all (zero or more) upgrade methods executed without throwing
+an exception.
+
+Throws an exception (dies) if any C<upgradeN> method throws an exception, or
+if the migration process expects to find a particular numeric C<upgradeN>
+method and cannot do so.
+
+=cut
+
 sub upgrade {
 	my $self = shift;
 	my $want = Params::Util::_POSINT(shift);
-	my $have = $self->user_version;
+	my $have = $self->pragma('user_version');
 
 	# Roll the schema forwards
 	while ( $want and $want > $have ) {
@@ -151,59 +187,156 @@ sub upgrade {
 
 =pod
 
-=head2 dbh
+=head2 do
 
-If you need to do something to the database outside the scope of the methods
-described below, the C<dbh> method can be used to get access to the database
-connection directly.
-
-This is discouraged as it can allow your migration code to create changes that
-might cause unexpected problems. However, in the 1% of cases where the methods
-below are not enough, using it with caution will allow you to make changes that
-would not otherwise be possible.
+The C<do> method is a convenience which provides a direct wrapper over the
+L<DBI> method C<do>. It takes the same parameters and returns the same results.
 
 =cut
-
-sub dbh {
-	$_[0]->{dbh};
-}
 
 sub do {
 	shift->dbh->do(@_);
 }
 
+=pod
+
+=head2 selectall_arrayref
+
+The C<selectall_arrayref> method is a convenience which provides a direct
+wrapper over the L<DBI> method C<selectall_arrayref>. It takes the same parameters
+and returns the same results.
+
+=cut
+
 sub selectall_arrayref {
 	shift->dbh->selectall_arrayref(@_);
 }
+
+=pod
+
+=head2 selectall_hashref
+
+The C<selectall_hashref> method is a convenience which provides a direct
+wrapper over the L<DBI> method C<selectall_hashref>. It takes the same parameters
+and returns the same results.
+
+=cut
 
 sub selectall_hashref {
 	shift->dbh->selectall_hashref(@_);
 }
 
+=pod
+
+=head2 selectcol_arrayref
+
+The C<selectcol_arrayref> method is a convenience which provides a direct
+wrapper over the L<DBI> method C<selectcol_arrayref>. It takes the same parameters
+and returns the same results.
+
+=cut
+
 sub selectcol_arrayref {
 	shift->dbh->selectcol_arrayref(@_);
 }
+
+=pod
+
+=head2 selectrow_array
+
+The C<selectrow_array> method is a convenience which provides a direct
+wrapper over the L<DBI> method C<selectrow_array>. It takes the same parameters
+and returns the same results.
+
+=cut
 
 sub selectrow_array {
 	shift->dbh->selectrow_array(@_);
 }
 
+=pod
+
+=head2 selectrow_arrayref
+
+The C<selectrow_arrayref> method is a convenience which provides a direct
+wrapper over the L<DBI> method C<selectrow_arrayref>. It takes the same parameters
+and returns the same results.
+
+=cut
+
 sub selectrow_arrayref {
 	shift->dbh->selectrow_arrayref(@_);
 }
+
+=pod
+
+=head2 selectrow_hashref
+
+The C<selectrow_hashref> method is a convenience which provides a direct
+wrapper over the L<DBI> method C<selectrow_hashref>. It takes the same parameters
+and returns the same results.
+
+=cut
 
 sub selectrow_hashref {
 	shift->dbh->selectrow_hashref(@_);
 }
 
-sub user_version {
-	shift->pragma( 'user_version', @_ );
-}
+=pod
+
+=head2 pragma
+
+  # Get a pragma value
+  my $locking = $self->pragma('locking_mode');
+  
+  # Set a pragma value
+  $self->pragma( synchronous => 0 );
+
+The C<pragma> method provides a convenience over the top of the C<PRAGMA> SQL
+statement, and allows the convenience query and change of SQLite pragmas.
+
+For example, if your application wanted to switch SQLite auto vacuuming off
+and instead control vacuuming of the database manually, you could do something
+like the following.
+
+    # Disable auto-vacuuming because we'll only fill this once.
+    # Do a one-time vacuum so we start with a clean empty database.
+    $dbh->pragma( auto_vacuum => 0 );
+    $dbh->do('VACUUM');
+
+=cut
 
 sub pragma {
 	$_[0]->do("pragma $_[1] = $_[2]") if @_ > 2;
 	$_[0]->selectrow_arrayref("pragma $_[1]")->[0];
 }
+
+=pod
+
+=head2 table_exists
+
+The C<table_exists> method is a convenience to check for the existance of a
+table already. Most of the time this isn't going to be needed because the
+schema revisioning itself guarentees there is or is not an existing table of
+a particular name.
+
+However, occasionally you may encounter a situation where your L<ORLite> module
+is sharing a SQLite database with other code, or you are taking over control
+of a table from a plugin, or similar.
+
+In these situations it provides a small amount of added safety to be able to
+say things like.
+
+  sub upgrade25 {
+      my $self = shift;
+      if ( $self->table_exists('foo') ) {
+          $self->do('DROP TABLE foo');
+      }
+  }
+
+Returns true (1) if the table exists or false (0) if not.
+
+=cut
 
 sub table_exists {
 	$_[0]->selectrow_array(
@@ -212,9 +345,42 @@ sub table_exists {
 	);
 }
 
+=pod
+
+=head2 column_exists
+
+The C<column_exists> method is a convenience to check for the existance of a
+column already. It has somewhat less uses than the similar C<table_exists> and
+is mainly used when a column may exist on various miscellaneous developer
+versions of databases, or where the table structure may be variable across
+different groups of users.
+
+Returns true (1) if the table exists or false (0) if not.
+
+=cut
+
 sub column_exists {
 	$_[0]->table_exists( $_[1] )
 		or $_[0]->selectrow_array( "select count($_[2]) from $_[1]", {} );
+}
+
+=pod
+
+=head2 dbh
+
+If you need to do something to the database outside the scope of the methods
+described above, the C<dbh> method can be used to get access to the database
+connection directly.
+
+This is discouraged as it can allow your migration code to create changes that
+might cause unexpected problems. However, in the 1% of cases where the methods
+above are not enough, using it with caution will allow you to make changes that
+would not otherwise be possible.
+
+=cut
+
+sub dbh {
+	$_[0]->{dbh};
 }
 
 1;
