@@ -63,8 +63,12 @@ sub import {
 		Carp::croak("Missing or invalid package class");
 	}
 	
-	unless ( $params{timeline} and -d $params{timeline} and -r $params{timeline} ) {
-		Carp::croak("Missing or invalid timeline directory");
+	unless (
+		Params::Util::_DRIVER($params{timeline}, 'ORLite::Migrate::Class')
+		or
+		($params{timeline} and -d $params{timeline} and -r $params{timeline})
+	) {
+		Carp::croak("Missing or invalid timeline");
 	}
 
 	# We don't support readonly databases
@@ -92,45 +96,50 @@ sub import {
 	# We're done with the prune setting now
 	$params{prune} = 0;
 
-	# Build the migration plan
-	my $timeline = File::Spec->rel2abs($params{timeline});
-	my @plan     = plan( $params{timeline}, $version );
+	# Handle the migration class
+	if ( Params::Util::_DRIVER($params{timeline}, 'ORLite::Migrate::Class') ) {
+		$params{timeline}->new( dbh => DBI->connect($dsn) )->upgrade($version);
+		
+	} else {
+		my $timeline = File::Spec->rel2abs($params{timeline});
+		my @plan     = plan( $params{timeline}, $version );
 
-	# Execute the migration plan
-	if ( @plan ) {
-		# Does the migration plan reach the required destination
-		my $destination = $version + scalar(@plan);
-		if (
-			exists $params{user_version}
-			and
-			$destination != $params{user_version}
-		) {
-			die "Schema migration destination user_version mismatch (got $destination, wanted $params{user_version})";
-		}
-
-		# Load the modules needed for the migration
-		require ORLite::Migrate::Perl;
-		require File::pushd;
-		require IPC::Run3;
-
-		# Execute each script
-		my $perl  = ORLite::Migrate::Perl::cperl();
-		my $pushd = File::pushd::pushd($timeline);
-		foreach my $patch ( @plan ) {
-			my $stdin = "$file\n";
-			if ( $DEBUG ) {
-				print STDERR "Applying schema patch $patch...\n";
+		# Execute the migration plan
+		if ( @plan ) {
+			# Does the migration plan reach the required destination
+			my $destination = $version + scalar(@plan);
+			if (
+				exists $params{user_version}
+				and
+				$destination != $params{user_version}
+			) {
+				die "Schema migration destination user_version mismatch (got $destination, wanted $params{user_version})";
 			}
-			my $ok = IPC::Run3::run3( [ $perl, $patch ], \$stdin, \undef, $DEBUG ? undef : \undef );
-			if ( ! $ok or $? != 0 ) {
-				Carp::croak("Migration patch $patch failed, database in unknown state");
-			}
-		}
 
-		# Migration complete, set user_version to new state
-		$dbh = DBI->connect($dsn);
-		$dbh->do("pragma user_version = $destination");
-		$dbh->disconnect;
+			# Load the modules needed for the migration
+			require ORLite::Migrate::Perl;
+			require File::pushd;
+			require IPC::Run3;
+
+			# Execute each script
+			my $perl  = ORLite::Migrate::Perl::cperl();
+			my $pushd = File::pushd::pushd($timeline);
+			foreach my $patch ( @plan ) {
+				my $stdin = "$file\n";
+				if ( $DEBUG ) {
+					print STDERR "Applying schema patch $patch...\n";
+				}
+				my $ok = IPC::Run3::run3( [ $perl, $patch ], \$stdin, \undef, $DEBUG ? undef : \undef );
+				if ( ! $ok or $? != 0 ) {
+					Carp::croak("Migration patch $patch failed, database in unknown state");
+				}
+			}
+
+			# Migration complete, set user_version to new state
+			$dbh = DBI->connect($dsn);
+			$dbh->do("pragma user_version = $destination");
+			$dbh->disconnect;
+		}
 	}
 
 	# Hand off to the regular constructor
