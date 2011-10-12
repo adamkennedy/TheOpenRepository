@@ -9,5 +9,5 @@ BEGIN {
 use Test::More tests => 3;
 
 require_ok( 'ORLite::Migrate'        );
-require_ok( 'ORLite::Migrate::Class' );
+require_ok( 'ORLite::Migrate::Timeline' );
 require_ok( 'ORLite::Migrate::Patch' );

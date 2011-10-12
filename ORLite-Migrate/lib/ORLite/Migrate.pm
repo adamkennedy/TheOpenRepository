@@ -64,7 +64,7 @@ sub import {
 	}
 
 	unless (
-		Params::Util::_DRIVER($params{timeline}, 'ORLite::Migrate::Class')
+		Params::Util::_DRIVER($params{timeline}, 'ORLite::Migrate::Timeline')
 		or
 		($params{timeline} and -d $params{timeline} and -r $params{timeline})
 	) {
@@ -97,7 +97,7 @@ sub import {
 	$params{prune} = 0;
 
 	# Handle the migration class
-	if ( Params::Util::_DRIVER($params{timeline}, 'ORLite::Migrate::Class') ) {
+	if ( Params::Util::_DRIVER($params{timeline}, 'ORLite::Migrate::Timeline') ) {
 		my $timeline = $params{timeline}->new(
 			dbh => DBI->connect($dsn),
 		);
@@ -338,7 +338,7 @@ The following is an example of a trivial timeline class.
   package t::lib::MyTimeline;
   
   use strict;
-  use base 'ORLite::Migrate::Class';
+  use base 'ORLite::Migrate::Timeline';
   
   my $UPGRADE1 = <<'END_SQL';
   

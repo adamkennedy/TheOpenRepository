@@ -1,17 +1,17 @@
-package ORLite::Migrate::Class;
+package ORLite::Migrate::Timeline;
 
 =pod
 
 =head1 NAME
 
-ORLite::Migrate::Class - ORLite::Migrate timelines contained in a single class
+ORLite::Migrate::Timeline - ORLite::Migrate timelines contained in a single class
 
 =head1 SYNOPSIS
 
   package My::Timeline;
   
   use strict;
-  use base 'ORLite::Migrate::Class';
+  use base 'ORLite::Migrate::Timeline';
   
   sub upgrade1 { $_[0]->do(<<'END_SQL') }
   CREATE TABLE foo (
@@ -44,7 +44,7 @@ However, to execute a sub-script your program needs to reliably know where the
 Perl executable that launched it is and in some situations this is difficult or
 infeasible.
 
-B<ORLite::Migrate::Class> provides an alternative mechanism for specifying the
+B<ORLite::Migrate::Timeline> provides an alternative mechanism for specifying the
 migration timeline which adds the ability to run migration timelines in strange
 Perl environments at the cost of losing process isolation for your patch code.
 
@@ -54,7 +54,7 @@ using magic Perl modules such as L<Aspect> or L<UNIVERSAL::isa> which might
 have a global impact on your program.
 
 To use this method, create a new class which inherits from
-L<ORLite::Migrate::Class> and create a C<upgrade1> method. When encountering
+L<ORLite::Migrate::Timeline> and create a C<upgrade1> method. When encountering
 a new unversioned SQLite database, the migration planner will execute this
 C<upgrade1> method and set the schema version to 1 once completed.
 

@@ -7,7 +7,7 @@ BEGIN {
 
 use Test::More tests => 4;
 use File::Spec::Functions ':ALL';
-use ORLite::Migrate::Class ();
+use ORLite::Migrate::Timeline ();
 use t::lib::Test;
 use t::lib::MyTimeline;
 
