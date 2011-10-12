@@ -5,7 +5,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 3;
+use Test::More tests => 4;
 use File::Spec::Functions ':ALL';
 use ORLite::Migrate::Class ();
 use t::lib::Test;
@@ -20,12 +20,17 @@ package Foo::Bar;
 
 use strict;
 use ORLite::Migrate {
-	file     => '$file',
-	create   => 1,
-	tables   => 0,
-	prune    => 1,
-	timeline => 't::lib::MyTimeline',
+	file         => '$file',
+	timeline     => 't::lib::MyTimeline',
+	user_version => 3,
+	create       => 1,
+	prune        => 1,
 };
 
 1;
 END_PERL
+
+can_ok( 'Foo::Bar', 'do' );
+can_ok( 'Foo::Bar', 'orlite' );
+is( Foo::Bar::Foo->base, 'Foo::Bar', 'Foo::Bar::Foo created' );
+is( Foo::Bar->pragma('user_version'), 3, 'user_version is 3' );

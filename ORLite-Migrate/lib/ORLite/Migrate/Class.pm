@@ -68,7 +68,7 @@ assist in making your schema patch code simpler and easier.
 
 =cut
 
-use 5.008005;
+use 5.006;
 use strict;
 use warnings;
 use DBI          ();

@@ -5,7 +5,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 3;
+use Test::More tests => 5;
 use File::Spec::Functions ':ALL';
 use ORLite::Migrate ();
 use t::lib::Test;
@@ -41,9 +41,12 @@ use strict;
 use ORLite {
 	file   => '$file',
 	create => 1,
-	tables => 0,
 	prune  => 1,
 };
 
 1;
 END_PERL
+
+can_ok( 'Foo::Bar', 'do' );
+can_ok( 'Foo::Bar', 'orlite' );
+

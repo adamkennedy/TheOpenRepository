@@ -15,7 +15,7 @@ use ORLite       1.28 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.07';
+	$VERSION = '1.08';
 	@ISA     = 'ORLite';
 }
 
@@ -62,7 +62,7 @@ sub import {
 	unless ( Params::Util::_CLASS($params{package}) ) {
 		Carp::croak("Missing or invalid package class");
 	}
-	
+
 	unless (
 		Params::Util::_DRIVER($params{timeline}, 'ORLite::Migrate::Class')
 		or
@@ -98,8 +98,11 @@ sub import {
 
 	# Handle the migration class
 	if ( Params::Util::_DRIVER($params{timeline}, 'ORLite::Migrate::Class') ) {
-		$params{timeline}->new( dbh => DBI->connect($dsn) )->upgrade($version);
-		
+		my $timeline = $params{timeline}->new(
+			dbh => DBI->connect($dsn),
+		);
+		$timeline->upgrade( $params{user_version} );
+
 	} else {
 		my $timeline = File::Spec->rel2abs($params{timeline});
 		my @plan     = plan( $params{timeline}, $version );
@@ -117,12 +120,17 @@ sub import {
 			}
 
 			# Load the modules needed for the migration
-			require ORLite::Migrate::Perl;
+			require Probe::Perl;
 			require File::pushd;
 			require IPC::Run3;
 
+			# Locate our Perl interpreter
+			my $perl = Probe::Perl->find_perl_interpreter;
+			unless ( $perl ) {
+				Carp::croak("Unable to locate your perl executable");
+			}
+
 			# Execute each script
-			my $perl  = ORLite::Migrate::Perl::cperl();
 			my $pushd = File::pushd::pushd($timeline);
 			foreach my $patch ( @plan ) {
 				my $stdin = "$file\n";
@@ -243,10 +251,6 @@ ORLite::Migrate - Extremely light weight SQLite-specific schema migration
 
 =head1 DESCRIPTION
 
-B<THIS CODE IS EXPERIMENTAL AND SUBJECT TO CHANGE WITHOUT NOTICE>
-
-B<YOU HAVE BEEN WARNED!>
-
 L<SQLite> is a light weight single file SQL database that provides an
 excellent platform for embedded storage of structured data.
 
@@ -261,8 +265,30 @@ SQLite database using the built-in C<user_version> pragma (which is
 set to zero by default).
 
 When setting up the ORM class, an additional C<timeline> parameter is
-provided, which should point to a directory containing standalone
-migration scripts.
+provided, which should be either a monolithic timeline class, or a directory
+containing standalone migration scripts.
+
+A B<"timeline"> is a set of revisioned schema changed, to be applied in order
+and representing the evolution of the database schema over time. The end of
+the timeline, representing by the highest revision number, represents the
+"current" anticipated schema for the application.
+
+Because the patch sequence can be calculated from any arbitrary starting
+version, by keeping the historical set of changes in your application as
+schema patches it is possible for the user of any older application version
+to install the most current version of an application and have their database
+upgraded smoothly and safely.
+
+The recommended location to store the migration timeline is a shared files
+directory, locatable using one of the functions from L<File::ShareDir>.
+
+The timeline for your application can be specified in two different forms,
+with different advantages and disadvantages.
+
+=head2 Timeline Directories
+
+A Timeline Directory is a directory on the filesystem containing a set of
+Perl scripts named in a consistent pattern.
 
 These patch scripts are named in the form F<migrate-$version.pl>, where
 C<$version> is the schema version to migrate to. A typical timeline
@@ -279,24 +305,82 @@ directory will look something like the following.
   migrate-09.pl
   migrate-10.pl
 
-L<ORLite::Migrate> formulates a migration plan, it will start with the
-current database C<user_version>, and then step forwards looking for a
-migration script that has the version C<user_version + 1>.
+L<ORLite::Migrate> formulates a migration plan that starts at the
+current database C<user_version> pragma value, executing the migration
+script that has the version C<user_version + 1>, then executing
+C<user_version + 2> and so on.
 
 It will continue stepping forwards until it runs out of patches to
 execute.
 
-If L<ORLite::Migrate> is also invoked with a C<user_version> param 
-(to ensure the schema matches the code correctly) the plan will be
-checked in advance to ensure that the migration will end at the value
-specified by the C<user_version> param.
+The main advantage of a timeline directory is that each patch is run
+in its own process and interpreter. Hundreds of patches can be produced by
+many different authors, with certainty that the changes described in each
+will be executed as intended.
 
-Because the migration plan can be calculated from any arbitrary starting
-version, it is possible for any user of an older application version to
-install the most current version of an application and be ugraded safely.
+The main disadvantage of using a timeline directory is that your application
+B<must> be able to identify the Perl interpreter it is run in so that it can
+execute a sub-process. This may be difficult or impossible for cases such as
+PAR-packaged applications and Perl interpreters embedded inside .exe wrappers
+or larger non-Perl applications.
 
-The recommended location to store the migration timeline is a shared files
-directory, locatable using one of the functions from L<File::ShareDir>.
+In general, it is recommended that you use the timeline directory approach
+unless you encounter a situation in which sub-process execution (or locating
+the patch files) is difficult.
+
+=head2 Timeline Classes
+
+A timeline class places all of the schema patches into a single Perl module,
+with each patch represented as a method name.
+
+The following is an example of a trivial timeline class.
+
+  package t::lib::MyTimeline;
+  
+  use strict;
+  use base 'ORLite::Migrate::Class';
+  
+  my $UPGRADE1 = <<'END_SQL';
+  
+  create table foo (
+      id integer not null primary key,
+      name varchar(32) not null
+  );
+  
+  insert into foo values ( 1, 'foo' )
+  
+  END_SQL
+  
+  sub upgrade1 {
+      my $self = shift;
+      foreach ( split /;\s+/, $UPGRADE1 ) {
+          $self->do($_);
+      }
+      return 1;
+  }
+  
+  sub upgrade2 {
+      $_[0]->do("insert into foo values ( 2, 'bar' )");
+  }
+  
+  sub upgrade3 {
+      $_[0]->do("insert into foo values ( 3, 'baz' )");
+  }
+  
+  1;
+
+As with the patch files, the current state of the C<user_version> pragma will
+be examined, and each C<upgradeN> method will be called to advance the
+schema forwards.
+
+The main advantage of a timeline class is that you will not need to execute
+sub-processes, and so a timeline class will continue to function even in
+unusual or exotic process contents such as PAR packaging or .exe wrappers.
+
+The main disadvantage of a timeline class is that the entire timeline code
+must be loaded into memory no matter how many patch steps are needed (and stay
+in memory after the migration has completed), and all patches share a common
+interpreter and thus can potentially pollute or corrupt each other.
 
 =head1 SUPPORT
 

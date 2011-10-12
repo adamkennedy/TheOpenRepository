@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.95;
+use inc::Module::Install::DSL 1.01;
 
 all_from      lib/ORLite/Migrate.pm
 requires_from lib/ORLite/Migrate.pm
