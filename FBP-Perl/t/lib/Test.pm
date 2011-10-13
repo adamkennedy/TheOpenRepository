@@ -47,7 +47,8 @@ sub slurp {
 	my $file = shift;
 	local $/ = undef;
 	local *FILE;
-	open( FILE, '<', $file ) or die "open($file) failed: $!";
+	open( FILE, '<:utf8', $file ) or die "open($file) failed: $!";
+	binmode( FILE, ':crlf' );
 	my $text = <FILE>;
 	close( FILE ) or die "close($file) failed: $!";
 	return $text;
