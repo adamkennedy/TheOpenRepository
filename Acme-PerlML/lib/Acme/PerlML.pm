@@ -9,7 +9,7 @@ use base qw(XML::SAX::Base);
 
 use vars qw{$VERSION $CODE};
 BEGIN {
-	$VERSION = '1.00';
+	$VERSION = '1.01';
 	$CODE    = '';
 }
 
