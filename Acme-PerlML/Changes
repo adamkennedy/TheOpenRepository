@@ -1,5 +1,8 @@
 Revision history for Perl extension Acme-PerlML
 
+1.01 Sat 15 Oct 2011
+    - Add missing output code
+
 1.00 Tue  6 Jun 2006
 	- Moved from old CVS to new SVN repository
 	- Upgraded to Module::Install 0.62
