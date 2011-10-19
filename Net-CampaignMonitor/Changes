@@ -1,3 +1,6 @@
+0.05 Wed 19 October 2011
+	- Fixed an error with the HTTP realm and other issues associated with this change.
+
 0.04 Fri 04 March 2011
 	- Modified the tests to require the user to enter the API key.
 

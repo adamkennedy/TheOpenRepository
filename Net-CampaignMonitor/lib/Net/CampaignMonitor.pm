@@ -5,7 +5,7 @@ use REST::Client;
 use Params::Util qw{_STRING _NONNEGINT _POSINT _HASH _HASHLIKE};
 use JSON;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 sub new	{
 		
@@ -13,17 +13,20 @@ sub new	{
 	my $self = bless($args, $class);
 	$self->{format} = 'json';
 	
-	if ( Params::Util::_NONNEGINT($self->{secure}) && $self->{secure} == 1) {
-		$self->{netloc} = 'api.createsend.com:443';
-		$self->{realm}  = 'https://api.createsend.com/api/v3/';
+	if ( $self->{secure} == 1) {
+		$self->{netloc}   = 'api.createsend.com:443';
+		$self->{realm}    = 'api.createsend.com';
+		$self->{protocol} = 'https://';
 	}
-	elsif ( Params::Util::_NONNEGINT($self->{secure}) && $self->{secure} == 0) {
-		$self->{netloc} = 'api.createsend.com:80';
-		$self->{realm}  = 'http://api.createsend.com/api/v3/';
+	elsif ( $self->{secure} == 0) {
+		$self->{netloc}   = 'api.createsend.com:80';
+		$self->{realm}    = 'api.createsend.com';
+		$self->{protocol} = 'http://';
 	}
 	else {
-		$self->{netloc} = 'api.createsend.com:443';
-		$self->{realm}  = 'https://api.createsend.com/api/v3/';
+		$self->{netloc}   = 'api.createsend.com:443';
+		$self->{realm}    = 'api.createsend.com';
+		$self->{protocol} = 'https://';
 	}
 	
 	unless( Params::Util::_POSINT($self->{timeout}) ) {
@@ -52,7 +55,7 @@ sub create_rest_client {
 	my ($self) = @_;
 	
 	my $client = REST::Client->new();
-	$client->getUseragent->credentials($self->{netloc}, $self->{realm}."systemdate.".$self->{format}, $self->{api_key}, "");
+	$client->getUseragent->credentials($self->{netloc}, $self->{realm}, $self->{api_key}, "");
 	$client->setFollow(1);
 	$client->setTimeout($self->{timeout});
 	return $client;
@@ -74,7 +77,7 @@ sub account_systemdate {
 	
 	my ($self) = @_;
 	my $results;
-	$self->{client}->GET($self->{realm}."systemdate.".$self->{format});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/systemdate.".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -88,7 +91,7 @@ sub account_clients {
 	if (scalar(@_) == 1) { #get the list of clients
 		my ($self) = @_;
 		my $results;
-		$self->{client}->GET($self->{realm}."clients.".$self->{format});
+		$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/clients.".$self->{format});
 		
 		$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 		$results->{'code'} = $self->{client}->responseCode();
@@ -103,7 +106,7 @@ sub account_clients {
 		my $json_request = encode_json \%request;
 		my $results;
 		
-		$self->{client}->POST($self->{realm}."clients.".$self->{format}, $json_request);
+		$self->{client}->POST($self->{protocol}.$self->{realm}."/api/v3/clients.".$self->{format}, $json_request);
 		
 		$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 		$results->{'code'} = $self->{client}->responseCode();
@@ -117,7 +120,7 @@ sub account_countries {
 	
 	my ($self) = @_;
 	my $results;
-	$self->{client}->GET($self->{realm}."countries.".$self->{format});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/countries.".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -130,7 +133,7 @@ sub account_timezones {
 	
 	my ($self) = @_;
 	my $results;
-	$self->{client}->GET($self->{realm}."timezones.".$self->{format});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/timezones.".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -148,11 +151,11 @@ sub account_apikey {
 	my $api_client = REST::Client->new();
 	my $results;
 	
-	$api_client->getUseragent->credentials($self->{netloc}, $self->{realm}."apikey.".$self->{format}, $username, $password);
+	$api_client->getUseragent->credentials($self->{netloc}, $self->{protocol}.$self->{realm}."/api/v3/apikey.".$self->{format}, $username, $password);
 	$api_client->setFollow(1);
 	$api_client->setTimeout(60);
 	
-	$api_client->GET($self->{realm}."apikey.".$self->{format}."?siteurl=".$siteurl);
+	$api_client->GET($self->{protocol}.$self->{realm}."/api/v3/apikey.".$self->{format}."?siteurl=".$siteurl);
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $api_client->responseCode();
@@ -166,7 +169,7 @@ sub client_clientid {
 	my $self = shift;
 	my $client_id = $_[0];
 	my $results;
-	$self->{client}->GET($self->{realm}."clients/".$client_id.".".$self->{format});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/clients/".$client_id.".".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -180,7 +183,7 @@ sub client_campaigns {
 	my $self = shift;
 	my $client_id = $_[0];
 	my $results;
-	$self->{client}->GET($self->{realm}."clients/".$client_id."/campaigns.".$self->{format});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/clients/".$client_id."/campaigns.".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -194,7 +197,7 @@ sub client_drafts {
 	my $self = shift;
 	my $client_id = $_[0];
 	my $results;
-	$self->{client}->GET($self->{realm}."clients/".$client_id."/drafts.".$self->{format});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/clients/".$client_id."/drafts.".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -208,7 +211,7 @@ sub client_lists {
 	my $self = shift;
 	my $client_id = $_[0];
 	my $results;
-	$self->{client}->GET($self->{realm}."clients/".$client_id."/lists.".$self->{format});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/clients/".$client_id."/lists.".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -222,7 +225,7 @@ sub client_segments {
 	my $self = shift;
 	my $client_id = $_[0];
 	my $results;
-	$self->{client}->GET($self->{realm}."clients/".$client_id."/segments.".$self->{format});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/clients/".$client_id."/segments.".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -250,7 +253,7 @@ sub client_suppressionlist {
 	}
 	
 	my $results;
-	$self->{client}->GET($self->{realm}."clients/".$input{clientid}."/suppressionlist.".$self->{format}."?page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/clients/".$input{clientid}."/suppressionlist.".$self->{format}."?page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -264,7 +267,7 @@ sub client_templates {
 	my $self = shift;
 	my $client_id = $_[0];
 	my $results;
-	$self->{client}->GET($self->{realm}."clients/".$client_id."/templates.".$self->{format});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/clients/".$client_id."/templates.".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -284,7 +287,7 @@ sub client_setbasics {
 	my $json_request = encode_json \%request;
 	my $results;
 	
-	$self->{client}->PUT($self->{realm}."clients/".$client_id."/setbasics.".$self->{format}, $json_request);
+	$self->{client}->PUT($self->{protocol}.$self->{realm}."/api/v3/clients/".$client_id."/setbasics.".$self->{format}, $json_request);
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -304,7 +307,7 @@ sub client_setaccess {
 	my $json_request = encode_json \%request;
 	my $results;
 	
-	$self->{client}->PUT($self->{realm}."clients/".$client_id."/setaccess.".$self->{format}, $json_request);
+	$self->{client}->PUT($self->{protocol}.$self->{realm}."/api/v3/clients/".$client_id."/setaccess.".$self->{format}, $json_request);
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -324,7 +327,7 @@ sub client_setpaygbilling {
 	my $json_request = encode_json \%request;
 	my $results;
 	
-	$self->{client}->PUT($self->{realm}."clients/".$client_id."/setpaygbilling.".$self->{format}, $json_request);
+	$self->{client}->PUT($self->{protocol}.$self->{realm}."/api/v3/clients/".$client_id."/setpaygbilling.".$self->{format}, $json_request);
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -344,7 +347,7 @@ sub client_setmonthlybilling {
 	my $json_request = encode_json \%request;
 	my $results;
 	
-	$self->{client}->PUT($self->{realm}."clients/".$client_id."/setmonthlybilling.".$self->{format}, $json_request);
+	$self->{client}->PUT($self->{protocol}.$self->{realm}."/api/v3/clients/".$client_id."/setmonthlybilling.".$self->{format}, $json_request);
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -358,7 +361,7 @@ sub client_delete {
 	my $self = shift;
 	my $client_id = $_[0];
 	my $results;
-	$self->{client}->DELETE($self->{realm}."clients/".$client_id.".".$self->{format});
+	$self->{client}->DELETE($self->{protocol}.$self->{realm}."/api/v3/clients/".$client_id.".".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -377,7 +380,7 @@ sub lists { #create a list
 	my $json_request = encode_json \%request;
 	my $results;
 	
-	$self->{client}->POST($self->{realm}."lists/".$client_id.".".$self->{format}, $json_request);
+	$self->{client}->POST($self->{protocol}.$self->{realm}."/api/v3/lists/".$client_id.".".$self->{format}, $json_request);
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -393,7 +396,7 @@ sub list_listid {
 	if ( scalar(@_) == 1 ) { #get the list details
 		my $list_id = $_[0];
 		my $results;
-		$self->{client}->GET($self->{realm}."lists/".$list_id.".".$self->{format});
+		$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/lists/".$list_id.".".$self->{format});
 		
 		$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 		$results->{'code'} = $self->{client}->responseCode();
@@ -410,7 +413,7 @@ sub list_listid {
 		my $json_request = encode_json \%request;
 		my $results;
 		
-		$self->{client}->PUT($self->{realm}."lists/".$list_id.".".$self->{format}, $json_request);
+		$self->{client}->PUT($self->{protocol}.$self->{realm}."/api/v3/lists/".$list_id.".".$self->{format}, $json_request);
 		
 		$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 		$results->{'code'} = $self->{client}->responseCode();
@@ -425,7 +428,7 @@ sub list_stats {
 	my $self = shift;
 	my $list_id = $_[0];
 	my $results;
-	$self->{client}->GET($self->{realm}."lists/".$list_id."/stats.".$self->{format});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/lists/".$list_id."/stats.".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -441,7 +444,7 @@ sub list_customfields {
 	if (scalar(@_) == 1) { #get the custom field details
 		my $list_id = $_[0];
 		my $results;
-		$self->{client}->GET($self->{realm}."lists/".$list_id."/customfields.".$self->{format});
+		$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/lists/".$list_id."/customfields.".$self->{format});
 		
 		$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 		$results->{'code'} = $self->{client}->responseCode();
@@ -458,7 +461,7 @@ sub list_customfields {
 		my $json_request = encode_json \%request;
 		my $results;
 		
-		$self->{client}->POST($self->{realm}."lists/".$list_id."/customfields.".$self->{format}, $json_request);
+		$self->{client}->POST($self->{protocol}.$self->{realm}."/api/v3/lists/".$list_id."/customfields.".$self->{format}, $json_request);
 		
 		$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 		$results->{'code'} = $self->{client}->responseCode();
@@ -473,7 +476,7 @@ sub list_segments {
 	my $self = shift;
 	my $list_id = $_[0];
 	my $results;
-	$self->{client}->GET($self->{realm}."lists/".$list_id."/segments.".$self->{format});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/lists/".$list_id."/segments.".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -501,7 +504,7 @@ sub list_active {
 	}
 	
 	my $results;
-	$self->{client}->GET($self->{realm}."lists/".$input{listid}."/active.".$self->{format}."?date=".$input{date}."&page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/lists/".$input{listid}."/active.".$self->{format}."?date=".$input{date}."&page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -529,7 +532,7 @@ sub list_unsubscribed {
 	}
 	
 	my $results;
-	$self->{client}->GET($self->{realm}."lists/".$input{listid}."/unsubscribed.".$self->{format}."?date=".$input{date}."&page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/lists/".$input{listid}."/unsubscribed.".$self->{format}."?date=".$input{date}."&page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -557,7 +560,7 @@ sub list_bounced {
 	}
 	
 	my $results;
-	$self->{client}->GET($self->{realm}."lists/".$input{listid}."/bounced.".$self->{format}."?date=".$input{date}."&page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/lists/".$input{listid}."/bounced.".$self->{format}."?date=".$input{date}."&page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -579,7 +582,7 @@ sub list_options {
 	my $json_request = encode_json \%request;
 	my $results;
 	
-	$self->{client}->PUT($self->{realm}."lists/".$list_id."/customfields/".$customfield_key."/options.".$self->{format}, $json_request);
+	$self->{client}->PUT($self->{protocol}.$self->{realm}."/api/v3/lists/".$list_id."/customfields/".$customfield_key."/options.".$self->{format}, $json_request);
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -596,7 +599,7 @@ sub list_delete_customfieldkey {
 	my $customfield_key = $request{customfieldkey};
 	my $results;
 	
-	$self->{client}->DELETE($self->{realm}."lists/".$list_id."/customfields/".$customfield_key.".".$self->{format});
+	$self->{client}->DELETE($self->{protocol}.$self->{realm}."/api/v3/lists/".$list_id."/customfields/".$customfield_key.".".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -611,7 +614,7 @@ sub list_delete {
 	my $list_id = $_[0];
 	my $results;
 	
-	$self->{client}->DELETE($self->{realm}."lists/".$list_id.".".$self->{format});
+	$self->{client}->DELETE($self->{protocol}.$self->{realm}."/api/v3/lists/".$list_id.".".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -627,7 +630,7 @@ sub list_webhooks {
 	if (scalar(@_) == 1) { #get the list of webhooks
 		my $list_id = $_[0];
 		my $results;
-		$self->{client}->GET($self->{realm}."lists/".$list_id."/webhooks.".$self->{format});
+		$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/lists/".$list_id."/webhooks.".$self->{format});
 		
 		$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 		$results->{'code'} = $self->{client}->responseCode();
@@ -644,7 +647,7 @@ sub list_webhooks {
 		my $json_request = encode_json \%request;
 		my $results;
 		
-		$self->{client}->POST($self->{realm}."lists/".$list_id."/webhooks.".$self->{format}, $json_request);
+		$self->{client}->POST($self->{protocol}.$self->{realm}."/api/v3/lists/".$list_id."/webhooks.".$self->{format}, $json_request);
 		
 		$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 		$results->{'code'} = $self->{client}->responseCode();
@@ -661,7 +664,7 @@ sub list_test {
 	my $list_id = $request{listid};
 	my $webhook_id = $request{webhookid};
 	my $results;
-	$self->{client}->GET($self->{realm}."lists/".$list_id."/webhooks/".$webhook_id."/test.".$self->{format});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/lists/".$list_id."/webhooks/".$webhook_id."/test.".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -678,7 +681,7 @@ sub list_delete_webhook {
 	my $webhook_id = $request{webhookid};
 	my $results;
 	
-	$self->{client}->DELETE($self->{realm}."lists/".$list_id."/webhooks/".$webhook_id.".".$self->{format});
+	$self->{client}->DELETE($self->{protocol}.$self->{realm}."/api/v3/lists/".$list_id."/webhooks/".$webhook_id.".".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -694,7 +697,7 @@ sub list_activate {
 	my $list_id = $request{listid};
 	my $webhook_id = $request{webhookid};
 	my $results;
-	$self->{client}->PUT($self->{realm}."lists/".$list_id."/webhooks/".$webhook_id."/activate.".$self->{format});
+	$self->{client}->PUT($self->{protocol}.$self->{realm}."/api/v3/lists/".$list_id."/webhooks/".$webhook_id."/activate.".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -710,7 +713,7 @@ sub list_deactivate {
 	my $list_id = $request{listid};
 	my $webhook_id = $request{webhookid};
 	my $results;
-	$self->{client}->PUT($self->{realm}."lists/".$list_id."/webhooks/".$webhook_id."/deactivate.".$self->{format});
+	$self->{client}->PUT($self->{protocol}.$self->{realm}."/api/v3/lists/".$list_id."/webhooks/".$webhook_id."/deactivate.".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -729,7 +732,7 @@ sub segments {
 	my $json_request = encode_json \%request;
 	my $results;
 	
-	$self->{client}->POST($self->{realm}."segments/".$list_id.".".$self->{format}, $json_request);
+	$self->{client}->POST($self->{protocol}.$self->{realm}."/api/v3/segments/".$list_id.".".$self->{format}, $json_request);
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -745,7 +748,7 @@ sub segment_segmentid {
 	if (scalar(@_) == 1) { #get the segment details
 		my $segment_id = $_[0];
 		my $results;
-		$self->{client}->GET($self->{realm}."segments/".$segment_id.".".$self->{format});
+		$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/segments/".$segment_id.".".$self->{format});
 		
 		$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 		$results->{'code'} = $self->{client}->responseCode();
@@ -761,7 +764,7 @@ sub segment_segmentid {
 		my $json_request = encode_json \%request;
 		my $results;
 		
-		$self->{client}->PUT($self->{realm}."segments/".$segment_id.".".$self->{format}, $json_request);
+		$self->{client}->PUT($self->{protocol}.$self->{realm}."/api/v3/segments/".$segment_id.".".$self->{format}, $json_request);
 		
 		$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 		$results->{'code'} = $self->{client}->responseCode();
@@ -781,7 +784,7 @@ sub segment_rules {
 	my $json_request = encode_json \%request;
 	my $results;
 	
-	$self->{client}->POST($self->{realm}."segments/".$segment_id."/rules.".$self->{format}, $json_request);
+	$self->{client}->POST($self->{protocol}.$self->{realm}."/api/v3/segments/".$segment_id."/rules.".$self->{format}, $json_request);
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -809,7 +812,7 @@ sub segment_active {
 	}
 	
 	my $results;
-	$self->{client}->GET($self->{realm}."segments/".$input{segmentid}."/active.".$self->{format}."?date=".$input{date}."&page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/segments/".$input{segmentid}."/active.".$self->{format}."?date=".$input{date}."&page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -824,7 +827,7 @@ sub segment_delete {
 	my $segment_id = $_[0];
 	my $results;
 	
-	$self->{client}->DELETE($self->{realm}."segments/".$segment_id.".".$self->{format});
+	$self->{client}->DELETE($self->{protocol}.$self->{realm}."/api/v3/segments/".$segment_id.".".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -839,7 +842,7 @@ sub segment_delete_rules {
 	my $segment_id = $_[0];
 	my $results;
 	
-	$self->{client}->DELETE($self->{realm}."segments/".$segment_id."/rules.".$self->{format});
+	$self->{client}->DELETE($self->{protocol}.$self->{realm}."/api/v3/segments/".$segment_id."/rules.".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -858,7 +861,7 @@ sub subscribers {
 	
 	if ($request{email}) { #get subscribers details
 		my $results;
-		$self->{client}->GET($self->{realm}."subscribers/".$list_id.".".$self->{format}."?email=".$request{email});
+		$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/subscribers/".$list_id.".".$self->{format}."?email=".$request{email});
 		
 		$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 		$results->{'code'} = $self->{client}->responseCode();
@@ -870,7 +873,7 @@ sub subscribers {
 		my $json_request = encode_json \%request;
 		my $results;
 		
-		$self->{client}->POST($self->{realm}."subscribers/".$list_id.".".$self->{format}, $json_request);
+		$self->{client}->POST($self->{protocol}.$self->{realm}."/api/v3/subscribers/".$list_id.".".$self->{format}, $json_request);
 		
 		$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 		$results->{'code'} = $self->{client}->responseCode();
@@ -890,7 +893,7 @@ sub subscribers_import {
 	my $json_request = encode_json \%request;
 	my $results;
 	
-	$self->{client}->POST($self->{realm}."subscribers/".$list_id."/import.".$self->{format}, $json_request);
+	$self->{client}->POST($self->{protocol}.$self->{realm}."/api/v3/subscribers/".$list_id."/import.".$self->{format}, $json_request);
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -907,7 +910,7 @@ sub subscribers_history {
 	my $email     = $request{email};
 	
 	my $results;
-	$self->{client}->GET($self->{realm}."subscribers/".$list_id."/history.".$self->{format}."?email=".$email);
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/subscribers/".$list_id."/history.".$self->{format}."?email=".$email);
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -926,7 +929,7 @@ sub subscribers_unsubscribe {
 	my $json_request = encode_json \%request;
 	my $results;
 	
-	$self->{client}->POST($self->{realm}."subscribers/".$list_id."/unsubscribe.".$self->{format}, $json_request);
+	$self->{client}->POST($self->{protocol}.$self->{realm}."/api/v3/subscribers/".$list_id."/unsubscribe.".$self->{format}, $json_request);
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -944,7 +947,7 @@ sub templates {
 	if ( scalar(@_) == 1 ) { #get the template details
 		my $template_id = $_[0];
 		my $results;
-		$self->{client}->GET($self->{realm}."templates/".$template_id.".".$self->{format});
+		$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/templates/".$template_id.".".$self->{format});
 		
 		$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 		$results->{'code'} = $self->{client}->responseCode();
@@ -961,7 +964,7 @@ sub templates {
 			my $json_request = encode_json \%request;
 			my $results;
 			
-			$self->{client}->PUT($self->{realm}."templates/".$template_id.".".$self->{format}, $json_request);
+			$self->{client}->PUT($self->{protocol}.$self->{realm}."/api/v3/templates/".$template_id.".".$self->{format}, $json_request);
 			
 			$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 			$results->{'code'} = $self->{client}->responseCode();
@@ -976,7 +979,7 @@ sub templates {
 			my $json_request = encode_json \%request;
 			my $results;
 			
-			$self->{client}->POST($self->{realm}."templates/".$client_id.".".$self->{format}, $json_request);
+			$self->{client}->POST($self->{protocol}.$self->{realm}."/api/v3/templates/".$client_id.".".$self->{format}, $json_request);
 			
 			$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 			$results->{'code'} = $self->{client}->responseCode();
@@ -993,7 +996,7 @@ sub templates_delete {
 	my $template_id = $_[0];
 	my $results;
 	
-	$self->{client}->DELETE($self->{realm}."templates/".$template_id.".".$self->{format});
+	$self->{client}->DELETE($self->{protocol}.$self->{realm}."/api/v3/templates/".$template_id.".".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -1012,7 +1015,7 @@ sub campaigns {
 	my $json_request = encode_json \%request;
 	my $results;
 	
-	$self->{client}->POST($self->{realm}."campaigns/".$client_id.".".$self->{format}, $json_request);
+	$self->{client}->POST($self->{protocol}.$self->{realm}."/api/v3/campaigns/".$client_id.".".$self->{format}, $json_request);
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -1031,7 +1034,7 @@ sub campaigns_send {
 	my $json_request = encode_json \%request;
 	my $results;
 	
-	$self->{client}->POST($self->{realm}."campaigns/".$campaign_id."/send.".$self->{format}, $json_request);
+	$self->{client}->POST($self->{protocol}.$self->{realm}."/api/v3/campaigns/".$campaign_id."/send.".$self->{format}, $json_request);
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -1050,7 +1053,7 @@ sub campaigns_sendpreview {
 	my $json_request = encode_json \%request;
 	my $results;
 	
-	$self->{client}->POST($self->{realm}."campaigns/".$campaign_id."/sendpreview.".$self->{format}, $json_request);
+	$self->{client}->POST($self->{protocol}.$self->{realm}."/api/v3/campaigns/".$campaign_id."/sendpreview.".$self->{format}, $json_request);
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -1065,7 +1068,7 @@ sub campaigns_summary {
 	my $campaign_id = $_[0];
 	my $results;
 	
-	$self->{client}->GET($self->{realm}."campaigns/".$campaign_id."/summary.".$self->{format});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/campaigns/".$campaign_id."/summary.".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -1080,7 +1083,7 @@ sub campaigns_listsandsegments {
 	my $campaign_id = $_[0];
 	my $results;
 	
-	$self->{client}->GET($self->{realm}."campaigns/".$campaign_id."/listsandsegments.".$self->{format});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/campaigns/".$campaign_id."/listsandsegments.".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -1108,7 +1111,7 @@ sub campaigns_recipients {
 	}
 	
 	my $results;
-	$self->{client}->GET($self->{realm}."campaigns/".$input{campaignid}."/recipients.".$self->{format}."?page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/campaigns/".$input{campaignid}."/recipients.".$self->{format}."?page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -1136,7 +1139,7 @@ sub campaigns_bounces {
 	}
 	
 	my $results;
-	$self->{client}->GET($self->{realm}."campaigns/".$input{campaignid}."/bounces.".$self->{format}."?page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/campaigns/".$input{campaignid}."/bounces.".$self->{format}."?page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -1164,7 +1167,7 @@ sub campaigns_opens {
 	}
 	
 	my $results;
-	$self->{client}->GET($self->{realm}."campaigns/".$input{campaignid}."/opens.".$self->{format}."?date=".$input{date}."&page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/campaigns/".$input{campaignid}."/opens.".$self->{format}."?date=".$input{date}."&page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -1192,7 +1195,7 @@ sub campaigns_clicks {
 	}
 	
 	my $results;
-	$self->{client}->GET($self->{realm}."campaigns/".$input{campaignid}."/clicks.".$self->{format}."?date=".$input{date}."&page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/campaigns/".$input{campaignid}."/clicks.".$self->{format}."?date=".$input{date}."&page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -1220,7 +1223,7 @@ sub campaigns_unsubscribes {
 	}
 	
 	my $results;
-	$self->{client}->GET($self->{realm}."campaigns/".$input{campaignid}."/unsubscribes.".$self->{format}."?date=".$input{date}."&page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
+	$self->{client}->GET($self->{protocol}.$self->{realm}."/api/v3/campaigns/".$input{campaignid}."/unsubscribes.".$self->{format}."?date=".$input{date}."&page=".$input{page}."&pagesize=".$input{pagesize}."&orderfield=".$input{orderfield}."&orderdirection=".$input{orderdirection});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
@@ -1235,7 +1238,7 @@ sub campaigns_delete {
 	my $campaign_id = $_[0];
 	my $results;
 	
-	$self->{client}->DELETE($self->{realm}."campaigns/".$campaign_id.".".$self->{format});
+	$self->{client}->DELETE($self->{protocol}.$self->{realm}."/api/v3/campaigns/".$campaign_id.".".$self->{format});
 	
 	$results->{'response'} = $self->decode( $self->{client}->responseContent() );
 	$results->{'code'} = $self->{client}->responseCode();
