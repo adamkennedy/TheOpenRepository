@@ -87,15 +87,16 @@ And it should do the rest.
 use 5.006;
 use strict;
 use Carp                  ();
-use Process               ();
-use File::Spec            ();
+use URI              1.57 ();
+use Process          0.16 ();
+use File::Temp       0.22 ();
+use File::Spec       0.80 ();
 use File::Spec::Unix      ();
-use File::Which           ();
-use File::Remove          ();
-use Config::Tiny          ();
-use Params::Util          ();
-use LWP::UserAgent        ();
-use HTTP::Request::Common 'GET', 'PUT';
+use File::Which      0.05 ();
+use File::Remove     0.34 ();
+use Config::Tiny     2.00 ();
+use Params::Util     1.00 ();
+use HTTP::Tiny      0.014 ();
 use PITA::Image::Platform ();
 use PITA::Image::Task     ();
 use PITA::Image::Discover ();
@@ -103,7 +104,7 @@ use PITA::Image::Test     ();
 
 use vars qw{$VERSION @ISA $NOSERVER};
 BEGIN {
-	$VERSION = '0.50';
+	$VERSION = '0.51';
 	@ISA     = 'Process';
 }
 
@@ -317,8 +318,8 @@ sub prepare {
 		Carp::croak("The 'server_uri' is not a HTTP(S) URI");
 	}
 	unless ( $NOSERVER ) {
-		my $response = LWP::UserAgent->new->request( GET $self->server_uri );
-		unless ( $response and $response->is_success ) {
+		my $response = HTTP::Tiny->new( timeout => 5 )->get( $self->server_uri );
+		unless ( $response and $response->{success} ) {
 			Carp::croak("Failed to contact SupportServer at $config->{server_uri}");
 		}
 	}
@@ -397,15 +398,14 @@ sub report {
 sub report_task {
 	my $self    = shift;
 	my $task    = shift;
-	my $agent   = LWP::UserAgent->new;
-	my $request = $self->report_task_request( $task );
-	unless ( Params::Util::_INSTANCE($request, 'HTTP::Request') ) {
-		Carp::croak("Did not generate proper report HTTP::Request");
+	my $request = $self->report_task_request($task);
+	unless ( ref($request) eq 'ARRAY' ) {
+		die "Did not generate proper report request";
 	}
 	unless ( $NOSERVER ) {
-		my $response = $agent->request( $request );
-		unless ( $response and $response->is_success ) {
-			Carp::croak("Failed to send result report to server");
+		my $response = HTTP::Tiny->new( timeout => 5 )->request(@$request);
+		unless ( $response and $response->{success} ) {
+			die "Failed to send result report to server";
 		}
 	}
 
@@ -427,10 +427,16 @@ sub report_task_request {
 	}
 
 	# Send the file
-	PUT $self->report_task_uri( $task ),
-		content_type   => 'application/xml',
-		content_length => length($xml),
-		content        => $xml;
+	return [
+		'PUT' => $self->report_task_uri($task),
+		{
+			headers => {
+				content_type => 'application/xml',
+				content_length => length($xml),
+			},
+			content => $xml,
+		},
+	];
 }
 
 # The location to put to

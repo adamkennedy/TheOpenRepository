@@ -1,5 +1,10 @@
 Revision history for Perl distribution PITA-Image
 
+0.51 Fri 21 Oct 2011
+	- Upgrading to Module::Install 1.04
+	- Converting from LWP to HTTP::Tiny
+	- Adding a shorter 5 second timeout
+
 0.50 Fri 11 Mar 2011
 	- Fixing the way we generate an error message
 

@@ -3,12 +3,12 @@ package PITA::Image::Test;
 use 5.006;
 use strict;
 use Data::GUID        ();
-use Params::Util      qw{ _POSINT _CLASS _HASH0 };
+use Params::Util      ();
 use PITA::Image::Task ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.50';
+	$VERSION = '0.51';
 	@ISA     = 'PITA::Image::Task';
 }
 
@@ -27,7 +27,7 @@ sub new {
 		Carp::croak("Missing option 'task.scheme' in image.conf");
 	}
 	my $driver = join( '::', 'PITA', 'Scheme', map { ucfirst $_ } split /\./, lc $scheme );
-	unless ( _CLASS($driver) ) {
+	unless ( Params::Util::_CLASS($driver) ) {
 		Carp::croak("Invalid scheme '$scheme' for task.scheme in in image.conf");
 	}
 

@@ -154,11 +154,11 @@ SCOPE: {
 
 	# Dry-run report the results
 	my $request = $manager->report_task_request( ($manager->tasks)[0] );
-	isa_ok( $request, 'HTTP::Request' );
-	is( $request->method, 'PUT', '->method is PUT' );
-	is( $request->uri, 'http://10.0.2.2/0444B0FE-859C-101A-9C08-D1513C8EECE9', '->uri is http://10.0.2.2/0444B0FE-859C-101A-9C08-D1513C8EECE9' );
-	ok( $request->content =~ /^\<\?xml/, 'Generated XML' );
-	ok( length($request->content) > 20000, 'Looks long enough' );
+	is( ref($request), 'ARRAY', 'Got ARRAY reference for request' );
+	is( $request->[0], 'PUT', '->method is PUT' );
+	is( $request->[1], 'http://10.0.2.2/0444B0FE-859C-101A-9C08-D1513C8EECE9', '->uri is http://10.0.2.2/0444B0FE-859C-101A-9C08-D1513C8EECE9' );
+	ok( $request->[2]->{content} =~ /^\<\?xml/, 'Generated XML' );
+	ok( length($request->[2]->{content}) > 20000, 'Looks long enough' );
 	ok( $manager->report, '->report returns ok' );
 }
 
