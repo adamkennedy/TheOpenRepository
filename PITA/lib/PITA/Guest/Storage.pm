@@ -22,7 +22,7 @@ use 5.008;
 use strict;
 use Carp         ();
 use Data::GUID   ();
-use Params::Util qw{ _INSTANCE _STRING };
+use Params::Util ();
 
 our $VERSION = '0.50';
 
@@ -89,7 +89,7 @@ object if the guest is ok and was added, or throws an exception on error.
 
 sub add_guest {
 	my $self  = shift;
-	my $guest = _INSTANCE(shift, 'PITA::XML::Guest')
+	my $guest = Params::Util::_INSTANCE(shift, 'PITA::XML::Guest')
 		or Carp::croak('Did not provide a PITA::XML::Guest to add_guest');
 	Carp::croak( ref($self) . ' has not implemented the add_guest method' );
 }

@@ -22,7 +22,7 @@ use strict;
 use Process        ();
 use File::Spec     ();
 use File::Basename ();
-use Params::Util   qw{ _STRING _SCALAR _INSTANCE };
+use Params::Util   ();
 use PITA::XML      ();
 
 our $VERSION = '0.50';
@@ -59,10 +59,10 @@ sub new {
 	# Handle the param
 	my $file      = undef;
 	my $guest_xml = undef;
-	if ( _INSTANCE($_[0], 'PITA::XML::Guest') ) {
+	if ( Params::Util::_INSTANCE($_[0], 'PITA::XML::Guest') ) {
 		$guest_xml = shift;
 
-	} elsif ( _STRING($_[0]) ) {
+	} elsif ( Params::Util::_STRING($_[0]) ) {
 		$file = shift;
 		unless ( -f $file ) {
 			Carp::croak('Did not provide a valid filename');
@@ -258,7 +258,7 @@ Returns a L<PITA::XML::Report> object, or dies on error.
 
 sub test {
 	my $self     = shift;
-	my $filename = _STRING(shift);
+	my $filename = Params::Util::_STRING(shift);
 	unless ( $filename and -f $filename and -r _ ) {
 		Carp::croak('Did not provide a request file');
 	}
@@ -287,7 +287,7 @@ sub test {
 
 	# Just use the first platform until we write a selection method
 	my $platform = ($self->guestxml->platforms)[0];
-	unless ( _INSTANCE($platform, 'PITA::XML::Platform') ) {
+	unless ( Params::Util::_INSTANCE($platform, 'PITA::XML::Platform') ) {
 		Carp::croak('Could not autoselect a platform');
 	}
 

@@ -1,5 +1,8 @@
 Revision history for Perl extension PITA
 
+0.51 to be released
+	- Removing Params::Util imports for consistency
+
 0.50 Thu 10 Mar 2011
 	- Rewrote legacy PITA::POE::SupportServer as PITA::Guest::Server
 	- Minimum version of Perl is now 5.008 (because of POE mainly)

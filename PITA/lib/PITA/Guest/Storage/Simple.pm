@@ -26,7 +26,7 @@ use strict;
 use Carp                 ();
 use File::Spec           ();
 use File::Path           ();
-use Params::Util         '_INSTANCE';
+use Params::Util         ();
 use Data::GUID           ();
 use PITA::XML::Guest     ();
 use PITA::Guest::Storage ();
@@ -157,7 +157,7 @@ sub storage_lock {
 
 sub add_guest {
 	my $self = shift;
-	my $xml  = _INSTANCE(shift, 'PITA::XML::Guest')
+	my $xml  = Params::Util::_INSTANCE(shift, 'PITA::XML::Guest')
 		or Carp::croak('Did not provide a PITA::XML::Guest to add_guest');
 
 	# Is the driver available for this guest
