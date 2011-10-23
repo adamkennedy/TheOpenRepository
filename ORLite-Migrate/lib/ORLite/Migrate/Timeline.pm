@@ -34,7 +34,7 @@ ORLite::Migrate::Timeline - ORLite::Migrate timelines contained in a single clas
 The default L<ORLite::Migrate> timeline implementation makes use of separate
 Perl "patch" scripts to move the database schema timeline forwards.
 
-This solution is prefered because the separate scripts provide process
+This solution is preferred because the separate scripts provide process
 isolation between your migration and run-time code. That is, the code that
 migrates the schema a single step forwards is guarenteed to never use the same
 variables or load the same modules or interact strangely with any other patch
@@ -75,7 +75,7 @@ use DBI          ();
 use DBD::SQLite  ();
 use Params::Util ();
 
-our $VERSION = '1.08';
+our $VERSION = '1.09';
 
 
 

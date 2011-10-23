@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite-Migrate
 
+1.09 Mon 24 Oct 2011
+	- Spelling fix (gregoa herrmann)
+	- Updating to Module::Install 1.04
+
 1.08 Wed 12 Oct 2011
 	- Adds support support for class based timelines
 	- Removed ORLite::Migrate::Perl as complex cases can now use the

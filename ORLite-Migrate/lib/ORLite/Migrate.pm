@@ -15,7 +15,7 @@ use ORLite       1.28 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.08';
+	$VERSION = '1.09';
 	@ISA     = 'ORLite';
 }
 
