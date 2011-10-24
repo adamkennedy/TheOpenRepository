@@ -39,10 +39,10 @@ my $builder = Builder->new(
 		'File::Find::Rule'           => '0.30',
 		'File::HomeDir'              => '0.82',
 		'File::List::Object'         => '0.201',
-		'File::Path'                 => '2.07',
+		'File::Path'                 => '2.08',
 		'File::PathList'             => '1.04',
 		'File::pushd'                => '1.00',
-		'File::Remove'               => '1.42',
+		'File::Remove'               => '1.42', # TODO: Should take out and use File::Path instead.
 		'File::ShareDir'             => '1.02',
 		'File::Spec'                 => '3.29',
 		'File::Temp'                 => '0.21',
@@ -70,10 +70,11 @@ my $builder = Builder->new(
 		'Params::Util'               => '0.35',
 		'Portable::Dist'             => '0.03',
 		'Probe::Perl'                => '0.01',
-		'Process'                    => '0.26',
 		'Readonly'                   => '1.03',
 		# Template 2.21 will not install on Windows, anyway.
 		'Template'                   => '2.22',
+#		Want to move to Template::Alloy eventually, but can't yet.
+#		'Template::Alloy'            => '1.016',
 		'URI'                        => '1.35',
 		'WiX3'                       => '0.010004',
 		'YAML::Tiny'                 => '1.36',

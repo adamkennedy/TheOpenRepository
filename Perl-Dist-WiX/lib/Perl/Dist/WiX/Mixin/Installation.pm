@@ -8,7 +8,7 @@ Perl::Dist::WiX::Mixin::Installation - Basic installation routines
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Mixin::Installation version 1.500.
+This document describes Perl::Dist::WiX::Mixin::Installation version 1.550.
 
 =head1 DESCRIPTION
 
@@ -24,21 +24,22 @@ install files.
 
 =cut
 
+#<<<
 use 5.010;
 use Moose;
-use Perl::Dist::WiX::Exceptions;
-use Perl::Dist::WiX::Asset::Binary qw();
-use Perl::Dist::WiX::Asset::Distribution qw();
-use Perl::Dist::WiX::Asset::DistFile qw();
-use Perl::Dist::WiX::Asset::File qw();
-use Perl::Dist::WiX::Asset::Launcher qw();
-use Perl::Dist::WiX::Asset::Library qw();
-use Perl::Dist::WiX::Asset::Module qw();
-use Perl::Dist::WiX::Asset::PAR qw();
-use Perl::Dist::WiX::Asset::Website qw();
+use Perl::Dist::WiX::Exceptions                qw();
+use Perl::Dist::WiX::Asset::Binary       1.550 qw();
+use Perl::Dist::WiX::Asset::Distribution 1.550 qw();
+use Perl::Dist::WiX::Asset::DistFile     1.550 qw();
+use Perl::Dist::WiX::Asset::File         1.550 qw();
+use Perl::Dist::WiX::Asset::Launcher     1.550 qw();
+use Perl::Dist::WiX::Asset::Library      1.550 qw();
+use Perl::Dist::WiX::Asset::Module       1.550 qw();
+use Perl::Dist::WiX::Asset::PAR          1.550 qw();
+use Perl::Dist::WiX::Asset::Website      1.550 qw();
+#>>>
 
-our $VERSION = '1.500';
-$VERSION =~ s/_//ms;
+our $VERSION = '1.550';
 
 =pod
 
@@ -241,27 +242,32 @@ sub install_distribution_from_file {
 	  name => 'DBI',
   );
 
+  $self->install_module(
+	  name => ['DBIx::Class','DBIx::Class::Schema::Loader'],
+  );
+
+  
 The C<install_module> method is a high level installation method that can
 be used during the C<install_perl_modules_*> phases, once the CPAN toolchain
 has been been initialized.
 
 It makes the installation call using the CPAN client directly, allowing
-the CPAN client to both do the installation and fulfill all of the
-dependencies for the module, identically to if it was installed from
-the CPAN shell via an "install Module::Name" command.
+the CPAN client to do the installation of the module, identically to if 
+it was installed from the CPAN shell via an "install Module::Name" command.
 
-The compulsory 'name' param should be the class name of the module to
-be installed.
+Note that at this point, C<install_module> does NOT install the 
+dependencies of the module(s) named - they have to be installed
+before the named module, in one way or another.
 
-The optional 'force' param can be used to force the install of module.
-This does not, however, force the installation of the dependencies of
-the module.
+The compulsory 'name' param should be the name of the module(s) to
+be installed. Multiple modules must be passed in as an array ref.
 
-The optional 'packlist' param sshould be 0 if a .packlist file is not 
-installed with the module.
+The optional 'force' param can be used to force the install of the 
+module(s) named.
 
-This does NOT install the dependencies of the module named - they have
-to be installed before the named module, in one way or another.
+The optional 'packlist' param should be 0 if a .packlist file is not 
+installed with the module. This is only valid if one module can be 
+installed by this call.
 
 Returns true or throws an exception on error.
 
@@ -276,16 +282,19 @@ sub install_module {
 		@_,
 	);
 
-	my $filelist = $module->install();
-	my $name     = $module->get_name();
+	my $filelists = $module->install();
 	my $feature  = $module->get_feature();
 
+	foreach my $module_name (keys %{$filelists}) {
+		my $filelist = $filelists->{$module_name};
+
 	# Make legal fragment id.
-	$name =~ s{::}{_}gmsx;
+		$module_name =~ s{::}{_}gmsx;
 
 	# Insert fragment.
 	if ( 0 != scalar @{ $filelist->files } ) {
-		$self->insert_fragment( $name, $filelist, 0, $feature );
+			$self->insert_fragment( $module_name, $filelist, 0, $feature );
+		}
 	}
 
 	return $self;
@@ -327,11 +336,17 @@ sub install_modules {
 		%args = %{ pop @_ };
 	}
 
-	foreach my $name (@_) {
+	# Install modules 10-at-a-time.
+	my ($i, $j) = (0, 9);
+	my $final = scalar @_;
+	while ($i < $final) {
+		$j = $i + 9;
+		$j = $final - 1 unless $j < $final;
 		$self->install_module(
-			name => $name,
+			name => [@_[$i..$j]],
 			%args
 		);
+		$i += 10;
 	}
 
 	return $self;

@@ -8,7 +8,7 @@ Perl::Dist::WiX::Mixin::Patching - Provides routines for patching files in a Win
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Mixin::Patching version 1.500.
+This document describes Perl::Dist::WiX::Mixin::Patching version 1.550.
 
 =head1 SYNOPSIS
 
@@ -34,8 +34,7 @@ use File::Temp qw();
 use Perl::Dist::WiX::DirectoryTree qw();
 use Perl::Dist::WiX::Exceptions qw();
 
-our $VERSION = '1.500';
-$VERSION =~ s/_//ms;
+our $VERSION = '1.550';
 
 
 

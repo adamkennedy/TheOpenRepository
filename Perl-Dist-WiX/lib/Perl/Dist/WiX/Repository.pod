@@ -54,7 +54,7 @@ This branch exists for the sole purpose of rebuilding Strawberry Perl 5.10.1
 and 5.12.3 if there are major problems before August 2011. Changes on this 
 branch are HIGHLY discouraged.
 
-This branch will end upon the release of the October 2010 versions 
+This branch will end upon the release of the next version
 of Strawberry Perl, and a new branch will be created to maintain that 
 version.
 

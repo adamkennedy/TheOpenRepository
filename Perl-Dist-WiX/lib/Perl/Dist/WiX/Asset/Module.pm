@@ -6,7 +6,7 @@ Perl::Dist::WiX::Asset::Module - Module asset for a Win32 Perl
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::Module version 1.500.
+This document describes Perl::Dist::WiX::Asset::Module version 1.550.
 
 =head1 SYNOPSIS
 
@@ -21,21 +21,25 @@ This document describes Perl::Dist::WiX::Asset::Module version 1.500.
 
 =head1 DESCRIPTION
 
-This asset installs a module from CPAN.
+This asset installs module(s) from CPAN.
 
 =cut
 
+#<<<
 use 5.010;
 use Moose;
+use WiX3::Util::StrictConstructor;
 use MooseX::Types::Moose qw( Maybe Str Bool );
+use Perl::Dist::WiX::Types       qw( OneOrManyStr );
 use English qw( -no_match_vars );
 use File::Spec::Functions qw( catdir catfile );
-require Perl::Dist::WiX::Exceptions;
-require File::List::Object;
-require IO::File;
+use File::Slurp                  qw( read_file );
+use Perl::Dist::WiX::Exceptions  qw();
+use File::List::Object           qw();
+use IO::File                     qw();
+#>>>
 
-our $VERSION = '1.500001';
-$VERSION =~ s/_//ms;
+our $VERSION = '1.550';
 
 with 'Perl::Dist::WiX::Role::NonURLAsset';
 
@@ -57,16 +61,17 @@ L<< Perl::Dist::WiX::Role::Asset->new()|Perl::Dist::WiX::Role::Asset/new >> meth
 
 =head3 name
 
-The required C<name> param is the name of the module to be installed.
+The required C<name> param is the name of the module(s) to be installed.
+
+Multiple names can be passed in, but must be passed as an arrayref.
 
 =cut
 
-
-
 has name => (
 	is       => 'ro',
-	isa      => Str,
+	isa      => OneOrManyStr,
 	reader   => 'get_name',
+	coerce   => 1,
 	required => 1,
 );
 
@@ -101,10 +106,12 @@ has force => (
 
 =head3 packlist
 
-This tells the C<install()> routine whether it has a packlist 
+This tells the C<install()> routine whether the module(s) have a packlist 
 that can be found once the module is installed or not.
 
 This parameter defaults to true.
+
+To install multiple modules, they must all have packlists.
 
 =cut
 
@@ -143,7 +150,7 @@ has assume_installed => (
 
 =head3 feature
 
-Specifies which feature the module is supposed to go in. 
+Specifies which feature the module(s) are supposed to go in. 
 
 =cut
 
@@ -160,7 +167,7 @@ has feature => (
 
 =head2 install
 
-The install method installs the module described by the
+The install method installs the module(s) described by the
 B<Perl::Dist::WiX::Asset::Module> object and returns the files
 that were installed as a L<File::List::Object|File::List::Object> object.
 
@@ -177,11 +184,16 @@ sub install {
 	my $assume        = $self->_get_assume();
 	my $packlist_flag = $self->_get_packlist();
 	my $use_sqlite    = $self->_use_sqlite();
+	my $output_dir    = $self->_get_output_dir();
 	my $vendor =
 	    !$self->_get_parent()->portable()                    ? 1
 	  : ( $self->_get_parent()->perl_major_version() >= 12 ) ? 1
 	  :                                                        0;
 
+	my $name_ref = $name;
+	my $multiple_names = (scalar @$name > 1) ? 1 : 0;
+	$name = join q{ }, @{$name_ref};
+	  
 	# Verify the existence of perl.
 	if ( not $self->_get_bin_perl() ) {
 		PDWiX->throw(
@@ -193,9 +205,12 @@ sub install {
 	my $url       = $self->_get_cpan()->as_string();
 	my $dp_dir    = catdir( $self->_get_wix_dist_dir(), 'distroprefs' );
 	my $internet_available = ( $url =~ m{ \A file://}msx ) ? 1 : 0;
-	my $cpan_string        = <<"END_PERL";
+	my $cpan_string        = <<"END_PERL"; # TODO: Make this a .tt?
 print "Loading CPAN...\\n";
 use CPAN 1.9600;
+use Capture::Tiny 0.10 qw(capture_merged);
+use File::Spec::Functions qw(catfile);
+use File::Slurp qw(write_file);
 CPAN::HandleConfig->load unless \$CPAN::Config_loaded++;
 \$CPAN::Config->{'urllist'} = [ '$url' ];
 \$CPAN::Config->{'use_sqlite'} = q[$use_sqlite];
@@ -210,38 +225,57 @@ if ($vendor) {
 	\$CPAN::Config->{'mbuildpl_arg'} = q[--installdirs vendor];
 	\$CPAN::Config->{'mbuild_install_arg'} = q[--installdirs vendor];
 }
-print "Installing $name from CPAN...\\n";
-my \$module = CPAN::Shell->expandany( "$name" ) 
-	or die "CPAN.pm couldn't locate $name";
-my \$dist_file = '$dist_file'; 
-if ( \$module->uptodate ) {
+open(\$cpan_fh, '>', '$dist_file') or die "open: \$!";
+MODULE:
+foreach \$name (qw($name)) {
+	print "Installing \$name from CPAN...\\n";
+	my \$module = CPAN::Shell->expandany( "\$name" ) 
+		or die "CPAN.pm couldn't locate \$name";
+	if ( \$module->uptodate() ) {
 	unlink \$dist_file;
-	print "$name is up to date\\n";
-	exit(0);
+		print "\$name is up to date\\n";
+		say \$cpan_fh "\$name;;;" or die "say: \$!";
+		next MODULE;
 }
-SCOPE: {
-	open( CPAN_FILE, '>', \$dist_file )      or die "open: \$!";
-	print CPAN_FILE 
-		\$module->distribution()->pretty_id() or die "print: \$!";
-	close( CPAN_FILE )                       or die "close: \$!";
-}
-
 print "\\\$ENV{PATH} = '\$ENV{PATH}'\\n";
+	my \$output = capture_merged {
+		eval {
 if ( $force ) {
-	CPAN::Shell->notest('install', '$name');
+				CPAN::Shell->notest('install', \$name);
 } else {
-	CPAN::Shell->install('$name');
+				CPAN::Shell->install(\$name);
 }
-print "Completed install of $name\\n";
+		}
+	};
+	my \$error = \$@;
+	my \$id = \$module->distribution()->pretty_id();
+	my \$time = time;
+	my \$module_id = \$name;
+	\$module_id =~ s{::}{_}gmsx;
+	my \$filename = catfile('$output_dir', "\$time.\$module_id.output.txt");
+	write_file(\$filename, \$output);
+	die "Installation of \$name failed: \$error\\n" if \$error;
+
+	say \$cpan_fh "\$name;\$id;\$filename;"  or die "say: \$!";
+	print "Completed install of \$name\\n";
 unless ( $assume or \$module->uptodate() ) {
-	die "Installation of $name appears to have failed";
+		die "Installation of \$name appears to have failed";
+	}
 }
+close( \$cpan_fh ) or die "close: \$!";
 exit(0);
 END_PERL
 
 	# Scan the perl directory if that's needed.
 	my $filelist_sub;
 	if ( not $self->_get_packlist() ) {
+		if ($multiple_names) {
+			PDWiX::Parameter->throw(
+				parameter => 'packlist: Cannot be 0 when ' 
+				  . 'installing multiple modules at once.',
+				where => '::Asset::Module->install',
+			);
+		}
 		$filelist_sub =
 		  File::List::Object->new()->readdir( $self->_dir('perl') );
 		$self->_trace_line( 5,
@@ -250,7 +284,7 @@ END_PERL
 	}
 
 	# Dump the CPAN script to a temp file and execute
-	$self->_trace_line( 1, "Running install of $name\n" );
+	$self->_trace_line( 1, "Running install(s) of $name\n" );
 	$self->_trace_line( 2, '  at ' . localtime() . "\n" );
 	my $cpan_file = catfile( $self->_get_build_dir(), 'cpan_string.pl' );
   SCOPE: {
@@ -270,36 +304,55 @@ END_PERL
 
 	if ($CHILD_ERROR) {
 		PDWiX->throw(
-			"Failure detected installing $name, stopping [$CHILD_ERROR]");
+			"Failure detected installing module(s), stopping [$CHILD_ERROR]");
 	}
 
-	# Read in the dist file and add it the the list of
+	# Read in cpan_distro.txt and add the distributions listed to the list of
 	# distributions that were installed.
+	# Also read the filelists from the modules installed.
+	my (%filelists, @modules_installed);
 	if ( -r $dist_file ) {
-		my $fh = IO::File->new( $dist_file, 'r' );
-		if ( not defined $fh ) {
-			PDWiX->throw("CPAN modules file error: $OS_ERROR");
-		}
-		my $dist_info = <$fh>;
-		$fh->close;
-		$self->_add_to_distributions_installed($dist_info);
-	} else {
-		$self->_trace_line( 0,
-			"Distribution for module $name was up-to-date\n" );
-	}
+		my @dist_info;
+		eval { 
+			@dist_info = read_file( $dist_file );
+			1;
+		} || PDWiX->throw("CPAN modules file error: $EVAL_ERROR");
 
-	# Making final filelist.
-	my $filelist;
+		# Start processing through the distributions that were installed.
+		foreach my $dist_info_line (@dist_info) {
+			my ($module_name, $dist_installed, $output_file) = split ';', $dist_info_line;
+			if ( q{} eq $dist_installed ) {
+		$self->_trace_line( 0,
+					"Module $module_name was up-to-date\n" );
+			} else {
+				$self->_add_to_distributions_installed($dist_installed);
+				push @modules_installed, $module_name;
 	if ($packlist_flag) {
-		$filelist = $self->_search_packlist($name);
+					# The filelist is filtered during _search_packlist.
+					my $filelist = $self->_search_packlist($module_name, $output_file, $dist_installed);					
+					$filelists{$module_name} = $filelist;
+				} elsif (1 < scalar @dist_info) {
+					# Can't pass in 0 to packlist and install more than 1 module.
+					PDWiX::Parameter->throw(
+						parameter => 'packlist: Cannot be 0 when ' 
+						  . 'installing multiple modules at once.',
+						where => '::Asset::Module->install',
+					);
 	} else {
-		$filelist =
+					my $filelist =
 		  File::List::Object->new()->readdir( $self->_dir('perl') );
 		$filelist->subtract($filelist_sub)->filter( $self->_filters() );
+					$filelists{$module_name} = $filelist;
+				}
+			}
+		}
+	} else {
+		$self->_trace_line( 0,
+			"All module(s) $name were up-to-date\n" );
 	}
 
-	# Returns the filelist.
-	return $filelist;
+	# Returns the filelists.
+	return \%filelists;
 } ## end sub install
 
 no Moose;

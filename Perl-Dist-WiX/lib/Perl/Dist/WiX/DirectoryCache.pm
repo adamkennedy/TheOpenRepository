@@ -8,7 +8,7 @@ Perl::Dist::WiX::DirectoryCache - Cache of <Directory> tag objects.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::DirectoryCache version 1.500.
+This document describes Perl::Dist::WiX::DirectoryCache version 1.550.
 
 =head1 SYNOPSIS
 
@@ -46,8 +46,7 @@ use WiX3::XML::Directory qw();
 use Params::Util qw( _INSTANCE );
 use namespace::clean -except => 'meta';
 
-our $VERSION = '1.500';
-$VERSION =~ s/_//ms;
+our $VERSION = '1.550';
 
 # This is where the cache is actually stored.
 has _cache => (

@@ -8,7 +8,7 @@ Perl::Dist::WiX::Role::Asset - Role for assets.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Role::Asset version 1.500.
+This document describes Perl::Dist::WiX::Role::Asset version 1.550.
 
 =head1 SYNOPSIS
 
@@ -31,15 +31,15 @@ use File::Spec::Functions qw( rel2abs catdir catfile );
 use MooseX::Types::Moose qw( Str Maybe );
 use Params::Util qw( _INSTANCE );
 use English qw( -no_match_vars );
-require File::List::Object;
-require File::ShareDir;
-require File::Spec::Unix;
-require Perl::Dist::WiX::Exceptions;
-require URI;
-require URI::file;
+use File::Path              2.08 qw();
+use File::List::Object           qw();
+use File::ShareDir               qw();
+use File::Spec::Unix             qw();
+use Perl::Dist::WiX::Exceptions  qw();
+use URI                          qw();
+use URI::file                    qw();
 
-our $VERSION = '1.500';
-$VERSION =~ s/_//ms;
+our $VERSION = '1.550';
 
 =head1 ATTRIBUTES
 
@@ -201,7 +201,7 @@ sub BUILDARGS {
 	}
 
 	# Validate 'parent' parameter early.
-	my $parent = $args{parent};
+	my $parent = $args{'parent'};
 	if ( not defined _INSTANCE( $args{parent}, 'Perl::Dist::WiX' ) ) {
 		PDWiX::Parameter->throw(
 			parameter =>
@@ -210,11 +210,11 @@ sub BUILDARGS {
 		);
 	}
 
-	if ( not defined $args{url} ) {
-		if ( defined $args{share} ) {
+	if ( not defined $args{'url'} ) {
+		if ( defined $args{'share'} ) {
 
 			# Map share to url vis File::ShareDir
-			my ( $dist, $name ) = split /\s+/ms, $args{share};
+			my ( $dist, $name ) = split /\s+/ms, $args{'share'};
 			$parent->trace_line( 2, "Finding $name in $dist... " );
 			my $file = rel2abs( File::ShareDir::dist_file( $dist, $name ) );
 			if ( not -f $file ) {
@@ -223,24 +223,24 @@ sub BUILDARGS {
 					message => 'Did not find file'
 				);
 			}
-			$args{url} = URI::file->new($file)->as_string();
+			$args{'url'} = URI::file->new($file)->as_string();
 			$parent->trace_line( 2, " found\n" );
 
-		} elsif ( defined $args{name} ) {
+		} elsif ( defined $args{'name'} ) {
 
 			PDWiX->throw(q{'name' without 'url' is deprecated});
 
 			# Map name to URL via the default package path
-			$args{url} = $parent->binary_url( $args{name} );
+			$args{'url'} = $parent->binary_url( $args{'name'} );
 		}
 	} ## end if ( not defined $args...)
 
 	if ( $class ne 'Perl::Dist::WiX::Asset::DistFile' ) {
 
 		# Create the filename from the url
-		$args{file} = $args{url};
-		$args{file} =~ s{.+/}{}ms;
-		if ( not defined $args{file} or not length $args{file} ) {
+		$args{'file'} = $args{'url'};
+		$args{'file'} =~ s{.+/}{}ms;
+		if ( not defined $args{'file'} or not length $args{'file'} ) {
 			if ( $class ne 'Perl::Dist::WiX::Asset::Website' ) {
 				PDWiX::Parameter->throw(
 					parameter => 'file',
@@ -249,17 +249,17 @@ sub BUILDARGS {
 			} else {
 
 				# file is not used in Websites.
-				$args{file} = q{ };
+				$args{'file'} = q{ };
 			}
 		} ## end if ( not defined $args...)
 	} ## end if ( $class ne 'Perl::Dist::WiX::Asset::DistFile')
 
 	my %default_args = (
-		url    => $args{url},
-		file   => $args{file},
-		parent => $args{parent},
+		url    => $args{'url'},
+		file   => $args{'file'},
+		parent => $args{'parent'},
 	);
-	delete @args{ 'url', 'file', 'parent' };
+	delete @args{ 'url', 'file', 'parent', 'share' };
 
 	return { ( %default_args, %args ) };
 } ## end sub BUILDARGS
@@ -267,7 +267,7 @@ sub BUILDARGS {
 
 
 sub _search_packlist { ## no critic(ProhibitUnusedPrivateSubroutines)
-	my ( $self, $module ) = @_;
+	my ( $self, $module, $dist_installed ) = @_;
 
 	# We don't use the error until later, if needed.
 	my $error = <<"EOF";
@@ -281,6 +281,18 @@ packlist => 0.
 EOF
 	chomp $error;
 
+	$dist_installed = '' if not $dist_installed;
+	# Try and get a second module name to try from the name of the
+	# distribution's tarball.
+	my ($second_module) = $dist_installed =~ m{ 
+		/ ([^/]*)            # Grab whatever's after the last slash ...
+		-\d+(?:.*)           # up to the first thing that starts with a digit ...
+		\.                   # and then match a dot ...
+		(?:tar\.gz|tgz|zip)  # and then an extension ...
+		\z                   # that ends the string.
+	}msx;
+	$second_module =~ s/-/::/msg if $second_module;
+	
 	# Get all the filenames and directory names required.
 	my $image_dir   = $self->_get_image_dir();
 	my @module_dirs = split /::/ms, $module;
@@ -289,6 +301,16 @@ EOF
 		catdir( $image_dir, qw{perl site   lib auto}, @module_dirs ),
 		catdir( $image_dir, qw{perl        lib auto}, @module_dirs ),
 	);
+
+	# If the second name wasn't equal to the first, try and get it.
+	if ($second_module && ($second_module ne $module)) {
+		my @second_module_dirs = split /::/ms, $second_module;
+		push @dirs, (
+			catdir( $image_dir, qw{perl vendor lib auto}, @second_module_dirs ),
+			catdir( $image_dir, qw{perl site   lib auto}, @second_module_dirs ),
+			catdir( $image_dir, qw{perl        lib auto}, @second_module_dirs ),
+		);
+	}
 
 	my $packlist_location = $self->_get_packlist_location();
 	if ( defined $packlist_location ) {
@@ -314,6 +336,7 @@ EOF
   DIR:
 	foreach my $dir (@dirs) {
 		$packlist = catfile( $dir, '.packlist' );
+		$self->_trace_line(1, "Checking for $packlist\n"); # 4
 		last DIR if -r $packlist;
 	}
 
@@ -321,6 +344,7 @@ EOF
 	if ( -r $packlist ) {
 
 		# Load a filelist object from the packlist if one exists.
+		$self->_trace_line(1, "$packlist was found\n"); # 3
 		$filelist =
 		  File::List::Object->new()->load_file($packlist)
 		  ->add_file($packlist);
@@ -340,7 +364,7 @@ EOF
 
 		# Parse the output read in for filenames.
 		my @files_list =
-		  map { ## no critic 'ProhibitComplexMappings'
+		  map { ## no critic(ProhibitComplexMappings)
 			my $t = $_;
 			chomp $t;
 			( $t =~ / \A Installing [ ] (.*) \z /msx ) ? ($1) : ();
@@ -362,6 +386,50 @@ EOF
 	return $filelist->filter( $self->_filters() );
 } ## end sub _search_packlist
 
+
+=head2 remove_path
+
+The C<remove_path> method is for the convienence of assets that need it.
+
+It removes the path specified, and can take any object (e.g., a 
+L<Path::Class::Dir>) that stringifies to a name of a directory to remove.
+
+=cut
+
+sub remove_path {
+	my $class = shift;
+	my $dir   = rel2abs(shift);
+	my $err;
+	if ( -d "$dir" ) {
+		File::Path::remove_tree("$dir", {
+			keep_root => 0,
+			error     => \$err, 
+		});
+		my $e = $@;
+		if ($e) {
+			PDWiX::Directory->throw(
+				dir     => $dir,
+				message => "Failed to remove directory, critical error:\n$e"
+			);	
+		}
+		if (@{$err}) {
+			my $errors = q{};
+			for my $diag (@{$err}) {
+				my ($file, $message) = %{$diag};
+				if ($file eq q{}) {
+					$errors .= "General error: $message\n";
+				}
+				else {
+					$errors .= "Problem removing $file: $message\n";
+				}
+			}
+			PDWiX::Directory->throw(
+				dir     => $dir,
+				message => "Failed to remove directory, errors:\n$errors"
+			);	
+		}
+	}
+}
 
 1;
 

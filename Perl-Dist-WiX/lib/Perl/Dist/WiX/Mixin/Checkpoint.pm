@@ -8,7 +8,7 @@ Perl::Dist::WiX::Mixin::Checkpoint - Checkpoint support for Perl::Dist::WiX
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Mixin::Checkpoint version 1.500.
+This document describes Perl::Dist::WiX::Mixin::Checkpoint version 1.550.
 
 =head1 SYNOPSIS
 
@@ -45,12 +45,10 @@ use Moose;
 use English qw( -no_match_vars );
 use List::Util qw( first );
 use File::Spec::Functions qw( catdir catfile );
-use File::Remove qw();
 use Storable qw();
 use Clone qw(clone);
 
-our $VERSION = '1.500';
-$VERSION =~ s/_//ms;
+our $VERSION = '1.550';
 
 =head2 checkpoint_task
 
@@ -270,7 +268,7 @@ sub checkpoint_load {
 	foreach my $dir (qw{ build_dir download_dir image_dir output_dir }) {
 		my $from = File::Spec->catdir( $self->checkpoint_dir(), $dir );
 		my $to = $self->$dir();
-		File::Remove::remove($to);
+		$self->remove_path($to);
 		$self->copy_file( $from => $to );
 	}
 

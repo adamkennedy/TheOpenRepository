@@ -8,7 +8,7 @@ Perl::Dist::WiX::Asset::Launcher - Start menu launcher asset for a Win32 Perl
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::Launcher version 1.500.
+This document describes Perl::Dist::WiX::Asset::Launcher version 1.550.
 
 =head1 SYNOPSIS
 
@@ -38,12 +38,12 @@ perl binary directory.
 
 use 5.010;
 use Moose;
+use WiX3::Util::StrictConstructor;
 use MooseX::Types::Moose qw( Str Bool );
 use File::Spec::Functions qw( catfile );
 use Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.500';
-$VERSION =~ s/_//ms;
+our $VERSION = '1.550';
 
 with 'Perl::Dist::WiX::Role::NonURLAsset';
 

@@ -8,7 +8,7 @@ Perl::Dist::WiX::Mixin::BuildPerl - 4th generation Win32 Perl distribution build
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Mixin::BuildPerl version 1.500001.
+This document describes Perl::Dist::WiX::Mixin::BuildPerl version 1.550.
 
 =head1 DESCRIPTION
 
@@ -24,8 +24,10 @@ order to build Perl itself.
 
 =cut
 
+#<<<
 use 5.010;
 use Moose;
+use MooseX::Types::Moose              qw( Str ArrayRef );
 use English qw( -no_match_vars );
 use List::MoreUtils qw( any );
 use Params::Util qw( _HASH _STRING _INSTANCE );
@@ -34,14 +36,16 @@ use Storable qw( retrieve );
 use File::Spec::Functions qw(
   catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
-use Module::CoreList 2.32 qw();
-use Perl::Dist::WiX::Asset::Perl qw();
-use Perl::Dist::WiX::Toolchain qw();
-use File::List::Object qw();
 use CPAN 1.9600 qw();
+use File::List::Object                qw();
+use Module::CoreList             2.49 qw();
+use IO::Capture::Stdout               qw();
+use IO::Capture::Stderr               qw();
+use Perl::Dist::WiX::Asset::Perl      qw();
+use Template                          qw();
+#>>>
 
-our $VERSION = '1.500001';
-$VERSION =~ s/_//sm;
+our $VERSION = '1.550';
 
 # Keys are what's in the filename, with - being converted to ::.
 # Values are the actual module to use to check whether it's in core.
@@ -57,6 +61,7 @@ Readonly my %CORE_MODULE_FIX => (
 	'Term::ReadLine::Perl' => 'Term::ReadLine',
 	'libwww::perl'         => 'LWP',
 	'LWP::UserAgent'       => 'LWP',
+	'libnet'               => 'Net::Cmd',
 );
 
 # Keys are the module name after processing against %CORE_MODULE_FIX.
@@ -67,6 +72,8 @@ Readonly my %CORE_PACKLIST_FIX => (
 	'Pod::Man'           => 'Pod',
 	'Filter::Util::Call' => 'Filter',
 	'Locale::Maketext'   => 'Locale-Maketext',
+	'Version::Requirements' => 'version::Requirements',
+	'Net::Cmd'              => 'Net',
 );
 
 # List of modules to delay building until last when upgrading all CPAN
@@ -74,9 +81,9 @@ Readonly my %CORE_PACKLIST_FIX => (
 # were upgraded after them.)
 Readonly my @MODULE_DELAY => qw(
   CPANPLUS::Dist::Build
-  File::Fetch
   Thread::Queue
 );
+#perl 5.10.1 already contains all prereqs of File::Fetch
 
 
 
@@ -186,7 +193,9 @@ sub install_cpan_upgrades {
 			when (m{/File-Fetch-\d}msx) {
 
 				# File::Fetch is network-dependent.
-				$self->_install_cpan_module( $module, $self->offline() );
+				#$self->_install_cpan_module( $module, $self->offline() );
+				# File::Fetch tests fail for CHORNY
+				$self->_install_cpan_module( $module, 1 );
 			}
 
 			when (m{/Locale-Maketext-Simple-0 [.] 20}msx) {
@@ -195,47 +204,24 @@ sub install_cpan_upgrades {
 				$self->_install_cpan_module( $module, 1 );
 			}
 
+			when (m{/Locale-Maketext-\d}msx) {
+
+				# This one has an odd packlist location.
+				$self->_install_cpan_module( $module, $default_force, 'Locale-Maketext' );
+			}
+
 			when (m{/Time-HiRes-}msx) {
 
 				# Time-HiRes is timing-dependent, of course.
 				$self->_install_cpan_module( $module, 1 );
 			}
 
-=for cmt
-			# There's a problem with extracting these two files, so
-			# upgrading to these versions, instead...
-			## no critic(ProhibitUnusedCapture)
-			when (
-				m{Unicode-Collate-0 [.] (\d\d)
-                   -withoutworldwriteables}msx
-			  )
-			{
-				$self->install_distribution(
-					name     => "SADAHIRO/Unicode-Collate-0.$1.tar.gz",
-					mod_name => 'Unicode::Collate',
-					$self->_install_location(1),
-					$self->_force_flag($default_force),
-				);
-			} ## end when ( m{Unicode-Collate-0 [.] (\d\d) })
-
-			when (
-				/Unicode-Normalize-1 [.] (\d\d)-withoutworldwriteables/msx)
-			{
-				$self->install_distribution(
-					name     => "SADAHIRO/Unicode-Normalize-1.$1.tar.gz",
-					mod_name => 'Unicode::Normalize',
-					$self->_install_location(1),
-					$self->_force_flag($default_force),
-				);
-			}
-=cut
-
 			when (m{/ExtUtils-MakeMaker-\d}msx) {
 
    # Get rid of the old ExtUtils::MakeMaker files that were deleted in 6.50.
-				$self->remove_file(
+				$self->_remove_file(
 					qw{perl lib ExtUtils MakeMaker bytes.pm});
-				$self->remove_file(
+				$self->_remove_file(
 					qw{perl lib ExtUtils MakeMaker vmsish.pm});
 				$self->_install_cpan_module( $module, $default_force );
 			}
@@ -247,12 +233,26 @@ sub install_cpan_upgrades {
 				$self->_install_cpan_module( $module, $default_force );
 			}
 
+			when (m{/version-\d}msx) {
+
+				if ($self->fragment_exists('version')) {
+					next; # It's getting installed twice on 5.14.0 for some weird reason.
+				}
+			}
+
 			when (m{/\QDevel-DProf-20110228}msx) {
 
-				#errors in tests, and this version does not contains
-				#any useful changes
-				#already patched in repository
-				next
+				# Force installation of Devel::DProf, as it fails tests, but
+				# needs to be installed on 5.14.0.
+				$self->_install_cpan_module( $module, 1 );
+			}
+
+			when (m{/Locale-Codes-\d}msx) {
+
+   # Get rid of the old Locale::Codes files that were deleted in 3.17.
+				$self->_remove_file(
+					qw{perl cpan Locale-Codes lib Locale Constants.pm});
+				$self->_install_cpan_module( $module, $default_force );
 			}
 
 			default {
@@ -287,7 +287,7 @@ sub install_cpan_upgrades {
 	# Install newest dev version of CPAN if we haven't already.
 	if ( not $self->fragment_exists('CPAN') ) {
 		$self->install_distribution(
-			name             => 'ANDK/CPAN-1.9600.tar.gz',
+			name             => 'ANDK/CPAN-1.97_51.tar.gz',
 			mod_name         => 'CPAN',
 			makefilepl_param => ['INSTALLDIRS=perl'],
 			buildpl_param    => [ '--installdirs', 'core' ],
@@ -311,103 +311,28 @@ sub install_cpan_upgrades {
 sub _get_cpan_upgrades_list {
 	my $self = shift;
 
-	# Get the CPAN url.
-	my $url = $self->cpan()->as_string();
-
 	# Generate the CPAN installation script
-	my $cpan_string = <<"END_PERL";
-print "Loading CPAN...\\n";
-use CPAN 1.9600;
-CPAN::HandleConfig->load unless \$CPAN::Config_loaded++;
-\$CPAN::Config->{'urllist'} = [ '$url' ];
-END_PERL
-	$cpan_string .= <<'END_PERL';
-print "Loading Storable...\n";
-use Storable qw(nstore);
-
-my ($module, %seen, %need, @toget);
-	
-my @modulelist = CPAN::Shell->expand('Module', '/./');
-
-# Schwartzian transform from CPAN.pm.
-my @expand;
-@expand = map {
-	$_->[1]
-} sort {
-	$b->[0] <=> $a->[0]
-	||
-	$a->[1]{ID} cmp $b->[1]{ID},
-} map {
-	[$_->_is_representative_module,
-	 $_
-	]
-} @modulelist;
-
-require Config;
-my $vendorlib=$Config::Config{'installvendorlib'};
-MODULE: for $module (@expand) {
-	my $file = $module->cpan_file;
-	
-	# If there's no file to download, skip it.
-	next MODULE unless defined $file;
-
-	$file =~ s{^./../}{};
-	my $latest  = $module->cpan_version;
-	my $inst_file = $module->inst_file;
-	my $have;
-	my $next_MODULE;
-	eval { # version.pm involved!
-		if ($inst_file and $vendorlib ne substr($inst_file,0,length($vendorlib))) {
-			$have = $module->inst_version;
-			local $^W = 0;
-			++$next_MODULE unless CPAN::Version->vgt($latest, $have);
-			# to be pedantic we should probably say:
-			#    && !($have eq "undef" && $latest ne "undef" && $latest gt "");
-			# to catch the case where CPAN has a version 0 and we have a version undef
-		} else {
-		   ++$next_MODULE;
-		}
-	};
-
-	next MODULE if $next_MODULE;
-	
-	if ($@) {
-		next MODULE;
-	}
-	
-	$seen{$file} ||= 0;
-	next MODULE if $seen{$file}++;
-	
-	push @toget, $module;
-	
-	$need{$module->id}++;
-}
-
-unless (%need) {
-	print "All modules are up to date\n";
-}
-	
-END_PERL
-	my $cpan_info_file = catfile( $self->output_dir(), 'cpan.info' );
-	$cpan_string .= <<"END_PERL";
-nstore \\\@toget, '$cpan_info_file';
-print "Completed collecting information on all modules\\n";
-
-exit 0;
-END_PERL
-
-	# Dump the CPAN script to a temp file and execute.
 	$self->trace_line( 1, "Running upgrade of all modules\n" );
-	my $cpan_file = catfile( $self->build_dir(), 'cpan_string.pl' );
-  SCOPE: {
-		my $CPAN_FILE;
-		open $CPAN_FILE, '>', $cpan_file
-		  or PDWiX->throw("CPAN script open failed: $OS_ERROR");
-		print {$CPAN_FILE} $cpan_string
-		  or PDWiX->throw("CPAN script print failed: $OS_ERROR");
-		close $CPAN_FILE
-		  or PDWiX->throw("CPAN script close failed: $OS_ERROR");
-	}
+	my $cpan_info_file = $self->output_dir()->file('cpan.info')->stringify();
+	my $cpan_file = $self->build_dir()->file('cpan_string.pl')->stringify();
+	
+	my $tt = Template->new( ABSOLUTE => 1, );
+	my $tt_answer = $tt->process(
+		$self->wix_dist_dir()->file('cpan_upgrades.pl.tt')->stringify(), 
+		{
+			url            => $self->cpan()->as_string(),
+			cpan_info_file => $cpan_info_file,
+		}, 
+		$cpan_file,
+	);
+
+	if ( not $tt_answer ) {
+		PDWiX::Caught->throw(
+			info    => 'Template',
+			message => $tt->error()->as_string() );
+}
+	
+	# Execute the CPAN upgrade script.
 	$self->execute_perl($cpan_file)
 	  or PDWiX->throw('CPAN script execution failed');
 	if ($CHILD_ERROR) {
@@ -447,7 +372,7 @@ sub _install_location {
 
 
 sub _install_cpan_module {
-	my ( $self, $module, $force ) = @_;
+	my ( $self, $module, $force, $packlist_location ) = @_;
 
 	# Collect information.
 	$force = $force or $self->force();
@@ -470,13 +395,15 @@ sub _install_cpan_module {
 	# Actually do the installation.
 	$self->install_distribution(
 		name     => $module_file,
-		mod_name => $self->_packlist_fix($module_id),
+		mod_name => $module_id,
 		$self->_install_location($core),
+		$packlist_location ? ( packlist_location => $packlist_location ) : (),
 		$force
 		  ? ( force => 1 )
 		  : (),
 	);
 #>>>
+
 	return 1;
 } ## end sub _install_cpan_module
 
@@ -533,6 +460,10 @@ the default tasklist after the "c toolchain" is installed.
 sub install_perl {
 	my $self = shift;
 
+	# Make the perl directory if it hasn't been made already.
+	$self->make_path( $self->dir('perl') );
+
+	# Actually do the installation.
 	$self->_install_perl_plugin();
 
 	# Should have a perl to use now.
@@ -558,6 +489,9 @@ sub _install_perl_plugin {
 	return PDWiX::Unimplemented->throw();
 }
 
+sub _get_forced_toolchain_dists {
+	return PDWiX::Unimplemented->throw();
+}
 
 
 sub _find_perl_file { ## no critic(ProhibitUnusedPrivateSubroutines)
@@ -566,8 +500,7 @@ sub _find_perl_file { ## no critic(ProhibitUnusedPrivateSubroutines)
 
 
 
-# This routine is called by the _install_perl_plugin routines.
-sub _create_perl_toolchain { ## no critic(ProhibitUnusedPrivateSubroutines)
+sub _get_toolchain {
 	my $self = shift;
 	my $cpan = $self->cpan();
 
@@ -581,45 +514,76 @@ sub _create_perl_toolchain { ## no critic(ProhibitUnusedPrivateSubroutines)
 		}
 	}
 
-	# Prefetch and predelegate the toolchain so that it
-	# fails early if there's a problem
-	$self->trace_line( 1, "Pregenerating toolchain...\n" );
-	my $force = {};
-	if ( $self->perl_version =~ m/\A512/ms ) {
-		$force = { 'Pod::Text' => 'RRA/podlators-2.4.0.tar.gz' };
-	}
-	if ( $self->perl_version eq '5140' ) {
-		$force = { 'ExtUtils::MakeMaker' =>
-			  'MSCHWERN/ExtUtils-MakeMaker-6.57_10.tar.gz' };
-	}
+	$self->trace_line( 1, "Generating toolchain...\n" );
+	my $force = $self->_get_forced_toolchain_dists();
+	# New version of LWP creates problems for https on 64 bit systems
 	$force->{'LWP'} = 'GAAS/libwww-perl-5.837.tar.gz';
+	$force->{'CPAN'} = 'ANDK/CPAN-1.97_51.tar.gz';
 
-	#new version creates problems for https on 64 bit systems
+	my $corelist_version = $self->perl_version_literal() + 0;
+	my $corelist_hash    = $Module::CoreList::version{$corelist_version};
+	my @dists = ();
 
-	my $toolchain = Perl::Dist::WiX::Toolchain->new(
-		perl_version => $self->perl_version_literal(),
-		cpan         => $cpan->as_string(),
-		bits         => $self->bits(),
-		force        => $force,
-	) or PDWiX->throw('Failed to resolve toolchain modules');
-	if ( not eval { $toolchain->delegate(); 1; } ) {
-		PDWiX::Caught->throw(
-			message => 'Delegation error occured',
-			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
-		);
+	my $stdout = IO::Capture::Stdout->new();
+	my $stderr = IO::Capture::Stderr->new();
+
+	# Load the latest index
+	local $SIG{__WARN__} = sub {1};
+	$stdout->start();
+	$stderr->start();
+	if ( not $CPAN::Config_loaded++ ) {
+		CPAN::HandleConfig->load();
 	}
-	if ( defined $toolchain->get_error() ) {
-		PDWiX::Caught->throw(
-			message => 'Failed to generate toolchain distributions',
-			info    => $toolchain->get_error() );
+	$CPAN::Config->{'urllist'}    = [ "$cpan" ];
+	$CPAN::Config->{'use_sqlite'} = q[0];
+	CPAN::Index->reload();
+	$stdout->stop();
+	$stderr->stop();
+
+	foreach
+	  my $name ( @{ $self->_toolchain_modules() } )
+	{
+		# Shortcut if forced
+		if ( $force->{$name} ) {
+			push @dists, $force->{$name};
+			next;
 	}
 
-	$self->_set_toolchain($toolchain);
+		# Get the CPAN object for the module, covering any output.
+		my $module = CPAN::Shell->expand( 'Module', $name );
 
-	# Make the perl directory if it hasn't been made already.
-	$self->make_path( $self->dir('perl') );
+		if ( not $module ) {
+			PDWiX->throw("Failed to find '$name'");
+	}
 
-	return $toolchain;
+		# Ignore modules that don't need to be updated
+		my $core_version = $corelist_hash->{$name};
+		if ( defined $core_version and $core_version =~ /_/ms ) {
+
+			# Sometimes, the core contains a developer
+			# version. For the purposes of this comparison
+			# it should be safe to "round down".
+			$core_version =~ s{_.+}{}ms;
+		}
+		my $cpan_version = $module->cpan_version;
+		if ( not defined $cpan_version ) {
+			next;
+		}
+		if ( defined $core_version and $core_version >= $cpan_version ) {
+			next;
+		}
+
+		# Filter out already seen dists
+		my $file = $module->cpan_file;
+		$file =~ s{\A [[:upper:]] / [[:upper:]][[:upper:]] /}{}msx;
+		push @dists, $file;
+	} ## end foreach my $name ( @{ $self...})
+
+	# Remove duplicates.
+	my %seen = ();
+	my @final_dists = grep { !$seen{$_}++ } @dists;
+
+	return @final_dists;
 } ## end sub _create_perl_toolchain
 
 
@@ -644,20 +608,27 @@ sub install_perl_toolchain {
 	my $self = shift;
 
 	# Retrieves and verifies the toolchain.
-	my $toolchain = $self->_get_toolchain();
-	if ( 0 == $toolchain->dist_count() ) {
+	my @toolchain = $self->_get_toolchain();
+	if ( 0 == scalar @toolchain ) {
 		PDWiX->throw('Toolchain did not get collected');
 	}
 
 	# Install the toolchain dists
-	my ( $core, $module_id );
 	my $perl_version  = $self->perl_version_literal();
 	my $default_force = $self->force();
-	foreach my $dist ( $toolchain->get_dists() ) {
+	foreach my $dist ( @toolchain ) {
 		my $automated_testing = 0;
 		my $release_testing   = 0;
 		my $overwritable      = 0;
+		my $casefix           = 0;
 		my $force             = $default_force;
+		# Actually DO the installation, now
+		# that we've got the information we need.
+		my $module_id = $self->_module_fix( $self->_name_to_module($dist) );
+		my $core =
+		  exists $Module::CoreList::version{$perl_version}{$module_id}
+		  ? 1
+		  : 0;
 		given ($dist) {
 
 			when (/Scalar-List-Util/msx) {
@@ -705,6 +676,8 @@ sub install_perl_toolchain {
 
 				# There are modules that overwrite portions of this one.
 				$overwritable = 1;
+				# Must be in core.
+				$core = 1;
 			}
 			when (/Win32API-Registry-/msx) {
 
@@ -729,23 +702,45 @@ sub install_perl_toolchain {
 				$force ||= ( $self->image_dir() =~ /\AD:/ms ) ? 1 : 0;
 
 			}
+			when (/CPAN-Meta-\d/msx) {
+
+				# Must be in core to overwrite EU::MM's version.
+				$core = 1;
+
+			}
+			when (/JSON-PP-/msx) {
+
+				# Must be in core to overwrite EU::MM's version.
+				$core = 1;
+
+			}
+			when (/version-/msx) {
+
+				# Messes up case when added.
+				$casefix = 1;
+
+			}
+			when (/Version-Requirements-/msx) {
+
+				# Must be in core to overwrite EU::MM's version.
+				$core = 1;
+				# Messes up case when added.
+				$casefix = 1;
+
+			}
 		} ## end given
 
-		# Actually DO the installation, now
-		# that we've got the information we need.
-		$module_id = $self->_module_fix( $self->_name_to_module($dist) );
-		$core =
-		  exists $Module::CoreList::version{$perl_version}{$module_id}
-		  ? 1
-		  : 0;
+		my $mod_name = $self->_packlist_fix($module_id);
+		$self->trace_line(5, "Module determined to be $mod_name\n");
 #<<<
 		$self->install_distribution(
 			name              => $dist,
-			mod_name          => $self->_packlist_fix($module_id),
+			mod_name          => $mod_name,
 			force             => $force,
 			automated_testing => $automated_testing,
 			release_testing   => $release_testing,
 			overwritable      => $overwritable,
+			case_fix          => $casefix,
 			$self->_install_location($core),
 		);
 #>>>

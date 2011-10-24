@@ -8,7 +8,7 @@ Perl::Dist::WiX::Mixin::Libraries - Library installation routines
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Mixin::Libraries version 1.500001.
+This document describes Perl::Dist::WiX::Mixin::Libraries version 1.550.
 
 =head1 DESCRIPTION
 
@@ -26,44 +26,60 @@ install the C toolchain and library files.
 
 use 5.010;
 use Moose;
+use MooseX::Types::Moose            qw( Str Maybe HashRef );
 use File::Spec::Functions qw( catfile );
 use Params::Util qw( _STRING );
 use Perl::Dist::WiX::Exceptions;
 use Readonly;
 
-our $VERSION = '1.500001';
+our $VERSION = '1.550';
 $VERSION =~ s/_//ms;
 
-Readonly my %PACKAGES => (
-	'32bit-gcc3' => {
-		'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
-		'mingw-make'    => 'mingw32-make-3.81-2.tar.gz',
-		'pexports'      => '32bit-gcc3/pexports-0.43-1-20100120.zip',
-		'gcc-toolchain' => 'mingw32-gcc3-toolchain-20091026-subset.tar.gz',
-		'gcc-license'   => undef,
+# Readonly my %PACKAGES => (
+	# '32bit-gcc3' => {
+		# 'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
+		# 'mingw-make'    => 'mingw32-make-3.81-2.tar.gz',
+		# 'pexports'      => '32bit-gcc3/pexports-0.43-1-20100120.zip',
+		# 'gcc-toolchain' => 'mingw32-gcc3-toolchain-20091026-subset.tar.gz',
+		# 'gcc-license'   => undef,
 
-# Former components of what's now included in gcc-toolchain.
-#		'gcc-core'      => 'gcc-core-3.4.5-20060117-3.tar.gz',
-#		'gcc-g++'       => 'gcc-g++-3.4.5-20060117-3.tar.gz',
-#		'binutils'      => 'binutils-2.17.50-20060824-1.tar.gz',
-#		'mingw-runtime' => 'mingw-runtime-3.13.tar.gz',
-#		'w32api'        => 'w32api-3.10.tar.gz',
-	},
-	'32bit-gcc4' => {
-		'dmake'      => '32bit-gcc4/dmake-SVN20091127-bin_20100524.zip',
-		'mingw-make' => '32bit-gcc4/gmake-3.81-20090914-bin_20100524.zip',
-		'pexports'   => '32bit-gcc4/pexports-0.44-bin_20100120.zip',
-		'gcc-toolchain' => '32bit-gcc4/mingw64-w32-20100123-kmx-v2.zip',
-		'gcc-license'   => '32bit-gcc4/mingw64-w32-20100123-kmx-v2-lic.zip',
-	},
-	'64bit-gcc4' => {
-		'dmake'         => '64bit-gcc4/dmake-SVN20091127-bin_20100524.zip',
-		'mingw-make'    => '64bit-gcc4/gmake-3.81.90_20100127_20100524.zip',
-		'pexports'      => '64bit-gcc4/pexports-0.44-bin_20100110.zip',
-		'gcc-toolchain' => '64bit-gcc4/mingw64-w64-20100123-kmx-v2.zip',
-		'gcc-license'   => '64bit-gcc4/mingw64-w64-20100123-kmx-v2-lic.zip',
-	},
+# # Former components of what's now included in gcc-toolchain.
+# #		'gcc-core'      => 'gcc-core-3.4.5-20060117-3.tar.gz',
+# #		'gcc-g++'       => 'gcc-g++-3.4.5-20060117-3.tar.gz',
+# #		'binutils'      => 'binutils-2.17.50-20060824-1.tar.gz',
+# #		'mingw-runtime' => 'mingw-runtime-3.13.tar.gz',
+# #		'w32api'        => 'w32api-3.10.tar.gz',
+	# },
+	# '32bit-gcc4' => {
+		# 'dmake'      => '32bit-gcc4/dmake-SVN20091127-bin_20100524.zip',
+		# 'mingw-make' => '32bit-gcc4/gmake-3.81-20090914-bin_20100524.zip',
+		# 'pexports'   => '32bit-gcc4/pexports-0.44-bin_20100120.zip',
+		# 'gcc-toolchain' => '32bit-gcc4/mingw64-w32-20100123-kmx-v2.zip',
+		# 'gcc-license'   => '32bit-gcc4/mingw64-w32-20100123-kmx-v2-lic.zip',
+	# },
+	# '64bit-gcc4' => {
+		# 'dmake'         => '64bit-gcc4/dmake-SVN20091127-bin_20100524.zip',
+		# 'mingw-make'    => '64bit-gcc4/gmake-3.81.90_20100127_20100524.zip',
+		# 'pexports'      => '64bit-gcc4/pexports-0.44-bin_20100110.zip',
+		# 'gcc-toolchain' => '64bit-gcc4/mingw64-w64-20100123-kmx-v2.zip',
+		# 'gcc-license'   => '64bit-gcc4/mingw64-w64-20100123-kmx-v2-lic.zip',
+	# },
+# );
+
+has '_library_information' => (
+	is       => 'ro',
+	isa      => HashRef [ Maybe [ Str ] ],
+	init_arg => undef,
+	lazy     => 1,
+	builder  => '_build_library_information',
 );
+
+sub _build_library_information {
+	# Implemented in plugins.
+	return {};
+}
+
+
 
 =pod
 
@@ -79,12 +95,20 @@ and L<gcc_version()|Perl::Dist::WiX/gcc_version> values.
 
 
 
-sub library_directory {
+has 'library_directory' => (
+	is       => 'ro',
+	isa      => Str,
+	init_arg => undef,
+	lazy     => 1,
+	builder  => '_build_library_directory',
+);
+
+sub _build_library_directory {
 	my $self = shift;
 
-	my $answer = $self->bits() . 'bit-gcc' . $self->gcc_version();
-
-	return $answer;
+	# Implemented as a plugin.
+	PDWiX::Unimplemented->throw( message => '_build_library_directory (in plugin)', );
+	return '';
 }
 
 
@@ -95,20 +119,17 @@ sub _binary_file {
 	my $package = shift;
 
 	my $toolchain = $self->library_directory();
+	my $packages = $self->_library_information();
 
 	$self->trace_line( 3, "Searching for $package in $toolchain\n" );
 
-	if ( not exists $PACKAGES{$toolchain} ) {
-		PDWiX->throw('Can only build 32 or 64-bit versions of perl');
-	}
-
-	if ( not exists $PACKAGES{$toolchain}{$package} ) {
+	if ( not exists $packages->{$package} ) {
 		PDWiX->throw(
 			'get_package_file was called on a package that was not defined.'
 		);
 	}
 
-	my $package_file = $PACKAGES{$toolchain}{$package};
+	my $package_file = $packages->{$package};
 	$self->trace_line( 3, "Package $package is in $package_file\n" );
 
 	return $package_file;

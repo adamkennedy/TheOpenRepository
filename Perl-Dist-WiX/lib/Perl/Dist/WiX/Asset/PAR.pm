@@ -8,7 +8,7 @@ Perl::Dist::WiX::Asset::PAR - "Binary .par package" asset for a Win32 Perl
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::PAR version 1.500.
+This document describes Perl::Dist::WiX::Asset::PAR version 1.550.
 
 =head1 SYNOPSIS
 
@@ -47,6 +47,7 @@ are installed.
 
 use 5.010;
 use Moose;
+use WiX3::Util::StrictConstructor;
 use MooseX::Types::Moose qw( Str );
 use File::Spec::Functions qw( catdir catfile );
 use English qw( -no_match_vars );
@@ -54,8 +55,7 @@ require SelectSaver;
 require PAR::Dist;
 require IO::String;
 
-our $VERSION = '1.500';
-$VERSION =~ s/_//ms;
+our $VERSION = '1.550';
 
 with 'Perl::Dist::WiX::Role::Asset';
 
@@ -93,7 +93,7 @@ has name => (
 	required => 1,
 );
 
-=head3 name
+=head3 dist_info
 
 The required C<dist_info> parameter is the location of the source package 
 for the .par file, either as a URL (which should be accessible for 3 years) 

@@ -1,6 +1,18 @@
 Changes for Perl extension Perl-Dist-WiX
 
-1.500001   Wed 23 Feb 2011
+1.550   To be released
+    1. Used to build Strawberry Perl 5.12.3.1 merge module.
+    2. Multiple modules will now install at a time.
+       This requires that Capture::Tiny and File::Slurp be included
+       in the 'toolchain', and is in preparation for
+       adding dependency-following in 1.600.
+    3. EU::MM 6.57_11 is now forced for all versions of Perl, and is 
+       also in preparation for adding dependency-following.  
+	
+1.500002   Sat 04 Jun 2011
+    1. Remove File::Remove from dependencies.
+
+1.500001   Thu 19 May 2011
     1. Used to build Strawberry Perl 5.12.3.0/5.10.1.5.
     2. Includes the 5.12.3 plugin for testing purposes.
 

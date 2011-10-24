@@ -8,7 +8,7 @@ Perl::Dist::WiX::Asset::Distribution - "Perl Distribution" asset for a Win32 Per
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::Distribution version 1.500001.
+This document describes Perl::Dist::WiX::Asset::Distribution version 1.550.
 
 =head1 SYNOPSIS
 
@@ -49,15 +49,14 @@ C<install_distribution> method (and other things that call it).
 
 use 5.010;
 use Moose;
+use WiX3::Util::StrictConstructor;
 use MooseX::Types::Moose qw( Str Bool ArrayRef Maybe );
 use File::Spec::Functions qw( catdir catfile );
 use Params::Util qw( _INSTANCE );
+use URI                    qw();
+use Win32                  qw();
 
-require File::Remove;
-require URI;
-
-our $VERSION = '1.500001';
-$VERSION =~ s/_//ms;
+our $VERSION = '1.550';
 
 with 'Perl::Dist::WiX::Role::Asset';
 extends 'Perl::Dist::WiX::Asset::DistBase';
@@ -273,6 +272,33 @@ has overwritable => (
 
 
 
+=head3 case_fix
+
+Some distributions (C<Version::Requirements>, for example) install files
+in directories that end up conflicting in case with previous distributions. 
+(in this case, with the C<version> module.)
+Since Windows is case-preserving, yet case-insensitive, that means the case
+of the directory is determined by the module that is installed first.
+
+The optional C<case_fix> param lets you specify that this is the second 
+distribution installed in such a pair, and tries harder (by calling 
+C<Win32::GetLongFileName() on each file) to add the filenames to the list 
+of files installed in the correct case. This defaults to false, for speed
+optimization reasons.
+
+=cut
+
+
+
+has case_fix => (
+	is      => 'ro',
+	isa     => Bool,
+	reader  => '_get_case_fix',
+	default => 0,
+);
+
+
+
 sub BUILDARGS {
 	my $class = shift;
 	my %args;
@@ -382,9 +408,12 @@ sub install {
 	}
 
 	# Download the file
-	my $tgz = $self->_mirror_url(
-		$self->_abs_uri( $self->_get_cpan() ),
-		$self->_get_modules_dir(),
+	my $url = $self->_abs_uri( $self->_get_cpan() );
+	my $tgz = eval { 
+		$self->_mirror_url( $url, $self->_get_modules_dir(), ) 
+	} || PDWiX::Caught->throw(
+			message => $@, 
+			info => 'Error trying to download distribution'
 	);
 
 	# Does it exist? If not, throw an error here.
@@ -404,7 +433,7 @@ sub install {
 	# Extract the tarball
 	if ( -d $unpack_to ) {
 		$self->_trace_line( 2, "Removing previous $unpack_to\n" );
-		File::Remove::remove( \1, $unpack_to );
+		$self->remove_path( \1, $unpack_to );
 	}
 	$self->_extract( $tgz => $build_dir );
 	if ( not -d $unpack_to ) {
@@ -466,13 +495,24 @@ sub install {
 	# Making final filelist.
 	my $filelist;
 	if ( $self->_get_packlist() ) {
-		$filelist = $self->_search_packlist($module);
+		$filelist = $self->_search_packlist($module, $name);
 	} else {
 		$filelist =
 		  File::List::Object->new()->readdir( $self->_dir('perl') );
 		$filelist->subtract($filelist_sub)->filter( $self->_filters() );
 	}
 
+	if ( $self->_get_case_fix() ) {
+		my @files = @{ $filelist->files() };
+		my @correct_files;
+		foreach my $file (@files) {
+			my $fixed_file = Win32::GetLongPathName($file);
+			$self->_trace_line(5, "Case fixing:\n  OLD: $file\n  NEW: $fixed_file\n");
+			push @correct_files, $fixed_file;
+		}
+		$filelist = File::List::Object->new()->load_array(@correct_files);
+	}
+	
 	my $module_name = $self->get_module_name();
 	$module_name =~ s{::}{_}msg;
 	$module_name =~ s{-}{_}msg;

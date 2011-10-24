@@ -8,7 +8,7 @@ Perl::Dist::WiX::Fragment::Environment - A <Fragment> tag with environment varia
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Fragment::Environment version 1.500.
+This document describes Perl::Dist::WiX::Fragment::Environment version 1.550.
 
 =head1 SYNOPSIS
 
@@ -38,13 +38,12 @@ the environment variables required in a distribution.
 
 use 5.010;
 use Moose;
-require Perl::Dist::WiX::DirectoryTree;
-require WiX3::XML::Environment;
-require WiX3::XML::Component;
-require WiX3::XML::DirectoryRef;
+use Perl::Dist::WiX::DirectoryTree qw();
+use WiX3::XML::Environment qw();
+use WiX3::XML::Component qw();
+use WiX3::XML::DirectoryRef qw();
 
-our $VERSION = '1.500';
-$VERSION =~ s/_//ms;
+our $VERSION = '1.550';
 
 extends 'WiX3::XML::Fragment';
 with 'WiX3::Role::Traceable';

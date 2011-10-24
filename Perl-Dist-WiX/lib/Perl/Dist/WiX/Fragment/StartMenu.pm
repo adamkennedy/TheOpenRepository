@@ -8,7 +8,7 @@ Perl::Dist::WiX::Fragment::StartMenu - A <Fragment> tag that handles the Start m
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Fragment::StartMenu version 1.500.
+This document describes Perl::Dist::WiX::Fragment::StartMenu version 1.550.
 
 =head1 SYNOPSIS
 
@@ -46,8 +46,7 @@ use WiX3::XML::RemoveFolder qw();
 use WiX3::XML::DirectoryRef qw();
 use WiX3::XML::Shortcut qw();
 
-our $VERSION = '1.500';
-$VERSION =~ s/_//ms;
+our $VERSION = '1.550';
 
 extends 'WiX3::XML::Fragment';
 with 'WiX3::Role::Traceable';

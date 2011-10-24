@@ -8,7 +8,7 @@ Perl::Dist::WiX::Asset::Library - "C Library" asset for a Win32 Perl
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::Library version 1.500.
+This document describes Perl::Dist::WiX::Asset::Library version 1.550.
 
 =head1 SYNOPSIS
 
@@ -53,10 +53,10 @@ L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>.
 
 use 5.010;
 use Moose;
+use WiX3::Util::StrictConstructor;
 use MooseX::Types::Moose qw( Str Maybe HashRef );
 
-our $VERSION = '1.500';
-$VERSION =~ s/_//ms;
+our $VERSION = '1.550';
 
 with 'Perl::Dist::WiX::Role::Asset';
 
@@ -219,7 +219,7 @@ sub install {
 	  catdir( $self->_get_build_dir(), $self->_get_unpack_to() );
 	if ( -d $unpack_to ) {
 		$self->_trace_line( 2, "Removing previous $unpack_to\n" );
-		File::Remove::remove( \1, $unpack_to );
+		$self->remove_path( $unpack_to );
 	}
 	@files = $self->_extract( $tgz, $unpack_to );
 

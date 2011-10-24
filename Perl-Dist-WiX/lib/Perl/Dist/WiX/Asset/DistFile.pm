@@ -8,7 +8,7 @@ Perl::Dist::WiX::Asset::DistFile - "Local Distribution" asset for a Win32 Perl
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::DistFile version 1.500.
+This document describes Perl::Dist::WiX::Asset::DistFile version 1.550.
 
 =head1 SYNOPSIS
 
@@ -55,16 +55,14 @@ L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>.
 
 use 5.010;
 use Moose;
+use WiX3::Util::StrictConstructor;
 use MooseX::Types::Moose qw( Str Maybe Bool ArrayRef );
 use File::Spec::Functions qw( catdir catfile splitpath );
+use URI                         qw();
+use File::Spec::Unix            qw();
+use Perl::Dist::WiX::Exceptions qw();
 
-require File::Remove;
-require URI;
-require File::Spec::Unix;
-require Perl::Dist::WiX::Exceptions;
-
-our $VERSION = '1.500';
-$VERSION =~ s/_//ms;
+our $VERSION = '1.550';
 
 with qw(Perl::Dist::WiX::Role::Asset WiX3::Role::Traceable);
 extends 'Perl::Dist::WiX::Asset::DistBase';
@@ -266,7 +264,7 @@ sub install {
 	# Extract the tarball
 	if ( -d $unpack_to ) {
 		$self->_trace_line( 2, "Removing previous $unpack_to\n" );
-		File::Remove::remove( \1, $unpack_to );
+		$self->remove_path( $unpack_to );
 	}
 	$self->_trace_line( 4, "Unpacking to $unpack_to\n" );
 	$self->_extract( $path => $self->_get_build_dir() );

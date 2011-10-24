@@ -8,7 +8,7 @@ Perl::Dist::WiX::Fragment::CreateFolder - A <Fragment> tag that creates a folder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Fragment::CreateFolder version 1.500.
+This document describes Perl::Dist::WiX::Fragment::CreateFolder version 1.550.
 
 =head1 SYNOPSIS
 
@@ -28,12 +28,11 @@ use 5.010;
 use Moose;
 use Params::Util qw( _STRING  );
 use MooseX::Types::Moose qw( Str );
-use WiX3::XML::CreateFolder;
-use WiX3::XML::DirectoryRef;
-use WiX3::XML::Component;
+use WiX3::XML::CreateFolder qw();
+use WiX3::XML::DirectoryRef qw();
+use WiX3::XML::Component qw();
 
-our $VERSION = '1.500';
-$VERSION =~ s/_//ms;
+our $VERSION = '1.550';
 
 extends 'WiX3::XML::Fragment';
 with 'WiX3::Role::Traceable';

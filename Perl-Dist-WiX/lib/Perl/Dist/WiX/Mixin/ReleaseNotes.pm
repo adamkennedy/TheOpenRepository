@@ -8,7 +8,7 @@ Perl::Dist::WiX::Mixin::ReleaseNotes - Creates accessory files.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Mixin::ReleaseNotes version 1.500.
+This document describes Perl::Dist::WiX::Mixin::ReleaseNotes version 1.550.
 
 =head1 DESCRIPTION
 
@@ -28,11 +28,10 @@ use 5.010;
 use Moose;
 use English qw( -no_match_vars );
 use File::Spec::Functions qw( catfile );
-require IO::File;
-require File::List::Object;
+use IO::File qw();
+use File::List::Object qw();
 
-our $VERSION = '1.500';
-$VERSION =~ s/_//ms;
+our $VERSION = '1.550';
 
 
 

@@ -8,7 +8,7 @@ Perl::Dist::WiX::FeatureTree - Tree of <Feature> tag objects.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::FeatureTree version 1.500.
+This document describes Perl::Dist::WiX::FeatureTree version 1.550.
 
 =head1 SYNOPSIS
 
@@ -32,8 +32,7 @@ use Moose 0.90;
 use WiX3::XML::Feature qw();
 use namespace::clean -except => 'meta';
 
-our $VERSION = '1.500';
-$VERSION =~ s/_//ms;
+our $VERSION = '1.550';
 
 =head1 INTERFACE
 

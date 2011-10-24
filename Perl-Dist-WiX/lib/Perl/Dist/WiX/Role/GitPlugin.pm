@@ -8,7 +8,7 @@ Perl::Dist::WiX::Role::GitPlugin - Role for plugins that build from git checkout
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Role::GitPlugin version 1.500.
+This document describes Perl::Dist::WiX::Role::GitPlugin version 1.550.
 
 =head1 SYNOPSIS
 
@@ -25,8 +25,7 @@ use 5.010;
 use Moose::Role;
 use English qw( -no_match_vars );
 
-our $VERSION = '1.500';
-$VERSION =~ s/_//sm;
+our $VERSION = '1.550';
 
 =head1 METHODS
 

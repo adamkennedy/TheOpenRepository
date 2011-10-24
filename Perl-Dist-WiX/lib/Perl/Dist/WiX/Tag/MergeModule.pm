@@ -8,7 +8,7 @@ Perl::Dist::WiX::Tag::MergeModule - <Merge> tag that makes its own <MergeRef> wh
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Tag::MergeModule version 1.500.
+This document describes Perl::Dist::WiX::Tag::MergeModule version 1.550.
 
 =head1 SYNOPSIS
 
@@ -31,10 +31,9 @@ L<Perl::Dist::WiX|Perl::Dist::WiX> based distribution.
 
 use 5.010;
 use Moose;
-require WiX3::XML::MergeRef;
+use WiX3::XML::MergeRef qw();
 
-our $VERSION = '1.500';
-$VERSION =~ s/_//ms;
+our $VERSION = '1.550';
 
 extends 'WiX3::XML::Merge';
 

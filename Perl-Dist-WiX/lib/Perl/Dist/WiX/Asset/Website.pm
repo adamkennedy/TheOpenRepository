@@ -8,7 +8,7 @@ Perl::Dist::WiX::Asset::Website - Website link asset for a Win32 Perl
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::Website version 1.500.
+This document describes Perl::Dist::WiX::Asset::Website version 1.550.
 
 =head1 SYNOPSIS
 
@@ -29,12 +29,12 @@ given.
 
 use 5.010;
 use Moose;
+use WiX3::Util::StrictConstructor;
 use MooseX::Types::Moose qw( Str Int Maybe );
 use File::Spec::Functions qw( catfile splitpath );
 use English qw( -no_match_vars );
 
-our $VERSION = '1.500';
-$VERSION =~ s/_//ms;
+our $VERSION = '1.550';
 
 with 'Perl::Dist::WiX::Role::Asset';
 

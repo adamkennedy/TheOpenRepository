@@ -8,7 +8,7 @@ Perl::Dist::WiX::Role::NonURLAsset - Role for assets that do not require URL's.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Role::NonURLAsset version 1.500.
+This document describes Perl::Dist::WiX::Role::NonURLAsset version 1.550.
 
 =head1 SYNOPSIS
 
@@ -30,15 +30,14 @@ use File::Spec::Functions qw( rel2abs catdir catfile );
 use MooseX::Types::Moose qw( Str Maybe );
 use Params::Util qw( _INSTANCE );
 use English qw( -no_match_vars );
-require File::List::Object;
-require File::ShareDir;
-require File::Spec::Unix;
-require Perl::Dist::WiX::Exceptions;
-require URI;
-require URI::file;
+use File::List::Object qw();
+use File::ShareDir qw();
+use File::Spec::Unix qw();
+use Perl::Dist::WiX::Exceptions qw();
+use URI qw();
+use URI::file qw();
 
-our $VERSION = '1.500';
-$VERSION =~ s/_//sm;
+our $VERSION = '1.550';
 
 
 
@@ -144,7 +143,20 @@ requires 'install';
 
 
 sub _search_packlist { ## no critic(ProhibitUnusedPrivateSubroutines)
-	my ( $self, $module ) = @_;
+	my ( $self, $module, $output, $dist_installed ) = @_;
+	$output ||= catfile( $self->_get_output_dir(), 'debug.out' );
+	$dist_installed ||= q{};
+	
+	# Try and get a second module name to try from the name of the
+	# distribution's tarball.
+	my ($second_module) = $dist_installed =~ m{ 
+		/ ([^/]*)            # Grab whatever's after the last slash ...
+		-\d+(?:.*)           # up to the first thing that starts with a digit ...
+		\.                   # and then match a dot ...
+		(?:tar\.gz|tgz|zip)  # and then an extension ...
+		\z                   # that ends the string.
+	}msx;
+	$second_module =~ s/-/::/msg if $second_module;
 
 	# We don't use the error until later, if needed.
 	my $error = <<"EOF";
@@ -167,9 +179,20 @@ EOF
 		catdir( $image_dir, qw{perl        lib auto}, @module_dirs ),
 	);
 
+	# If the second name wasn't equal to the first, try and get it.
+	if ($second_module && ($second_module ne $module)) {
+		my @second_module_dirs = split /::/ms, $second_module;
+		push @dirs, (
+			catdir( $image_dir, qw{perl vendor lib auto}, @second_module_dirs ),
+			catdir( $image_dir, qw{perl site   lib auto}, @second_module_dirs ),
+			catdir( $image_dir, qw{perl        lib auto}, @second_module_dirs ),
+		);
+	}
+
+	# If we were given a packlist location, try there, first!
 	my $packlist_location = $self->_get_packlist_location();
 	if ( defined $packlist_location ) {
-		push @dirs,
+		unshift @dirs,
 		  (
 			catdir(
 				$image_dir, qw{perl vendor lib auto},
@@ -191,12 +214,14 @@ EOF
   DIR:
 	foreach my $dir (@dirs) {
 		$packlist = catfile( $dir, '.packlist' );
+		$self->_trace_line(4, "Checking for $packlist\n");
 		last DIR if -r $packlist;
 	}
 
 	my $filelist;
 	if ( -r $packlist ) {
 
+		$self->_trace_line(3, "$packlist was found\n");		
 		# Load a filelist object from the packlist if one exists.
 		$filelist =
 		  File::List::Object->new()->load_file($packlist)
@@ -204,9 +229,8 @@ EOF
 	} else {
 
 		# Read the output from installing the module.
-		my $output = catfile( $self->_get_output_dir(), 'debug.out' );
 		$self->_trace_line( 3,
-			"Attempting to use debug.out file to make filelist\n" );
+			"Attempting to use output file $output to make filelist\n" );
 		my $fh = IO::File->new( $output, 'r' );
 
 		if ( not defined $fh ) {
@@ -217,7 +241,7 @@ EOF
 
 		# Parse the output read in for filenames.
 		my @files_list =
-		  map { ## no critic 'ProhibitComplexMappings'
+		  map { ## no critic(ProhibitComplexMappings)
 			my $t = $_;
 			chomp $t;
 			( $t =~ / \A Installing [ ] (.*) \z /msx ) ? ($1) : ();
