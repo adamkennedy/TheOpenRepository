@@ -1,13 +1,13 @@
 package WiX3::XML::Directory;
 
-use 5.008001;
+use 5.008003;
 
 # Must be done before Moose, or it won't get picked up.
 use metaclass (
 	metaclass   => 'Moose::Meta::Class',
 	error_class => 'WiX3::Util::Error',
 );
-use Moose;
+use Moose 2;
 use MooseX::Types::Moose qw( Int Str Maybe ArrayRef );
 use WiX3::Types qw( ComponentGuidType );
 use WiX3::XML::TagTypes qw( DirectoryChildTag );
@@ -15,8 +15,7 @@ use WiX3::Util::StrictConstructor;
 use Params::Util qw( _IDENTIFIER _STRING );
 use File::Spec::Functions qw( catdir );
 
-our $VERSION = '0.010002';
-$VERSION =~ s/_//ms;
+our $VERSION = '0.011';
 
 with qw(WiX3::XML::Role::TagAllowsChildTags
   WiX3::XML::Role::GeneratesGUID
@@ -175,6 +174,7 @@ sub add_directory {
 	}
 
 	my $name = $args{name};
+	## no critic(ProhibitMagicNumbers)
 	$self->trace_line( 3, "Adding directory $name\n" ) if defined $name;
 
 	# We make a new $class, rather than a new WiX3::XML::Directory,

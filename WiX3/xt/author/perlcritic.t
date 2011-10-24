@@ -30,12 +30,12 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-if ( 1.106 > eval { $Perl::Critic::VERSION } ) {
-	BAIL_OUT( 'Perl::Critic needs updated to 1.106' );
+if ( 1.116 > eval { $Perl::Critic::VERSION } ) {
+	BAIL_OUT( 'Perl::Critic needs updated to 1.116' );
 }
 
-if ( 20090616 > eval { $Perl::Tidy::VERSION } ) {
-	BAIL_OUT( "Perl::Tidy needs updated to 20090616" );
+if ( 20101217 > eval { $Perl::Tidy::VERSION } ) {
+	BAIL_OUT( "Perl::Tidy needs updated to 20101217" );
 }
 
 diag('Takes a few minutes...');

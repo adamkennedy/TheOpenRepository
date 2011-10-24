@@ -4,16 +4,15 @@ package                                # Hide from PAUSE.
 # Corresponds to MooseX::StrictConstructor::Trait::Class
 # 0.010004 = MX::SC 0.16
 
-use 5.008001;
+use 5.008003;
 use strict;
 use warnings;
-use Moose::Role;
+use Moose::Role 2;
 use namespace::autoclean;
 use WiX3::Exceptions;
 use B qw();
 
-our $VERSION = '0.010004';
-$VERSION =~ s/_//ms;
+our $VERSION = '0.011';
 
 around new_object => sub {
     my $orig     = shift;
@@ -23,18 +22,16 @@ around new_object => sub {
 
     my %attrs = (
         __INSTANCE__ => 1,
-        (
-            map { $_ => 1 }
+		(   map { $_ => 1 }
             grep {defined}
-            map  { $_->init_arg() } $self->get_all_attributes()
-        )
-    );
+			map  { $_->init_arg() } $self->get_all_attributes() ) );
 
-    my @bad = sort grep { !$attrs{$_} } keys %$params;
+	my @bad = sort grep { !$attrs{$_} } keys %{$params};
 
     if (@bad) {
 		WiX3::Exception::Parameter->throw(
-          "Found unknown attribute(s) init_arg passed to the constructor: @bad");
+"Found unknown attribute(s) init_arg passed to the constructor: @bad"
+		);
     }
 
     return $instance;
@@ -50,12 +47,12 @@ around '_inline_BUILDALL' => sub {
         '__INSTANCE__ => 1,',
         map { B::perlstring($_) . ' => 1,' }
         grep {defined}
-        map  { $_->init_arg() } $self->get_all_attributes()
-    );
+		  map  { $_->init_arg() } $self->get_all_attributes() );
 
+	##no critic(RequireInterpolationOfMetachars)
     return (
         @source,
-        'my %attrs = (' . ( join ' ', @attrs ) . ');',
+		'my %attrs = (' . ( join q{ }, @attrs ) . ');',
         'my @bad = sort grep { !$attrs{$_} } keys %{ $params };',
         'if (@bad) {',
 		    'WiX3::Exception::Parameter->throw(',

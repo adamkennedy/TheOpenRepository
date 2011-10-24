@@ -1,12 +1,11 @@
 package WiX3::XML::Role::Tag;
 
-use 5.008001;
-use Moose::Role;
+use 5.008003;
+use Moose::Role 2;
 use Params::Util qw( _STRING _NONNEGINT );
 use WiX3::Exceptions;
 
-our $VERSION = '0.009102';
-$VERSION =~ s/_//ms;
+our $VERSION = '0.011';
 
 #####################################################################
 # Methods

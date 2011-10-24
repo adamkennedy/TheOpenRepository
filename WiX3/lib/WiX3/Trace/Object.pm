@@ -1,14 +1,13 @@
 package                                # Hide from PAUSE.
   WiX3::Trace::Object;
 
-use 5.008001;
+use 5.008003;
 use MooseX::Singleton;
 use WiX3::Util::StrictConstructor;
 use WiX3::Types qw( Tracelevel );
 use MooseX::Types::Moose qw( Bool );
 
-our $VERSION = '0.009100';
-$VERSION =~ s/_//ms;
+our $VERSION = '0.011';
 
 has tracelevel => (
 	is      => 'rw',

@@ -1,11 +1,10 @@
 package WiX3::Exceptions;
 
-use 5.008001;
+use 5.008003;
 use strict;
 use warnings;
 
-our $VERSION = '0.009100';
-$VERSION =~ s/_//ms;
+our $VERSION = '0.011';
 
 use Exception::Class 1.29 (
 	'WiX3::Exception' => {

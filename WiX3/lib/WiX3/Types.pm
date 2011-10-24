@@ -1,7 +1,7 @@
 package                                # Hide from PAUSE.
   WiX3::Types;
 
-use 5.008001;
+use 5.008003;
 use MooseX::Types -declare => [ qw(
 	  Host Tracelevel IsTag _YesNoType YesNoType ComponentGuidType PositiveInt
 	  NonNegativeInt TraceObject
@@ -12,8 +12,7 @@ use Regexp::Common 2.105;
 use MooseX::Types::Moose qw( Str Int Bool HashRef );
 use Readonly 1.03 qw( Readonly );
 
-our $VERSION = '0.009100';
-$VERSION =~ s/_//ms;
+our $VERSION = '0.011';
 
 # Assemble the GUID regex from pieces.
 Readonly my $HEX              => '0-9A-F';
@@ -53,7 +52,7 @@ subtype TraceObject, as class_type 'WiX3::Trace::Object';
 
 subtype Tracelevel,
   as Int,
-  where { ( $_ >= 0 ) && ( $_ <= 5 ) },
+  where { ( $_ >= 0 ) && ( $_ <= 5 ) }, ## no critic (ProhibitMagicNumbers)
   message {"The tracelevel you provided, $_, was not valid."};
 
 subtype _YesNoType,

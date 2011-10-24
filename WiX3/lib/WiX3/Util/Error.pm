@@ -1,15 +1,14 @@
 package                                # Hide from PAUSE
   WiX3::Util::Error;
 
-use 5.008001;
+use 5.008003;
 use strict;
 use warnings;
 use Readonly qw (Readonly);
 use WiX3::Exceptions;
 use parent 'Moose::Error::Default';
 
-our $VERSION = '0.009100';
-$VERSION =~ s/_//ms;
+our $VERSION = '0.011';
 
 Readonly my %TYPES => ( 'Maybe[Int]' => 'an integer' );
 
@@ -31,6 +30,7 @@ sub create_error_confess {
 sub _create_error_carpmess {
 	my ( $self, %args ) = @_;
 
+	## no critic(ProhibitMagicNumbers)
 	my $carp_level = 3 + ( $args{depth} || 1 );
 
 	my @args = exists $args{message} ? $args{message} : ();
@@ -38,7 +38,7 @@ sub _create_error_carpmess {
 
 	my $longmess = exists $args{longmess} ? !!$args{longmess} : 0;
 
-	## no critic 'ProhibitComplexRegexes'
+	## no critic(ProhibitComplexRegexes)
 	if ($info =~ m{\A
 	               Attribute [ ] [(] (.*) [)]  # $1 = attribute name
 				   [ ] does [ ] not [ ] pass [ ] the 

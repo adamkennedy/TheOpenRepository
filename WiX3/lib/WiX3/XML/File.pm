@@ -1,20 +1,19 @@
 package WiX3::XML::File;
 
-use 5.008001;
+use 5.008003;
 
 # Must be done before Moose, or it won't get picked up.
 use metaclass (
 	metaclass   => 'Moose::Meta::Class',
 	error_class => 'WiX3::Util::Error',
 );
-use Moose;
+use Moose 2;
 use WiX3::Types qw( YesNoType PositiveInt NonNegativeInt );
 use WiX3::XML::TagTypes qw( ShortcutTag );
 use MooseX::Types::Moose qw( Str Maybe Int ArrayRef );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.010002';
-$VERSION =~ s/_//ms;
+our $VERSION = '0.011';
 
 with 'WiX3::XML::Role::TagAllowsChildTags';
 

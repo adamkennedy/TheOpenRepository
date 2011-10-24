@@ -1,12 +1,11 @@
 package WiX3::XML::Role::GeneratesGUID;
 
-use 5.008001;
-use Moose::Role;
+use 5.008003;
+use Moose::Role 2;
 use WiX3::Types qw( Host );
 require WiX3::XML::GeneratesGUID::Object;
 
-our $VERSION = '0.009100';
-$VERSION =~ s/_//ms;
+our $VERSION = '0.011';
 
 # requires 'get_path';
 

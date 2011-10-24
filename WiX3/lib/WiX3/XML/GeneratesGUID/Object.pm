@@ -1,7 +1,7 @@
 package                                # Hide from PAUSE
   WiX3::XML::GeneratesGUID::Object;
 
-use 5.008001;
+use 5.008003;
 
 #use metaclass (
 #	base_class  => 'MooseX::Singleton::Object',
@@ -13,8 +13,7 @@ use Data::UUID qw( NameSpace_DNS );
 use WiX3::Types qw( Host );
 require WiX3::Exceptions;
 
-our $VERSION = '0.009100';
-$VERSION =~ s/_//ms;
+our $VERSION = '0.011';
 
 
 #####################################################################
@@ -54,8 +53,10 @@ has _sitename_guid => (
 		  $guidgen->create_from_name( Data::UUID::NameSpace_DNS,
 			$self->_get_sitename() );
 
-		$self->trace_line( 5,
-			'Generated site GUID: ' . $guidgen->to_string($guid) . "\n" );
+		$self->trace_line(
+			5, ## no critic(ProhibitMagicNumbers)
+			'Generated site GUID: ' . $guidgen->to_string($guid) . "\n"
+		);
 
 		return $guid;
 	},

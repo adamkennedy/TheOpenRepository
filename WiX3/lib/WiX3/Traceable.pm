@@ -1,6 +1,6 @@
 package WiX3::Traceable;
 
-use 5.008001;
+use 5.008003;
 
 #use metaclass (
 #	base_class  => 'MooseX::Singleton::Object',
@@ -9,11 +9,10 @@ use 5.008001;
 #);
 use MooseX::Singleton;
 use WiX3::Util::StrictConstructor;
-use WiX3::Trace::Object 0.009100;
+use WiX3::Trace::Object 0.011;
 use WiX3::Types qw( TraceObject );
 
-our $VERSION = '0.009100';
-$VERSION =~ s/_//ms;
+our $VERSION = '0.011';
 
 with 'WiX3::Role::Traceable';
 

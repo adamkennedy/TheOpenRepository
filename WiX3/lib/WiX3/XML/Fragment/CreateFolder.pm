@@ -1,11 +1,10 @@
 package WiX3::XML::Fragment::CreateFolder;
 
-use 5.008001;
-use Moose;
+use 5.008003;
+use Moose 2;
 use Params::Util qw( _IDENTIFIER );
 
-our $VERSION = '0.009100';
-$VERSION =~ s/_//ms;
+our $VERSION = '0.011';
 
 with 'WiX3::XML::Role::Fragment';
 
@@ -33,7 +32,7 @@ sub BUILDARGS {
 		my %args = %{ $_[0] };
 		$id           = $args{'id'};
 		$directory_id = $args{'directory_id'};
-	} elsif ( @_ == 4 ) {
+	} elsif ( @_ == ( 2 * 2 ) ) {      # 2 pairs.
 		my %args = {@_};
 		$id           = $args{'id'};
 		$directory_id = $args{'directory_id'};

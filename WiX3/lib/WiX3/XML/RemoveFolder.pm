@@ -1,20 +1,19 @@
 package WiX3::XML::RemoveFolder;
 
-use 5.008001;
+use 5.008003;
 
 # Must be done before Moose, or it won't get picked up.
 use metaclass (
 	metaclass   => 'Moose::Meta::Class',
 	error_class => 'WiX3::Util::Error',
 );
-use Moose;
+use Moose 2;
 use Params::Util qw( _STRING  );
 use MooseX::Types::Moose qw( Maybe Str );
 use WiX3::Types qw( EnumRemoveFolderOn );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.009100';
-$VERSION =~ s/_//ms;
+our $VERSION = '0.011';
 
 with 'WiX3::XML::Role::Tag';
 

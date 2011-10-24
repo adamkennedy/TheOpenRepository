@@ -7,22 +7,21 @@ package WiX3::XML::RegistryValue;
 #
 # License is the same as perl. See WiX3.pm for details.
 #
-use 5.008001;
+use 5.008003;
 
 # Must be done before Moose, or it won't get picked up.
 use metaclass (
 	metaclass   => 'Moose::Meta::Class',
 	error_class => 'WiX3::Util::Error',
 );
-use Moose;
+use Moose 2;
 use Params::Util qw( _IDENTIFIER _STRING );
 use WiX3::Types
   qw( YesNoType EnumRegistryRootType EnumRegistryValueType EnumRegistryValueAction );
 use MooseX::Types::Moose qw( Str Maybe Bool Undef );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.010002';
-$VERSION =~ s/_//ms;
+our $VERSION = '0.011';
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_registryvalue.htm
 

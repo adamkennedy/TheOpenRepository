@@ -1,21 +1,20 @@
 package WiX3::XML::FeatureRef;
 
-use 5.008001;
+use 5.008003;
 
 # Must be done before Moose, or it won't get picked up.
 use metaclass (
 	metaclass   => 'Moose::Meta::Class',
 	error_class => 'WiX3::Util::Error',
 );
-use Moose;
+use Moose 2;
 use Params::Util qw( _INSTANCE _IDENTIFIER );
 use MooseX::Types::Moose qw( Str Maybe ArrayRef );
 use WiX3::Types qw( YesNoType );
 use WiX3::XML::TagTypes qw( FeatureRefChildTag );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.010';
-$VERSION =~ s/_//ms;
+our $VERSION = '0.011';
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_featureref.htm
 

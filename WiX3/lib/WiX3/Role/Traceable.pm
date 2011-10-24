@@ -1,11 +1,10 @@
 package WiX3::Role::Traceable;
 
-use 5.008001;
-use Moose::Role 0.90;
-use WiX3::Trace::Object 0.009100;
+use 5.008003;
+use Moose::Role 2;
+use WiX3::Trace::Object 0.011;
 
-our $VERSION = '0.009101';
-$VERSION =~ s/_//ms;
+our $VERSION = '0.011';
 
 sub get_tracelevel {
 	my $self = shift;

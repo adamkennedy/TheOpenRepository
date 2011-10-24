@@ -1,11 +1,10 @@
 package WiX3::XML::Role::InnerText;
 
-use 5.008001;
-use Moose::Role;
+use 5.008003;
+use Moose::Role 2;
 use MooseX::Types::Moose qw( Maybe Str );
 
-our $VERSION = '0.010002';
-$VERSION =~ s/_//ms;
+our $VERSION = '0.011';
 
 has inner_text => (
 	is      => 'ro',

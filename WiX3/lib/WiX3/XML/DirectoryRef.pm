@@ -1,20 +1,19 @@
 package WiX3::XML::DirectoryRef;
 
-use 5.008001;
+use 5.008003;
 
 # Must be done before Moose, or it won't get picked up.
 use metaclass (
 	metaclass   => 'Moose::Meta::Class',
 	error_class => 'WiX3::Util::Error',
 );
-use Moose;
+use Moose 2;
 use Params::Util qw( _INSTANCE );
 use MooseX::Types::Moose qw( Int Str ArrayRef );
 use WiX3::XML::TagTypes qw( DirectoryRefChildTag DirectoryTag );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.010';
-$VERSION =~ s/_//ms;
+our $VERSION = '0.011';
 
 with qw(WiX3::XML::Role::TagAllowsChildTags
   WiX3::Role::Traceable
