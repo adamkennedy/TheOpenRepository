@@ -28,21 +28,23 @@ order to build Perl itself.
 use 5.010;
 use Moose;
 use MooseX::Types::Moose              qw( Str ArrayRef );
-use English qw( -no_match_vars );
-use List::MoreUtils qw( any );
-use Params::Util qw( _HASH _STRING _INSTANCE );
-use Readonly qw( Readonly );
-use Storable qw( retrieve );
-use File::Spec::Functions qw(
+use English                           qw( -no_match_vars );
+use List::MoreUtils                   qw( any );
+use Params::Util                      qw( _HASH _STRING _INSTANCE );
+use Readonly                          qw( Readonly );
+use Storable                          qw( retrieve nstore );
+use File::Spec::Functions             qw(
   catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
-use CPAN 1.9600 qw();
+use CPAN                       1.9600 qw();
 use File::List::Object                qw();
 use Module::CoreList             2.49 qw();
 use IO::Capture::Stdout               qw();
 use IO::Capture::Stderr               qw();
 use Perl::Dist::WiX::Asset::Perl      qw();
 use Template                          qw();
+use Archive::Zip                      qw( :ERROR_CODES );
+use Archive::Extract;
 #>>>
 
 our $VERSION = '1.550';
@@ -68,10 +70,10 @@ Readonly my %CORE_MODULE_FIX => (
 # Values are the directory name the .packlist file is in, with
 # / being converted to ::.
 Readonly my %CORE_PACKLIST_FIX => (
-	'IO::Compress::Base' => 'IO::Compress',
-	'Pod::Man'           => 'Pod',
-	'Filter::Util::Call' => 'Filter',
-	'Locale::Maketext'   => 'Locale-Maketext',
+	'IO::Compress::Base'    => 'IO::Compress',
+	'Pod::Man'              => 'Pod',
+	'Filter::Util::Call'    => 'Filter',
+	'Locale::Maketext'      => 'Locale-Maketext',
 	'Version::Requirements' => 'version::Requirements',
 	'Net::Cmd'              => 'Net',
 );
@@ -149,7 +151,7 @@ sub install_cpan_upgrades {
 
 	my $sources_dir = $self->image_dir()->subdir(qw(cpan sources authors));
 	if ( not -d $sources_dir ) {
-		$self->make_path($sources_dir);
+	        $self->make_path($sources_dir);
 	}
 
 	# Get list of modules to be upgraded.
@@ -161,109 +163,115 @@ sub install_cpan_upgrades {
 	# Now go through the loop for each module.
 	my $force;
 	my @delayed_modules;
-  MODULE:
-
+	
+	MODULE:
 	for my $module ( @{$module_info} ) {
 
-		# Skip modules that we want to skip.
-		next MODULE if $self->_skip_upgrade($module);
+	        # Skip modules that we want to skip.
+	        next MODULE if $self->_skip_upgrade($module);
 
-		# If we're on the "delay this module" list, do so.
-		if ( $self->_delay_upgrade($module) ) {
-			unshift @delayed_modules, $module;
-			next MODULE;
-		}
+	        # If we're on the "delay this module" list, do so.
+	        if ( $self->_delay_upgrade($module) ) {
+	                unshift @delayed_modules, $module;
+	                next MODULE;
+	        }
 
-		given ( $module->cpan_file() ) {
+	        given ( $module->cpan_file() ) {
 
-			when (m{/Net-Ping-\d}msx) {
+	                when (m{/Net-Ping-\d}msx) {
 
-				# Net::Ping seems to require that a web server be
-				# available on localhost in order to pass tests.
-				$self->_install_cpan_module( $module, 1 );
-			}
+	                        # Net::Ping seems to require that a web server be
+	                        # available on localhost in order to pass tests.
+	                        $self->_install_cpan_module( $module, 1 );
+	                }
 
-			when (m{/Safe-\d}msx) {
+	                when (m{/Safe-\d}msx) {
 
-				# Safe seems to have problems inside a build VM, but
-				# not outside.  Forcing to be safe.
-				$self->_install_cpan_module( $module, 1 );
-			}
+	                        # Safe seems to have problems inside a build VM, but
+	                        # not outside.  Forcing to be safe.
+	                        $self->_install_cpan_module( $module, 1 );
+	                }
 
-			when (m{/File-Fetch-\d}msx) {
+	                when (m{/File-Fetch-\d}msx) {
 
-				# File::Fetch is network-dependent.
-				#$self->_install_cpan_module( $module, $self->offline() );
-				# File::Fetch tests fail for CHORNY
-				$self->_install_cpan_module( $module, 1 );
-			}
+	                        # File::Fetch is network-dependent.
+	                        #$self->_install_cpan_module( $module, $self->offline() );
+	                        # File::Fetch tests fail for CHORNY
+	                        $self->_install_cpan_module( $module, 1 );
+	                }
 
-			when (m{/Locale-Maketext-Simple-0 [.] 20}msx) {
+	                when (m{/Locale-Maketext-Simple-0 [.] 20}msx) {
 
-				# Locale::Maketext::Simple 0.20 has a test bug. Forcing.
-				$self->_install_cpan_module( $module, 1 );
-			}
+	                        # Locale::Maketext::Simple 0.20 has a test bug. Forcing.
+	                        $self->_install_cpan_module( $module, 1 );
+	                }
 
-			when (m{/Locale-Maketext-\d}msx) {
+	                when (m{/Locale-Maketext-\d}msx) {
 
-				# This one has an odd packlist location.
-				$self->_install_cpan_module( $module, $default_force, 'Locale-Maketext' );
-			}
+	                        # This one has an odd packlist location.
+	                        $self->_install_cpan_module( $module, $default_force, 'Locale-Maketext' );
+	                }
 
-			when (m{/Time-HiRes-}msx) {
+	                when (m{/Time-HiRes-}msx) {
 
-				# Time-HiRes is timing-dependent, of course.
-				$self->_install_cpan_module( $module, 1 );
-			}
+	                        # Time-HiRes is timing-dependent, of course.
+	                        $self->_install_cpan_module( $module, 1 );
+	                }
 
-			when (m{/ExtUtils-MakeMaker-\d}msx) {
+	                when (m{/IPC-Cmd-}msx) {
 
-   # Get rid of the old ExtUtils::MakeMaker files that were deleted in 6.50.
-				$self->_remove_file(
-					qw{perl lib ExtUtils MakeMaker bytes.pm});
-				$self->_remove_file(
-					qw{perl lib ExtUtils MakeMaker vmsish.pm});
-				$self->_install_cpan_module( $module, $default_force );
-			}
+	                        # has (sometimes!) failing test - force
+	                        $self->_install_cpan_module( $module, 1 );
+	                }
 
-			when (m{/CGI [.] pm-\d}msx) {
+	                when (m{/ExtUtils-MakeMaker-\d}msx) {
 
-				# New CGI.pm (3.46 and later) versions require FCGI.
-				$self->install_modules(qw( FCGI ));
-				$self->_install_cpan_module( $module, $default_force );
-			}
+	                        # Get rid of the old ExtUtils::MakeMaker files that were deleted in 6.50.
+	                        $self->_remove_file(
+	                                qw{perl lib ExtUtils MakeMaker bytes.pm});
+	                        $self->_remove_file(
+	                                qw{perl lib ExtUtils MakeMaker vmsish.pm});
+	                        $self->_install_cpan_module( $module, $default_force );
+	                }
 
-			when (m{/version-\d}msx) {
+	                when (m{/CGI [.] pm-\d}msx) {
 
-				if ($self->fragment_exists('version')) {
-					next; # It's getting installed twice on 5.14.0 for some weird reason.
-				}
-			}
+	                        # New CGI.pm (3.46 and later) versions require FCGI.
+	                        $self->install_modules(qw( FCGI ));
+	                        $self->_install_cpan_module( $module, $default_force );
+	                }
 
-			when (m{/\QDevel-DProf-20110228}msx) {
+	                when (m{/version-\d}msx) {
 
-				# Force installation of Devel::DProf, as it fails tests, but
-				# needs to be installed on 5.14.0.
-				$self->_install_cpan_module( $module, 1 );
-			}
+	                        if ($self->fragment_exists('version')) {
+	                                next; # It's getting installed twice on 5.14.0 for some weird reason.
+	                        }
+	                }
 
-			when (m{/Locale-Codes-\d}msx) {
+	                when (m{/\QDevel-DProf-20110802}msx) {
 
-   # Get rid of the old Locale::Codes files that were deleted in 3.17.
-				$self->_remove_file(
-					qw{perl cpan Locale-Codes lib Locale Constants.pm});
-				$self->_install_cpan_module( $module, $default_force );
-			}
+	                        # Force installation of Devel::DProf, as it fails tests, but
+	                        # needs to be installed on 5.14.0.
+	                        $self->_install_cpan_module( $module, 1 );
+	                }
 
-			default {
-				$self->_install_cpan_module( $module, $default_force );
-			}
-		} ## end given
+	                when (m{/Locale-Codes-\d}msx) {
+
+	                        # Get rid of the old Locale::Codes files that were deleted in 3.17.
+	                        $self->_remove_file(
+	                                qw{perl cpan Locale-Codes lib Locale Constants.pm});
+	                        $self->_install_cpan_module( $module, $default_force );
+	                }
+
+	                default {
+	                        $self->_install_cpan_module( $module, $default_force );
+	                }
+	        } ## end given
 	} ## end for my $module ( @{$module_info...})
 
 	# NOW install delayed modules!
 	for my $module (@delayed_modules) {
-		$self->_install_cpan_module( $module, $default_force );
+	        $self->_install_cpan_module( $module, $default_force );
 	}
 
 	# Getting modules for autodie support installed.
@@ -273,37 +281,37 @@ sub install_cpan_upgrades {
 	my $autodie_location = $self->file(qw(perl lib autodie.pm));
 
 	if ( -e $autodie_location ) {
-		$self->install_modules(qw( Win32::Process IPC::System::Simple ));
+	        $self->install_modules(qw( Win32::Process IPC::System::Simple ));
 	}
 
 	# Getting CPANPLUS config file installed.
 	# (Since we're building 5.10.0+ only, it IS installed now.)
 	$self->trace_line( 1,
-		"Getting CPANPLUS config file ready for patching\n" );
+	        "Getting CPANPLUS config file ready for patching\n" );
 	$self->patch_file(
-		'perl/lib/CPANPLUS/Config.pm' => $self->image_dir(),
-		{ dist => $self, } );
+	        'perl/lib/CPANPLUS/Config.pm' => $self->image_dir(),
+	        { dist => $self, } );
 
 	# Install newest dev version of CPAN if we haven't already.
 	if ( not $self->fragment_exists('CPAN') ) {
-		$self->install_distribution(
-			name             => 'ANDK/CPAN-1.97_51.tar.gz',
-			mod_name         => 'CPAN',
-			makefilepl_param => ['INSTALLDIRS=perl'],
-			buildpl_param    => [ '--installdirs', 'core' ],
-		);
+	        $self->install_distribution(
+	                name             => 'ANDK/CPAN-1.9800.tar.gz',                        
+	                mod_name         => 'CPAN',
+	                makefilepl_param => ['INSTALLDIRS=perl'],
+	                buildpl_param    => [ '--installdirs', 'core' ],
+	        );
 	}
 
 	# Install version of Module::Build if we haven't already.
 	if ( not $self->fragment_exists('Module_Build') ) {
-		$self->install_distribution(
-			name             => 'DAGOLDEN/Module-Build-0.3800.tar.gz',
-			mod_name         => 'Module::Build',
-			makefilepl_param => ['INSTALLDIRS=perl'],
-			buildpl_param    => [ '--installdirs', 'core' ],
-			force            => ( $self->image_dir() =~ /\AD:/ms ) ? 1 : 0,
-		);
-	}
+	        $self->install_distribution(
+	                name             => 'DAGOLDEN/Module-Build-0.3800.tar.gz',
+	                mod_name         => 'Module::Build',
+	                makefilepl_param => ['INSTALLDIRS=perl'],
+	                buildpl_param    => [ '--installdirs', 'core' ],
+	                force            => ( $self->image_dir() =~ /\AD:/ms ) ? 1 : 0,
+	        );
+	}                
 
 	return $self;
 } ## end sub install_cpan_upgrades
@@ -315,7 +323,7 @@ sub _get_cpan_upgrades_list {
 	$self->trace_line( 1, "Running upgrade of all modules\n" );
 	my $cpan_info_file = $self->output_dir()->file('cpan.info')->stringify();
 	my $cpan_file = $self->build_dir()->file('cpan_string.pl')->stringify();
-	
+
 	my $tt = Template->new( ABSOLUTE => 1, );
 	my $tt_answer = $tt->process(
 		$self->wix_dist_dir()->file('cpan_upgrades.pl.tt')->stringify(), 
@@ -330,8 +338,8 @@ sub _get_cpan_upgrades_list {
 		PDWiX::Caught->throw(
 			info    => 'Template',
 			message => $tt->error()->as_string() );
-}
-	
+	}
+
 	# Execute the CPAN upgrade script.
 	$self->execute_perl($cpan_file)
 	  or PDWiX->throw('CPAN script execution failed');
@@ -547,14 +555,14 @@ sub _get_toolchain {
 		if ( $force->{$name} ) {
 			push @dists, $force->{$name};
 			next;
-	}
+		}
 
 		# Get the CPAN object for the module, covering any output.
 		my $module = CPAN::Shell->expand( 'Module', $name );
 
 		if ( not $module ) {
 			PDWiX->throw("Failed to find '$name'");
-	}
+		}
 
 		# Ignore modules that don't need to be updated
 		my $core_version = $corelist_hash->{$name};
@@ -612,140 +620,140 @@ sub install_perl_toolchain {
 	if ( 0 == scalar @toolchain ) {
 		PDWiX->throw('Toolchain did not get collected');
 	}
-
+        
 	# Install the toolchain dists
 	my $perl_version  = $self->perl_version_literal();
 	my $default_force = $self->force();
 	foreach my $dist ( @toolchain ) {
-		my $automated_testing = 0;
-		my $release_testing   = 0;
-		my $overwritable      = 0;
-		my $casefix           = 0;
-		my $force             = $default_force;
-		# Actually DO the installation, now
-		# that we've got the information we need.
-		my $module_id = $self->_module_fix( $self->_name_to_module($dist) );
-		my $core =
-		  exists $Module::CoreList::version{$perl_version}{$module_id}
-		  ? 1
-		  : 0;
-		given ($dist) {
+	        my $automated_testing = 0;
+	        my $release_testing   = 0;
+	        my $overwritable      = 0;
+	        my $casefix           = 0;
+	        my $force             = $default_force;
+	        # Actually DO the installation, now
+	        # that we've got the information we need.
+	        my $module_id = $self->_module_fix( $self->_name_to_module($dist) );
+	        my $core =
+	          exists $Module::CoreList::version{$perl_version}{$module_id}
+	          ? 1
+	          : 0;
+	        given ($dist) {
 
-			when (/Scalar-List-Util/msx) {
+	                when (/Scalar-List-Util/msx) {
 
-				# Does something weird with tainting
-				$force = 1;
-			}
-			when (/ExtUtils-ParseXS/msx) {
+	                        # Does something weird with tainting
+	                        $force = 1;
+	                }
+	                when (/ExtUtils-ParseXS/msx) {
 
-		# TODO: remove this.
-		# Testing using jkeenan-extutils-parsexs-use-strict-57-gdb2e0c7.zip,
-		# then 'Build dist' from it, as downloaded from github.
-#				$self->install_distribution_from_file(
-#					file => File::ShareDir::dist_file('Perl-Dist-WiX', 'ExtUtils-ParseXS-3.tar.gz'),
-#					mod_name => 'ExtUtils::ParseXS',
-#					$self->_install_location(1),
-#				);
-#				next;
-			} ## end when (/ExtUtils-ParseXS/msx)
-			when (/URI-/msx) {
+	        # TODO: remove this.
+	        # Testing using jkeenan-extutils-parsexs-use-strict-57-gdb2e0c7.zip,
+	        # then 'Build dist' from it, as downloaded from github.
+        #				$self->install_distribution_from_file(
+        #					file => File::ShareDir::dist_file('Perl-Dist-WiX', 'ExtUtils-ParseXS-3.tar.gz'),
+        #					mod_name => 'ExtUtils::ParseXS',
+        #					$self->_install_location(1),
+        #				);
+        #				next;
+	                } ## end when (/ExtUtils-ParseXS/msx)
+	                when (/URI-/msx) {
 
-				# Can't rely on t/heuristic.t not finding a www.perl.bv
-				# because some ISP's use DNS redirectors for unfindable
-				# sites.
-				$force = 1;
-			}
-			when (/Time-HiRes/msx) {
+	                        # Can't rely on t/heuristic.t not finding a www.perl.bv
+	                        # because some ISP's use DNS redirectors for unfindable
+	                        # sites.
+	                        $force = 1;
+	                }
+	                when (/Time-HiRes/msx) {
 
-				# Tests are so timing-sensitive they fail on their own
-				# sometimes.
-				$force = 1;
-			}
-			when (/Term-ReadLine-Perl/msx) {
+	                        # Tests are so timing-sensitive they fail on their own
+	                        # sometimes.
+	                        $force = 1;
+	                }
+	                when (/Term-ReadLine-Perl/msx) {
 
-				# Does evil things when testing, and
-				# so testing cannot be automated.
-				$automated_testing = 1;
-			}
-			when (/TermReadKey-2 [.] 30/msx) {
+	                        # Does evil things when testing, and
+	                        # so testing cannot be automated.
+	                        $automated_testing = 1;
+	                }
+	                when (/TermReadKey-2 [.] 30/msx) {
 
-				# Upgrading to this version, instead...
-				$dist = 'STSI/TermReadKey-2.30.02.tar.gz';
-			}
-			when (/ExtUtils-MakeMaker-/msx) {
+	                        # Upgrading to this version, instead...
+	                        $dist = 'STSI/TermReadKey-2.30.02.tar.gz';
+	                }
+	                when (/ExtUtils-MakeMaker-/msx) {
 
-				# There are modules that overwrite portions of this one.
-				$overwritable = 1;
-				# Must be in core.
-				$core = 1;
-			}
-			when (/Win32API-Registry-/msx) {
+	                        # There are modules that overwrite portions of this one.
+	                        $overwritable = 1;
+	                        # Must be in core.
+	                        $core = 1;
+	                }
+	                when (/Win32API-Registry-/msx) {
 
-				# This module needs forced on Vista
-				# (and probably 2008/Win7 as well).
-				$force = 1;
-			}
-			when (/IO-Compress-2 [.] 034/msx) {
+	                        # This module needs forced on Vista
+	                        # (and probably 2008/Win7 as well).
+	                        $force = 1;
+	                }
+	                when (/IO-Compress-2 [.] 034/msx) {
 
-				# This module needs forced - has a test bug.
-				$force = 1;
-			}
-			when (/Win32-TieRegistry-/msx) {
+	                        # This module needs forced - has a test bug.
+	                        $force = 1;
+	                }
+	                when (/Win32-TieRegistry-/msx) {
 
-				# This module needs forced on Vista
-				# (and probably 2008/Win7 as well).
-				$force = 1;
-			}
-			when (/Module-Build-/msx) {
+	                        # This module needs forced on Vista
+	                        # (and probably 2008/Win7 as well).
+	                        $force = 1;
+	                }
+	                when (/Module-Build-/msx) {
 
-				# Can't test on D-drive builds.
-				$force ||= ( $self->image_dir() =~ /\AD:/ms ) ? 1 : 0;
+	                        # Can't test on D-drive builds.
+	                        $force ||= ( $self->image_dir() =~ /\AD:/ms ) ? 1 : 0;
 
-			}
-			when (/CPAN-Meta-\d/msx) {
+	                }
+	                when (/CPAN-Meta-\d/msx) {
 
-				# Must be in core to overwrite EU::MM's version.
-				$core = 1;
+	                        # Must be in core to overwrite EU::MM's version.
+	                        $core = 1;
 
-			}
-			when (/JSON-PP-/msx) {
+	                }
+	                when (/JSON-PP-/msx) {
 
-				# Must be in core to overwrite EU::MM's version.
-				$core = 1;
+	                        # Must be in core to overwrite EU::MM's version.
+	                        $core = 1;
 
-			}
-			when (/version-/msx) {
+	                }
+	                when (/version-/msx) {
 
-				# Messes up case when added.
-				$casefix = 1;
+	                        # Messes up case when added.
+	                        $casefix = 1;
 
-			}
-			when (/Version-Requirements-/msx) {
+	                }
+	                when (/Version-Requirements-/msx) {
 
-				# Must be in core to overwrite EU::MM's version.
-				$core = 1;
-				# Messes up case when added.
-				$casefix = 1;
+	                        # Must be in core to overwrite EU::MM's version.
+	                        $core = 1;
+	                        # Messes up case when added.
+	                        $casefix = 1;
 
-			}
-		} ## end given
+	                }
+	        } ## end given
 
-		my $mod_name = $self->_packlist_fix($module_id);
-		$self->trace_line(5, "Module determined to be $mod_name\n");
+	        my $mod_name = $self->_packlist_fix($module_id);
+	        $self->trace_line(5, "Module determined to be $mod_name\n");
 #<<<
-		$self->install_distribution(
-			name              => $dist,
-			mod_name          => $mod_name,
-			force             => $force,
-			automated_testing => $automated_testing,
-			release_testing   => $release_testing,
-			overwritable      => $overwritable,
-			case_fix          => $casefix,
-			$self->_install_location($core),
-		);
+	        $self->install_distribution(
+	                name              => $dist,
+	                mod_name          => $mod_name,
+	                force             => $force,
+	                automated_testing => $automated_testing,
+	                release_testing   => $release_testing,
+	                overwritable      => $overwritable,
+	                case_fix          => $casefix,
+	                $self->_install_location($core),
+	        );
 #>>>
 	} ## end foreach my $dist ( $toolchain...)
-
+	
 	return $self;
 } ## end sub install_perl_toolchain
 

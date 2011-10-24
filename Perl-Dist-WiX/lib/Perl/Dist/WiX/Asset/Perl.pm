@@ -43,9 +43,11 @@ and patches and installs it into a specified directory
 use 5.010;
 use Moose;
 use WiX3::Util::StrictConstructor;
-use MooseX::Types::Moose qw( Str HashRef ArrayRef Bool Maybe );
-use File::Spec::Functions qw( catdir splitpath rel2abs catfile );
+use MooseX::Types::Moose   qw( Str HashRef ArrayRef Bool Maybe );
+use File::Spec::Functions  qw( catdir splitpath rel2abs catfile );
 use File::Basename         qw();
+use Archive::Zip           qw( :ERROR_CODES );
+use Storable               qw( retrieve nstore );
 
 our $VERSION = '1.550';
 
@@ -275,36 +277,35 @@ sub install {
 	my $tgz;
 	if ( not defined $git ) {
 
-		# Download the file
-		$tgz =
-		  $self->_mirror( $self->_get_url(), $self->_get_download_dir(), );
+	# Download the file
+	        $tgz =
+	          $self->_mirror( $self->_get_url(), $self->_get_download_dir(), );
 	}
 
 	# Prepare for building.
 	my $unpack_to =
 	  catdir( $self->_get_build_dir(), $self->_get_unpack_to() );
 	if ( -d $unpack_to ) {
-		$self->_trace_line( 2, "Removing previous $unpack_to\n" );
-		File::Remove::remove( \1, $unpack_to );
+	        $self->_trace_line( 2, "Removing previous $unpack_to\n" );
+	        File::Remove::remove( \1, $unpack_to );
 	}
 
 	my $perlsrc;
 	if ( defined $git ) {
 
-		# Copy to the build directory.
-		$self->_copy(
-			URI->new( $self->_get_url() )->file(),
-			catdir( $unpack_to, 'perl-git' ) );
-		$perlsrc = 'perl-git';
+	        # Copy to the build directory.
+	        $self->_copy(
+	                URI->new( $self->_get_url() )->file(),
+	                catdir( $unpack_to, 'perl-git' ) );
+	        $perlsrc = 'perl-git';
 	} else {
 
-		# Unpack to the build directory
-		my @files = $self->_extract( $tgz, $unpack_to );
+	        # Unpack to the build directory
+	        my @files = $self->_extract( $tgz, $unpack_to );
 
-		# Get the versioned name of the directory
-		( $perlsrc = $tgz ) =~
-s{[.] tar[.] gz\z | [.] tgz\z | [.] tar[.] bz2\z | [.] tbz\z}{}msx;
-		$perlsrc = File::Basename::basename($perlsrc);
+	        # Get the versioned name of the directory
+	        ( $perlsrc = $tgz ) =~ s{[.] tar[.] gz\z | [.] tgz\z | [.] tar[.] bz2\z | [.] tbz\z}{}msx;
+	        $perlsrc = File::Basename::basename($perlsrc);
 	}
 
 	# Pre-copy updated files over the top of the source
@@ -312,62 +313,62 @@ s{[.] tar[.] gz\z | [.] tgz\z | [.] tar[.] bz2\z | [.] tbz\z}{}msx;
 	my $version = $self->_get_pv_human();
 	if ($patch) {
 
-		# Overwrite the appropriate files
-		foreach my $file ( @{$patch} ) {
-			$self->_patch_perl_file( $file => "$unpack_to\\$perlsrc" );
-		}
+	        # Overwrite the appropriate files
+	        foreach my $file ( @{$patch} ) {
+	                $self->_patch_perl_file( $file => "$unpack_to\\$perlsrc" );
+	        }
 	}
 
 	# Copy in licenses
 	if ( ref $self->_get_license() eq 'HASH' ) {
-		my $licenses = $self->_get_license();
-		my $license_dir = catdir( $self->_get_image_dir(), 'licenses' );
-		if ( defined $git ) {
-			foreach my $key ( keys %{$licenses} ) {
-				$self->_copy( catfile( $unpack_to, $key ),
-					catfile( $license_dir, $licenses->{$key} ) );
-			}
-		} else {
-			$self->_extract_filemap( $tgz, $self->_get_license(),
-				$license_dir, 1 );
-		}
+	        my $licenses = $self->_get_license();
+	        my $license_dir = catdir( $self->_get_image_dir(), 'licenses' );
+	        if ( defined $git ) {
+	                foreach my $key ( keys %{$licenses} ) {
+	                        $self->_copy( catfile( $unpack_to, $key ),
+	                                catfile( $license_dir, $licenses->{$key} ) );
+	                }
+	        } else {
+	                $self->_extract_filemap( $tgz, $self->_get_license(),
+	                        $license_dir, 1 );
+	        }
 	} ## end if ( ref $self->_get_license...)
 
 	# Build win32 perl
-  SCOPE: {
+	SCOPE: {
 
-		# Prepare to patch
-		my $image_dir = $self->_get_image_dir();
-		my $INST_TOP = catdir( $image_dir, $self->_get_install_to() );
-		my ($INST_DRV) = splitpath( $INST_TOP, 1 );
+	        # Prepare to patch
+	        my $image_dir = $self->_get_image_dir();
+	        my $INST_TOP = catdir( $image_dir, $self->_get_install_to() );
+	        my ($INST_DRV) = splitpath( $INST_TOP, 1 );
 
-		my $wd = $self->_pushd( $unpack_to, $perlsrc, 'win32' );
+	        my $wd = $self->_pushd( $unpack_to, $perlsrc, 'win32' );
 
-		# Patch the makefile.
-		$self->_trace_line( 2, "Patching makefile.mk\n" );
-		$self->_patch_perl_file(
-			'win32/makefile.mk' => "$unpack_to\\$perlsrc",
-			{   dist     => $self->_get_parent(),
-				INST_DRV => $INST_DRV,
-				INST_TOP => $INST_TOP,
-			} );
+	        # Patch the makefile.
+	        $self->_trace_line( 2, "Patching makefile.mk\n" );
+	        $self->_patch_perl_file(
+	                'win32/makefile.mk' => "$unpack_to\\$perlsrc",
+	                {   dist     => $self->_get_parent(),
+	                        INST_DRV => $INST_DRV,
+	                        INST_TOP => $INST_TOP,
+	                } );
 
-		# Compile perl.
-		$self->_trace_line( 1, "Building perl $version...\n" );
-		$self->_make();
+	        # Compile perl.
+	        $self->_trace_line( 1, "Building perl $version...\n" );
+	        $self->_make();
 
-		# Get information required for testing and installing perl.
-		my $force = $self->_get_force();
-		my $long_build =
-		  Win32::GetLongPathName( rel2abs( $self->_get_build_dir() ) );
+	        # Get information required for testing and installing perl.
+	        my $force = $self->_get_force();
+	        my $long_build =
+	          Win32::GetLongPathName( rel2abs( $self->_get_build_dir() ) );
 
-		# Warn about problem with testing perl 5.10.0
-		if (   ( not $force )
-			&& ( $long_build =~ /\s/ms )
-			&& ( $self->_get_pv_human() eq '5.10.0' ) )
-		{
-			$force = 1;
-			$self->_trace_line( 0, <<"EOF");
+	        # Warn about problem with testing perl 5.10.0
+	        if (   ( not $force )
+	                && ( $long_build =~ /\s/ms )
+	                && ( $self->_get_pv_human() eq '5.10.0' ) )
+	        {
+	                $force = 1;
+	                $self->_trace_line( 0, <<"EOF");
 ***********************************************************
 * Perl 5.10.0 cannot be tested at this point.
 * Because the build directory
@@ -385,40 +386,40 @@ s{[.] tar[.] gz\z | [.] tgz\z | [.] tar[.] bz2\z | [.] tbz\z}{}msx;
 * -- csjewell\@cpan.org
 ***********************************************************
 EOF
-		} ## end if ( ( not $force ) &&...)
+	        } ## end if ( ( not $force ) &&...)
 
-		# Testing perl if requested.
-		if ( not $force ) {
-			local $ENV{PERL_SKIP_TTY_TEST} = 1;
-			$self->_trace_line( 1, "Testing perl...\n" );
-			$self->_make('test');
-		}
+	        # Testing perl if requested.
+	        if ( not $force ) {
+	                local $ENV{PERL_SKIP_TTY_TEST} = 1;
+	                $self->_trace_line( 1, "Testing perl...\n" );
+	                $self->_make('test');
+	        }
 
-		# Installing perl.
-		$self->_trace_line( 1, "Installing perl...\n" );
-		$self->_make(qw/install UNINST=1/);
+	        # Installing perl.
+	        $self->_trace_line( 1, "Installing perl...\n" );
+	        $self->_make(qw/install UNINST=1/);
 	} ## end SCOPE:
 
 	# If using gcc4, copy the helper dll into perl's bin directory.
 	if ( 4 == $self->_gcc_version() ) {
-		$self->_copy(
-			catfile(
-				$self->_get_image_dir(), 'c',
-				'bin',                   'libgcc_s_sjlj-1.dll'
-			),
-			catfile(
-				$self->_get_image_dir(), 'perl',
-				'bin',                   'libgcc_s_sjlj-1.dll'
-			),
-		);
+	        $self->_copy(
+	                catfile(
+	                        $self->_get_image_dir(), 'c',
+	                        'bin',                   'libgcc_s_sjlj-1.dll'
+	                ),
+	                catfile(
+	                        $self->_get_image_dir(), 'perl',
+	                        'bin',                   'libgcc_s_sjlj-1.dll'
+	                ),
+	        );
 	} ## end if ( 4 == $self->_gcc_version...)
 
 	# Delete a2p.exe if relocatable (Can't relocate a binary).
 	if ( $self->_relocatable() ) {
-		unlink catfile( $self->_get_image_dir(), 'perl', 'bin', 'a2p.exe' )
-		  or PDWiX->throw("Could not delete a2p.exe\n");
+	        unlink catfile( $self->_get_image_dir(), 'perl', 'bin', 'a2p.exe' )
+	          or PDWiX->throw("Could not delete a2p.exe\n");
 	}
-
+	
 	# Create the perl_licenses fragment.
 	my $fl_lic = File::List::Object->new()
 	  ->readdir( catdir( $self->_get_image_dir(), 'licenses', 'perl' ) );
@@ -429,7 +430,7 @@ EOF
 	  ->readdir( catdir( $self->_get_image_dir(), 'perl' ) );
 	$fl->subtract($fl2)->filter( $self->_filters );
 	$self->_insert_fragment( 'perl', $fl, 1 );
-
+        
 	return 1;
 } ## end sub install
 

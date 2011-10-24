@@ -50,9 +50,9 @@ C<install_distribution> method (and other things that call it).
 use 5.010;
 use Moose;
 use WiX3::Util::StrictConstructor;
-use MooseX::Types::Moose qw( Str Bool ArrayRef Maybe );
-use File::Spec::Functions qw( catdir catfile );
-use Params::Util qw( _INSTANCE );
+use MooseX::Types::Moose   qw( Str Bool ArrayRef Maybe );
+use File::Spec::Functions  qw( catdir catfile );
+use Params::Util           qw( _INSTANCE );
 use URI                    qw();
 use Win32                  qw();
 
@@ -414,7 +414,7 @@ sub install {
 	} || PDWiX::Caught->throw(
 			message => $@, 
 			info => 'Error trying to download distribution'
-	);
+		);
 
 	# Does it exist? If not, throw an error here.
 	if ( not -f $tgz ) {

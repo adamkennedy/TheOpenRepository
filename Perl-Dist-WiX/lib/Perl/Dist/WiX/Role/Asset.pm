@@ -27,10 +27,10 @@ L<Perl::Dist::WiX|Perl::Dist::WiX>-based Perl distribution.
 
 use 5.010;
 use Moose::Role;
-use File::Spec::Functions qw( rel2abs catdir catfile );
-use MooseX::Types::Moose qw( Str Maybe );
-use Params::Util qw( _INSTANCE );
-use English qw( -no_match_vars );
+use File::Spec::Functions        qw( rel2abs catdir catfile );
+use MooseX::Types::Moose         qw( Str Maybe );
+use Params::Util                 qw( _INSTANCE );
+use English                      qw( -no_match_vars );
 use File::Path              2.08 qw();
 use File::List::Object           qw();
 use File::ShareDir               qw();
@@ -76,6 +76,7 @@ has parent => (
 		'_get_wix_dist_dir' => 'wix_dist_dir',
 		'_get_icons'        => '_icons',
 		'_get_pv_human'     => 'perl_version_human',
+                '_fragments'        => '_fragments',
 		'_module_fix'       => '_module_fix',
 		'_trace_line'       => 'trace_line',
 		'_mirror'           => 'mirror_url',

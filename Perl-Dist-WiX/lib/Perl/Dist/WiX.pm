@@ -2614,7 +2614,7 @@ sub initialize_using_msm {
 	# Download and extract the image.
 	my $tgz = $self->mirror_url( $self->msm_zip(), $self->download_dir() );
 	my @files_extracted = $self->extract_archive( $tgz, $self->image_dir() );
-
+	
 	# Start adding the fragments that are only for an .msi.
 	$self->_add_fragment( 'StartMenuIcons',
 		Perl::Dist::WiX::Fragment::StartMenu->new() );
@@ -4268,12 +4268,15 @@ sub msi_perl_version {
 	my $self = shift;
 
 	my @ver = @{ $self->_perl_version_arrayref() };
-
-	# Merge build number with last part of perl version.
-	$ver[2] = ( $ver[2] << 8 ) + $self->build_number();
+	
+        #making MSI version numbers more clear - e.g. 5.14.2.4 >>> 5.14.2004
+        $ver[2] = ( $ver[2] * 1000 ) + $self->build_number();
+        
+        #XXX original version: 5.14.2.4 >>> 5.14.516
+        # Merge build number with last part of perl version.
+	#$ver[2] = ( $ver[2] << 8 ) + $self->build_number();        
 
 	return join q{.}, @ver;
-
 }
 
 
@@ -4312,14 +4315,14 @@ sub msi_perl_major_version {
 
 	 # Shift the third portion over to match msi_perl_version.
 	 # Correct to the build number (minus 1 so as not to duplicate) for git.
-		$ver[2] <<= 8;
+		$ver[2] *= 1000;
 		$ver[2] += $self->build_number();
 		$ver[2] -= 1;
 	} else {
 
 		# Shift the third portion over to match msi_perl_version.
-		$ver[2] <<= 8;
-		$ver[2] += 255;
+		$ver[2] *= 1000;
+		$ver[2] += 999;
 	}
 
 	return join q{.}, @ver;
@@ -4671,7 +4674,7 @@ Returns undef if no such object found.
 
 has '_fragments' => (
 	traits => ['Hash'],
-	is     => 'ro',
+	is     => 'rw', #XXX-KMX hack by kmx
 	isa    => 'HashRef[WiX3::XML::Role::Fragment]'
 	,                                  # Needs to be Perl::Dist::WiX::Role::Fragment
 	default  => sub { return {} },

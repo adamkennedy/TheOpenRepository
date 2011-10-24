@@ -29,10 +29,10 @@ This asset installs module(s) from CPAN.
 use 5.010;
 use Moose;
 use WiX3::Util::StrictConstructor;
-use MooseX::Types::Moose qw( Maybe Str Bool );
+use MooseX::Types::Moose         qw( Maybe Str Bool );
 use Perl::Dist::WiX::Types       qw( OneOrManyStr );
-use English qw( -no_match_vars );
-use File::Spec::Functions qw( catdir catfile );
+use English                      qw( -no_match_vars );
+use File::Spec::Functions        qw( catdir catfile );
 use File::Slurp                  qw( read_file );
 use Perl::Dist::WiX::Exceptions  qw();
 use File::List::Object           qw();
@@ -189,7 +189,7 @@ sub install {
 	    !$self->_get_parent()->portable()                    ? 1
 	  : ( $self->_get_parent()->perl_major_version() >= 12 ) ? 1
 	  :                                                        0;
-
+ 
 	my $name_ref = $name;
 	my $multiple_names = (scalar @$name > 1) ? 1 : 0;
 	$name = join q{ }, @{$name_ref};
@@ -232,19 +232,19 @@ foreach \$name (qw($name)) {
 	my \$module = CPAN::Shell->expandany( "\$name" ) 
 		or die "CPAN.pm couldn't locate \$name";
 	if ( \$module->uptodate() ) {
-	unlink \$dist_file;
+		unlink \$dist_file;
 		print "\$name is up to date\\n";
 		say \$cpan_fh "\$name;;;" or die "say: \$!";
 		next MODULE;
-}
-print "\\\$ENV{PATH} = '\$ENV{PATH}'\\n";
+	}
+	print "\\\$ENV{PATH} = '\$ENV{PATH}'\\n";
 	my \$output = capture_merged {
 		eval {
-if ( $force ) {
+			if ( $force ) {
 				CPAN::Shell->notest('install', \$name);
-} else {
+			} else {
 				CPAN::Shell->install(\$name);
-}
+			}
 		}
 	};
 	my \$error = \$@;
@@ -258,7 +258,7 @@ if ( $force ) {
 
 	say \$cpan_fh "\$name;\$id;\$filename;"  or die "say: \$!";
 	print "Completed install of \$name\\n";
-unless ( $assume or \$module->uptodate() ) {
+	unless ( $assume or \$module->uptodate() ) {
 		die "Installation of \$name appears to have failed";
 	}
 }
@@ -322,12 +322,12 @@ END_PERL
 		foreach my $dist_info_line (@dist_info) {
 			my ($module_name, $dist_installed, $output_file) = split ';', $dist_info_line;
 			if ( q{} eq $dist_installed ) {
-		$self->_trace_line( 0,
+				$self->_trace_line( 0,
 					"Module $module_name was up-to-date\n" );
 			} else {
 				$self->_add_to_distributions_installed($dist_installed);
 				push @modules_installed, $module_name;
-	if ($packlist_flag) {
+				if ($packlist_flag) {
 					# The filelist is filtered during _search_packlist.
 					my $filelist = $self->_search_packlist($module_name, $output_file, $dist_installed);					
 					$filelists{$module_name} = $filelist;
@@ -338,10 +338,10 @@ END_PERL
 						  . 'installing multiple modules at once.',
 						where => '::Asset::Module->install',
 					);
-	} else {
+				} else {
 					my $filelist =
-		  File::List::Object->new()->readdir( $self->_dir('perl') );
-		$filelist->subtract($filelist_sub)->filter( $self->_filters() );
+					  File::List::Object->new()->readdir( $self->_dir('perl') );
+					$filelist->subtract($filelist_sub)->filter( $self->_filters() );
 					$filelists{$module_name} = $filelist;
 				}
 			}

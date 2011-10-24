@@ -25,17 +25,17 @@ files, directories, and programs for L<Perl::Dist::WiX|Perl::Dist::WiX>.
 
 use 5.010;
 use Moose;
-use English qw( -no_match_vars );
-use Archive::Tar 1.42 qw();
-use Archive::Zip qw( AZ_OK );
-use Devel::StackTrace qw();
-use LWP::UserAgent qw();
-use File::Basename qw();
-use File::Find::Rule qw();
+use English                    qw( -no_match_vars );
+use Archive::Tar          1.42 qw();
+use Archive::Zip               qw( AZ_OK );
+use Devel::StackTrace          qw();
+use LWP::UserAgent             qw();
+use File::Basename             qw();
+use File::Find::Rule           qw();
 use File::Path            2.08 qw();
-use File::pushd qw();
-use File::Spec::Functions qw( catdir catfile rel2abs catpath );
-use File::Slurp qw(read_file);
+use File::pushd                qw();
+use File::Spec::Functions      qw( catdir catfile rel2abs catpath );
+use File::Slurp                qw(read_file);
 use IO::Compress::Bzip2  2.025 qw();
 use IO::Compress::Gzip   2.025 qw();
 
@@ -314,9 +314,11 @@ sub execute_make {
 		join( q{ }, '>', $self->bin_make(), @params ) . qq{\n} );
 	$self->execute_any( $self->bin_make(), @params )
 	  or PDWiX->throw('make failed');
+          #or warn('XXX-FIXME (kmx hack): make failed');
 
 	if ( $CHILD_ERROR >> 8 ) {
 		PDWiX->throw('make failed (OS error)');
+                #warn('XXX-FIXME (kmx hack): make failed (OS error)');
 	}
 	return 1;
 } ## end sub execute_make
@@ -734,9 +736,9 @@ sub remake_path {
 				else {
 					$errors .= "Problem remaking $file: $message\n";
 				}
-	}
-		PDWiX::Directory->throw(
-			dir     => $dir,
+			}
+			PDWiX::Directory->throw(
+				dir     => $dir,
 				message => "Failed to recreate directory, errors:\n$errors"
 			);	
 		}

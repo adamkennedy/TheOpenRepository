@@ -56,15 +56,15 @@ L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>.
 use 5.010;
 use Moose;
 use WiX3::Util::StrictConstructor;
-use MooseX::Types::Moose qw( Str Maybe Bool ArrayRef );
-use File::Spec::Functions qw( catdir catfile splitpath );
+use MooseX::Types::Moose        qw( Str Maybe Bool ArrayRef );
+use File::Spec::Functions       qw( catdir catfile splitpath );
 use URI                         qw();
 use File::Spec::Unix            qw();
 use Perl::Dist::WiX::Exceptions qw();
 
 our $VERSION = '1.550';
 
-with qw(Perl::Dist::WiX::Role::Asset WiX3::Role::Traceable);
+with qw( Perl::Dist::WiX::Role::Asset WiX3::Role::Traceable );
 extends 'Perl::Dist::WiX::Asset::DistBase';
 
 =head1 METHODS

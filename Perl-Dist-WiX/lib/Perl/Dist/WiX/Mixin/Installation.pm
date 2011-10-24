@@ -283,16 +283,16 @@ sub install_module {
 	);
 
 	my $filelists = $module->install();
-	my $feature  = $module->get_feature();
-
+	my $feature   = $module->get_feature();
+	
 	foreach my $module_name (keys %{$filelists}) {
 		my $filelist = $filelists->{$module_name};
 
-	# Make legal fragment id.
+		# Make legal fragment id.
 		$module_name =~ s{::}{_}gmsx;
-
-	# Insert fragment.
-	if ( 0 != scalar @{ $filelist->files } ) {
+		
+		# Insert fragment.
+		if ( 0 != scalar @{ $filelist->files } ) {
 			$self->insert_fragment( $module_name, $filelist, 0, $feature );
 		}
 	}

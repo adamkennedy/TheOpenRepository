@@ -42,11 +42,11 @@ L<Perl::Dist::WiX|Perl::Dist::WiX> calls these routines as required.
 
 use 5.010;
 use Moose;
-use English qw( -no_match_vars );
-use List::Util qw( first );
-use File::Spec::Functions qw( catdir catfile );
-use Storable qw();
-use Clone qw(clone);
+use English                qw( -no_match_vars );
+use List::Util             qw( first );
+use File::Spec::Functions  qw( catdir catfile );
+use Storable               qw();
+use Clone                  qw(clone);
 
 our $VERSION = '1.550';
 
@@ -76,9 +76,10 @@ sub checkpoint_task {
 		$self->checkpoint_load();
 	}
 
-	# Skip if we are loading later on
+	$self->trace_line( 0, "\n##### Starting $task (step $step)\n" );
+        # Skip if we are loading later on
 	if ( $self->checkpoint_before() > $step ) {
-		$self->trace_line( 0, "Skipping $task (step $step.)\n" );
+		$self->trace_line( 0, "##### Skipping $task (step $step.)\n\n" );
 	} else {
 		my $t = time;
 
@@ -89,12 +90,12 @@ sub checkpoint_task {
 				step  => $step
 			);
 		}
-
-		$self->$task();
+		
+                $self->$task();
 		$self->trace_line( 0,
-			    "Completed $task (step $step) in "
+			    "##### Completed $task (step $step) in "
 			  . ( time - $t )
-			  . " seconds\n" );
+			  . " seconds\n\n" );
 	} ## end else [ if ( $self->checkpoint_before...)]
 
 	# Are we saving at this step?

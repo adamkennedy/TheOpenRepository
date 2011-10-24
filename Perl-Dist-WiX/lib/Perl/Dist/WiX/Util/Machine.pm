@@ -63,17 +63,17 @@ variations of a distribution at the same time.
 use 5.010;
 use Moose 0.90;
 use Moose::Util::TypeConstraints;
-use MooseX::Types::Moose qw( Str ArrayRef HashRef Bool Int );
-use Params::Util qw( _IDENTIFIER _HASH0 _DRIVER _CLASSISA );
-use English qw( -no_match_vars );
-use File::Copy qw();
-use File::Copy::Recursive qw();
+use MooseX::Types::Moose         qw( Str ArrayRef HashRef Bool Int );
+use Params::Util                 qw( _IDENTIFIER _HASH0 _DRIVER _CLASSISA );
+use English                      qw( -no_match_vars );
+use File::Copy                   qw();
+use File::Copy::Recursive        qw();
 use File::Path              2.08 qw( remove_tree );
-use File::Spec::Functions qw( catdir );
-use File::Remove qw();
-use File::HomeDir qw();
-use List::MoreUtils qw( none );
-use WiX3::Traceable qw();
+use File::Spec::Functions        qw( catdir );
+use File::Remove                 qw();
+use File::HomeDir                qw();
+use List::MoreUtils              qw( none );
+use WiX3::Traceable              qw();
 use Perl::Dist::WiX::Exceptions  qw();
 
 our $VERSION = '1.550';
@@ -309,9 +309,8 @@ sub BUILD {
 	}
 
 	my $output = $self->_get_output();
-	if ( not -d $output or not -w $output ) {
-		PDWiX->throw( "The output directory '$output' does not "
-			  . 'exist, or is not writable' );
+	if ( not -d $output ) {
+		PDWiX->throw( "The output directory '$output' does not exist" );
 	}
 
 	return $self;

@@ -37,7 +37,7 @@ sub _install_distribution {
 
 	if ( not $self->_get_force() ) {
 		$self->_trace_line( 2, "Testing $name...\n" );
-		$buildpl ? $self->_build('test') : $self->_make('test');
+                $buildpl ? $self->_build('test') : $self->_make('test');
 	}
 
 	$self->_trace_line( 2, "Installing $name...\n" );

@@ -1,0 +1,77 @@
+#!perl
+
+print "Loading CPAN...\n";
+use CPAN 1.9600;
+CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
+$CPAN::Config->{'urllist'} = [ '[% url %]' ];
+
+print "Loading Storable...\n";
+use Storable qw(nstore);
+
+my ($module, %seen, %need, @toget);
+	
+my @modulelist = CPAN::Shell->expand('Module', '/./');
+
+# Schwartzian transform from CPAN.pm.
+my @expand;
+@expand = map {
+	$_->[1]
+} sort {
+	$b->[0] <=> $a->[0]
+	||
+	$a->[1]{ID} cmp $b->[1]{ID},
+} map {
+	[$_->_is_representative_module,
+	 $_
+	]
+} @modulelist;
+
+require Config;
+my $vendorlib=$Config::Config{'installvendorlib'};
+MODULE: for $module (@expand) {
+	my $file = $module->cpan_file;
+	
+	# If there's no file to download, skip it.
+	next MODULE unless defined $file;
+
+	$file =~ s{^./../}{};
+	my $latest  = $module->cpan_version;
+	my $inst_file = $module->inst_file;
+	my $have;
+	my $next_MODULE;
+	eval { # version.pm involved!
+		if ($inst_file and $vendorlib ne substr($inst_file,0,length($vendorlib))) {
+			$have = $module->inst_version;
+			local $^W = 0;
+			++$next_MODULE unless CPAN::Version->vgt($latest, $have);
+			# to be pedantic we should probably say:
+			#    && !($have eq "undef" && $latest ne "undef" && $latest gt "");
+			# to catch the case where CPAN has a version 0 and we have a version undef
+		} else {
+		   ++$next_MODULE;
+		}
+	};
+
+	next MODULE if $next_MODULE;
+	
+	if ($@) {
+		next MODULE;
+	}
+	
+	$seen{$file} ||= 0;
+	next MODULE if $seen{$file}++;
+	
+	push @toget, $module;
+	
+	$need{$module->id}++;
+}
+
+unless (%need) {
+	print "All modules are up to date\n";
+}
+
+nstore \@toget, '[% cpan_info_file %]';
+print "Completed collecting information on all modules\\n";
+
+exit 0;
+

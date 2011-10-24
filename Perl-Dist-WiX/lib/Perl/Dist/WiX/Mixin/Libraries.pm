@@ -27,8 +27,8 @@ install the C toolchain and library files.
 use 5.010;
 use Moose;
 use MooseX::Types::Moose            qw( Str Maybe HashRef );
-use File::Spec::Functions qw( catfile );
-use Params::Util qw( _STRING );
+use File::Spec::Functions           qw( catfile );
+use Params::Util                    qw( _STRING );
 use Perl::Dist::WiX::Exceptions;
 use Readonly;
 
@@ -120,12 +120,12 @@ sub _binary_file {
 
 	my $toolchain = $self->library_directory();
 	my $packages = $self->_library_information();
-
+	
 	$self->trace_line( 3, "Searching for $package in $toolchain\n" );
 
 	if ( not exists $packages->{$package} ) {
 		PDWiX->throw(
-			'get_package_file was called on a package that was not defined.'
+			"get_package_file was called on a package ($package) that was not defined."
 		);
 	}
 
@@ -248,17 +248,7 @@ sub install_dmake {
 	my $filelist = $self->install_binary(
 		name    => 'dmake',
 		url     => $self->_binary_url('dmake'),
-		license => {
-			'dmake/COPYING'            => 'dmake/COPYING',
-			'dmake/readme/license.txt' => 'dmake/license.txt',
-			( 4 == $self->gcc_version )
-			? ( 'dmake/readme/_INFO_' => 'dmake/_INFO_' )
-			: ()
-		},
-		install_to => {
-			'dmake/dmake.exe' => 'c/bin/dmake.exe',
-			'dmake/startup'   => 'c/bin/startup',
-		},
+		install_to => q{.},
 	);
 
 	# Initialize the make location
@@ -342,16 +332,19 @@ sub install_mingw_make {
 		$filelist = $self->install_binary(
 			name    => 'mingw-make',
 			url     => $self->_binary_url('mingw-make'),
-			license => {
-				'doc/COPYING' => 'gmake/COPYING',
-				'doc/AUTHORS' => 'gmake/AUTHORS',
-				( 4 == $self->gcc_version )
-				? ( 'doc/_INFO_' => 'gmake/_INFO_' )
-				: ()
-			},
-			install_to => { 'bin/gmake.exe' => 'c/bin/gmake.exe', },
+                        install_to => '.',
+#XXX-FIXME: gnu-make bykmx does not need this
+#			license => {
+#				'doc/COPYING' => 'gmake/COPYING',
+#				'doc/AUTHORS' => 'gmake/AUTHORS',
+#				( 4 == $self->gcc_version )
+#				? ( 'doc/_INFO_' => 'gmake/_INFO_' )
+#				: ()
+#			},
+#			install_to => { 'bin/gmake.exe' => 'c/bin/gmake.exe', },
 		);
 	} else {
+#XXX-FIXME: gcc_version==3 should be removed
 		$filelist = $self->install_binary(
 			name    => 'mingw-make',
 			url     => $self->_binary_url('mingw-make'),

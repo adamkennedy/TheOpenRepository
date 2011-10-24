@@ -1,0 +1,9 @@
+---
+comment: |
+
+  Disable async
+
+match:
+  distribution: "CAPTTOFU/DBD-mysql-4.019.tar.gz"
+patches:
+    - "DBD-mysql-4.019.patch"

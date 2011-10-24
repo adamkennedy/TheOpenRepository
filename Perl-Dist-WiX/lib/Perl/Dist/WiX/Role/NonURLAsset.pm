@@ -77,6 +77,7 @@ has parent => (
 		'_get_wix_dist_dir' => 'wix_dist_dir',
 		'_get_icons'        => '_icons',
 		'_get_pv_human'     => 'perl_version_human',
+                '_fragments'        => '_fragments',
 		'_module_fix'       => '_module_fix',
 		'_trace_line'       => 'trace_line',
 		'_mirror'           => 'mirror_url',
@@ -157,7 +158,7 @@ sub _search_packlist { ## no critic(ProhibitUnusedPrivateSubroutines)
 		\z                   # that ends the string.
 	}msx;
 	$second_module =~ s/-/::/msg if $second_module;
-
+	
 	# We don't use the error until later, if needed.
 	my $error = <<"EOF";
 No .packlist found for $module.
