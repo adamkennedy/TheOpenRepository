@@ -54,4 +54,4 @@
 
 # Avoid Windows thumbnail files.
 \bThumbs\.db$
-^MYMETA.yml$
+^MYMETA\.$
