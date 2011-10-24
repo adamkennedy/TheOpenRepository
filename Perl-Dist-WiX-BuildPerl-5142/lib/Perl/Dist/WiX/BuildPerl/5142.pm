@@ -320,7 +320,7 @@ has '_perl_version_arrayref' => (
 has '_perl_bincompat_version_arrayref' => (
 	is       => 'ro',
 	init_arg => undef,
-	default  => sub { [ 5, 14, 255 ] }, #FIX on version bump
+	default  => sub { [ 5, 14, 64 ] }, #FIX on version bump
 );
 
 has '_is_git_snapshot' => (

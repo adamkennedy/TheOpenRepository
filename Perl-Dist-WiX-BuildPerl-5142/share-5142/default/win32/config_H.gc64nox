@@ -2858,7 +2858,7 @@
  *	This symbol contains the ~name expanded version of PERL_VENDORARCH, to be used
  *	in programs that are not prepared to deal with ~ expansion at run-time.
  */
-/*#define PERL_VENDORARCH "c:\\perl\\vendor\\5.14.2\\lib"		/ **/
+/*#define PERL_VENDORARCH ""		/ **/
 /*#define PERL_VENDORARCH_EXP ""		/ **/
 
 /* PERL_VENDORLIB_EXP:
