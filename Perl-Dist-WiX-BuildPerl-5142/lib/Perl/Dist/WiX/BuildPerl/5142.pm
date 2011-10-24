@@ -75,6 +75,7 @@ around '_install_perl_plugin' => sub {
 			  win32/config_sh.PL
 			  win32/config_H.gc
 			  win32/config_H.gc64nox
+                          win32/FindExt.pm
 			  }
 		],
 		license => {
