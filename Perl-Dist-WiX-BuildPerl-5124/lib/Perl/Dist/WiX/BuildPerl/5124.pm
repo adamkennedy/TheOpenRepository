@@ -320,7 +320,8 @@ has '_perl_version_arrayref' => (
 has '_perl_bincompat_version_arrayref' => (
 	is       => 'ro',
 	init_arg => undef,
-	default  => sub { [ 5, 12, 64 ] }, #FIX on version bump
+	default  => sub { [ 5, 12, 31 ] }, #FIX on version bump
+        # related to VersionMax which is reported to have maximum 127.254.32767
 );
 
 has '_is_git_snapshot' => (

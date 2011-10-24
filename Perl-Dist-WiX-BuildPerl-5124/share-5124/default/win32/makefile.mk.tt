@@ -1,13 +1,13 @@
 #
-# Makefile to build perl on Windows using DMAKE.
+# Makefile to build perl on Windows NT using DMAKE.
 # Supported compilers:
-#	Microsoft Visual C++ 6.0 or later
+#	Visual C++ 2.0 or later
 #	Borland C++ 5.02 or later
-#	MinGW with gcc-3.2 or later
-#	Windows SDK 64-bit compiler and tools
+#	MinGW with gcc-2.95.2 or later
+#	MS Platform SDK 64-bit compiler and tools **experimental**
 #
 # This is set up to build a perl.exe that runs off a shared library
-# (perl514.dll).  Also makes individual DLLs for the XS extensions.
+# (perl512.dll).  Also makes individual DLLs for the XS extensions.
 #
 
 ##
@@ -28,7 +28,7 @@ INST_TOP	*= [% INST_TOP %]
 #
 # Uncomment if you want to build a 32-bit Perl using a 32-bit compiler
 # on a 64-bit version of Windows.
-[% dist.mk_bits %]	*= undef
+[% dist.mk_bits %]     *= undef
 
 #
 # Comment this out if you DON'T want your perl installation to be versioned.
@@ -97,14 +97,16 @@ USE_LARGE_FILES	*= define
 #
 # uncomment exactly one of the following
 #
+# Visual C++ 2.x
+#CCTYPE		*= MSVC20
+# Visual C++ > 2.x and < 6.x
+#CCTYPE		*= MSVC
 # Visual C++ 6.x (aka Visual C++ 98)
 #CCTYPE		*= MSVC60
 # Visual C++ Toolkit 2003 (aka Visual C++ 7.x) (free command-line tools)
 #CCTYPE		*= MSVC70FREE
 # Visual C++ .NET 2003 (aka Visual C++ 7.x) (full version)
 #CCTYPE		*= MSVC70
-# Windows Server 2003 SP1 Platform SDK (April 2005)
-#CCTYPE		= SDK2003SP1
 # Visual C++ 2005 Express Edition (aka Visual C++ 8.x) (free version)
 #CCTYPE		*= MSVC80FREE
 # Visual C++ 2005 (aka Visual C++ 8.x) (full version)
@@ -113,13 +115,9 @@ USE_LARGE_FILES	*= define
 #CCTYPE		*= MSVC90FREE
 # Visual C++ 2008 (aka Visual C++ 9.x) (full version)
 #CCTYPE		*= MSVC90
-# Visual C++ 2010 Express Edition (aka Visual C++ 10.x) (free version)
-#CCTYPE		= MSVC100FREE
-# Visual C++ 2010 (aka Visual C++ 10.x) (full version)
-#CCTYPE		= MSVC100
 # Borland 5.02 or later
 #CCTYPE		*= BORLAND
-# MinGW or mingw-w64 with gcc-3.2 or later
+# MinGW or mingw-w64 with gcc-2.95.2 or later
 CCTYPE		*= GCC
 
 #
@@ -139,7 +137,18 @@ CCTYPE		*= GCC
 # If not enabled, we automatically try to use maximum optimization
 # with all compilers that are known to have a working optimizer.
 #
-[% dist.mk_debug %]	*= Debug
+[% dist.mk_debug %]    *= Debug
+
+#
+# uncomment to enable use of PerlCRT.DLL when using the Visual C compiler.
+# It has patches that fix known bugs in older versions of MSVCRT.DLL.
+# This currently requires VC 5.0 with Service Pack 3 or later.
+# Get it from CPAN at http://www.cpan.org/authors/id/D/DO/DOUGL/
+# and follow the directions in the package to install.
+#
+# Not recommended if you have VC 6.x and you're not running Windows 9x.
+#
+#USE_PERLCRT	*= define
 
 #
 # uncomment to enable linking with setargv.obj under the Visual C
@@ -149,6 +158,20 @@ CCTYPE		*= GCC
 # Visual C.
 #
 #USE_SETARGV	*= define
+
+#
+# if you want to have the crypt() builtin function implemented, leave this or
+# CRYPT_LIB uncommented.  The fcrypt.c file named here contains a suitable
+# version of des_fcrypt().
+#
+CRYPT_SRC	*= fcrypt.c
+
+#
+# if you didn't set CRYPT_SRC and if you have des_fcrypt() available in a
+# library, uncomment this, and make sure the library exists (see README.win32)
+# Specify the full pathname of the library.
+#
+#CRYPT_LIB	*= fcrypt.lib
 
 #
 # set this if you wish to use perl's malloc
@@ -170,7 +193,7 @@ CCTYPE		*= GCC
 # set this to additionally provide a statically linked perl-static.exe.
 # Note that dynamic loading will not work with this perl, so you must
 # include required modules statically using the STATIC_EXT or ALL_STATIC
-# variables below. A static library perl514s.lib will also be created.
+# variables below. A static library perl512s.lib will also be created.
 # Ordinary perl.exe is not affected by this option.
 #
 #BUILD_STATIC	*= define
@@ -240,22 +263,36 @@ CCLIBDIR *= $(CCHOME)\lib
 BUILDOPT	*= $(BUILDOPTEXTRA)
 
 #
+# Adding -DPERL_HASH_SEED_EXPLICIT will disable randomization of Perl's
+# internal hash function unless the PERL_HASH_SEED environment variable is set.
+# Alternatively, adding -DNO_HASH_SEED will completely disable the
+# randomization feature. 
+# The latter is required to maintain binary compatibility with Perl 5.8.0.
+#
+#BUILDOPT	+= -DPERL_HASH_SEED_EXPLICIT
+#BUILDOPT	+= -DNO_HASH_SEED
+
+#
+# This should normally be disabled.  Adding -DPERL_POLLUTE enables support
+# for old symbols by default, at the expense of extreme pollution.  You most
+# probably just want to build modules that won't compile with
+#         perl Makefile.PL POLLUTE=1
+# instead of enabling this.  Please report such modules to the respective
+# authors.
+#
+#BUILDOPT	+= -DPERL_POLLUTE
+
+#
 # This should normally be disabled.  Enabling it will disable the File::Glob
 # implementation of CORE::glob.
 #
 #BUILDOPT	+= -DPERL_EXTERNAL_GLOB
 
 #
-# Perl needs to read scripts in text mode so that the DATA filehandle
-# works correctly with seek() and tell(), or around auto-flushes of
-# all filehandles (e.g. by system(), backticks, fork(), etc).
+# This should normally be disabled.  Enabling it causes perl to read scripts
+# in text mode (which is the 5.005 behavior) and will break ByteLoader.
 #
-# The current version on the ByteLoader module on CPAN however only
-# works if scripts are read in binary mode.  But before you disable text
-# mode script reading (and break some DATA filehandle functionality)
-# please check first if an updated ByteLoader isn't available on CPAN.
-#
-BUILDOPT	+= -DPERL_TEXTMODE_SCRIPTS
+#BUILDOPT	+= -DPERL_TEXTMODE_SCRIPTS
 
 #
 # specify semicolon-separated list of extra directories that modules will
@@ -281,6 +318,13 @@ EMAIL		*= [% self.perl_config_cf_email %]
 
 ##################### CHANGE THESE ONLY IF YOU MUST #####################
 
+.IF "$(CRYPT_SRC)$(CRYPT_LIB)" == ""
+D_CRYPT		= undef
+.ELSE
+D_CRYPT		= define
+CRYPT_FLAG	= -DHAVE_DES_FCRYPT
+.ENDIF
+
 PERL_MALLOC	*= undef
 DEBUG_MSTATS	*= undef
 
@@ -290,6 +334,7 @@ USE_ITHREADS	*= undef
 USE_IMP_SYS	*= undef
 USE_PERLIO	*= undef
 USE_LARGE_FILES	*= undef
+USE_PERLCRT	*= undef
 
 .IF "$(USE_IMP_SYS)" == "define"
 PERL_MALLOC	= undef
@@ -341,13 +386,6 @@ WIN64			= undef
 .ENDIF
 .ENDIF
 
-# Treat 64-bit MSVC60 (doesn't really exist) as SDK2003SP1 because
-# both link against MSVCRT.dll (which is part of Windows itself) and
-# not against a compiler specific versioned runtime.
-.IF "$(WIN64)" == "define" && "$(CCTYPE)" == "MSVC60"
-CCTYPE		= SDK2003SP1
-.ENDIF
-
 ARCHITECTURE = $(PROCESSOR_ARCHITECTURE)
 .IF "$(ARCHITECTURE)" == "AMD64"
 ARCHITECTURE	= x64
@@ -370,14 +408,13 @@ ARCHNAME	= MSWin32-$(ARCHITECTURE)
 ARCHNAME	!:= $(ARCHNAME)-thread
 .ENDIF
 
-# Visual C++ 98, .NET 2003, 2005/2008/2010 specific.
-# VC++ 6/7/8/9/10.x can load DLLs on demand.  Makes the test suite run
+# Visual C++ 98, .NET 2003, 2005 and 2008 specific.
+# VC++ 6.x, 7.x, 8.x and 9.x can load DLL's on demand.  Makes the test suite run
 # in about 10% less time.  (The free version of 7.x can't do this, but the free
-# versions of 8/9/10.x can.)
+# versions of 8.x and 9.x can.)
 .IF "$(CCTYPE)" == "MSVC60" || "$(CCTYPE)" == "MSVC70"     || \
-    "$(CCTYPE)" == "MSVC80" || "$(CCTYPE)" == "MSVC80FREE" || \
-    "$(CCTYPE)" == "MSVC90" || "$(CCTYPE)" == "MSVC90FREE" || \
-    "$(CCTYPE)" == "MSVC100" || "$(CCTYPE)" == "MSVC100FREE"
+    "$(CCTYPE)" == "MSVC80" || "$(CCTYPE)" == "MSVC80FREE" ||
+    "$(CCTYPE)" == "MSVC90" || "$(CCTYPE)" == "MSVC90FREE"
 DELAYLOAD	*= -DELAYLOAD:ws2_32.dll delayimp.lib
 .ENDIF
 
@@ -433,7 +470,7 @@ RSC		= brcc32
 #
 INCLUDES	= -I$(COREDIR) -I.\include -I. -I.. -I"$(CCINCDIR)"
 #PCHFLAGS	= -H -Hc -H=c:\temp\bcmoduls.pch
-DEFINES		= -DWIN32
+DEFINES		= -DWIN32 $(CRYPT_FLAG)
 LOCDEFS		= -DPERLDLL -DPERL_CORE
 SUBSYS		= console
 CXX_FLAG	= -P
@@ -441,7 +478,7 @@ CXX_FLAG	= -P
 LIBC		= cw32mti.lib
 
 # same libs as MSVC, except Borland doesn't have oldnames.lib
-LIBFILES	= \
+LIBFILES	= $(CRYPT_LIB) \
 		kernel32.lib user32.lib gdi32.lib winspool.lib \
 		comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib \
 		netapi32.lib uuid.lib ws2_32.lib mpr.lib winmm.lib \
@@ -495,7 +532,7 @@ a = .a
 #
 
 INCLUDES	= -I.\include -I. -I.. -I$(COREDIR)
-DEFINES		= -DWIN32
+DEFINES		= -DWIN32 $(CRYPT_FLAG)
 .IF "$(WIN64)" == "define"
 DEFINES		+= -DWIN64 -DCONSERVATIVE
 .ENDIF
@@ -509,7 +546,7 @@ LIBC		=
 #LIBC		= -lmsvcrt
 
 # same libs as MSVC
-LIBFILES	= $(LIBC) \
+LIBFILES	= $(CRYPT_LIB) $(LIBC) \
 		  -lmoldname -lkernel32 -luser32 -lgdi32 \
 		  -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 \
 		  -loleaut32 -lnetapi32 -luuid -lws2_32 -lmpr \
@@ -530,7 +567,9 @@ OBJOUT_FLAG	= -o
 EXEOUT_FLAG	= -o
 LIBOUT_FLAG	=
 
-BUILDOPT	+= -fno-strict-aliasing -mms-bitfields
+# NOTE: we assume that GCC uses MSVCRT.DLL
+# See comments about PERL_MSVCRT_READFIX in the "cl" compiler section below.
+BUILDOPT	+= -fno-strict-aliasing -mms-bitfields -DPERL_MSVCRT_READFIX
 
 .ELSE
 
@@ -545,15 +584,23 @@ RSC		= rc
 
 INCLUDES	= -I$(COREDIR) -I.\include -I. -I..
 #PCHFLAGS	= -Fpc:\temp\vcmoduls.pch -YX
-DEFINES		= -DWIN32 -D_CONSOLE -DNO_STRICT
+DEFINES		= -DWIN32 -D_CONSOLE -DNO_STRICT $(CRYPT_FLAG)
 LOCDEFS		= -DPERLDLL -DPERL_CORE
 SUBSYS		= console
 CXX_FLAG	= -TP -EHsc
 
+.IF "$(USE_PERLCRT)" != "define"
 LIBC	= msvcrt.lib
+.ELSE
+LIBC	= PerlCRT.lib
+.ENDIF
 
 .IF  "$(CFG)" == "Debug"
-OPTIMIZE	= -Od -MD -Zi -DDEBUGGING
+.IF "$(CCTYPE)" == "MSVC20"
+OPTIMIZE	= -Od -MD -Z7 -DDEBUGGING
+.ELSE
+OPTIMIZE	= -O1 -MD -Zi -DDEBUGGING
+.ENDIF
 LINK_DBG	= -debug
 .ELSE
 OPTIMIZE	= -MD -Zi -DNDEBUG
@@ -578,46 +625,40 @@ OPTIMIZE	+= -O1
 
 .IF "$(WIN64)" == "define"
 DEFINES		+= -DWIN64 -DCONSERVATIVE
-OPTIMIZE	+= -fp:precise
+OPTIMIZE	+= -Wp64 -fp:precise
 .ENDIF
 
-# For now, silence VC++ 8/9/10.x's warnings about "unsafe" CRT functions
+# For now, silence VC++ 8.x's and 9.x's warnings about "unsafe" CRT functions
 # and POSIX CRT function names being deprecated.
 .IF "$(CCTYPE)" == "MSVC80" || "$(CCTYPE)" == "MSVC80FREE" || \
-    "$(CCTYPE)" == "MSVC90" || "$(CCTYPE)" == "MSVC90FREE" || \
-    "$(CCTYPE)" == "MSVC100" || "$(CCTYPE)" == "MSVC100FREE"
+    "$(CCTYPE)" == "MSVC90" || "$(CCTYPE)" == "MSVC90FREE"
 DEFINES		+= -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE
 .ENDIF
 
-# In VS 2005 (VC++ 8.0) Microsoft changes time_t from 32-bit to
-# 64-bit, even in 32-bit mode.  It also provides the _USE_32BIT_TIME_T
-# preprocessor option to revert back to the old functionality for
-# backward compatibility.  We define this symbol here for older 32-bit
-# compilers only (which aren't using it at all) for the sole purpose
-# of getting it into $Config{ccflags}.  That way if someone builds
-# Perl itself with e.g. VC6 but later installs an XS module using VC8
-# the time_t types will still be compatible.
-.IF "$(WIN64)" == "undef"
-.IF "$(CCTYPE)" == "MSVC60" || \
-    "$(CCTYPE)" == "MSVC70" || "$(CCTYPE)" == "MSVC70FREE"
-BUILDOPT	+= -D_USE_32BIT_TIME_T
+# Use the MSVCRT read() fix if the PerlCRT was not chosen, but only when using
+# VC++ 6.x or earlier. Later versions use MSVCR70.dll, MSVCR71.dll, etc, which
+# do not require the fix.
+.IF "$(CCTYPE)" == "MSVC20" || "$(CCTYPE)" == "MSVC" || "$(CCTYPE)" == "MSVC60" 
+.IF "$(USE_PERLCRT)" != "define"
+BUILDOPT	+= -DPERL_MSVCRT_READFIX
 .ENDIF
 .ENDIF
 
-LIBBASEFILES	= \
+LIBBASEFILES	= $(CRYPT_LIB) \
 		oldnames.lib kernel32.lib user32.lib gdi32.lib winspool.lib \
 		comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib \
 		netapi32.lib uuid.lib ws2_32.lib mpr.lib winmm.lib \
 		version.lib odbc32.lib odbccp32.lib comctl32.lib
 
-# The 64 bit Windows Server 2003 SP1 SDK compilers link against MSVCRT.dll, which
-# doesn't include the buffer overrun verification code used by the /GS switch.
+# The 64 bit Platform SDK compilers contain a runtime library that doesn't
+# include the buffer overrun verification code used by the /GS switch.
 # Since the code links against libraries that are compiled with /GS, this
-# "security cookie verification" code must be included via bufferoverflow.lib.
-.IF "$(WIN64)" == "define" && "$(CCTYPE)" == "SDK2003SP1"
+# "security cookie verification" must be included via bufferoverlow.lib.
+.IF "$(WIN64)" == "define"
 LIBBASEFILES    += bufferoverflowU.lib
 .ENDIF
 
+# we add LIBC here, since we may be using PerlCRT.dll
 LIBFILES	= $(LIBBASEFILES) $(LIBC)
 
 EXTRACFLAGS	= -nologo -GF -W3
@@ -636,8 +677,7 @@ LIBOUT_FLAG	= /out:
 CFLAGS_O	= $(CFLAGS) $(BUILDOPT)
 
 .IF "$(CCTYPE)" == "MSVC80" || "$(CCTYPE)" == "MSVC80FREE" || \
-    "$(CCTYPE)" == "MSVC90" || "$(CCTYPE)" == "MSVC90FREE" || \
-    "$(CCTYPE)" == "MSVC100" || "$(CCTYPE)" == "MSVC100FREE"
+    "$(CCTYPE)" == "MSVC90" || "$(CCTYPE)" == "MSVC90FREE"
 LINK_FLAGS	+= "/manifestdependency:type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'"
 .ELSE
 RSC_FLAGS	= -DINCLUDE_MANIFEST
@@ -768,13 +808,18 @@ UTILS		=			\
 		..\utils\prove		\
 		..\utils\ptar		\
 		..\utils\ptardiff	\
-		..\utils\ptargrep	\
 		..\utils\cpanp-run-perl	\
 		..\utils\cpanp	\
 		..\utils\cpan2dist	\
 		..\utils\shasum		\
 		..\utils\instmodsh	\
-		..\utils\json_pp	\
+		..\pod\pod2html		\
+		..\pod\pod2latex	\
+		..\pod\pod2man		\
+		..\pod\pod2text		\
+		..\pod\pod2usage	\
+		..\pod\podchecker	\
+		..\pod\podselect	\
 		..\x2p\find2perl	\
 		..\x2p\psed		\
 		..\x2p\s2p		\
@@ -803,8 +848,8 @@ CFGH_TMPL	= config_H.gc64nox
 CFGSH_TMPL	= config.gc
 CFGH_TMPL	= config_H.gc
 .ENDIF
-PERLIMPLIB	= ..\libperl514$(a)
-PERLSTATICLIB	= ..\libperl514s$(a)
+PERLIMPLIB	= ..\libperl512$(a)
+PERLSTATICLIB	= ..\libperl512s$(a)
 
 .ELSE
 
@@ -820,9 +865,9 @@ CFGH_TMPL	= config_H.vc
 
 # makedef.pl must be updated if this changes, and this should normally
 # only change when there is an incompatible revision of the public API.
-PERLIMPLIB	*= ..\perl514$(a)
-PERLSTATICLIB	*= ..\perl514s$(a)
-PERLDLL		= ..\perl514.dll
+PERLIMPLIB	*= ..\perl512$(a)
+PERLSTATICLIB	*= ..\perl512s$(a)
+PERLDLL		= ..\perl512.dll
 
 XCOPY		= xcopy /f /r /i /d /y
 RCOPY		= xcopy /f /r /i /e /d /y
@@ -839,7 +884,6 @@ MICROCORE_SRC	=		\
 		..\mro.c	\
 		..\hv.c		\
 		..\locale.c	\
-		..\keywords.c	\
 		..\mathoms.c    \
 		..\mg.c		\
 		..\numeric.c	\
@@ -877,14 +921,17 @@ EXTRACORE_SRC	+= ..\perlio.c
 WIN32_SRC	=		\
 		.\win32.c	\
 		.\win32sck.c	\
-		.\win32thread.c	\
-		.\fcrypt.c
+		.\win32thread.c
 
 # We need this for miniperl build unless we override canned 
 # config.h #define building mini\*
 #.IF "$(USE_PERLIO)" == "define"
 WIN32_SRC	+= .\win32io.c
 #.ENDIF
+
+.IF "$(CRYPT_SRC)" != ""
+WIN32_SRC	+= .\$(CRYPT_SRC)
+.ENDIF
 
 X2P_SRC		=		\
 		..\x2p\a2p.c	\
@@ -986,6 +1033,7 @@ CFG_VARS	=					\
 		ld=$(LINK32)			~	\
 		ccflags=$(EXTRACFLAGS) $(OPTIMIZE) $(DEFINES) $(BUILDOPT)	~	\
 		cf_email=$(EMAIL)		~	\
+		d_crypt=$(D_CRYPT)		~	\
 		d_mymalloc=$(PERL_MALLOC)	~	\
 		libs=$(LIBFILES:f)		~	\
 		incpath=$(CCINCDIR)	~	\
@@ -1030,7 +1078,7 @@ ODBCCP32_DLL = $(SystemRoot)\system32\odbccp32.dll
 ODBCCP32_DLL = $(windir)\system\odbccp32.dll
 .ENDIF
 
-ICWD = -I..\dist\Cwd -I..\dist\Cwd\lib
+ICWD = -I..\cpan\Cwd -I..\cpan\Cwd\lib
 
 #
 # Top targets
@@ -1042,7 +1090,7 @@ all : CHECKDMAKE .\config.h ..\git_version.h $(GLOBEXE) $(MINIPERL) $(MK2)	\
 
 regnodes : ..\regnodes.h
 
-..\regcomp$(o) : ..\regnodes.h ..\regcharclass.h
+..\regcomp$(o) : ..\regnodes.h ..\regcharclass.h	
 
 ..\regexec$(o) : ..\regnodes.h ..\regcharclass.h
 
@@ -1162,13 +1210,10 @@ $(CONFIGPM) : $(MINIPERL) ..\config.sh config_h.PL ..\minimod.pl
 	if exist lib\* $(RCOPY) lib\*.* ..\lib\$(NULL)
 	$(XCOPY) ..\*.h $(COREDIR)\*.*
 	$(XCOPY) *.h $(COREDIR)\*.*
+	$(XCOPY) ..\ext\re\re.pm $(LIBDIR)\*.*
 	$(RCOPY) include $(COREDIR)\*.*
 	$(MINIPERL) -I..\lib $(ICWD) config_h.PL "INST_VER=$(INST_VER)" \
 	    || $(MAKE) $(MAKEMACROS) $(CONFIGPM) $(MAKEFILE)
-
-..\lib\buildcustomize.pl: $(MINIPERL) ..\write_buildcustomize.pl
-	$(MINIPERL) -I..\lib ..\write_buildcustomize.pl .. >..\lib\buildcustomize.pl
-
 
 $(MINIPERL) : $(MINIDIR) $(MINI_OBJ) $(CRTIPMLIBS)
 .IF "$(CCTYPE)" == "BORLAND"
@@ -1219,7 +1264,7 @@ $(DLL_OBJ)	: $(CORE_H)
 
 $(X2P_OBJ)	: $(CORE_H)
 
-perldll.def : $(MINIPERL) $(CONFIGPM) ..\global.sym ..\makedef.pl create_perllibst_h.pl
+perldll.def : $(MINIPERL) $(CONFIGPM) ..\global.sym ..\pp.sym ..\makedef.pl create_perllibst_h.pl
 	$(MINIPERL) -I..\lib create_perllibst_h.pl
 	$(MINIPERL) -I..\lib -w ..\makedef.pl PLATFORM=win32 $(OPTIMIZE) $(DEFINES) \
 	$(BUILDOPT) CCTYPE=$(CCTYPE) > perldll.def
@@ -1310,9 +1355,7 @@ $(X2P) : $(MINIPERL) $(X2P_OBJ) Extensions
 
 $(MINIDIR)\globals$(o) : $(UUDMAP_H) $(BITCOUNT_H)
 
-$(UUDMAP_H) : $(BITCOUNT_H)
-
-$(BITCOUNT_H) : $(GENUUDMAP)
+$(UUDMAP_H) $(BITCOUNT_H) : $(GENUUDMAP)
 	$(GENUUDMAP) $(UUDMAP_H) $(BITCOUNT_H)
 
 $(GENUUDMAP) : $(GENUUDMAP_OBJ)
@@ -1349,7 +1392,7 @@ $(PERLEXE): $(PERLDLL) $(CONFIGPM) $(PERLEXE_OBJ) $(PERLEXE_RES)
 	$(LINK32) -mconsole -o $@ $(BLINK_FLAGS)  \
 	    $(PERLEXE_OBJ) $(PERLEXE_RES) $(PERLIMPLIB) $(LIBFILES)
 .ELSE
-	$(LINK32) -subsystem:console -out:$@ $(BLINK_FLAGS) \
+	$(LINK32) -subsystem:console -out:$@ -stack:0x1000000 $(BLINK_FLAGS) \
 	    $(LIBFILES) $(PERLEXE_OBJ) $(SETARGV_OBJ) $(PERLIMPLIB) $(PERLEXE_RES)
 	$(EMBED_EXE_MANI)
 .ENDIF
@@ -1368,7 +1411,7 @@ $(PERLEXESTATIC): $(PERLSTATICLIB) $(CONFIGPM) $(PERLEXEST_OBJ) $(PERLEXE_RES)
 		$(PERLSTATICLIB) $(LIBFILES) $(PERLEXEST_OBJ) \
 		$(PERLEXE_RES) $(LKPOST))
 .ELSE
-	$(LINK32) -subsystem:console -out:$@ $(BLINK_FLAGS) \
+	$(LINK32) -subsystem:console -out:$@ -stack:0x1000000 $(BLINK_FLAGS) \
 	    @Extensions_static $(PERLSTATICLIB) /PDB:NONE \
 	    $(LIBFILES) $(PERLEXEST_OBJ) $(SETARGV_OBJ) $(PERLEXE_RES)
 	$(EMBED_EXE_MANI)
@@ -1380,24 +1423,24 @@ MakePPPort: $(MINIPERL) $(CONFIGPM) Extensions_nonxs
 #-------------------------------------------------------------------------------
 # There's no direct way to mark a dependency on
 # DynaLoader.pm, so this will have to do
-Extensions : ..\make_ext.pl ..\lib\buildcustomize.pl $(PERLDEP) $(CONFIGPM) $(DYNALOADER)
+Extensions : ..\make_ext.pl $(PERLDEP) $(CONFIGPM) $(DYNALOADER)
 	$(XCOPY) ..\*.h $(COREDIR)\*.*
 	$(MINIPERL) -I..\lib ..\make_ext.pl "MAKE=$(MAKE)" --dir=$(CPANDIR) --dir=$(DISTDIR) --dir=$(EXTDIR) --dynamic
 
-Extensions_reonly : ..\make_ext.pl ..\lib\buildcustomize.pl $(PERLDEP) $(CONFIGPM) $(DYNALOADER)
+Extensions_reonly : ..\make_ext.pl $(PERLDEP) $(CONFIGPM) $(DYNALOADER)
 	$(XCOPY) ..\*.h $(COREDIR)\*.*
 	$(MINIPERL) -I..\lib ..\make_ext.pl "MAKE=$(MAKE)" --dir=$(CPANDIR) --dir=$(DISTDIR) --dir=$(EXTDIR) --dynamic +re
 
-Extensions_static : ..\make_ext.pl ..\lib\buildcustomize.pl list_static_libs.pl $(PERLDEP) $(CONFIGPM)
+Extensions_static : ..\make_ext.pl list_static_libs.pl $(PERLDEP) $(CONFIGPM)
 	$(XCOPY) ..\*.h $(COREDIR)\*.*
 	$(MINIPERL) -I..\lib ..\make_ext.pl "MAKE=$(MAKE)" --dir=$(CPANDIR) --dir=$(DISTDIR) --dir=$(EXTDIR) --static
 	$(MINIPERL) -I..\lib list_static_libs.pl > Extensions_static
 
-Extensions_nonxs : ..\make_ext.pl ..\lib\buildcustomize.pl $(PERLDEP) $(CONFIGPM)
+Extensions_nonxs : ..\make_ext.pl $(PERLDEP) $(CONFIGPM)
 	$(XCOPY) ..\*.h $(COREDIR)\*.*
 	$(MINIPERL) -I..\lib ..\make_ext.pl "MAKE=$(MAKE)" --dir=$(CPANDIR) --dir=$(DISTDIR) --dir=$(EXTDIR) --nonxs
 
-$(DYNALOADER) : ..\make_ext.pl ..\lib\buildcustomize.pl $(PERLDEP) $(CONFIGPM) Extensions_nonxs
+$(DYNALOADER) : ..\make_ext.pl $(PERLDEP) $(CONFIGPM) Extensions_nonxs
 	$(XCOPY) ..\*.h $(COREDIR)\*.*
 	$(MINIPERL) -I..\lib ..\make_ext.pl "MAKE=$(MAKE)" --dir=$(EXTDIR) --dynaloader
 
@@ -1421,6 +1464,7 @@ utils: $(PERLEXE) $(X2P)
 	cd ..\utils && $(MAKE) PERL=$(MINIPERL)
 	copy ..\README.aix      ..\pod\perlaix.pod
 	copy ..\README.amiga    ..\pod\perlamiga.pod
+	copy ..\README.apollo   ..\pod\perlapollo.pod
 	copy ..\README.beos     ..\pod\perlbeos.pod
 	copy ..\README.bs2000   ..\pod\perlbs2000.pod
 	copy ..\README.ce       ..\pod\perlce.pod
@@ -1456,7 +1500,8 @@ utils: $(PERLEXE) $(X2P)
 	copy ..\README.vmesa    ..\pod\perlvmesa.pod
 	copy ..\README.vos      ..\pod\perlvos.pod
 	copy ..\README.win32    ..\pod\perlwin32.pod
-	copy ..\pod\perldelta.pod ..\pod\perl5124delta.pod
+	copy ..\pod\perl5124delta.pod ..\pod\perldelta.pod
+	cd ..\pod && $(MAKE) -f ..\win32\pod.mak converters
 	$(PERLEXE) $(PL2BAT) $(UTILS)
 	$(PERLEXE) $(ICWD) ..\autodoc.pl ..
 	$(PERLEXE) $(ICWD) ..\pod\perlmodlib.pl -q
@@ -1489,7 +1534,6 @@ distclean: realclean
 	-del /f $(LIBDIR)\Win32CORE.pm
 	-del /f $(LIBDIR)\Win32API\File.pm
 	-del /f $(LIBDIR)\Win32API\File\cFile.pc
-	-del /f $(LIBDIR)\buildcustomize.pl
 	-del /f $(DISTDIR)\XSLoader\XSLoader.pm
 	-if exist $(LIBDIR)\App rmdir /s /q $(LIBDIR)\App
 	-if exist $(LIBDIR)\Archive rmdir /s /q $(LIBDIR)\Archive
@@ -1543,25 +1587,26 @@ distclean: realclean
 	-if exist $(LIBDIR)\Test rmdir /s /q $(LIBDIR)\Test
 	-if exist $(LIBDIR)\Thread rmdir /s /q $(LIBDIR)\Thread
 	-if exist $(LIBDIR)\threads rmdir /s /q $(LIBDIR)\threads
-	-if exist $(LIBDIR)\Tie\Hash rmdir /s /q $(LIBDIR)\Tie\Hash
 	-if exist $(LIBDIR)\Unicode\Collate rmdir /s /q $(LIBDIR)\Unicode\Collate
 	-if exist $(LIBDIR)\XS rmdir /s /q $(LIBDIR)\XS
 	-if exist $(LIBDIR)\Win32API rmdir /s /q $(LIBDIR)\Win32API
 	-cd $(PODDIR) && del /f *.html *.bat \
-	    perl5124delta.pod perlaix.pod perlamiga.pod perlapi.pod \
+	    perlaix.pod perlamiga.pod perlapi.pod perlapollo.pod \
 	    perlbeos.pod perlbs2000.pod perlce.pod perlcn.pod \
-	    perlcygwin.pod perldgux.pod perldos.pod perlepoc.pod \
-	    perlfreebsd.pod perlhaiku.pod perlhpux.pod perlhurd.pod \
-	    perlintern.pod perlirix.pod perljp.pod perlko.pod perllinux.pod \
-	    perlmacos.pod perlmacosx.pod perlmodlib.pod perlmpeix.pod \
-	    perlnetware.pod perlopenbsd.pod perlos2.pod perlos390.pod \
-	    perlos400.pod perlplan9.pod perlqnx.pod perlriscos.pod \
-	    perlsolaris.pod perlsymbian.pod perltoc.pod perltru64.pod \
-	    perltw.pod perluniprops.pod perluts.pod perlvmesa.pod \
-	    perlvos.pod perlwin32.pod
+	    perlcygwin.pod perldelta.pod perldgux.pod perldos.pod \
+	    perlepoc.pod perlfreebsd.pod perlhaiku.pod perlhpux.pod \
+	    perlhurd.pod perlintern.pod perlirix.pod perljp.pod perlko.pod \
+	    perllinux.pod perlmacos.pod perlmacosx.pod perlmodlib.pod \
+	    perlmpeix.pod perlnetware.pod perlopenbsd.pod perlos2.pod \
+	    perlos390.pod perlos400.pod perlplan9.pod perlqnx.pod \
+	    perlriscos.pod perlsolaris.pod perlsymbian.pod perltoc.pod \
+	    perltru64.pod perltw.pod perluniprops.pod perluts.pod \
+	    perlvmesa.pod perlvos.pod perlwin32.pod \
+	    pod2html pod2latex pod2man pod2text pod2usage \
+	    podchecker podselect
 	-cd ..\utils && del /f h2ph splain perlbug pl2pm c2ph pstruct h2xs \
 	    perldoc perlivp dprofpp libnetcfg enc2xs piconv cpan *.bat \
-	    xsubpp instmodsh json_pp prove ptar ptardiff ptargrep cpanp-run-perl cpanp cpan2dist shasum corelist config_data
+	    xsubpp instmodsh prove ptar ptardiff cpanp-run-perl cpanp cpan2dist shasum corelist config_data
 	-cd ..\x2p && del /f find2perl s2p psed *.bat
 	-del /f ..\config.sh perlmain.c dlutils.c config.h.new \
 	    perlmainst.c
@@ -1600,7 +1645,7 @@ inst_lib : $(CONFIGPM)
 
 $(UNIDATAFILES) ..\pod\perluniprops.pod .UPDATEALL : $(MINIPERL) $(CONFIGPM) ..\lib\unicore\mktables Extensions_nonxs
 	cd ..\lib\unicore && \
-	..\$(MINIPERL) -I.. -I..\..\dist\Cwd\lib -I..\..\dist\Cwd mktables -P ..\..\pod -maketest -makelist -p
+	..\$(MINIPERL) -I.. -I..\..\cpan\Cwd\lib -I..\..\cpan\Cwd mktables -P ..\..\pod -maketest -makelist -p
 
 minitest : $(MINIPERL) $(GLOBEXE) $(CONFIGPM) $(UNIDATAFILES) utils
 	$(XCOPY) $(MINIPERL) ..\t\$(NULL)
@@ -1615,7 +1660,7 @@ minitest : $(MINIPERL) $(GLOBEXE) $(CONFIGPM) $(UNIDATAFILES) utils
 	cd ..\t && \
 	$(MINIPERL) -I..\lib harness base/*.t comp/*.t cmd/*.t io/*.t op/*.t pragma/*.t
 
-test-prep : all utils ..\pod\perltoc.pod
+test-prep : all utils
 	$(XCOPY) $(PERLEXE) ..\t\$(NULL)
 	$(XCOPY) $(PERLDLL) ..\t\$(NULL)
 .IF "$(CCTYPE)" == "BORLAND"
@@ -1630,8 +1675,7 @@ test-prep : all utils ..\pod\perltoc.pod
 .ENDIF
 
 test : $(RIGHTMAKE) test-prep
-	set PERL_STATIC_EXT=$(STATIC_EXT) && \
-	    cd ..\t && $(PERLEXE) -I..\lib harness $(TEST_SWITCHES) $(TEST_FILES)
+	cd ..\t && $(PERLEXE) -I..\lib harness $(TEST_SWITCHES) $(TEST_FILES)
 
 test-reonly : reonly utils
 	$(XCOPY) $(PERLEXE) ..\t\$(NULL)
@@ -1645,8 +1689,7 @@ regen :
 	cd .. && regen.pl && cd win32
 
 test-notty : test-prep
-	set PERL_STATIC_EXT=$(STATIC_EXT) && \
-	    set PERL_SKIP_TTY_TEST=1 && \
+	set PERL_SKIP_TTY_TEST=1 && \
 	    cd ..\t && $(PERLEXE) -I.\lib harness $(TEST_SWITCHES) $(TEST_FILES)
 
 _test : $(RIGHTMAKE)
@@ -1657,8 +1700,7 @@ _test : $(RIGHTMAKE)
 .ELSE
 	$(XCOPY) $(GLOBEXE) ..\t\$(NULL)
 .ENDIF
-	set PERL_STATIC_EXT=$(STATIC_EXT) && \
-	    cd ..\t && $(PERLEXE) -I..\lib harness $(TEST_SWITCHES) $(TEST_FILES)
+	cd ..\t && $(PERLEXE) -I..\lib harness $(TEST_SWITCHES) $(TEST_FILES)
 
 _clean :
 	-@erase miniperlmain$(o)
