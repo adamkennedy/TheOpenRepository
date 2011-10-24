@@ -2384,7 +2384,8 @@ sub final_initialization {
 	# Redirect $ENV{TEMP} to within our build directory.
 	$self->trace_line( 1,
 		"Emptying the directory to redirect \$ENV{TEMP} to...\n" );
-	$self->remake_path( $self->tempenv_dir() );
+	sleep(10); #XXX-FIXME trying to avoid "Failed to remove directory during recreation"
+        $self->remake_path( $self->tempenv_dir() );
 	## no critic (RequireLocalizedPunctuationVars)
 	$ENV{TEMP} = $self->tempenv_dir();
 	$self->trace_line( 5, 'Emptied: ' . $self->tempenv_dir() . "\n" );
@@ -4014,6 +4015,7 @@ sub distribution_version_file {
 	return
 	    $version . q{.}
 	  . $self->build_number()
+          . '-' . $self->bits() . 'bit'
 	  . ( $self->portable() ? '-portable' : q{} )
 	  . ( $self->beta_number() ? '-beta-' . $self->beta_number() : q{} );
 } ## end sub distribution_version_file

@@ -49,6 +49,7 @@ sub release_notes_filename {
 	my $filename =
 	    $self->perl_version_human() . q{.}
 	  . $self->build_number()
+          . '-' . $self->bits() . 'bit'
 	  . ( $self->beta_number() ? '.beta.' . $self->beta_number() : q{} )
 	  . '.html';
 
