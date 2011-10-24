@@ -2384,7 +2384,6 @@ sub final_initialization {
 	# Redirect $ENV{TEMP} to within our build directory.
 	$self->trace_line( 1,
 		"Emptying the directory to redirect \$ENV{TEMP} to...\n" );
-	sleep(10); #XXX-FIXME trying to avoid "Failed to remove directory during recreation"
         $self->remake_path( $self->tempenv_dir() );
 	## no critic (RequireLocalizedPunctuationVars)
 	$ENV{TEMP} = $self->tempenv_dir();
