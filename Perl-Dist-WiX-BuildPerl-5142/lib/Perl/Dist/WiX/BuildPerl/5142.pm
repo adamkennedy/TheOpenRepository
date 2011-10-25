@@ -321,7 +321,9 @@ has '_perl_version_arrayref' => (
 has '_perl_bincompat_version_arrayref' => (
 	is       => 'ro',
 	init_arg => undef,
-	default  => sub { [ 5, 14, 31 ] }, #FIX on version bump
+	default  => sub { [ 5, 13, 31 ] }, #FIX on version bump
+        # for perl version 5.M.N is [ 5, (M-1), 32 ] 
+        # example: [ 5, 13, 31 ] turns into Upgrade.VersionMax = 5.13.31999
         # related to VersionMax which is reported to have maximum 127.254.32767
 );
 
