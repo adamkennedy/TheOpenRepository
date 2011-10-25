@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 
+# Create a table from a generic 
 use strict;
 BEGIN {
 	$|  = 1;
@@ -10,14 +11,14 @@ use Test::More tests => 22;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use File::Remove          'clear';
-use Xtract;
+use t::lib::MyXtract;
 use Xtract::LZMA;
 
 use constant LZMA => Xtract::LZMA->available;
 
 # Prepare
 my $from = catfile('t', 'data', 'Foo-Bar.sqlite');
-my $to   = catfile('t', '03_simple_to');
+my $to   = catfile('t', '09_generic_to');
 ok( -f $from, 'Found --from file' );
 clear($to, "$to.gz", "$to.bz2", "$to.lz");
 ok( ! -f $to,       'Cleared --to file'  );
@@ -35,7 +36,7 @@ ok( ! -f "$to.lz",  'Cleared --lz file'  );
 my $dsn = "DBI:SQLite:$from";
 SCOPE: {
 	# Constructor call
-	my $object = Xtract->new(
+	my $object = t::lib::MyXtract->new(
 		from  => $dsn,
 		user  => '',
 		pass  => '',

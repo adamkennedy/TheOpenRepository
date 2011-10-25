@@ -131,9 +131,10 @@ sub run {
 
 	# Generate any required indexes
 	if ( $self->index ) {
-		foreach my $table ( $self->tables ) {
-			$self->say("Indexing table $table");
-			$self->index_table( $table );
+		foreach my $table ( $self->to_tables ) {
+			my $name = $table->name;
+			$self->say("Indexing table $name");
+			$self->index_table($table);
 		}
 	}
 
@@ -196,11 +197,12 @@ sub add {
 
 	# Push all source tables into the target database
 	foreach my $table ( $self->from_tables ) {
-		$self->say("Publishing table $table");
+		my $name = $table->name;
+		$self->say("Publishing table $name");
 		my $tstart = Time::HiRes::time();
-		my $rows   = $self->add_table( $table );
+		my $rows   = $self->add_table($table);
 		my $rate   = int($rows / (Time::HiRes::time() - $tstart));
-		$self->say("Completed  table $table ($rows rows @ $rate/sec)");
+		$self->say("Completed  table $name ($rows rows @ $rate/sec)");
 	}
 
 	return 1;
@@ -209,7 +211,7 @@ sub add {
 sub add_table {
 	my $self = shift;
 
-	# Do we have support table copying from this database?
+	# Do we have support for table copying from this database?
 	my $driver = $self->from_dbh->{Driver}->{Name};
 	if ( $driver eq 'SQLite' ) {
 		return $self->_sqlite_table(@_);
@@ -218,18 +220,20 @@ sub add_table {
 	}
 
 	# Hand off to the regular select method
-	my $table  = shift;
-	my $from   = shift || $table;
-	return $self->add_select( $table,
-		"select * from $from"
+	my $table = shift;
+	my $from  = shift || $table->name;
+	return $self->add_select(
+		$table,
+		"select * from $from",
 	);
 }
 
 sub _sqlite_table {
-	my $self   = shift;
-	my $table  = shift;
-	my $from   = shift || $table;
-	
+	my $self  = shift;
+	my $table = shift;
+	my $tname = $table->name;
+	my $from  = shift || $tname;
+
 	# With a direct table copy, we can interrogate types from the
 	# source table directly (hopefully).
 	my $info = eval {
@@ -246,6 +250,7 @@ sub _sqlite_table {
 	my @type = ();
 	my @blob = ();
 	foreach my $column ( @$info ) {
+		$column->{TYPE_NAME} = uc $column->{TYPE_NAME};
 		my $name = $column->{COLUMN_NAME};
 		my $type = defined($column->{COLUMN_SIZE})
 			? "$column->{TYPE_NAME}($column->{COLUMN_SIZE})"
@@ -257,7 +262,7 @@ sub _sqlite_table {
 
 	# Create the table
 	$self->to_dbh->do(
-		"CREATE TABLE $table (\n"
+		"CREATE TABLE $tname (\n"
 		. join( ",\n", map { "\t$_" } @type )
 		. "\n)"
 	);
@@ -266,15 +271,16 @@ sub _sqlite_table {
 	my $placeholders = join ", ",  map { '?' } @$info;
 	return $self->fill(
 		select => [ "SELECT * FROM $from" ],
-		insert => "INSERT INTO $table VALUES ( $placeholders )",
-		blobs  => scalar(grep { $_ } @blob) ? \@blob : undef,
+		insert => "INSERT INTO $tname VALUES ( $placeholders )",
+		blobs  => scalar( grep { $_ } @blob ) ? \@blob : undef,
 	);
 }
 
 sub _mysql_table {
 	my $self  = shift;
 	my $table = shift;
-	my $from  = shift || $table;
+	my $tname = $table->name;
+	my $from  = shift || $tname;
 
 	# Capture table metadata
 	my $sth = $self->from_dbh->prepare("select * from $from");
@@ -285,7 +291,7 @@ sub _mysql_table {
 	my @type = @{$sth->{TYPE}};
 	my @null = @{$sth->{NULLABLE}};
 	my @blob = @{$sth->{mysql_is_blob}};
-	$sth->finish;	
+	$sth->finish;
 
 	# Generate the create fragments
 	foreach my $i ( 0 .. $#name ) {
@@ -307,7 +313,7 @@ sub _mysql_table {
 
 	# Create the table
 	$self->to_dbh->do(
-		"CREATE TABLE $table (\n"
+		"CREATE TABLE $tname (\n"
 		. join( ",\n",
 			map {
 				"\t$name[$_] $type[$_] $null[$_]"
@@ -320,14 +326,14 @@ sub _mysql_table {
 	my $placeholders = join ", ",  map { '?' } @name;
 	return $self->fill(
 		select => [ "SELECT * FROM $from" ],
-		insert => "INSERT INTO $table VALUES ( $placeholders )",
-		blobs  => scalar(grep { $_ } @blob) ? \@blob : undef,
+		insert => "INSERT INTO $tname VALUES ( $placeholders )",
+		blobs  => scalar( grep { $_ } @blob ) ? \@blob : undef,
 	);
 }
 
 sub add_select {
 	my $self   = shift;
-	my $table  = lc(shift);
+	my $tname  = shift;
 	my $select = shift;
 	my @params = @_;
 
@@ -423,8 +429,8 @@ sub add_select {
 
 	# Create the target table
 	$self->to_dbh->do(
-		"CREATE TABLE $table (\n"
-		. join(",\n", map { "\t$_" } @type) 
+		"CREATE TABLE $tname (\n"
+		. join(",\n", map { "\t$_" } @type)
 		. "\n)"
 	);
 
@@ -432,8 +438,8 @@ sub add_select {
 	my $placeholders = join ", ",  map { '?' } @names;
 	return $self->fill(
 		select => [ $select, @params ],
-		insert => "INSERT INTO $table VALUES ( $placeholders )",
-		blobs  => scalar(grep { $_ } @blob) ? \@blob : undef,
+		insert => "INSERT INTO $tname VALUES ( $placeholders )",
+		blobs  => scalar( grep { $_ } @blob ) ? \@blob : undef,
 	);
 }
 
@@ -487,10 +493,10 @@ sub fill {
 sub index_table {
 	my $self  = shift;
 	my $table = shift;
-	my $name  = $table->name;
-	my $info  = $self->to_dbh->selectall_arrayref("PRAGMA table_info($name)");
+	my $tname = $table->name;
+	my $info  = $self->to_dbh->selectall_arrayref("PRAGMA table_info($tname)");
 	foreach my $column ( map { $_->[1] } @$info ) {
-		$self->index_column($name, $column);
+		$self->index_column($tname, $column);
 	}
 	return 1;
 }
@@ -591,6 +597,26 @@ sub to_dbh {
 		}
 	}
 	return $self->{to_dbh};
+}
+
+sub to_scan {
+	Xtract::Scan->create( shift->to_dbh );
+}
+
+sub to_tables {
+	my $self   = shift;
+	my $scan   = $self->to_scan;
+	my $tables = {
+		map {
+			$_ => Xtract::Table->new(
+				name => $_,
+				scan => $scan,
+			)
+		} $scan->tables
+	};
+	return map {
+		$tables->{$_}
+	} sort keys %$tables;
 }
 
 # Prepare the target database

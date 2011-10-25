@@ -14,7 +14,7 @@ use Xtract;
 
 # Prepare
 my $from = catfile('t', 'data', 'Foo-Bar.sqlite');
-my $to   = catfile('t', 'to');
+my $to   = catfile('t', '02_new_to');
 ok( -f $from, 'Found --from file' );
 clear($to);
 ok( ! -f $to, 'Cleared --to file' );

@@ -1,9 +1,11 @@
 Changes for Perl extension Xtract
 
 0.15 to be released
-	- Upgrading to Module::Install::DSL 1.01
+	- Upgrading to Module::Install::DSL 1.04
 	- Upgrading to Aspect 1.00
 	- Migrating from Moose to the lighter Mouse
+	- Indexing no longer assumes all target tables match source tables
+	- In principle support for parallel testing
 
 0.14 Sat  3 Apr 2010
 	- Upgrading test skipping to use Test::Database.

@@ -25,6 +25,9 @@ sub new {
 		my $name = $self->name;
 		Carp::croak("Missing or invalid name '$name'");
 	}
+	unless ( $self->name eq lc $self->name ) {
+		$self->{name} = lc $self->name;
+	}
 	unless ( Params::Util::_INSTANCE($self->scan, 'Xtract::Scan') ) {
 		Carp::croak("Param 'scan' is not a 'Xtract::Scan' object");
 	}
@@ -53,6 +56,17 @@ sub scan {
 
 sub columns {
 	
+}
+
+
+
+
+
+######################################################################
+# SQL Generation
+
+sub create {
+
 }
 
 1;

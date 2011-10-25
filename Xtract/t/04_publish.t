@@ -17,7 +17,7 @@ use IO::Uncompress::Bunzip2;
 
 my $input = catfile( 't', 'data', 'Foo-Bar.sqlite' );
 ok( -f $input, "Test file '$input' exists" );
-my $output = catfile( 't', 'output.db' );
+my $output = catfile( 't', '04_publish_db' );
 my @outputs =  map {
 	$_, "$_.gz", "$_.bz2", "$_.lz"
 } map {

@@ -33,7 +33,7 @@ my @data = (
 );
 
 # Locate the output database
-my $to = catfile('t', 'to');
+my $to = catfile('t', '11_mysql_to');
 clear($to, "$to.gz", "$to.bz2", "$to.lz");
 
 # Create the Xtract object
