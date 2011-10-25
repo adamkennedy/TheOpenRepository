@@ -162,7 +162,8 @@ Defaults to ~/.cpanplus.
 
 =cut
 
-       $Conf->{'conf'}->{'base'} = File::Spec->catdir('[% self.image_dir.stringify %]', 'cpanplus');
+       $Conf->{'conf'}->{'base'} = File::Spec->catdir('[% self.image_dir.stringify %]\', 'cpanplus'); 
+       #BEWARE: backslash at the end of the first param is important
 
 =item buildflags
 
