@@ -4,7 +4,7 @@ use 5.008;
 use strict;
 use File::Spec                 ();
 use Probe::Perl                ();
-use PITA::Image                ();
+use PITA::Image           0.51 ();
 use PITA::Guest::Driver::Image ();
 
 our $VERSION = '0.50';

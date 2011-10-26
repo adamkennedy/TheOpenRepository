@@ -178,19 +178,23 @@ sub add_guest {
 		or die "Failed to load PITA::Guest";
 
 	# Can we ping the guest
+	Test::More::diag(-d $self->storage_dir);
 	unless ( $guest->ping ) {
 		Carp::croak("Ping failed, not a valid guest image");
 	}
+	Test::More::diag(-d $self->storage_dir);
 
 	# Run discovery if needed
 	unless ( $guest->discovered ) {
+		Test::More::diag(-d $self->storage_dir);
 		$guest->discover or Carp::croak("Failed to discover platforms in guest");
+		Test::More::diag(-d $self->storage_dir);
 	}
 
 	# Store the guest
 	my $lock = $self->storage_lock;
 	my $file = File::Spec->catfile( $self->storage_dir, $xml->id . '.pita' );
-	$xml->write( $file ) or Carp::croak("Failed to save guest XML file");
+	$xml->write($file) or Carp::croak("Failed to save guest XML file");
 
 	return $xml;
 }

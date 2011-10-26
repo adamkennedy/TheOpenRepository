@@ -4,12 +4,12 @@ use 5.008;
 use strict;
 use Params::Util               1.00 ();
 use POE::Wheel::Run           1.299 ();
-use POE::Declare::HTTP::Server 0.03 ();
+use POE::Declare::HTTP::Server 0.05 ();
 use PITA::Guest::Server::HTTP       ();
 
 our $VERSION = '0.50';
 
-use POE::Declare 0.53 {
+use POE::Declare 0.58 {
 	Hostname      => 'Param',
 	Port          => 'Param',
 	Program       => 'Param',

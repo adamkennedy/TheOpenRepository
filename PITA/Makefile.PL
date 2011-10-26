@@ -18,14 +18,14 @@ requires      File::Find::Rule           0.30
 requires      Data::GUID                 0.042
 requires      Archive::Extract           0.18
 requires      URI                        1.35
-requires      LWP                        5.69
 requires      Params::Util               1.00
+requires      Probe::Perl                0.01
 requires      Process                    0.16
 requires      Process::YAML              0
 requires      PITA::XML                  0.50
 requires      PITA::Scheme               0.43
-requires      PITA::Image                0.50
-requires      POE::Declare               0.53
+requires      PITA::Image                0.51
+requires      POE::Declare               0.58
 requires      POE::Declare::HTTP::Server 0.05
 requires      POE::Wheel::Run            1.299
 test_requires Test::More                 0.47

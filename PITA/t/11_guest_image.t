@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 107;
+use Test::More tests => 109;
 
 use PITA         ();
 use File::Remove ();
@@ -70,15 +70,15 @@ is( $request->id, 1234, 'Request id is 1234' );
 
 # Load the raw PITA::XML::Guest directly
 SCOPE: {
-	my $xml = PITA::XML::Guest->read( $image_test );
+	my $xml = PITA::XML::Guest->read($image_test);
 	isa_ok( $xml, 'PITA::XML::Guest' );
 	is( $xml->driver, 'Image::Test', '->driver is Local' );
 	is( scalar($xml->platforms),    0,  '->platforms(scalar) returns 0' );
 	is_deeply( [ $xml->platforms ], [], '->platforms(list) return ()'   );
 
 	# Write the file for the write test
-	ok( $xml->write( $image_write ), '->write returns true' );
-	my $xml2 = PITA::XML::Guest->read( $image_write );
+	ok( $xml->write($image_write), '->write returns true' );
+	my $xml2 = PITA::XML::Guest->read($image_write);
 	isa_ok( $xml2, 'PITA::XML::Guest' );
 	is_deeply( $xml2, $xml, 'local_empty matches local_write' );
 }
@@ -93,7 +93,7 @@ SCOPE: {
 # Load a PITA::Guest for the image_test case and test the various prepares
 my @working_dirs = ();
 SCOPE: {
-	my $guest = PITA::Guest->new( $image_test );
+	my $guest = PITA::Guest->new($image_test);
 	isa_ok( $guest, 'PITA::Guest' );
 	is( $guest->file, $image_test, '->file returns the original filename' );
 	isa_ok( $guest->guestxml,  'PITA::XML::Guest'              );
@@ -112,7 +112,7 @@ SCOPE: {
 	# Save a copy for later
 	@working_dirs = (
 		$guest->driver->injector_dir,
-		);
+	);
 
 	# Check that we can prepare for a ping
 	ok( $guest->driver->ping_prepare, '->driver->ping_prepare returns true' );
@@ -180,7 +180,7 @@ ok( ! -d $working_dirs[0], 'Driver injector removed' );
 # Test the ping method
 
 SCOPE: {
-	my $guest = PITA::Guest->new( $image_test );
+	my $guest = PITA::Guest->new($image_test);
 	isa_ok( $guest, 'PITA::Guest' );
 
 	# Ping the guest
@@ -224,6 +224,11 @@ SCOPE: {
 
 # Again, but with write-back
 SCOPE: {
+	# Rebuild the write file
+	my $xml = PITA::XML::Guest->read($image_test);
+	isa_ok( $xml, 'PITA::XML::Guest' );
+	ok( $xml->write($image_write), '->write returns true' );
+
 	# Load it
 	my $guest = PITA::Guest->new( $image_write );
 	isa_ok( $guest, 'PITA::Guest' );
