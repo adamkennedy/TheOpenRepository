@@ -248,7 +248,7 @@ sub _sqlite_table {
 
 	# Generate the column metadata
 	my @type = ();
-	my @blob = ();
+	my @bind = ();
 	foreach my $column ( @$info ) {
 		$column->{TYPE_NAME} = uc $column->{TYPE_NAME};
 		my $name = $column->{COLUMN_NAME};
@@ -257,7 +257,7 @@ sub _sqlite_table {
 			: $column->{TYPE_NAME};
 		my $null = $column->{NULLABLE} ? "NULL" : "NOT NULL";
 		push @type, "$name $type $null";
-		push @blob, $column->{TYPE_NAME} eq 'BLOB' ? 1 : 0;
+		push @bind, $column->{TYPE_NAME} eq 'BLOB' ? 1 : 0;
 	}
 
 	# Create the table
@@ -272,7 +272,7 @@ sub _sqlite_table {
 	return $self->fill(
 		select => [ "SELECT * FROM $from" ],
 		insert => "INSERT INTO $tname VALUES ( $placeholders )",
-		blobs  => scalar( grep { $_ } @blob ) ? \@blob : undef,
+		blobs  => scalar( grep { $_ } @bind ) ? \@bind : undef,
 	);
 }
 
@@ -290,7 +290,7 @@ sub _mysql_table {
 	my @name = @{$sth->{NAME_lc}};
 	my @type = @{$sth->{TYPE}};
 	my @null = @{$sth->{NULLABLE}};
-	my @blob = @{$sth->{mysql_is_blob}};
+	my @bind = @{$sth->{mysql_is_blob}};
 	$sth->finish;
 
 	# Generate the create fragments
@@ -327,7 +327,7 @@ sub _mysql_table {
 	return $self->fill(
 		select => [ "SELECT * FROM $from" ],
 		insert => "INSERT INTO $tname VALUES ( $placeholders )",
-		blobs  => scalar( grep { $_ } @blob ) ? \@blob : undef,
+		blobs  => scalar( grep { $_ } @bind ) ? \@bind : undef,
 	);
 }
 
@@ -341,7 +341,7 @@ sub add_select {
 	# classification of the data in each column.
 	my @names = ();
 	my @type  = ();
-	my @blob  = ();
+	my @bind  = ();
 	SCOPE: {
 		my $sth = $self->from_dbh->prepare($select);
 		unless ( $sth ) {
@@ -398,7 +398,7 @@ sub add_select {
 		my $col = 0;
 		foreach my $i ( 0 .. $#names ) {
 			# Initially, assume this isn't a blob
-			push @blob, 0;
+			push @bind, 0;
 			my $hash    = $type[$i];
 			my $notnull = $hash->{NULL} ? 'NULL' : 'NOT NULL';
 			if ( $hash->{NOTNULL} == 0 ) {
@@ -439,7 +439,7 @@ sub add_select {
 	return $self->fill(
 		select => [ $select, @params ],
 		insert => "INSERT INTO $tname VALUES ( $placeholders )",
-		blobs  => scalar( grep { $_ } @blob ) ? \@blob : undef,
+		blobs  => scalar( grep { $_ } @bind ) ? \@bind : undef,
 	);
 }
 
@@ -469,6 +469,57 @@ sub fill {
 			foreach ( 0 .. $#$row ) {
 				if ( $blobs->[$_] ) {
 					$to->bind_param( $_ + 1, $row->[$_], SQL_BLOB );
+				} else {
+					$to->bind_param( $_ + 1, $row->[$_] );
+				}
+			}
+			$to->execute;
+		} else {
+			$to->execute( @$row );
+		}
+		next if ++$rows % 10000;
+		$dbh->commit;
+	}
+	$dbh->commit;
+	$dbh->{AutoCommit} = 1;
+
+	# Clean up
+	$to->finish;
+	$from->finish;
+
+	return $rows;
+}
+
+sub create_table {
+	my $self   = shift;
+	my %params = @_;
+	my $create = $params{create};
+	my $select = $params{select};
+	my $insert = $params{insert};
+	my $bind   = $params{bind};
+
+	# Create the table
+	$self->to_dbh->do(@$create);
+
+	# Launch the select query
+	my $from = $self->from_dbh->prepare(shift(@$select));
+	unless ( $from ) {
+		croak($DBI::errstr);
+	}
+	$from->execute(@$select);
+
+	# Stream the data into the target table
+	my $dbh = $self->to_dbh;
+	$dbh->begin_work;
+	$dbh->{AutoCommit} = 0;
+	my $rows = 0;
+	my $to   = $dbh->prepare($insert) or croak($DBI::errstr);
+	while ( my $row = $from->fetchrow_arrayref ) {
+		if ( $bind ) {
+			# When inserting blobs, we need to use the bind_param method
+			foreach ( 0 .. $#$row ) {
+				if ( defined $bind->[$_] ) {
+					$to->bind_param( $_ + 1, $row->[$_], $bind->[$_] );
 				} else {
 					$to->bind_param( $_ + 1, $row->[$_] );
 				}
