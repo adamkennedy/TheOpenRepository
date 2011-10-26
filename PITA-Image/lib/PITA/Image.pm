@@ -88,7 +88,7 @@ use 5.006;
 use strict;
 use Carp                  ();
 use URI              1.57 ();
-use Process          0.16 ();
+use Process          0.29 ();
 use File::Temp       0.22 ();
 use File::Spec       0.80 ();
 use File::Spec::Unix      ();

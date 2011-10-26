@@ -70,7 +70,10 @@ sub run {
 
 	# Run the discovery on each platform
 	foreach my $discovery ( @{$self->discoveries} ) {
+		require Devel::Dumpvar;
+		# print STDERR "# " . Devel::Dumpvar->dump( [ $discovery ] ) . "\n";
 		$discovery->delegate;
+		# print STDERR "# " . Devel::Dumpvar->dump( [ $discovery ] ) . "\n";
 		if ( $discovery->platform ) {
 			$guest->add_platform( $discovery->platform );
 		} else {
