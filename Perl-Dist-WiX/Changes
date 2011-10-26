@@ -1,6 +1,6 @@
 Changes for Perl extension Perl-Dist-WiX
 
-NEXT    2011-10-24 used by KMX for building 5.14.2.0 RC
+NEXT  2011-10-26 used by KMX for building 5.14.2.0 RC2
 
 1.550   To be released
     1. Used to build Strawberry Perl 5.12.3.1 merge module.
