@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 1.00;
+use inc::Module::Install::DSL 1.04;
 
 all_from      lib/Process.pm
 requires      IO::Handle   0

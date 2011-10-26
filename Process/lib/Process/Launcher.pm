@@ -9,7 +9,7 @@ use Process::Serializable ();
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '0.28';
+	$VERSION = '0.29';
 	@ISA     = qw{Exporter};
 	@EXPORT  = qw{run run3 serialized};
 
@@ -77,7 +77,8 @@ sub serialized() {
 	}
 
 	# Deserialize the object
-	my $object = $class->deserialize( \*STDIN );
+	my $input  = shift @ARGV;
+	my $object = $class->deserialize( $input or \*STDIN );
 	unless ( $object ) {
 		fail("Failed to deserialize STDIN to a $class");
 	}
@@ -90,6 +91,8 @@ sub serialized() {
 
 	exit(0);
 }
+
+
 
 
 

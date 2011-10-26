@@ -1,5 +1,9 @@
 Revision history for Perl extension Process
 
+0.29 Thu 27 Oct 2011
+	- Updating to Module::Install::DSL 1.04
+	- Use explicit input file instead of STDIN binding
+
 0.28 Sat 26 Feb 2011
 	- Updating to Module::Install::DSL 1.00
 	- Moving Perl::MinimumVersion test to xt and fixing 5.006 dependency

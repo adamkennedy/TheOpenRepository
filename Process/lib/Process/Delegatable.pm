@@ -10,7 +10,7 @@ use Process::Storable ();
 
 use vars qw{$VERSION @ISA @PERLCMD};
 BEGIN {
-	$VERSION = '0.28';
+	$VERSION = '0.29';
 	@ISA     = 'Process::Storable';
 
 	# Contains the command to use to launch perl
@@ -25,48 +25,74 @@ sub delegate {
 	my $class = ref($self);
 	my @perl  = @_ ? @_ : @PERLCMD;
 
+	# We always pass the object by file
+	my ($stdin, $filein ) = File::Temp::tempfile();
+	$self->serialize($stdin);
+	close($stdin);
+
 	# Dump the object to the input filehandle,
 	# and recover it afterwards
-	my $stdin  = File::Temp::tempfile();
-	my $stdout = File::Temp::tempfile();
-	$self->serialize( $stdin );
-	seek( $stdin, 0, 0 );
+	my ($stdout, $fileout) = File::Temp::tempfile();
+	# my ($stderr, $fileerr) = File::Temp::tempfile();
+	close($stdout);
+	# close($stderr);
 
 	# Generate the command
-	my $cmd = [ @perl, '-MProcess::Launcher', '-e serialized', $class ];
+	#print STDERR "Process::Delegatable STDIN  $filein\n";
+	#print STDERR "Process::Delegatable STDOUT $fileout\n";
+	#print STDERR "Process::Delegatable STDERR $fileerr\n";
+	my $cmd = [ @perl, '-MProcess::Launcher', '-e serialized', $class, $filein ];
 
 	# Fire the command
-	IPC::Run3::run3( $cmd, $stdin, $stdout, \undef );
+	# print STDERR "# " . join(' ', @$cmd) . " < $filein > $fileout\n";
+	my $ok = IPC::Run3::run3( $cmd, \undef, $fileout, \undef );
+	if ( ! $ok or $? != 0 ) {
+		# Failed
+		$self->{errstr} = "Failed to execute delegated Process";
+		# $self->{stderr} = $extras;
+		return 1;
+	}
 
 	# Get the first line with content of the response, which will be an OK/FAIL
-	seek( $stdout, 0, 0 );
+	local *STDOUT2;
+	open( STDOUT2, $fileout ) or die "open($fileout): $!";
+	# open( STDERR2, $fileerr ) or die "open($fileerr): $!";
 	my $result;
+#	my $extras;
 	while ( 1 ) {
-		$result = <$stdout>;
+		$result = <STDOUT2>;
 		$result = "FAIL No output returned\n" unless defined $result;
 		next unless $result =~ /\S/;
-		chomp($result);
+		$result =~ s/[\012\015]+\z//;
 		last;
 	}
+	# while ( 1 ) {
+		# $extras = <STDERR2>;
+		# $extras = "FAIL No output returned\n" unless defined $extras;
+		# next unless $extras =~ /\S/;
+		# $extras =~ s/[\012\015]+\z//;
+		# last;
+	# }
 	if ( $result eq 'OK' ) {
 		# Looks good, deserialize the data
-		my $complete = $class->deserialize( $stdout );
+		my $complete = $class->deserialize( \*STDOUT2 );
 		%$self = %$complete;
 
 		# Clean up and return
-		close( $stdin  );
-		close( $stdout );
+		close( STDOUT2 );
+		close( STDERR2 );
 		return 1;
 	} else {
 		# Just clean up
-		close( $stdin  );
-		close( $stdout );
+		close( STDOUT2 );
+		close( STDERR2 );
 	}
 
 	# Is it an error?
 	if ( $result =~ s/^FAIL// ) {
 		# Failed
 		$self->{errstr} = $result;
+		# $self->{stderr} = $extras;
 		return 1;
 	}
 
