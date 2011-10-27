@@ -13,5 +13,5 @@ requires      Params::Util 0.10
 requires      IPC::Run3    0.034
 requires      Probe::Perl  0.01
 test_requires File::Spec   0.80
-test_requires File::Remove 1.40
+test_requires File::Remove 1.51
 test_requires Test::More   0.47

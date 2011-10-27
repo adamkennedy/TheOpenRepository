@@ -10,7 +10,7 @@ use Process::Storable ();
 
 use vars qw{$VERSION @ISA @PERLCMD};
 BEGIN {
-	$VERSION = '0.29';
+	$VERSION = '0.30';
 	@ISA     = 'Process::Storable';
 
 	# Contains the command to use to launch perl

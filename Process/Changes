@@ -1,5 +1,8 @@
 Revision history for Perl extension Process
 
+0.30 Thu 27 Oct 2011
+	- Bump File::Remove to 1.51 to get fork safety
+
 0.29 Thu 27 Oct 2011
 	- Updating to Module::Install::DSL 1.04
 	- Use explicit input file instead of STDIN binding
