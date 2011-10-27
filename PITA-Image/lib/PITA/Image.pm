@@ -93,7 +93,7 @@ use File::Temp       0.22 ();
 use File::Spec       0.80 ();
 use File::Spec::Unix      ();
 use File::Which      0.05 ();
-use File::Remove     0.34 ();
+use File::Remove     1.51 ();
 use Config::Tiny     2.00 ();
 use Params::Util     1.00 ();
 use HTTP::Tiny      0.014 ();
