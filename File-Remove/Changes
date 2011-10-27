@@ -1,5 +1,9 @@
 Revision history for Perl extension File-Remove
 
+1.51 Thu 27 Oct 2011 - Adam Kennedy
+	- END-time deletion by clear() is now fork-safe, it will only remove
+	  paths created in the same process.
+
 1.50 Mon 11 Jul 2011 - Adam Kennedy
 	- Adding a second skip for the known-bad cygwin file permissions problem
 

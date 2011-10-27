@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 1.01;
+use inc::Module::Install::DSL 1.04;
 
 all_from      lib/File/Remove.pm
 requires_from lib/File/Remove.pm

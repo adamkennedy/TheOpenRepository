@@ -6,7 +6,7 @@ use strict;
 use vars qw{ $VERSION @ISA @EXPORT_OK };
 use vars qw{ $DEBUG $unlink $rmdir    };
 BEGIN {
-	$VERSION   = '1.50';
+	$VERSION   = '1.51';
 	# $VERSION   = eval $VERSION;
 	@ISA       = qw{ Exporter };
 	@EXPORT_OK = qw{ remove rm clear trash };
@@ -54,14 +54,18 @@ sub clear (@) {
 		remove( \1, $file );
 	}
 
-	# Delete again at END-time
-	push @CLEANUP, @files;
+	# Delete again at END-time.
+	# Save the current PID so that forked children
+	# won't delete things that the parent expects to
+	# live until their end-time.
+	push @CLEANUP, map { [ $$, $_ ] } @files;
 }
 
 END {
 	foreach my $file ( @CLEANUP ) {
-		next unless -e $file;
-		remove( \1, $file );
+		next unless $file->[0] == $$;
+		next unless -e $file->[1];
+		remove( \1, $file->[1] );
 	}
 }
 
