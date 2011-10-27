@@ -19,7 +19,7 @@ File::Remove::clear($parent);
 File::Remove::remove($child);
 ok( ! -d $parent, 'Parent directory does not exist' );
 ok( ! -d $child,  'Child directory does not exist'  );
-ok( mkdir($parent), 'Created directory' );
+ok( mkdir( $parent, 0777 ), 'Created directory' );
 ok( -d $parent, 'Directory exists' );
 
 # Fork the test
@@ -27,7 +27,7 @@ my $pid = fork();
 unless ( $pid ) {
 	# Create a child-owned directory and flag for deletion
 	File::Remove::clear($child);
-	mkdir($child);
+	mkdir( $child, 0777 );
 	sleep(2);
 
 	# Exit from the child to stimulate END-time code
