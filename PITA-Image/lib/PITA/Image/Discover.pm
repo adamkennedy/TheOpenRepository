@@ -9,7 +9,7 @@ use PITA::Scheme::Perl::Discovery ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.51';
+	$VERSION = '0.60';
 	@ISA     = 'PITA::Image::Task';
 }
 
