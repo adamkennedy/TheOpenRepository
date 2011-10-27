@@ -6,7 +6,7 @@ use PITA::XML           ();
 use PITA::Guest         ();
 use PITA::Guest::Driver ();
 
-our $VERSION = '0.50';
+our $VERSION = '0.60';
 
 1;
 

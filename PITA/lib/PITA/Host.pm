@@ -13,7 +13,7 @@ use Archive::Extract ();
 
 use constant FFR => 'File::Find::Rule';
 
-our $VERSION = '0.50';
+our $VERSION = '0.60';
 
 
 

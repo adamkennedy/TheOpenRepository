@@ -24,7 +24,7 @@ use Carp         ();
 use Data::GUID   ();
 use Params::Util ();
 
-our $VERSION = '0.50';
+our $VERSION = '0.60';
 
 
 

@@ -24,7 +24,7 @@ requires      Process                    0.16
 requires      Process::YAML              0
 requires      PITA::XML                  0.50
 requires      PITA::Scheme               0.43
-requires      PITA::Image                0.51
+requires      PITA::Image                0.60
 requires      POE::Declare               0.58
 requires      POE::Declare::HTTP::Server 0.05
 requires      POE::Wheel::Run            1.299

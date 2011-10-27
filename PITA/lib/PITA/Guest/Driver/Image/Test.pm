@@ -4,10 +4,10 @@ use 5.008;
 use strict;
 use File::Spec                 ();
 use Probe::Perl                ();
-use PITA::Image           0.51 ();
+use PITA::Image           0.60 ();
 use PITA::Guest::Driver::Image ();
 
-our $VERSION = '0.50';
+our $VERSION = '0.60';
 our @ISA     = 'PITA::Guest::Driver::Image';
 
 # The location of the support server

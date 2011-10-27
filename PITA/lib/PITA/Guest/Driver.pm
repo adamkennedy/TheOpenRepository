@@ -8,7 +8,7 @@ use File::Remove ();
 use Params::Util ();
 use PITA::XML    ();
 
-our $VERSION = '0.50';
+our $VERSION = '0.60';
 
 
 
@@ -33,6 +33,7 @@ sub new {
 	unless ( -d $self->injector_dir and -w _ ) {
 		die("Temporary directory " . $self->injector_dir . " is not writable");
 	}
+	$self->{pid} = $$;
 
 	$self;
 }
@@ -89,7 +90,13 @@ sub _REQUEST {
 
 sub DESTROY {
 	# Delete the temp dirs, ignoring errors
-	if ( $_[0]->{injector_dir} and -d $_[0]->{injector_dir} ) {
+	if (
+		$_[0]->{pid} == $$
+		and
+		$_[0]->{injector_dir}
+		and
+		-d $_[0]->{injector_dir}
+	) {
 		File::Remove::remove( \1, $_[0]->{injector_dir} );
 		delete $_[0]->{injector_dir};
 	}

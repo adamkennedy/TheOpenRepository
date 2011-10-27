@@ -8,7 +8,7 @@ use Process       ();
 use Process::YAML ();
 use PITA::XML     ();
 
-our $VERSION = '0.50';
+our $VERSION = '0.60';
 our @ISA     = qw{
 		Process::YAML
 		Process

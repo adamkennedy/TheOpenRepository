@@ -7,7 +7,7 @@ use POE::Wheel::Run           1.299 ();
 use POE::Declare::HTTP::Server 0.05 ();
 use PITA::Guest::Server::HTTP       ();
 
-our $VERSION = '0.50';
+our $VERSION = '0.60';
 
 use POE::Declare 0.58 {
 	Hostname      => 'Param',

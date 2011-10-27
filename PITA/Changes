@@ -1,7 +1,12 @@
 Revision history for Perl extension PITA
 
-0.51 to be released
+0.60 Thu 27 Oct 2011
+	- Updating to Module::Install::DSL 1.04
 	- Removing Params::Util imports for consistency
+	- Updating File::Remove dependency for fork safety
+	- Updating Process for nested execution on Win32
+	- Completed tests for the storage modules
+	- Full support for Windows hosts
 
 0.50 Thu 10 Mar 2011
 	- Rewrote legacy PITA::POE::SupportServer as PITA::Guest::Server

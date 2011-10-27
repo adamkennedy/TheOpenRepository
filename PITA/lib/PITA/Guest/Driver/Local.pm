@@ -27,7 +27,7 @@ use PITA::XML           ();
 use PITA::Scheme        ();
 use PITA::Guest::Driver ();
 
-our $VERSION = '0.50';
+our $VERSION = '0.60';
 our @ISA     = 'PITA::Guest::Driver';
 
 # SHOULD be tested, but recheck on load

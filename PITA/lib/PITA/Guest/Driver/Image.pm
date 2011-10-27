@@ -18,7 +18,7 @@ use Class::Inspector             ();
 use PITA::Guest::Driver          ();
 use PITA::Guest::Server::Process ();
 
-our $VERSION = '0.50';
+our $VERSION = '0.60';
 our @ISA     = 'PITA::Guest::Driver';
 
 
@@ -182,9 +182,6 @@ sub ping_execute {
 sub ping_cleanup {
 	my $self = shift;
 
-	# require Devel::Dumpvar;
-	# Test::More::diag(Devel::Dumpvar->dump($self));
-
 	# Capture results from the support server
 	$self->support_server->finish;
 	$self->{support_server_pinged}   = $self->support_server->pinged;
@@ -242,9 +239,6 @@ sub discover_cleanup {
 	$self->{support_server_pinged}   = $self->support_server->pinged;
 	$self->{support_server_mirrored} = $self->support_server->mirrored;
 	$self->{support_server_results}  = $self->support_server->uploaded;
-
-	# require Devel::Dumpvar;
-	# print STDERR Devel::Dumpvar->dump($self) . "\n";
 
 	# Get the report file contents
 	my $string = $self->support_server->upload('/1');
@@ -356,7 +350,7 @@ sub prepare_task {
 	my $image_conf = Config::Tiny->new;
 	$image_conf->{_} = {
 		class      => 'PITA::Image',
-		version    => '0.51',
+		version    => '0.60',
 		server_uri => $self->support_server_uri,
 	};
 	if ( -d $self->perl5lib_dir ) {
@@ -461,9 +455,9 @@ sub clean_injector {
 
 	# Scan for stuff in the injector
 	my $injector = $self->injector_dir;
-	unless ( -d $injector ) {
-		File::Path::mkpath( $injector ) or die "mkpath($injector): $!";
-	}
+	# unless ( -d $injector ) {
+		# File::Path::mkpath( $injector ) or die "mkpath($injector): $!";
+	# }
 	opendir( INJECTOR, $injector ) or die "opendir($injector): $!";
 	my @files = readdir( INJECTOR );
 	closedir( INJECTOR );

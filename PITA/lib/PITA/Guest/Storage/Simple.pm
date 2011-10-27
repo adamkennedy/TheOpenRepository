@@ -31,7 +31,7 @@ use Data::GUID           ();
 use PITA::XML::Guest     ();
 use PITA::Guest::Storage ();
 
-our $VERSION  = '0.50';
+our $VERSION  = '0.60';
 our @ISA      = 'PITA::Guest::Storage';
 our $LOCKFILE = 'PITA-Guest-Storage-Simple.lock';
 
@@ -178,17 +178,13 @@ sub add_guest {
 		or die "Failed to load PITA::Guest";
 
 	# Can we ping the guest
-	Test::More::diag(-d $self->storage_dir);
 	unless ( $guest->ping ) {
 		Carp::croak("Ping failed, not a valid guest image");
 	}
-	Test::More::diag(-d $self->storage_dir);
 
 	# Run discovery if needed
 	unless ( $guest->discovered ) {
-		Test::More::diag(-d $self->storage_dir);
 		$guest->discover or Carp::croak("Failed to discover platforms in guest");
-		Test::More::diag(-d $self->storage_dir);
 	}
 
 	# Store the guest

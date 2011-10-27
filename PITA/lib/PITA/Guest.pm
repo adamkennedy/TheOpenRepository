@@ -25,7 +25,7 @@ use File::Basename ();
 use Params::Util   ();
 use PITA::XML      ();
 
-our $VERSION = '0.50';
+our $VERSION = '0.60';
 our @ISA     = 'Process';
 
 
