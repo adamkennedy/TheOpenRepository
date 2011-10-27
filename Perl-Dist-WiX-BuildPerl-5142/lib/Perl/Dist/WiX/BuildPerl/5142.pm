@@ -205,8 +205,13 @@ around '_build_library_information' => sub {
 			'mingw-make'    => 'kmx/32_tools/32bit_gmake-3.82-bin_20110503.zip',
 			'pexports'      => 'kmx/32_tools/32bit_pexports-0.44-bin_20100110.zip',
                         'patch'         => 'kmx/32_tools/32bit_patch-2.5.9-7-bin_20100110_UAC.zip',
-			'gcc-toolchain' => 'kmx/32_gcctoolchain/mingw64-w32-gcc4.4.7(pre)_20111014.zip',
-			'gcc-license'   => 'kmx/32_gcctoolchain/mingw64-w32-gcc4.4.7(pre)_20111014-lic.zip',
+
+			#XXX-FIXME gcc-roll-back due to a strange failure on some WinXP boxes
+			#'gcc-toolchain' => 'kmx/32_gcctoolchain/mingw64-w32-gcc4.4.7(pre)_20111014.zip',
+			#'gcc-license'   => 'kmx/32_gcctoolchain/mingw64-w32-gcc4.4.7(pre)_20111014-lic.zip',                        
+			'gcc-toolchain' => 'kmx/32_gcctoolchain/mingw64-w32-20100123-kmx-v2.zip',
+			'gcc-license'   => 'kmx/32_gcctoolchain/mingw64-w32-20100123-kmx-v3-lic.zip',
+			
 			'libdb'		=> 'kmx/32_libs/5.14/32bit_db-5.1.25-bin_20110506.zip',
 			'libexpat'	=> 'kmx/32_libs/5.14/32bit_expat-2.0.1-sezero20110428-bin_20110506.zip',
 			'freeglut'	=> 'kmx/32_libs/5.14/32bit_freeglut-2.6.0-bin_20110506.zip',
@@ -214,7 +219,11 @@ around '_build_library_information' => sub {
 			'libgd'		=> 'kmx/32_libs/5.14/32bit_gd-2.0.35(OLD-jpg-png)-bin_20110506.zip',
 			'libgdbm'	=> 'kmx/32_libs/5.14/32bit_gdbm-1.8.3-bin_20110506.zip',
 			'libgif'	=> 'kmx/32_libs/5.14/32bit_giflib-4.1.6-bin_20110506.zip',
-			'gmp'		=> 'kmx/32_libs/5.14/32bit_gmp-5.0.1-bin_20110506.zip',
+			
+			#XXX-FIXME gcc-roll-back due to a strange failure on some WinXP boxes
+			#'gmp'		=> 'kmx/32_libs/5.14/32bit_gmp-5.0.1-bin_20110506.zip',
+			'gmp'		=> 'kmx/32_libs/32bit_gmp-5.0.1-419f6a4cc606-(fat)-bin_20110218.zip',
+
 			'libjpeg'	=> 'kmx/32_libs/5.14/32bit_jpeg-8c-bin_20110506.zip',
 			'libxpm'	=> 'kmx/32_libs/5.14/32bit_libXpm-3.5.9-bin_20110506.zip',
 			'libiconv'	=> 'kmx/32_libs/5.14/32bit_libiconv-1.13.1-sezero20110428-bin_20110506.zip',
