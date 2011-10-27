@@ -15,14 +15,14 @@ TO BE COMPLETED
 use 5.005;
 use strict;
 use base 'PITA::Guest::Driver::Image';
-use version          ();
-use Carp             ();
-use URI              ();
-use File::Temp       ();
-use File::Which      ();
-use File::Remove     ();
-use Params::Util     '_POSINT';
-use Filesys::MakeISO ();
+use version                  ();
+use Carp                     ();
+use URI                      ();
+use File::Temp               ();
+use File::Which              ();
+use File::Remove             ();
+use Params::Util             ();
+use Filesys::MakeISO         ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -42,7 +42,7 @@ sub new {
 
 	# Locate the qemu binary
 	unless ( $self->qemu_bin ) {
-		$self->{qemu_bin} = File::Which::which('qemu');
+		$self->{qemu_bin} = $self->qemu_default;
 	}
 	unless ( $self->qemu_bin ) {
 		Carp::croak("Cannot locate qemu, requires explicit param");
@@ -53,7 +53,7 @@ sub new {
 
 	# Find the install qemu version
 	my $qemu_bin = $self->qemu_bin;
-	my @lines    = `$qemu_bin`;
+	my @lines    = `$qemu_bin -h`;
 	unless ( $lines[0] =~ /version ([\d\.]+),/ ) {
 		Carp::croak("Failed to locate Qemu version");
 	}
@@ -85,6 +85,31 @@ sub qemu_bin {
 
 sub qemu_version {
 	$_[0]->{qemu_version};
+}
+
+# Attempt to independantly locate the qemu executable
+sub qemu_default {
+	my $self = shift;
+	my $bin  = File::Which::which('qemu');
+	return $bin if defined $bin;
+
+	# Additional default locations to search on Windows
+	if ( $^O eq 'MSWin32' and $ENV{PROGRAMFILES} ) {
+		# Look for the Strawberry version
+		$bin = 'C:\\strawberry\\qemu\\qemu.exe';
+		return $bin if -f $bin;
+
+		# Look for the QemuManager version
+		my $bin = File::Spec->catfile(
+			$ENV{PROGRAMFILES},
+			'QemuManager',
+			'qemu',
+			'qemu.exe'
+		);
+		return $bin if -f $bin;
+	}
+
+	return undef;
 }
 
 
@@ -119,20 +144,37 @@ sub qemu_command {
 	return \@cmd;
 }
 
-sub support_server_new {
-	my $self = shift;
-	PITA::POE::SupportServer->new(
-		execute               => $self->qemu_command,
-		http_local_addr       => $self->support_server_addr,
-		http_local_port       => $self->support_server_port,
-		http_mirrors          => {},
-		http_result           => $self->support_server_results,
-		http_startup_timeout  => 30,
-		http_activity_timeout => 60,
-		http_shutdown_timeout => 30,
-		) or die "Failed to create support server";
-}
+# sub support_server_new {
+	# my $self = shift;
+	# $DB::single = 1;
+	# require PITA::POE::SupportServer;
+	# PITA::POE::SupportServer->new(
+		# execute               => $self->qemu_command,
+		# http_local_addr       => $self->support_server_addr,
+		# http_local_port       => $self->support_server_port,
+		# http_mirrors          => {},
+		# http_result           => $self->support_server_results,
+		# http_startup_timeout  => 30,
+		# http_activity_timeout => 60,
+		# http_shutdown_timeout => 30,
+	# ) or die "Failed to create support server";
+# }
 
+sub support_server_new {
+	my $self   = shift;
+	my $server = PITA::Guest::Server::Process->new(
+		Program     => $self->qemu_command,
+		Hostname    => $self->support_server_addr,
+		Port        => $self->support_server_port,
+		Mirrors     => { },
+		# http_result => $self->support_server_results,
+		# http_startup_timeout  => 30,
+		# http_activity_timeout => 60,
+		# http_shutdown_timeout => 30,
+	) or die "Failed to create support server";
+
+	return $server;
+}
 
 
 

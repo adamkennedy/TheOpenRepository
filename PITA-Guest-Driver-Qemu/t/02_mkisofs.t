@@ -11,7 +11,7 @@ BEGIN {
 use Test::More tests => 47;
 use File::Spec::Functions ':ALL';
 use File::Temp   'tempfile';
-use File::Remove 'remove';
+use File::Remove ();
 use Filesys::MakeISO;
 
 # The source content dir
@@ -20,14 +20,12 @@ ok( -d $iso_dir, 'iso_dir exists' );
 
 # An unused file
 my $iso_file = catfile( 't', 'mkisofs.iso' );
-      if ( -f $iso_file ) { remove $iso_file; }
-END { if ( -f $iso_file ) { remove $iso_file; } }
+File::Remove::clear($iso_file);
 ok( ! -f $iso_file, 'ISO file does not exist' );
 
 # Repeat with an existing zero-byte file
 my $iso_file2 = catfile( 't', 'mkisofs2.iso' );
-      if ( -f $iso_file2 ) { remove $iso_file2; }
-END { if ( -f $iso_file2 ) { remove $iso_file2; } }
+File::Remove::clear($iso_file2);
 ok( ! -f $iso_file2, 'ISO file does not exist' );
 ok( open( ISO2, '>', $iso_file2 ), 'Opened 0-byte test file' );
 ok( print ISO2 '' );
@@ -47,7 +45,11 @@ ok( $tempfile =~ /\.iso$/, 'Temp file is named .iso' );
 ok( -f $tempfile, 'Temp file exists' );
 @f = stat( $tempfile );
 is( $f[7], 0, 'Confirmed 0-byte file is actually zero bytes' );
-END { if ( $tempfile and -f $tempfile ) { remove $tempfile; } }
+END {
+	if ( $tempfile and -e $tempfile ) {
+		File::Remove::remove($tempfile);
+	}
+}
 
 
 
@@ -71,7 +73,7 @@ SCOPE: {
 	my @f = stat($iso_file);
 	ok( $f[7] > 100000, 'ISO file is larger than 400k'  );
 	ok( $f[7] < 1000000, 'ISO file is smaller than 500k' );
-	ok( remove($iso_file), 'Removed iso_file' );
+	ok( File::Remove::remove($iso_file), 'Removed iso_file' );
 }
 
 # Repeat using the rock ridge and joliet extensions
@@ -122,5 +124,3 @@ SCOPE: {
 	ok( $f[7] > 100000, 'ISO file is larger than 400k'  );
 	ok( $f[7] < 1000000, 'ISO file is smaller than 500k' );	
 }
-
-exit(0);

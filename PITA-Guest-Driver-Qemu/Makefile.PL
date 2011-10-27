@@ -3,16 +3,15 @@ use inc::Module::Install;
 
 name                  'PITA-Guest-Driver-Qemu';
 all_from              'lib/PITA/Guest/Driver/Qemu.pm';
-requires              'Carp'             => 0;
 requires              'File::Temp'       => '0.15';
 requires              'File::Which'      => '0.05';
-requires              'File::Remove'     => '0.34';
+requires              'File::Remove'     => '1.51';
 requires              'Params::Util'     => '0.10';
 requires              'PITA'             => '0.40';
 requires              'Filesys::MakeISO' => 0;
 requires_external_bin 'qemu'             => 0;
-test_requires        'File::Spec'       => '0.80';
-test_requires        'Test::More'       => '0.47';
+test_requires         'File::Spec'       => '0.80';
+test_requires         'Test::More'       => '0.47';
 
 # What osname's do we know that mkisofs runs on
 my @mkisofs_platforms = qw{
