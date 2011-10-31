@@ -40,13 +40,13 @@ use strict;
 use Carp;
 use File::Spec        0.82 ();
 use File::Spec::Unix       ();
-use Params::Util      0.38 qw{ _STRING _HASHLIKE };
 use File::Find::Rule  0.20 ();
+use Params::Util      0.38 ();
 use Parse::CPAN::Meta 1.38 ();
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '1.10';
+	$VERSION = '1.11';
 	@ISA     = 'File::Find::Rule';
 	@EXPORT  = @File::Find::Rule::EXPORT;
 }
@@ -194,10 +194,10 @@ sub File::Find::Rule::no_index {
 		# No params means we auto-calculate
 		$rule = undef;
 
-	} elsif ( _HASHLIKE($_[0]) ) {
+	} elsif ( Params::Util::_HASHLIKE($_[0]) ) {
 		$rule = _no_index($_[0]);
 
-	} elsif ( defined _STRING($_[0]) ) {
+	} elsif ( defined Params::Util::_STRING($_[0]) ) {
 		my $path = shift;
 		if ( -d $path ) {
 			# This is probably a dist directory
@@ -310,7 +310,7 @@ L<http://ali.as/>, L<File::Find::Rule>, L<File::Find::Rule::PPI>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2010 Adam Kennedy.
+Copyright 2006 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

@@ -1,10 +1,13 @@
 Revision history for Perl extension File-Find-Rule-Perl
 
+1.11 Mon 31 Oct 2011
+	- Updating to Module::Install::DSL 1.04 (ADAMK)
         - Skip MYMETA.json too (CHORNY)
+	- Do not import from Params::Util (ADAMK)
 
 1.10 Wed  6 Sep 2010
-	- Upgrading to Module::Install::DSL 1.00
-	- Removing nasty evil use UNIVERSAL;
+	- Upgrading to Module::Install::DSL 1.00 (ADAMK)
+	- Removing nasty evil use UNIVERSAL (ADAMK)
 	- Fix 03_noindex.t to ignore MYMETA.yml (MIYAGAWA)
 
 1.09 Thu 30 Jul 2009
