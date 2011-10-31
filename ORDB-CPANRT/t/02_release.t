@@ -16,7 +16,7 @@ unless ( $ENV{RELEASE_TESTING} ) {
 	exit(0);
 }
 
-plan tests => 2;
+plan tests => 3;
 
 use_ok( 'ORDB::CPANRT' );
 
