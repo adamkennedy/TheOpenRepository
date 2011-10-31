@@ -44,7 +44,7 @@ SCOPE: {
 		my @files = sort grep {
 			! /^debian\b/
 			and
-			! /\./
+			! /(?:^|\W)\.\w/
 			and
 			! /\bblib\b/
 			and
