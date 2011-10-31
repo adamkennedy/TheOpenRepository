@@ -24,4 +24,7 @@ my $latest = ORDB::CPANRT->latest;
 ok( $latest, 'Got latest record' );
 
 my $age = ORDB::CPANRT->age;
-ok( Params::Util::_POSINT($age), 'Got positive integer for ->age' );
+ok(
+	defined Params::Util::_NONNEGINT($age),
+	'Got non-negative integer for ->age',
+);

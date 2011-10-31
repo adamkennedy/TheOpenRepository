@@ -174,7 +174,7 @@ for a database. See the L<SQLite> documentation for more details.
 
 B<ORDB::CPANRT> is based on L<ORLite>.
 
-Documentation created by L<ORLite::Pod> 0.08.
+Documentation created by L<ORLite::Pod> 0.11.
 
 Bugs should be reported via the CPAN bug tracker at
 
@@ -185,7 +185,6 @@ For other issues, contact the author.
 =head1 AUTHOR
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
-
 =head1 COPYRIGHT
 
 Copyright 2011 Adam Kennedy.

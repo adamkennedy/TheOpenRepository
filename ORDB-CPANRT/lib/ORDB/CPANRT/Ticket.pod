@@ -4,7 +4,7 @@ ORDB::CPANRT::Ticket - ORDB::CPANRT class for the ticket table
 
 =head1 DESCRIPTION
 
-See the main L<ORDB::CPANRT> documentation for details.
+TO BE COMPLETED
 
 =head1 METHODS
 
@@ -66,7 +66,7 @@ compatible with SQLite can be used in the parameter.
 
 Returns a list of B<ORDB::CPANRT::Ticket> objects when called in list context, or a
 reference to an C<ARRAY> of B<ORDB::CPANRT::Ticket> objects when called in scalar
- context.
+context.
 
 Throws an exception on error, typically directly from the L<DBI> layer.
 
