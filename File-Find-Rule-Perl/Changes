@@ -1,5 +1,9 @@
 Revision history for Perl extension File-Find-Rule-Perl
 
+1.12 Mon 31 Oct 2011
+	- Ignore debian directory in tests (ADAMK)
+	- Ignore all dot dirs in tests (ADAMK)
+
 1.11 Mon 31 Oct 2011
 	- Updating to Module::Install::DSL 1.04 (ADAMK)
         - Skip MYMETA.json too (CHORNY)
