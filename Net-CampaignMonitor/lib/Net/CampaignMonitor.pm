@@ -5,7 +5,7 @@ use REST::Client;
 use Params::Util qw{_STRING _NONNEGINT _POSINT _HASH _HASHLIKE};
 use JSON;
 
-our $VERSION = '0.05';
+our $VERSION = '1.01';
 
 sub new	{
 		
