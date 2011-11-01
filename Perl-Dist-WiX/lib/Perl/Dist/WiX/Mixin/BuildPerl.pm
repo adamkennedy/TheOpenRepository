@@ -524,9 +524,10 @@ sub _get_toolchain {
 
 	$self->trace_line( 1, "Generating toolchain...\n" );
 	my $force = $self->_get_forced_toolchain_dists();
-	# New version of LWP creates problems for https on 64 bit systems
-	$force->{'LWP'} = 'GAAS/libwww-perl-5.837.tar.gz';
-	$force->{'CPAN'} = 'ANDK/CPAN-1.97_51.tar.gz';
+	
+        #XXX-FIXME should go to: Perl::Dist::WiX::BuildPerl::5142 - _get_forced_toolchain_dists   
+	#$force->{'LWP'} = 'GAAS/libwww-perl-5.837.tar.gz'; # New version of LWP creates problems for https on 64 bit systems
+	#$force->{'CPAN'} = 'ANDK/CPAN-1.97_51.tar.gz';
 
 	my $corelist_version = $self->perl_version_literal() + 0;
 	my $corelist_hash    = $Module::CoreList::version{$corelist_version};
@@ -708,6 +709,10 @@ sub install_perl_toolchain {
 
 	                        # Can't test on D-drive builds.
 	                        $force ||= ( $self->image_dir() =~ /\AD:/ms ) ? 1 : 0;
+                                
+                                #XXX-FIXME kmx hack
+                                # failure when building portable - forcing always
+                                $force = 1
 
 	                }
 	                when (/CPAN-Meta-\d/msx) {

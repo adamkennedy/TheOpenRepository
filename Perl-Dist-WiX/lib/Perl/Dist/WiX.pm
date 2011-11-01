@@ -5080,6 +5080,7 @@ sub add_env {
 		name   => $name,
 		value  => $value,
 		action => 'set',
+		permanent => 'no',  # 'no' = the environment variable will be removed on uninstall
 		part   => $append ? 'last' : 'all',
 	);
 

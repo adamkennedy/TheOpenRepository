@@ -20,6 +20,10 @@ use Getopt::Long qw(GetOptions);
 use Pod::Usage qw(pod2usage);
 use FindBin;
 
+use Win32::API;
+use constant HWND_BROADCAST => -1;
+use constant WM_SETTINGCHANGE => 0x1a;
+
 sub usage;
 sub version;
 
@@ -99,8 +103,11 @@ else {
 	}
 }
 
+# avoiding the need for re-login or reboot
+my $SendMessage = Win32::API->new("user32", "SendMessage", 'NNNP', 'N') or die "Couldn't create SendMessage: $!\n";
+my $RetVal = $SendMessage->Call(HWND_BROADCAST,WM_SETTINGCHANGE,0,'Environment');
+
 say 'Updating environment variables added.' unless $quiet;
-say 'Please reboot now in order to complete installation.' unless $quiet;
 
 exit(0);
 
