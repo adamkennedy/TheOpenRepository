@@ -2747,10 +2747,17 @@ sub install_portable {
 		) );
 	}
 	if ( not $self->isa('Perl::Dist::Bootstrap') ) {
-		$self->install_modules( qw(
-			  CPAN::Mini
-			  Portable
+		#XXX-FIXME kmx removed Portable
+                $self->install_modules( qw(
+			  CPAN::Mini			  
 		) );
+                $self->install_distribution_from_file(
+                          file   => 'z:\strawberry_build\SVN_Portable\Portable-1.14_patched.tar.gz', #XXX-FIXME this is a hack
+                          url    => 'http://strawberryperl.com/package/kmx/perl-modules-patched/Portable-1.14_patched.tar.gz',
+                          mod_name => 'Portable',
+                          force  => 1,
+
+                );
 	}
 
 	# Create the portability object
@@ -2764,7 +2771,7 @@ sub install_portable {
 
 	# Install the file that turns on Portability last
 	$self->install_file(
-		share      => 'Perl-Dist-WiX portable\portable.perl',
+		share      => 'Perl-Dist-WiX portable\portable.perl.' . $self->bits, # take portable.perl.32 or portable.perl.64
 		install_to => 'portable.perl',
 	);
 
@@ -2777,6 +2784,9 @@ sub install_portable {
 		share      => 'Perl-Dist-WiX portable\portableshell.bat',
 		install_to => 'portableshell.bat',
 	);
+        
+        #XXX-FIXME kmx - not sure what is the proper way for removing README.txt (we have README.portable.txt)
+        unlink $self->file('README.txt');
 
 	$self->get_directory_tree()->get_directory_object('INSTALLDIR')
 	  ->add_directories_id( 'Data', 'data' );
