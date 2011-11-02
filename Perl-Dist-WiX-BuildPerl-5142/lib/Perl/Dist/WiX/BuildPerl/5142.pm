@@ -126,12 +126,9 @@ around '_build_toolchain_modules' => sub {
 		  Archive::Zip
 		  Package::Constants
 		  IO::String
-		  Archive::Tar}
-	);
-
-	if ( 32 == $self->bits() ) {
-		push @modules_list, 'Compress::unLZMA';
-	}
+		  Archive::Tar
+		  Compress::unLZMA
+	} );
 
 	push @modules_list, qw{
 	  Win32::UTCFileTime
