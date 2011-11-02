@@ -2747,17 +2747,10 @@ sub install_portable {
 		) );
 	}
 	if ( not $self->isa('Perl::Dist::Bootstrap') ) {
-		#XXX-FIXME kmx removed Portable
                 $self->install_modules( qw(
-			  CPAN::Mini			  
+			  CPAN::Mini
+			  Portable
 		) );
-                $self->install_distribution_from_file(
-                          file   => 'z:\strawberry_build\SVN_Portable\Portable-1.14_patched.tar.gz', #XXX-FIXME this is a hack
-                          url    => 'http://strawberryperl.com/package/kmx/perl-modules-patched/Portable-1.14_patched.tar.gz',
-                          mod_name => 'Portable',
-                          force  => 1,
-
-                );
 	}
 
 	# Create the portability object
