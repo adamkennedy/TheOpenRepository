@@ -157,13 +157,15 @@ around '_build_toolchain_modules' => sub {
 	  HTML::Tagset
 	  HTML::Parser
 	  WWW::RobotRules
+	  HTTP::Date
+	  LWP::MediaTypes
+	  HTTP::Headers::Util
 	  HTTP::Cookies
 	  Net::HTTP
 	  HTTP::Daemon
 	  HTTP::Negotiate
 	  File::Listing
-	  HTML::Parser
-	  HTTP::Date
+	  HTML::Parser	  
 	  HTTP::Status
 	  Encode::Locale
 	  LWP::MediaTypes
