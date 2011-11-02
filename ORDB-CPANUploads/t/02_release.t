@@ -16,10 +16,16 @@ unless ( $ENV{RELEASE_TESTING} ) {
 	exit(0);
 }
 
-plan tests => 2;
+plan tests => 3;
 
 use_ok('ORDB::CPANUploads');
 
-# Find the age of the sqlite file by using the most recent upload
+my $latest = ORDB::CPANUploads->latest;
+ok( $latest, 'Got latest record' );
+
 my $age = ORDB::CPANUploads->age;
-ok( Params::Util::_POSINT($age), 'Got positive integer seconds for ->age' );
+ok(
+	defined Params::Util::_NONNEGINT($age),
+	'Got non-negative integer for ->age',
+);
+diag("Age: $age days");

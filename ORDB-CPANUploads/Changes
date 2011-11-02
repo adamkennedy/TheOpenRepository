@@ -1,5 +1,10 @@
 Changes for Perl extension ORDB-CPANUploads
 
+1.08 Wed 2 Nov 2011
+	- Upgrading to Module::Install::DSL 1.04
+	- Adding separate latest and latest_datetime
+	- Moving age method to return in days
+
 1.07 Wed 3 Aug 2011
 	- Upgrading to Module::Install::DSL 1.01
 	- Adding the age method

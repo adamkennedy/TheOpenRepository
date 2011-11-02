@@ -3,10 +3,15 @@ package ORDB::CPANUploads;
 use 5.008005;
 use strict;
 use warnings;
+use DateTime       0.55 ();
 use Params::Util   1.00 ();
 use ORLite::Mirror 1.20 ();
 
-our $VERSION = '1.07';
+our $VERSION = '1.08';
+our @LOCATION = (
+	locale    => 'C',
+	time_zone => 'UTC',
+);
 
 sub import {
 	my $class  = shift;
@@ -23,7 +28,7 @@ sub import {
 	return 1;
 }
 
-sub age {
+sub latest {
 	my $class = shift;
 
 	# Find the most recent upload
@@ -34,8 +39,24 @@ sub age {
 		die "Unexpected number of uploads";
 	}
 
-	# Compare to the current time
-	return time - $latest[0]->released;
+	# When was the most recent release
+	$latest[0]->released;
+}
+
+sub latest_datetime {
+	my $class  = shift;
+	return DateTime->from_epoch(
+		epoch => $class->latest,
+		@LOCATION,
+	);
+}
+
+sub age {
+	my $class    = shift;
+	my $latest   = $class->latest_datetime;
+	my $today    = DateTime->today( @LOCATION );
+	my $duration = $today - $latest;
+	return $duration->in_units('days');
 }
 
 1;
