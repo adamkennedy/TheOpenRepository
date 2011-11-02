@@ -28,3 +28,4 @@ ok(
 	defined Params::Util::_NONNEGINT($age),
 	'Got non-negative integer for ->age',
 );
+diag("Age: $age days");
