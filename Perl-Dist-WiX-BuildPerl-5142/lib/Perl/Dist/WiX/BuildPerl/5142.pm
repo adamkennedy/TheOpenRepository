@@ -153,9 +153,23 @@ around '_build_toolchain_modules' => sub {
 	  Data::Dumper
 	  Pod::Text
 	  URI
+
 	  HTML::Tagset
 	  HTML::Parser
+	  WWW::RobotRules
+	  HTTP::Cookies
+	  Net::HTTP
+	  HTTP::Daemon
+	  HTTP::Negotiate
+	  File::Listing
+	  HTML::Parser
+	  HTTP::Date
+	  HTTP::Status
+	  Encode::Locale
+	  LWP::MediaTypes
+	  URI::Escape
 	  LWP
+
 	  File::Slurp
 	  Capture::Tiny
 	};
