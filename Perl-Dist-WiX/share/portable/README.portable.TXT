@@ -3,16 +3,17 @@ Strawberry Perl Portable README
 
 What is Strawberry Perl Portable?
 ---------------------------------
+
 * 'Perl' is a programming language suitable for writing simple scripts as well
   as complex applications. See http://perldoc.perl.org/perlintro.html
 
-* 'Strawberry Perl' is a perl enviroment for Microsoft Windows containing all
+* 'Strawberry Perl' is a perl environment for Microsoft Windows containing all
   you need to run and develop perl applications. It is designed to be as close
-  as possible to perl enviroment on UNIX systems. See http://strawberryperl.com/
+  as possible to perl environment on UNIX systems. See http://strawberryperl.com/
 
 * 'Strawberry Perl Portable' is Strawberry Perl that you do not need to install,
   you do not need admin privileges, you just extract provided ZIP on your disk.
-  
+ 
 How to use Strawberry Perl Portable?
 ------------------------------------
 
