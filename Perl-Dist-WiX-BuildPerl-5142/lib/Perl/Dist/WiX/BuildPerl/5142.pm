@@ -1,4 +1,4 @@
-package Perl::Dist::WiX::BuildPerl::    ;
+package Perl::Dist::WiX::BuildPerl::5142;
 #XXX-FIX-ON-VERSION-BUMP
 
 =head1 NAME
@@ -26,7 +26,8 @@ use Moose::Role;
 use File::ShareDir qw();
 use Perl::Dist::WiX::Asset::Perl qw();
 
-our $VERSION = '1.0';
+our $VERSION = '1.1';
+$VERSION = eval $VERSION;
 
 around '_install_perl_plugin' => sub {
   shift;
