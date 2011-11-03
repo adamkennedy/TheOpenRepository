@@ -5,8 +5,7 @@ our $VERSION = '1.02';
 use strict;
 use warnings;
 
-my $no = join('|',qw(ODBM_File NDBM_File DB_File
-                     VMS VMS-DCLsym VMS-Stdio Sys-Syslog IPC-SysV I18N-Langinfo));
+my $no = join('|',qw(DB_File VMS VMS-DCLsym VMS-Stdio Sys-Syslog IPC-SysV I18N-Langinfo));
 $no = qr/^(?:$no)$/i;
 
 sub apply_config {

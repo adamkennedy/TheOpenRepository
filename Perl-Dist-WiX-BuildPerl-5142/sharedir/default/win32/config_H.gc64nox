@@ -649,8 +649,8 @@
  *	This symbol, if defined, indicates that <rpcsvc/dbm.h> exists and
  *	should be included.
  */
-/*#define I_DBM	/ **/
-#define I_RPCSVC_DBM	/**/
+#define I_DBM	/**/
+/*#define I_RPCSVC_DBM	/ **/
 
 /* I_DLFCN:
  *	This symbol, if defined, indicates that <dlfcn.h> exists and should
@@ -2437,7 +2437,7 @@
  *	parameter information. While ANSI C prototypes are supported in C++,
  *	K&R style function declarations will yield errors.
  */
-/*#define I_NDBM	/ **/
+#define I_NDBM	/**/
 /*#define I_GDBMNDBM	/ **/
 /*#define I_GDBM_NDBM	/ **/
 /*#define NDBM_H_USES_PROTOTYPES	/ **/
