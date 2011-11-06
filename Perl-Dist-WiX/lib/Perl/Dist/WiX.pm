@@ -2520,7 +2520,7 @@ EOF
 	# Add environment variables.
 	# We use YAML as the backend because we have it.
 	$self->add_env( 'TERM',              'dumb' );
-	$self->add_env( 'FTP_PASSIVE',       '1' );
+	#$self->add_env( 'FTP_PASSIVE',       '1' );
 	$self->add_env( 'PERL_YAML_BACKEND', 'YAML' );
 
 	# Blow away the directory cache for a new build.
@@ -2949,6 +2949,20 @@ sub install_win32_extras {
 				name =>
 				  'Perl 5.12.2 Documentation (5.14.0 not available yet)',
 				url       => 'http://perldoc.perl.org/5.12.2/',
+				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
+			);
+		}
+		if ( $self->perl_version_human eq '5.14.2' ) {
+			$self->install_website(
+				name      => 'Perl 5.14 Documentation',
+				url       => 'http://perldoc.perl.org/5.14.1/', #5.14.2 not available yet XXX-FIXME
+				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
+			);
+		}
+		if ( $self->perl_version_human eq '5.14.3' ) {
+			$self->install_website(
+				name      => 'Perl 5.14 Documentation',
+				url       => 'http://perldoc.perl.org/5.14.1/', #5.14.3 not available yet XXX-FIXME
 				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
 			);
 		}
@@ -3526,7 +3540,8 @@ sub _get_msi_property_list {
 		$list->add_simple_property( 'ARPNOMODIFY', 1 );
 	}
 	$list->add_simple_property( 'ARPCOMMENTS',
-		$self->app_name() . q{ } . $self->perl_version_human() );
+		$self->app_name . ' ' . $self->perl_version_human . '.' . 
+                $self->build_number . '-' . $self->bits . 'bit' );
 	$list->add_simple_property( 'ARPCONTACT', $self->app_publisher() );
 	$list->add_simple_property( 'ARPURLINFOABOUT',
 		$self->app_publisher_url() );
