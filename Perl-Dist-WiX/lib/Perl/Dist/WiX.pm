@@ -5315,48 +5315,50 @@ sub _create_rightclick_fragment {
 
 	$child_tag->add_child_tag(
 		WiX3::XML::RegistryKey->new(
-			id     => 'sp1010c_syncheck',
-			key    => 'Syntax Check',
-			action => 'createAndRemoveOnUninstall',
-		) );
-
-	$child_tag->add_child_tag(
-		WiX3::XML::RegistryKey->new(
 			id     => 'sp1010c_execute',
 			key    => 'Execute Perl Program',
 			action => 'createAndRemoveOnUninstall',
 		) );
 
+	#XXX-FIXME 'Syntax Check' removed by KMX
+        #$child_tag->add_child_tag(
+	#	WiX3::XML::RegistryKey->new(
+	#		id     => 'sp1010c_syncheck',
+	#		key    => 'Syntax Check',
+	#		action => 'createAndRemoveOnUninstall',
+	#	) );
+
 	$child_tag->get_child_tag(0)->add_child_tag(
-		WiX3::XML::RegistryKey->new(
-			id     => 'sp1010c_syncheckcommand',
-			key    => 'command',
-			action => 'createAndRemoveOnUninstall',
-		) );
-
-	## no critic(RequireInterpolationOfMetachars)
-	$child_tag->get_child_tag(0)->get_child_tag(0)->add_child_tag(
-		WiX3::XML::RegistryValue->new(
-			id     => 'sp1010c_syncheckcommand',
-			value  => q{[P_Perl_Location] -E"system($^X, q{-c}, q{%1});"},
-			type   => 'string',
-			action => 'write',
-		) );
-
-	$child_tag->get_child_tag(1)->add_child_tag(
 		WiX3::XML::RegistryKey->new(
 			id     => 'sp1010c_executecommand',
 			key    => 'command',
 			action => 'createAndRemoveOnUninstall',
 		) );
 
-	$child_tag->get_child_tag(1)->get_child_tag(0)->add_child_tag(
+	$child_tag->get_child_tag(0)->get_child_tag(0)->add_child_tag(
 		WiX3::XML::RegistryValue->new(
 			id     => 'sp1010c_executecommand',
 			value  => '[P_Perl_Location] "%1" %*',
 			type   => 'string',
 			action => 'write',
 		) );
+
+	#XXX-FIXME 'Syntax Check' removed by KMX
+        #$child_tag->get_child_tag(1)->add_child_tag(
+	#	WiX3::XML::RegistryKey->new(
+	#		id     => 'sp1010c_syncheckcommand',
+	#		key    => 'command',
+	#		action => 'createAndRemoveOnUninstall',
+	#	) );
+	#
+        ### no critic(RequireInterpolationOfMetachars)
+	#$child_tag->get_child_tag(1)->get_child_tag(0)->add_child_tag(
+	#	WiX3::XML::RegistryValue->new(
+	#		id     => 'sp1010c_syncheckcommand',
+	#		value  => q{[P_Perl_Location] -E"system($^X, q{-c}, q{%1});"},
+	#		type   => 'string',
+	#		action => 'write',
+	#	) );
 
 	my $component = WiX3::XML::Component->new(
 		id                        => 'RightClickEntries',
