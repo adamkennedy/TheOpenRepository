@@ -14,7 +14,6 @@ This document describes Perl::Dist::WiX::Mixin::Patching version 1.550.
 
 	# This module is not to be used independently.
 	# It provides methods to be called on a Perl::Dist::WiX object.
-  
 
 =head1 DESCRIPTION
 
