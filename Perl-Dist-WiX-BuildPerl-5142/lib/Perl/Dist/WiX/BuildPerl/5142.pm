@@ -165,7 +165,7 @@ around '_build_library_information' => sub {
   if (32 == $self->bits()) {
     $libraries = {
       %{$originals},
-      'dmake'           => 'kmx/32_tools/32bit_dmake-SVN20091127-bin_20100308.zip',
+      'dmake'           => 'kmx/32_tools/32bit_dmake-SVN20091127-bin_20111107.zip',
       'mingw-make'      => 'kmx/32_tools/32bit_gmake-3.82-bin_20110503.zip',
       'pexports'        => 'kmx/32_tools/32bit_pexports-0.44-bin_20100110.zip',
       'patch'           => 'kmx/32_tools/32bit_patch-2.5.9-7-bin_20100110_UAC.zip',
@@ -197,7 +197,7 @@ around '_build_library_information' => sub {
   } else { # 64-bit.
     $libraries = {
       %{$originals},
-      'dmake'           => 'kmx/64_tools/64bit_dmake-SVN20091127-bin_20100308.zip',
+      'dmake'           => 'kmx/64_tools/64bit_dmake-SVN20091127-bin_20111107.zip',
       'mingw-make'      => 'kmx/64_tools/64bit_gmake-3.82-bin_20110503.zip',
       'pexports'        => 'kmx/64_tools/64bit_pexports-0.44-bin_20100110.zip',
       'patch'           => 'kmx/64_tools/64bit_patch-2.5.9-7-bin_20100110_UAC.zip',
