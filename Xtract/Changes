@@ -1,7 +1,8 @@
 Changes for Perl extension Xtract
 
-0.16 to be released
+0.16 Mon 7 Nov 2011
 	- Migrating all code from ->fill to ->create_table
+	- Completed refactoring to only use the driver API for scanning
 
 0.15 Mon 24 Oct 2011
 	- Upgrading to Module::Install::DSL 1.04

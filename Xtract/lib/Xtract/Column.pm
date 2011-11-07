@@ -7,7 +7,7 @@ use strict;
 use Carp         ();
 use Params::Util ();
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 
 

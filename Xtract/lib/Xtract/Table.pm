@@ -7,7 +7,7 @@ use strict;
 use Params::Util   ();
 use Xtract::Column ();
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 
 

@@ -10,7 +10,7 @@ use IO::Compress::Gzip  2.008 ();
 use IO::Compress::Bzip2 2.008 ();
 use Xtract::LZMA              ();
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 use Mouse 0.93;
 

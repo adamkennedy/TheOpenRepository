@@ -39,7 +39,7 @@ use Xtract::Publish             ();
 use Xtract::Column              ();
 use Xtract::Table               ();
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 use Mouse 0.93;
 
@@ -210,249 +210,15 @@ sub add {
 
 sub add_table {
 	my $self = shift;
-
-	# Do we have support for table copying from this database?
-	my $driver = $self->from_dbh->{Driver}->{Name};
-	if ( $driver eq 'SQLite' ) {
-		return $self->_sqlite_table(@_);
-	} elsif ( $driver eq 'mysql' ) {
-		return $self->_mysql_table(@_);
-	}
-
-	# Hand off to the regular select method
-	my $table = shift;
-	my $from  = shift || $table->name;
-	return $self->add_select(
-		$table,
-		"select * from $from",
-	);
-}
-
-sub _sqlite_table {
-	my $self  = shift;
-	my $table = shift;
-	my $tname = $table->name;
-	my $from  = shift || $tname;
-
-	# With a direct table copy, we can interrogate types from the
-	# source table directly (hopefully).
-	my $info = eval {
-		$self->from_dbh->column_info(
-			'', 'main', $from, '%'
-		)->fetchall_arrayref( {} );
-	};
-	unless ( $@ eq '' and $info ) {
-		# Fallback to regular type detection
-		return $self->add_select( $table, "select * from $from" );
-	}
-
-	# Generate the column metadata
-	my @type = ();
-	my @bind = ();
-	foreach my $column ( @$info ) {
-		$column->{TYPE_NAME} = uc $column->{TYPE_NAME};
-		my $name = $column->{COLUMN_NAME};
-		my $type = defined($column->{COLUMN_SIZE})
-			? "$column->{TYPE_NAME}($column->{COLUMN_SIZE})"
-			: $column->{TYPE_NAME};
-		my $null = $column->{NULLABLE} ? "NULL" : "NOT NULL";
-		push @type, "$name $type $null";
-		push @bind, $column->{TYPE_NAME} eq 'BLOB' ? 1 : 0;
-	}
-
 	$self->create_table(
-		create => [
-			"CREATE TABLE $tname (\n"
-			. join( ",\n", map { "\t$_" } @type )
-			. "\n)"
-		],
-		select => [
-			"SELECT * FROM $from"
-		],
-		insert => (
-			"INSERT INTO $tname VALUES ( "
-			. join( ", ",
-				map { '?' } @$info
-			)
-			. " )",
-		),
-		blobs  => scalar( grep { $_ } @bind ) ? \@bind : undef,
-	);
-}
-
-sub _mysql_table {
-	my $self  = shift;
-	my $table = shift;
-	my $tname = $table->name;
-	my $from  = shift || $tname;
-
-	# Capture table metadata
-	my $sth = $self->from_dbh->prepare("select * from $from");
-	unless ( $sth and $sth->execute ) {
-		return $self->add_select( $table, "select * from $from" );
-	}
-	my @name = @{$sth->{NAME_lc}};
-	my @type = @{$sth->{TYPE}};
-	my @null = @{$sth->{NULLABLE}};
-	my @blob = @{$sth->{mysql_is_blob}};
-	$sth->finish;
-
-	# Generate the create fragments
-	foreach my $i ( 0 .. $#name ) {
-		if ( $blob[$i] ) {
-			$type[$i] = 'BLOB';
-		} elsif ( $type[$i] == SQL_INTEGER ) {
-			$type[$i] = 'INTEGER';
-		} elsif ( $type[$i] == SQL_FLOAT ) {
-			$type[$i] = 'REAL';
-		} elsif ( $type[$i] == SQL_REAL ) {
-			$type[$i] = 'REAL';
-		} elsif ( $type[$i] == -6 ) {
-			$type[$i] = 'INTEGER';
-		} else {
-			$type[$i] = 'TEXT';
-		}
-		$null[$i] = $null[$i] ? 'NULL' : 'NOT NULL';
-	}
-
-	$self->create_table(
-		create => [
-			"CREATE TABLE $tname (\n"
-			. join( ",\n",
-				map {
-					"\t$name[$_] $type[$_] $null[$_]"
-				} (0 .. $#name)
-			)
-			. "\n)"
-		],
-		select => [
-			"SELECT * FROM $from"
-		],
-		insert => (
-			"INSERT INTO $tname VALUES ( "
-			. join( ", ",
-				map { '?' } @name
-			)
-			. " )",
-		),
-		blobs => scalar( grep { $_ } @blob ) ? \@blob : undef,
+		$self->from_scan->add_table(@_)
 	);
 }
 
 sub add_select {
-	my $self   = shift;
-	my $tname  = shift;
-	my $select = shift;
-	my @params = @_;
-
-	# Make an initial scan pass over the query and do a content-based
-	# classification of the data in each column.
-	my @names = ();
-	my @type  = ();
-	my @bind  = ();
-	SCOPE: {
-		my $sth = $self->from_dbh->prepare($select);
-		unless ( $sth ) {
-			croak($DBI::errstr);
-		}
-		$sth->execute( @params );
-		@names = map { lc($_) } @{$sth->{NAME}};
-		foreach ( @names ) {
-			push @type, {
-				NULL    => 0,
-				NOTNULL => 0,
-				NUMBER  => 0,
-				INTEGER => 0,
-				INTMIN  => undef,
-				INTMAX  => undef,
-				TEXT    => 0,
-				UNIQUE  => {},
-			};
-		}
-		my $rows = 0;
-		while ( my $row = $sth->fetchrow_arrayref ) {
-			$rows++;
-			foreach my $i ( 0 .. $#names ) {
-				my $value = $row->[$i];
-				my $hash  = $type[$i];
-				if ( defined $value ) {
-					$hash->{NOTNULL}++;
-					if ( $i == 0 and $hash->{UNIQUE} ) {
-						$hash->{UNIQUE}->{$value}++;
-					}
-				} else {
-					$hash->{NULL}++;
-					delete $hash->{UNIQUE};
-					next;
-				}
-				if ( Params::Util::_NONNEGINT($value) ) {
-					$hash->{INTEGER}++;
-					if ( not defined $hash->{INTMIN} or $value < $hash->{INTMIN} ) {
-						$hash->{INTMIN} = $value;
-					}
-					if ( not defined $hash->{INTMAX} or $value > $hash->{INTMAX} ) {
-						$hash->{INTMAX} = $value;
-					}
-				}
-				if ( defined Params::Util::_NUMBER($value) ) {
-					$hash->{NUMBER}++;
-				}
-				if ( length($value) <= 255 ) {
-					$hash->{TEXT}++;
-				}
-			}
-		}
-		$sth->finish;
-		my $col = 0;
-		foreach my $i ( 0 .. $#names ) {
-			# Initially, assume this isn't a blob
-			push @bind, 0;
-			my $hash    = $type[$i];
-			my $notnull = $hash->{NULL} ? 'NULL' : 'NOT NULL';
-			if ( $hash->{NOTNULL} == 0 ) {
-				# The column is completely null, no affinity
-				$type[$i] = "$names[$i] NONE NULL";
-			} elsif ( $hash->{INTEGER} == $hash->{NOTNULL} ) {
-				$type[$i] = "$names[$i] INTEGER $notnull";
-				if ( $i == 0 and $hash->{UNIQUE} ) {
-					my $d = scalar keys %{$hash->{UNIQUE}};
-					if ( $d == $hash->{NOTNULL} ) {
-						$type[$i] .= ' PRIMARY KEY';
-					}
-				}
-			} elsif ( $hash->{NUMBER} == $hash->{NOTNULL} ) {
-				# This isn't entirely accurate but should be close enough
-				$type[$i] = "$names[$i] REAL $notnull";
-			} elsif ( $hash->{TEXT} == $hash->{NOTNULL} ) {
-				$type[$i] = "$names[$i] TEXT $notnull";
-			} else {
-				# For now lets assume this is a blob
-				$type[$i] = "$names[$i] BLOB $notnull";
-
-				# This is a blob after all
-				$bind[-1] = 1;
-			}
-		}
-	}
-
+	my $self = shift;
 	$self->create_table(
-		create => [
-			"CREATE TABLE $tname (\n"
-			. join(",\n", map { "\t$_" } @type)
-			. "\n)"
-		],
-		select => [
-			$select,
-			@params,
-		],
-		insert => (
-			"INSERT INTO $tname VALUES ( "
-			. join( ", ",
-				map { '?' } @names
-			)
-			. " )",
-		),
-		blobs => scalar( grep { $_ } @bind ) ? \@bind : undef,
+		$self->from_scan->add_select(@_)
 	);
 }
 
@@ -556,7 +322,7 @@ sub from_dbh {
 sub from_scan {
 	my $self = shift;
 	unless ( $self->{from_scan} ) {
-		$self->{from_scan} = Xtract::Scan->create($self->from_dbh);
+		$self->{from_scan} = Xtract::Scan->create( $self->from_dbh );
 	}
 	return $self->{from_scan};
 }

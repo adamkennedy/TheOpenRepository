@@ -9,7 +9,7 @@ use Carp        ();
 use File::Which ();
 use IPC::Run3   ();
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 my $LZMA  = '';
 my @WHICH = ();

@@ -3,7 +3,7 @@ package t::lib::MyXtract;
 use strict;
 use Xtract ();
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 our @ISA     = 'Xtract';
 
 sub add {
