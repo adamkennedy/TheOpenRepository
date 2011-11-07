@@ -2775,10 +2775,12 @@ sub install_portable {
 		share      => 'Perl-Dist-WiX portable\portableshell.bat',
 		install_to => 'portableshell.bat',
 	);
-        
-        #XXX-FIXME kmx - not sure what is the proper way for removing README.txt (we have README.portable.txt)
-        unlink $self->file('README.txt');
 
+	#XXX-FIXME kmx - not sure what is the proper way for removing README.txt (we have README.portable.txt)
+	unlink $self->file('README.txt');
+
+	#kmx note: what is 'data' directory good for?
+	#according Changes note from Fri 05 Nov 2010 perhaps: 'Portable will have it's own dir to use insead of home (CHORNY)'
 	$self->get_directory_tree()->get_directory_object('INSTALLDIR')
 	  ->add_directories_id( 'Data', 'data' );
 	$self->_add_fragment(
@@ -3538,8 +3540,9 @@ sub _get_msi_property_list {
 		$list->add_simple_property( 'ARPNOMODIFY', 1 );
 	}
 	$list->add_simple_property( 'ARPCOMMENTS',
-		$self->app_name . ' ' . $self->perl_version_human . '.' . 
-                $self->build_number . '-' . $self->bits . 'bit' );
+		$self->app_name . ' ' . $self->perl_version_human . '.' . $self->build_number .
+		($self->beta_number > 0 ? '-beta' . $self->beta_number : '')
+                );
 	$list->add_simple_property( 'ARPCONTACT', $self->app_publisher() );
 	$list->add_simple_property( 'ARPURLINFOABOUT',
 		$self->app_publisher_url() );
