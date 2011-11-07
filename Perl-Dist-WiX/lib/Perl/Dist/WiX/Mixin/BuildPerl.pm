@@ -32,9 +32,6 @@ use English                           qw( -no_match_vars );
 use List::MoreUtils                   qw();
 use Params::Util                      qw();
 use Storable                          qw();
-use File::Spec::Functions             qw(
-  catdir catfile catpath tmpdir splitpath rel2abs curdir
-);
 use CPAN                       1.9600 qw();
 use File::List::Object                qw();
 use Module::CoreList             2.49 qw();

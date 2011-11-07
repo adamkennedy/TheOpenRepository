@@ -40,7 +40,7 @@ use MooseX::Types::Path::Class qw( Dir );
 use Perl::Dist::WiX::Types qw( DirectoryTag );
 use Perl::Dist::WiX::Tag::Directory;
 use WiX3::Exceptions;
-use Scalar::Util qw(weaken);
+use Scalar::Util qw();
 use namespace::clean -except => 'meta';
 
 our $VERSION = '1.550';
@@ -98,7 +98,7 @@ sub _add_to_cache {
 	while ( 0 < scalar @_ ) {
 		$key   = shift;
 		$value = shift;
-		weaken( $self->_cache()->{$key} = $value );
+		Scalar::Util::weaken( $self->_cache()->{$key} = $value );
 	}
 	return;
 }
