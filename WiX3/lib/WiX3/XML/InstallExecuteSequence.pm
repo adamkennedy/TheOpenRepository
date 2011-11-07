@@ -7,7 +7,7 @@ use metaclass (
 	metaclass   => 'Moose::Meta::Class',
 	error_class => 'WiX3::Util::Error',
 );
-use Moose 2;
+use Moose 2.0301;
 use WiX3::Util::StrictConstructor;
 
 our $VERSION = '0.011';

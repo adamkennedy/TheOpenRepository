@@ -14,7 +14,7 @@ use metaclass (
 	metaclass   => 'Moose::Meta::Class',
 	error_class => 'WiX3::Util::Error',
 );
-use Moose 2;
+use Moose 2.0301;
 use Params::Util qw( _IDENTIFIER _STRING );
 use WiX3::Types
   qw( YesNoType EnumRegistryRootType EnumRegistryValueType EnumRegistryValueAction );
@@ -125,7 +125,7 @@ sub as_string {
 	}
 
 	return $string;
-} ## end sub as_string
+}
 
 sub get_namespace {
 	return q{xmlns='http://schemas.microsoft.com/wix/2006/wi'};

@@ -7,7 +7,7 @@ use metaclass (
 	metaclass   => 'Moose::Meta::Class',
 	error_class => 'WiX3::Util::Error',
 );
-use Moose 2;
+use Moose 2.0301;
 use Params::Util qw( _STRING  );
 use WiX3::XML::TagTypes qw( ShortcutTag );
 use MooseX::Types::Moose qw( Str Maybe ArrayRef );
@@ -58,7 +58,7 @@ qq{<CreateFolder Directory='$directory'>\n$child_string<CreateFolder />\n};
 		}
 	}
 
-} ## end sub as_string
+}
 
 sub get_namespace {
 	return q{xmlns='http://schemas.microsoft.com/wix/2006/wi'};

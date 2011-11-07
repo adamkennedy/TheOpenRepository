@@ -4,13 +4,12 @@ package                                # Hide from PAUSE
 use 5.008003;
 use strict;
 use warnings;
-use Readonly qw (Readonly);
 use WiX3::Exceptions;
 use parent 'Moose::Error::Default';
 
 our $VERSION = '0.011';
 
-Readonly my %TYPES => ( 'Maybe[Int]' => 'an integer' );
+my %TYPES = ( 'Maybe[Int]' => 'an integer' );
 
 sub new {
 	my ( $self, @args ) = @_;
@@ -67,7 +66,7 @@ sub _create_error_carpmess {
 		);
 	}
 	return;
-} ## end sub _create_error_carpmess
+}
 
 1;
 

@@ -54,7 +54,7 @@ sub indent {
 										   # (i.e. the beginning of the line.)
 #>>>
 	return $answer;
-} ## end sub indent
+}
 
 sub get_componentref_array {
 	my $self = shift;
@@ -90,7 +90,7 @@ sub get_componentref_array {
 	}
 
 	return @components;
-} ## end sub get_componentref_array
+}
 
 sub print_attribute {
 	my $self      = shift;
@@ -113,7 +113,7 @@ sub print_attribute {
 		return qq{ $attribute='$value'};
 	}
 
-} ## end sub print_attribute
+}
 
 no Moose::Role;
 

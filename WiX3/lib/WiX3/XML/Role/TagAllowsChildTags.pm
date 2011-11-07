@@ -53,7 +53,7 @@ sub as_string_children {
 	}
 
 	return $self->indent( 2, $string );
-} ## end sub as_string_children
+}
 
 sub get_namespaces {
 	my $self = shift;
@@ -74,7 +74,7 @@ sub get_namespaces {
 	}
 
 	return uniq @namespaces;
-} ## end sub get_namespaces
+}
 
 sub count_all_child_tags {
 	my $self = shift;
@@ -90,7 +90,7 @@ sub count_all_child_tags {
 	}
 
 	return $answer;
-} ## end sub count_all_child_tags
+}
 
 no Moose::Role;
 

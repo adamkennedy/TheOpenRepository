@@ -7,7 +7,7 @@ use metaclass (
 	metaclass   => 'Moose::Meta::Class',
 	error_class => 'WiX3::Util::Error',
 );
-use Moose 2;
+use Moose 2.0301;
 use WiX3::Util::StrictConstructor;
 use WiX3::Types qw( YesNoType );
 use MooseX::Types::Moose qw( Str Int Maybe );
@@ -70,7 +70,7 @@ sub BUILDARGS {
 	}
 
 	return;
-} ## end sub BUILDARGS
+}
 
 #####################################################################
 # Methods to implement the Tag role.
@@ -90,7 +90,7 @@ sub as_string {
 	  $self->print_attribute( 'SourceFile', $self->_get_source_file() );
 
 	return qq{<Merge$tags />\n};
-} ## end sub as_string
+}
 
 sub get_namespace {
 	return q{xmlns='http://schemas.microsoft.com/wix/2006/wi'};

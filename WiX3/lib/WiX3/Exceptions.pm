@@ -68,7 +68,7 @@ sub WiX3::Exception::full_message {
 	$misc->trace_line( 0, $string );
 
 	return $string;
-} ## end sub WiX3::Exception::full_message
+}
 
 sub WiX3::Exception::Unimplemented::full_message {
 	my $self = shift;
@@ -88,7 +88,7 @@ sub WiX3::Exception::Unimplemented::full_message {
 	$misc->trace_line( 0, $string );
 
 	return $string;
-} ## end sub WiX3::Exception::Unimplemented::full_message
+}
 
 sub WiX3::Exception::Parameter::full_message {
 	my $self = shift;
@@ -108,7 +108,7 @@ sub WiX3::Exception::Parameter::full_message {
 	$misc->trace_line( 0, $string );
 
 	return $string;
-} ## end sub WiX3::Exception::Parameter::full_message
+}
 
 sub WiX3::Exception::Parameter::Validation::full_message {
 	my $self = shift;
@@ -134,7 +134,7 @@ sub WiX3::Exception::Parameter::Validation::full_message {
 	$misc->trace_line( 0, $string );
 
 	return $string;
-} ## end sub WiX3::Exception::Parameter::Validation::full_message
+}
 
 
 
@@ -160,7 +160,7 @@ sub WiX3::Exception::Caught::full_message {
 	$misc->trace_line( 0, $string );
 
 	return $string;
-} ## end sub WiX3::Exception::Caught::full_message
+}
 
 1;
 

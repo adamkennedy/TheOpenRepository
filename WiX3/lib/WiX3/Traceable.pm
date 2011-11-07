@@ -33,8 +33,6 @@ sub BUILDARGS {
 	} else {
 		%args = (@_);
 	}
-
-	##no critic ( RequireCarping RequireUseOfExceptions ProtectPrivateSubs )
 	my $obj;
 	eval {
 		$obj = WiX3::Trace::Object->new(%args);
@@ -46,7 +44,7 @@ sub BUILDARGS {
 	} || die 'Could not create trace object';
 
 	return { options => $obj };
-} ## end sub BUILDARGS
+}
 
 sub BUILD {
 	my $self = shift;

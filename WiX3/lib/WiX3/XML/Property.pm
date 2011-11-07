@@ -7,8 +7,7 @@ use metaclass (
 	metaclass   => 'Moose::Meta::Class',
 	error_class => 'WiX3::Util::Error',
 );
-use Moose 2;
-use Params::Util qw( _STRING  );
+use Moose 2.0301;
 use MooseX::Types::Moose qw( Maybe Str Undef );
 use WiX3::Util::StrictConstructor;
 use WiX3::Types qw( YesNoType );
@@ -106,7 +105,7 @@ sub as_string {
 	$string .= $self->inner_text_as_string('Property');
 
 	return $string;
-} ## end sub as_string
+}
 
 sub get_namespace {
 	return q{xmlns='http://schemas.microsoft.com/wix/2006/wi'};

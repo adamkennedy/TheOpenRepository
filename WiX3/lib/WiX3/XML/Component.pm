@@ -7,7 +7,7 @@ use metaclass (
 	metaclass   => 'Moose::Meta::Class',
 	error_class => 'WiX3::Util::Error',
 );
-use Moose 2;
+use Moose 2.0301;
 use Params::Util qw( _STRING _IDENTIFIER );
 use WiX3::Types qw( YesNoType ComponentGuidType );
 use WiX3::XML::TagTypes qw( ComponentChildTag );
@@ -208,7 +208,7 @@ sub BUILDARGS {
 
 
 	return \%args;
-} ## end sub BUILDARGS
+}
 
 sub as_string {
 	my $self = shift;
@@ -258,13 +258,11 @@ sub as_string {
 	}
 
 	return $string;
-} ## end sub as_string
+}
 
 sub get_namespace {
 	return q{xmlns='http://schemas.microsoft.com/wix/2006/wi'};
 }
-
-#####################################################################
 # Other methods.
 
 sub get_directory_id {

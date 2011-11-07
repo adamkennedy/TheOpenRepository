@@ -7,7 +7,7 @@ use metaclass (
 	metaclass   => 'Moose::Meta::Class',
 	error_class => 'WiX3::Util::Error',
 );
-use Moose 2;
+use Moose 2.0301;
 use Params::Util qw( _INSTANCE _IDENTIFIER );
 use MooseX::Types::Moose qw( Str Maybe ArrayRef );
 use WiX3::Types qw( YesNoType );
@@ -67,7 +67,7 @@ sub BUILDARGS {
 	}
 
 	return { 'id' => $id };
-} ## end sub BUILDARGS
+}
 
 
 #####################################################################
@@ -89,7 +89,7 @@ sub as_string {
 	$answer .= " />\n";
 
 	return $answer;
-} ## end sub as_string
+}
 
 sub get_namespace {
 	return q{xmlns='http://schemas.microsoft.com/wix/2006/wi'};

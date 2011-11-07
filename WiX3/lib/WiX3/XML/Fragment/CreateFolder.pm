@@ -1,7 +1,7 @@
 package WiX3::XML::Fragment::CreateFolder;
 
 use 5.008003;
-use Moose 2;
+use Moose 2.0301;
 use Params::Util qw( _IDENTIFIER );
 
 our $VERSION = '0.011';
@@ -66,7 +66,7 @@ sub BUILDARGS {
 	$tag1->add_tag($tag2);
 
 	return { '_tag' => $tag1 };
-} ## end sub BUILDARGS
+}
 
 sub BUILD {
 	my $self = shift;

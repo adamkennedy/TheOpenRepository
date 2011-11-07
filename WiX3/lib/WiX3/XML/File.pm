@@ -7,7 +7,7 @@ use metaclass (
 	metaclass   => 'Moose::Meta::Class',
 	error_class => 'WiX3::Util::Error',
 );
-use Moose 2;
+use Moose 2.0301;
 use WiX3::Types qw( YesNoType PositiveInt NonNegativeInt );
 use WiX3::XML::TagTypes qw( ShortcutTag );
 use MooseX::Types::Moose qw( Str Maybe Int ArrayRef );
@@ -314,7 +314,7 @@ sub as_string {
 	} else {
 		return qq{<File$tags />\n};
 	}
-} ## end sub as_string
+}
 
 sub get_namespace {
 	return q{xmlns='http://schemas.microsoft.com/wix/2006/wi'};
