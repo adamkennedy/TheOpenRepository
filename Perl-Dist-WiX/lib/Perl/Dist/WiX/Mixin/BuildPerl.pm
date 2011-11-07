@@ -29,10 +29,9 @@ use 5.010;
 use Moose;
 use MooseX::Types::Moose              qw( Str ArrayRef );
 use English                           qw( -no_match_vars );
-use List::MoreUtils                   qw( any );
-use Params::Util                      qw( _HASH _STRING _INSTANCE );
-use Readonly                          qw( Readonly );
-use Storable                          qw( retrieve nstore );
+use List::MoreUtils                   qw();
+use Params::Util                      qw();
+use Storable                          qw();
 use File::Spec::Functions             qw(
   catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
@@ -51,7 +50,7 @@ our $VERSION = '1.550';
 
 # Keys are what's in the filename, with - being converted to ::.
 # Values are the actual module to use to check whether it's in core.
-Readonly my %CORE_MODULE_FIX => (
+my %CORE_MODULE_FIX => (
 	'IO::Compress'         => 'IO::Compress::Base',
 	'Filter'               => 'Filter::Util::Call',
 	'podlators'            => 'Pod::Man',
@@ -69,7 +68,7 @@ Readonly my %CORE_MODULE_FIX => (
 # Keys are the module name after processing against %CORE_MODULE_FIX.
 # Values are the directory name the .packlist file is in, with
 # / being converted to ::.
-Readonly my %CORE_PACKLIST_FIX => (
+my %CORE_PACKLIST_FIX => (
 	'IO::Compress::Base'    => 'IO::Compress',
 	'Pod::Man'              => 'Pod',
 	'Filter::Util::Call'    => 'Filter',
@@ -81,21 +80,19 @@ Readonly my %CORE_PACKLIST_FIX => (
 # List of modules to delay building until last when upgrading all CPAN
 # modules (they depend on upgraded versions of modules that originally
 # were upgraded after them.)
-Readonly my @MODULE_DELAY => qw(
+my @MODULE_DELAY => qw(
   CPANPLUS::Dist::Build
   Thread::Queue
 );
-#perl 5.10.1 already contains all prereqs of File::Fetch
 
-
+# perl 5.10.1 already contains all prereqs of File::Fetch
 
 sub _delay_upgrade {
-	my ( $self, $module ) = @_;
-
-	return ( any { $module->id eq $_ } @MODULE_DELAY ) ? 1 : 0;
+	my $self = shift;
+	my $module = shift;
+	my $delay = List::MoreUtils::any { $module->id eq $_ } @MODULE_DELAY;
+	return $delay ? 1 : 0;
 }
-
-
 
 sub _module_fix {
 	my ( $self, $module ) = @_;
@@ -104,8 +101,6 @@ sub _module_fix {
 	  ? $CORE_MODULE_FIX{$module}
 	  : $module;
 }
-
-
 
 sub _packlist_fix {
 	my ( $self, $module ) = @_;
@@ -133,9 +128,7 @@ the default tasklist after the "perl toolchain" is installed.
 =cut
 
 sub _force_flag {
-	shift;                             # We don't use $self.
-	my $force = shift;
-	return $force ? ( force => 1 ) : (),;
+	return $_[1] ? ( force => 1 ) : (),;
 }
 
 sub install_cpan_upgrades {
@@ -155,7 +148,7 @@ sub install_cpan_upgrades {
 	# Get list of modules to be upgraded.
 	# (The list is saved as a Storable arrayref of CPAN::Module objects.)
 	my $cpan_info_file = $self->_get_cpan_upgrades_list();
-	my $module_info    = retrieve($cpan_info_file);
+	my $module_info    = Storable::retrieve($cpan_info_file);
 	my $default_force  = $self->force();
 
 	# Now go through the loop for each module.
@@ -511,7 +504,7 @@ sub _get_toolchain {
 	my $cpan = $self->cpan();
 
 	# Quick check for a nonexistent minicpan directory.
-	if ( _INSTANCE( $cpan, 'URI::file' ) ) {
+	if ( Params::Util::_INSTANCE( $cpan, 'URI::file' ) ) {
 		if ( not -d $cpan->dir() ) {
 			PDWiX::Directory->throw(
 				message =>
