@@ -39,8 +39,8 @@ The object is not a singleton - maybe it should be?
 
 use 5.010;
 use Moose 0.90;
-use Params::Util qw( _STRING _INSTANCE  );
-use File::Spec::Functions qw( splitpath );
+use File::Spec qw();
+use Params::Util qw();
 use Perl::Dist::WiX::Tag::Icon qw();
 
 with 'WiX3::Role::Traceable';
@@ -60,8 +60,6 @@ has _icon => (
 		'_get_icon_array' => 'elements',
 	},
 );
-
-
 
 =head1 INTERFACE
 
@@ -96,19 +94,19 @@ sub add_icon {
 	if ( not defined $pathname_target ) {
 		$pathname_target = 'Perl.msi';
 	}
-	if ( defined _INSTANCE( $pathname_icon, 'Path::Class::File' ) ) {
+	if ( defined Params::Util::_INSTANCE( $pathname_icon, 'Path::Class::File' ) ) {
 		$pathname_icon = $pathname_icon->stringify();
 	}
-	if ( defined _INSTANCE( $pathname_target, 'Path::Class::File' ) ) {
+	if ( defined Params::Util::_INSTANCE( $pathname_target, 'Path::Class::File' ) ) {
 		$pathname_target = $pathname_target->stringify();
 	}
-	if ( not defined _STRING($pathname_target) ) {
+	if ( not defined Params::Util::_STRING($pathname_target) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'pathname_target',
 			where     => '::IconArray->add_icon'
 		);
 	}
-	if ( not defined _STRING($pathname_icon) ) {
+	if ( not defined Params::Util::_STRING($pathname_icon) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'pathname_icon',
 			where     => '::IconArray->add_icon'
@@ -126,7 +124,7 @@ sub add_icon {
 	if ( defined $icon ) { return $icon; }
 
 	# Get Id made.
-	my ( undef, undef, $filename_icon ) = splitpath($pathname_icon);
+	my ( undef, undef, $filename_icon ) = File::Spec->splitpath($pathname_icon);
 	my $id = substr $filename_icon, 0, -4;
 	$id =~ s/[[:^alnum:]]/_/gmxs;      # Substitute _ for anything
 	                                   # non-alphanumeric.
@@ -167,13 +165,13 @@ sub search_icon {
 	if ( not defined $target_type ) {
 		$target_type = 'msi';
 	}
-	if ( not defined _STRING($target_type) ) {
+	if ( not defined Params::Util::_STRING($target_type) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'target_type',
 			where     => '::IconArray->search_icon'
 		);
 	}
-	if ( not defined _STRING($pathname_icon) ) {
+	if ( not defined Params::Util::_STRING($pathname_icon) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'pathname_icon',
 			where     => '::IconArray->search_icon'
