@@ -34,7 +34,7 @@ use 5.010;
 #);
 use MooseX::Singleton;
 use Params::Util qw( _IDENTIFIER _STRING _INSTANCE );
-use File::Spec::Functions qw( catdir catpath splitdir splitpath );
+use File::Spec::Functions qw( catdir splitdir splitpath );
 use MooseX::Types::Moose qw( Str HashRef );
 use MooseX::Types::Path::Class qw( Dir );
 use Perl::Dist::WiX::Types qw( DirectoryTag );
