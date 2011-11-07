@@ -82,7 +82,7 @@ sub _get_cpan_link {
 	  );
 	return URI->new_abs( $path, 'http://search.cpan.org/CPAN/' )->as_string;
 
-} ## end sub _get_cpan_link
+}
 
 sub create_release_notes {
 	my $self = shift;
@@ -101,7 +101,7 @@ sub create_release_notes {
 		}
 		$dist_list .= qq{<tr><td>$name</td><td>$ver</td><td>}
 		  . qq{<a href="$link">Source</a></td></tr>\n};
-	} ## end foreach my $dist ( $self->_get_distributions...)
+	}
 
 	my @time   = localtime;
 	my @months = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
@@ -142,7 +142,7 @@ sub create_release_notes {
 	$self->add_output_file($dist_file);
 
 	return 1;
-} ## end sub create_release_notes
+}
 
 
 
@@ -233,7 +233,7 @@ sub create_distribution_list_file {
 	$self->insert_fragment( 'perl_dist_list', $dist_file_list );
 
 	return 1;
-} ## end sub create_distribution_list_file
+}
 
 no Moose;
 __PACKAGE__->meta()->make_immutable();

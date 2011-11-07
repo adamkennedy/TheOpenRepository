@@ -95,7 +95,7 @@ sub BUILDARGS {
 	return {
 		id           => "Create$args{id}",
 		directory_id => $args{'directory_id'} };
-} ## end sub BUILDARGS
+}
 
 
 
@@ -129,7 +129,7 @@ sub BUILD {
 		  . "id D_$directory_id\n" );
 
 	return;
-} ## end sub BUILD
+}
 
 
 # The fragment is already generated. No need to regenerate.

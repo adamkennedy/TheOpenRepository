@@ -188,7 +188,7 @@ sub install {
 	  ->filter( $self->_filters )->add_file($packlist);
 
 	return $filelist;
-} ## end sub install
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

@@ -27,9 +27,9 @@ L<Perl::Dist::WiX|Perl::Dist::WiX>.
 use 5.010;
 use Moose;
 use English qw(	-no_match_vars );
-use Params::Util qw( _HASH );
+use Params::Util qw();
 use File::PathList qw();
-use File::Spec::Functions qw( catdir catfile );
+use File::Spec qw();
 use File::Temp qw();
 use Perl::Dist::WiX::DirectoryTree qw();
 use Perl::Dist::WiX::Exceptions qw();
@@ -89,7 +89,7 @@ sub process_template {
 
 	# Combine it all
 	return $answer;
-} ## end sub process_template
+}
 
 
 
@@ -106,8 +106,8 @@ that are used to replace or patch files in the distribution.
 sub patch_include_path {
 	my $self     = shift;
 	my $share    = File::ShareDir::dist_dir('Perl-Dist-WiX');
-	my $path     = catdir( $share, 'default', );
-	my $portable = catdir( $share, 'portable', );
+	my $path     = File::Spec->catdir( $share, 'default', );
+	my $portable = File::Spec->catdir( $share, 'portable', );
 	if ( not -d $path ) {
 		PDWiX::Directory->throw(
 			dir     => $path,
@@ -125,7 +125,7 @@ sub patch_include_path {
 	} else {
 		return [$path];
 	}
-} ## end sub patch_include_path
+}
 
 
 
@@ -162,7 +162,7 @@ sub patch_file {
 	my $file     = shift;
 	my $file_tt  = $file . '.tt';
 	my $dir      = shift;
-	my $to       = catfile( $dir, $file );
+	my $to       = File::Spec->catfile( $dir, $file );
 	my $pathlist = $self->patch_pathlist();
 
 	# Locate the source file
@@ -177,7 +177,7 @@ sub patch_file {
 	if ( $from_tt ne q{} ) {
 
 		# Generate the file
-		my $hash = _HASH(shift) || {};
+		my $hash = Params::Util::_HASH(shift) || {};
 		my ( $fh, $output ) =
 		  File::Temp::tempfile( 'pdwXXXXXX', TMPDIR => 1 );
 		$self->trace_line( 2,
@@ -205,7 +205,7 @@ sub patch_file {
 	}
 
 	return 1;
-} ## end sub patch_file
+}
 
 
 
@@ -225,7 +225,7 @@ sub patch_perl_file {
 	my $file    = shift;
 	my $file_tt = $file . '.tt';
 	my $dir     = shift;
-	my $to      = catfile( $dir, $file );
+	my $to      = File::Spec->catfile( $dir, $file );
 
 	# Locate the source file
 	my $from    = $self->_find_perl_file($file);
@@ -238,7 +238,7 @@ sub patch_perl_file {
 	if ( defined $from_tt ) {
 
 		# Generate the file
-		my $hash = _HASH(shift) || {};
+		my $hash = Params::Util::_HASH(shift) || {};
 		my ( $fh, $output ) =
 		  File::Temp::tempfile( 'pdwXXXXXX', TMPDIR => 1 );
 		$self->trace_line( 2,
@@ -266,7 +266,7 @@ sub patch_perl_file {
 	}
 
 	return 1;
-} ## end sub patch_perl_file
+}
 
 
 no Moose;

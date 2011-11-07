@@ -97,10 +97,8 @@ sub get_directory_object {
 		$return = $object->get_directory_object($id);
 		return $return if defined $return;
 	}
-
-	## no critic (ProhibitExplicitReturnUndef)
 	return undef;
-} ## end sub get_directory_object
+}
 
 
 
@@ -186,7 +184,7 @@ sub search_dir {
 
 	# If we get here, we did not find a lower directory.
 	return $exact ? undef : $self;
-} ## end sub search_dir
+}
 
 
 
@@ -225,7 +223,7 @@ sub _add_directory_recursive
 		return $dir->add_directory( name => $dir_to_add );
 
 	}
-} ## end sub _add_directory_recursive
+}
 
 
 
@@ -252,7 +250,7 @@ sub add_directory {
 	$self->add_child_tag($new_dir);
 
 	return $new_dir;
-} ## end sub add_directory
+}
 
 
 

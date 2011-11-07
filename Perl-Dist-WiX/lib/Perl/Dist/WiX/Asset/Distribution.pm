@@ -356,7 +356,7 @@ sub BUILDARGS {
 	$args{file} =~ s{.+/}{}ms;
 
 	return {%args};
-} ## end sub BUILDARGS
+}
 
 sub BUILD {
 	my $self = shift;
@@ -490,7 +490,7 @@ sub install {
 
 		$self->_install_distribution($buildpl);
 
-	} ## end SCOPE:
+	}
 
 	# Making final filelist.
 	my $filelist;
@@ -522,7 +522,7 @@ sub install {
 		$self->_get_overwritable() );
 
 	return 1;
-} ## end sub install
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

@@ -313,7 +313,7 @@ sub install {
 
 		$self->_install_distribution($buildpl);
 
-	} ## end SCOPE:
+	}
 
 	# Making final filelist.
 	my $filelist;
@@ -326,7 +326,7 @@ sub install {
 	}
 
 	return $filelist;
-} ## end sub install
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

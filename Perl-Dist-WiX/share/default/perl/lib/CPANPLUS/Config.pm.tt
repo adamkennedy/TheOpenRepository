@@ -568,8 +568,6 @@ remains empty if you do not require super user permissiosn to install.
                     } else {
                         $sudo = undef;
                     }
-
-                ### you have PERL_MM_OPT set to some alternate
                 ### install place. You probably have write permissions
                 ### to that
                 } elsif ( $ENV{'PERL_MM_OPT'} and 
@@ -581,9 +579,7 @@ remains empty if you do not require super user permissiosn to install.
                 } else {                
                     $sudo = can_run('sudo');
                 }
-            }  
-            
-            ### and return the value
+            }
             $sudo;
         };
 
@@ -670,9 +666,7 @@ with CPANPLUS, which is used to enable autoflushing in spawned processes.
                     $maybe = File::Spec->catfile( $dir, $bin );
                     $path = $maybe and last BIN if -f $maybe;
                 }
-            }          
-                
-            ### we should have a $path by now ideally, if so return it
+            }
             return $path if defined $path;
             
             ### if not, warn about it and give sensible default.
@@ -715,8 +709,6 @@ sub new {
         for my $subacc ( $subobj->ls_accessors ) {
             $subobj->$subacc( $Conf->{$acc}->{$subacc} );
         }
-
-        ### now store it in the parent object
         $obj->$acc( $subobj );
     }
     

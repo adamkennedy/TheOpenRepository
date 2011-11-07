@@ -172,7 +172,7 @@ sub _shorten_id {
 	} else {
 		return $longid;
 	}
-} ## end sub _shorten_id
+}
 
 sub _build_feature {
 	my $self = shift;
@@ -187,7 +187,7 @@ sub _build_feature {
 		## no critic (ProhibitExplicitReturnUndef)
 		return undef;
 	}
-} ## end sub _build_feature
+}
 
 
 
@@ -210,7 +210,7 @@ sub get_feature_ref {
 	}
 
 	return WiX3::XML::FeatureRef($feature);
-} ## end sub get_feature_ref
+}
 
 
 
@@ -260,7 +260,7 @@ sub _regenerate { ## no critic(ProhibitUnusedPrivateSubroutines)
 	}
 
 	return @fragment_ids_sorted;
-} ## end sub _regenerate
+}
 
 sub _add_file_to_fragment {
 	my $self      = shift;
@@ -320,7 +320,7 @@ sub _add_file_to_fragment {
 
 			return ();
 		}
-	} ## end while ( $i_step1 < $child_tags_count...)
+	}
 
 
 # Step 2: Search in the directory tree exactly.
@@ -345,7 +345,7 @@ sub _add_file_to_fragment {
 		$self->_add_file_component( $directory_ref_step2, $file_path );
 
 		return ();
-	} ## end if ( defined $directory_step2)
+	}
 
 # Step 3: Search in our own directories non-exactly.
 #  SUCCESS: Create directories, create component and file.
@@ -419,8 +419,8 @@ sub _add_file_to_fragment {
 
 			# Return any fragments that need regenerated.
 			return @fragment_ids;
-		} ## end if ( defined $directory_step3)
-	} ## end while ( $i_step3 < $child_tags_count...)
+		}
+	}
 
 
 # Step 4: Search in the directory tree non-exactly.
@@ -453,12 +453,12 @@ sub _add_file_to_fragment {
 
 		# Return any fragments that need regenerated.
 		return @fragment_ids;
-	} ## end if ( defined $directory_step4)
+	}
 
 	# Throw an error at this point, because we've been unsuccessful.
 	PDWiX->throw("Could not add $file_path");
 	return ();
-} ## end sub _add_file_to_fragment
+}
 
 
 
@@ -505,10 +505,10 @@ sub _add_directory_recursive {
 			$cache->add_to_cache( $directory_object, $self );
 			$self->trace_line( 5, "Adding directory $path to cache.\n" );
 		}
-	} ## end foreach my $dir_to_add (@dirs_to_add)
+	}
 
 	return ( $directory_object, uniq @fragment_ids );
-} ## end sub _add_directory_recursive
+}
 
 # This is called by _add_file_to_fragment, which is called from
 # regenerate().
@@ -598,7 +598,7 @@ sub _add_file_component {
 	$tag->add_child_tag($component_tag);
 
 	return 1;
-} ## end sub _add_file_component
+}
 
 
 
@@ -623,7 +623,7 @@ sub _check_duplicates { ## no critic(ProhibitUnusedPrivateSubroutines)
 	# Subtract the filelist from our contents.
 	$self->_subtract($filelist);
 	return $self;
-} ## end sub _check_duplicates
+}
 
 
 
@@ -725,7 +725,7 @@ sub find_file {
 
 	# Start our recursive call chain.
 	return $self->_find_file_recursive( $filename, $self );
-} ## end sub find_file
+}
 
 # Called by find_file.
 sub _find_file_recursive {
@@ -765,11 +765,11 @@ sub _find_file_recursive {
 
 		# Keep searching.
 		$i++;
-	} ## end while ( ( not defined $answer...))
+	}
 
 	# No such luck. It's not here.
 	return undef;
-} ## end sub _find_file_recursive
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

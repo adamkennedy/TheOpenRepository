@@ -81,7 +81,7 @@ sub new {
 	);
 
 	return $class->SUPER::new( \%args );
-} ## end sub new
+}
 
 # Default the versioned name to an unversioned name
 sub _build_app_ver_name {
@@ -105,7 +105,7 @@ sub _build_output_base_filename {
 	  . $bits;
 
 	return $string;
-} ## end sub _build_output_base_filename
+}
 
 1;
 

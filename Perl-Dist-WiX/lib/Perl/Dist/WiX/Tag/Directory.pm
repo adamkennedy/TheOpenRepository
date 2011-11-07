@@ -120,10 +120,10 @@ sub add_directories_id {
 					name => $name,
 				} );
 		}
-	} ## end while ( $#params > 0 )
+	}
 
 	return $self;
-} ## end sub add_directories_id
+}
 
 
 
@@ -155,10 +155,8 @@ sub get_directory_object {
 		$return = $object->get_directory_object($id);
 		return $return if defined $return;
 	}
-
-	## no critic (ProhibitExplicitReturnUndef)
 	return undef;
-} ## end sub get_directory_object
+}
 
 
 
@@ -263,7 +261,7 @@ sub search_dir {
 		$self->trace_line( 5, "Returning object for $path.\n" );
 		return $self;
 	}
-} ## end sub search_dir
+}
 
 sub _add_directory_recursive
 { ## no critic(ProhibitUnusedPrivateSubroutines)
@@ -311,8 +309,8 @@ sub _add_directory_recursive
 			path => $path_to_add,
 		);
 
-	} ## end else [ if ( defined $directory)]
-} ## end sub _add_directory_recursive
+	}
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

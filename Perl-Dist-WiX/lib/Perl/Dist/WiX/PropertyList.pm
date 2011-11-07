@@ -94,7 +94,7 @@ sub add_simple_property {
 	$self->add_child_tag($property);
 
 	return $property;
-} ## end sub add_simple_property
+}
 
 
 =head2 add_wixvariable
@@ -138,7 +138,7 @@ sub add_wixvariable {
 	$self->add_child_tag($var);
 
 	return $var;
-} ## end sub add_wixvariable
+}
 
 
 =head2 as_string

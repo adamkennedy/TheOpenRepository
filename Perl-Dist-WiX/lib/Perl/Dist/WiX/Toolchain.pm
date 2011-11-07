@@ -106,7 +106,7 @@ sub BUILD {
 			  . "' is not supported in $class" );
 	}
 
-} ## end sub BUILD
+}
 
 
 
@@ -298,7 +298,7 @@ which does not work on 64-bit Perl (https://rt.cpan.org/Public/Bug/Display.html?
 	$modules{'5.014000'} = $modules{'5.010000'};
 
 	return \%modules;
-} ## end sub _build_modules
+}
 
 
 
@@ -330,7 +330,7 @@ sub _build_corelist_version {
 	);
 
 	return \%corelist;
-} ## end sub _build_corelist_version
+}
 
 
 
@@ -364,7 +364,7 @@ sub _build_corelist {
 	}
 
 	return $corelist;
-} ## end sub _build_corelist
+}
 
 
 
@@ -518,7 +518,7 @@ sub prepare {
 		$stderr->stop();
 		return 0;
 	}
-} ## end sub prepare
+}
 
 
 
@@ -593,7 +593,7 @@ sub run {
 		my $file = $module->cpan_file;
 		$file =~ s{\A [[:upper:]] / [[:upper:]][[:upper:]] /}{}msx;
 		$self->_push_dists($file);
-	} ## end foreach my $name ( @{ $self...})
+	}
 
 	# Remove duplicates
 	my %seen = ();
@@ -603,7 +603,7 @@ sub run {
 	$self->_push_dists(@dists);
 
 	return 1;
-} ## end sub run
+}
 
 __PACKAGE__->meta->make_immutable;
 

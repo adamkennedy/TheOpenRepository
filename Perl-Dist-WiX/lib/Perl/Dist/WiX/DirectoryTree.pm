@@ -179,8 +179,8 @@ sub BUILDARGS {
 			_root => $root,
 			%args
 		};
-	} ## end else [ if ( exists $args{_root...})]
-} ## end sub BUILDARGS
+	}
+}
 
 =head2 instance
 
@@ -295,7 +295,7 @@ sub initialize_tree {
 	}
 
 	return $self;
-} ## end sub initialize_tree
+}
 
 
 
@@ -349,7 +349,7 @@ sub initialize_short_tree {
 	$self->add_directory( catdir( $self->_get_app_dir(), 'perl\\bin' ) );
 
 	return $self;
-} ## end sub initialize_short_tree
+}
 
 =head2 add_directory
 
@@ -395,7 +395,7 @@ sub add_directory {
 	  $self->_add_directory_recursive( $path_to_find, $dir_to_add );
 
 	return defined $dir_out ? 1 : 0;
-} ## end sub add_directory
+}
 
 
 
@@ -453,7 +453,7 @@ sub add_merge_module {
 	$directory_object->add_child_tag($mm);
 
 	return 1;
-} ## end sub add_merge_module
+}
 
 
 
@@ -507,7 +507,7 @@ sub search_dir {
 	}
 
 	return $dir;
-} ## end sub search_dir
+}
 
 __PACKAGE__->meta->make_immutable;
 

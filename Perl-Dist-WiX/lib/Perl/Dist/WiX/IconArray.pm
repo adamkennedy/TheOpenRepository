@@ -141,7 +141,7 @@ sub add_icon {
 		) );
 
 	return $id;
-} ## end sub add_icon
+}
 
 
 
@@ -192,7 +192,7 @@ sub search_icon {
 	}
 
 	return undef;
-} ## end sub search_icon
+}
 
 
 
@@ -222,7 +222,7 @@ sub as_string {
 	}
 
 	return $answer;
-} ## end sub as_string
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

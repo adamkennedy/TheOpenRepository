@@ -56,7 +56,6 @@ Index: ./Makefile.PL
               last;
           }
       }
-#### End of Patch data ####
 
 #### ApplyPatch data follows ####
 # Data version        : 1.0

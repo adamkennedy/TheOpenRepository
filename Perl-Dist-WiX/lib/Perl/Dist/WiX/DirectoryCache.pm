@@ -100,7 +100,7 @@ sub add_to_cache {
 	$self->_set_cache_entry( $directory->get_id(), $fragment->get_id() );
 
 	return;
-} ## end sub add_to_cache
+}
 
 
 
@@ -128,7 +128,7 @@ sub exists_in_cache {
 	}
 
 	return $self->_exists_cache_entry( $directory->get_id() );
-} ## end sub exists_in_cache
+}
 
 
 
@@ -156,7 +156,7 @@ sub get_previous_fragment {
 	}
 
 	return $self->_get_cache_entry( $directory->get_id() );
-} ## end sub get_previous_fragment
+}
 
 
 
@@ -187,7 +187,7 @@ sub delete_cache_entry {
 	}
 
 	return $self->_delete_cache_entry( $directory->get_id() );
-} ## end sub delete_cache_entry
+}
 
 
 

@@ -332,7 +332,7 @@ sub install {
 	                $self->_extract_filemap( $tgz, $self->_get_license(),
 	                        $license_dir, 1 );
 	        }
-	} ## end if ( ref $self->_get_license...)
+	}
 
 	# Build win32 perl
 	SCOPE: {
@@ -386,7 +386,7 @@ sub install {
 * -- csjewell\@cpan.org
 ***********************************************************
 EOF
-	        } ## end if ( ( not $force ) &&...)
+	        }
 
 	        # Testing perl if requested.
 	        if ( not $force ) {
@@ -398,7 +398,7 @@ EOF
 	        # Installing perl.
 	        $self->_trace_line( 1, "Installing perl...\n" );
 	        $self->_make(qw/install UNINST=1/);
-	} ## end SCOPE:
+	}
 
 	# If using gcc4, copy the helper dll into perl's bin directory.
 	if ( 4 == $self->_gcc_version() ) {
@@ -412,7 +412,7 @@ EOF
 	                        'bin',                   'libgcc_s_sjlj-1.dll'
 	                ),
 	        );
-	} ## end if ( 4 == $self->_gcc_version...)
+	}
 
 	# Delete a2p.exe if relocatable (Can't relocate a binary).
 	if ( $self->_relocatable() ) {
@@ -432,7 +432,7 @@ EOF
 	$self->_insert_fragment( 'perl', $fl, 1 );
         
 	return 1;
-} ## end sub install
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

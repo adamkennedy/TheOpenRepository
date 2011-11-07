@@ -544,7 +544,7 @@ sub _build_tasklist {
 		# Write out the distributions
 		'write',
 	];
-} ## end sub _build_tasklist
+}
 
 
 
@@ -591,7 +591,7 @@ sub _build_user_agent {
 	$ENV{HTTP_PROXY} and $ua->proxy( http => $ENV{HTTP_PROXY} );
 
 	return $ua;
-} ## end sub _build_user_agent
+}
 
 
 
@@ -1156,7 +1156,7 @@ sub _build_cpan {
 	}
 
 	return;
-} ## end sub _build_cpan
+}
 
 
 
@@ -1860,8 +1860,6 @@ sub BUILDARGS {
 	} else {
 		PDWiX::ParametersNotHash->throw( where => '->new()' );
 	}
-
-	## no critic(ProtectPrivateSubs RequireCarping RequireUseOfExceptions)
 	eval {
 		$params{_trace_object} ||=
 		  WiX3::Traceable->new( tracelevel => $params{trace} );
@@ -1939,7 +1937,7 @@ sub BUILDARGS {
 	}
 
 	return \%params;
-} ## end sub BUILDARGS
+}
 
 
 
@@ -1957,7 +1955,7 @@ sub DEMOLISH {
 	}
 
 	return;
-} ## end sub DEMOLISH
+}
 
 
 
@@ -2053,7 +2051,7 @@ sub _build_filters {
 	  $self->file( qw{ cpan cpandb.sql    } ),
 	  ];
 #>>>
-} ## end sub _build_filters
+}
 
 
 
@@ -2088,7 +2086,7 @@ sub _build_perl_version_corelist {
 			  . $self->perl_version_human() );
 	}
 	return $hash;
-} ## end sub _build_perl_version_corelist
+}
 
 
 
@@ -2159,7 +2157,7 @@ sub _build_user_agent_directory {
 		);
 	}
 	return $dir;
-} ## end sub _build_user_agent_directory
+}
 
 
 
@@ -2330,7 +2328,7 @@ sub run {
 	}
 
 	return 1;
-} ## end sub run
+}
 
 
 
@@ -2414,7 +2412,7 @@ EOF
 		$self->_set_cpan_sources_from($cpan_path_from);
 		$self->_set_cpan_sources_to($cpan_path_to);
 		$self->_move_cpan();
-	} ## end if ( $self->cpan()->as_string...)
+	}
 
 	# Do some sanity checks.
 	if ( $self->cpan()->as_string() !~ m{\/\z}ms ) {
@@ -2527,7 +2525,7 @@ EOF
 	Perl::Dist::WiX::DirectoryCache->instance()->clear_cache();
 
 	return 1;
-} ## end sub final_initialization
+}
 
 
 
@@ -2555,7 +2553,7 @@ sub _check_64_bit {
 	}
 
 	return;
-} ## end sub _check_64_bit
+}
 
 
 
@@ -2590,7 +2588,7 @@ sub initialize_nomsm {
 	}
 
 	return 1;
-} ## end sub initialize_nomsm
+}
 
 
 
@@ -2679,7 +2677,7 @@ sub initialize_using_msm {
 	$self->_msm_files_object()->add_files(@files_extracted);
 	
 	return 1;
-} ## end sub initialize_using_msm
+}
 
 
 
@@ -2718,7 +2716,7 @@ sub install_c_toolchain {
 	$self->add_path( 'c', 'bin' );
 
 	return 1;
-} ## end sub install_c_toolchain
+}
 
 
 
@@ -2793,7 +2791,7 @@ sub install_portable {
 	$self->make_path( $self->dir('data') );
 
 	return 1;
-} ## end sub install_portable
+}
 
 
 
@@ -2826,7 +2824,7 @@ sub install_relocatable {
 	);
 
 	return 1;
-} ## end sub install_relocatable
+}
 
 
 
@@ -2867,7 +2865,7 @@ sub find_relocatable_fields {
 	$self->trace_line( 2, "File ID for relocation.pl.bat: $script_id\n" );
 
 	return 1;
-} ## end sub find_relocatable_fields
+}
 
 
 
@@ -2994,10 +2992,10 @@ sub install_win32_extras {
 			  ->add_file( $self->file('update_env.pl.bat') ),
 		);
 
-	} ## end if ( $self->msi() )
+	}
 
 	return $self;
-} ## end sub install_win32_extras
+}
 
 
 
@@ -3054,7 +3052,7 @@ sub remove_waste {
 	$self->remake_path( catdir( $self->build_dir, 'cpan' ) );
 
 	return 1;
-} ## end sub remove_waste
+}
 
 sub _remove_dir {
 	my $self = shift;
@@ -3112,10 +3110,10 @@ sub regenerate_fragments {
 		$#fragment_names = -1;         # clears the array.
 		@fragment_names             = uniq @fragment_names_regenerate;
 		$#fragment_names_regenerate = -1;
-	} ## end while ( 0 != scalar @fragment_names)
+	}
 
 	return 1;
-} ## end sub regenerate_fragments
+}
 
 =head3 verify_msi_file_contents
 
@@ -3192,7 +3190,7 @@ sub verify_msi_file_contents {
 	}
 
 	return 1;
-} ## end sub verify_msi_file_contents
+}
 
 =head3 write
 
@@ -3300,10 +3298,10 @@ sub write_merge_module {
 		$self->_add_merge_module( 'Perl', $mm );
 		$self->get_directory_tree()
 		  ->add_merge_module( $self->image_dir()->stringify(), $mm );
-	} ## end if ( $self->msi() )
+	}
 
 	return 1;
-} ## end sub write_merge_module
+}
 
 
 
@@ -3362,7 +3360,7 @@ sub _write_zip {
 	$zip->writeToFileNamed($file);
 
 	return $file;
-} ## end sub _write_zip
+}
 
 
 
@@ -3428,7 +3426,7 @@ sub _write_msi {
 		}
 
 		push @files, $filename_out;
-	} ## end foreach my $key ( $self->_fragment_keys...)
+	}
 
 	# Generate feature tree.
 	$self->_set_feature_tree_object(
@@ -3523,7 +3521,7 @@ sub _write_msi {
 	}
 
 	return $output_msi;
-} ## end sub _write_msi
+}
 
 
 
@@ -3578,7 +3576,7 @@ sub _get_msi_property_list {
 	$list->add_wixvariable( 'WixUILicenseRtf', $self->msi_license_file() );
 
 	return $list;
-} ## end sub _get_msi_property_list
+}
 
 
 
@@ -3653,7 +3651,7 @@ sub _write_msm {
 		}
 
 		push @files, $filename_out;
-	} ## end foreach my $key ( $self->_fragment_keys...)
+	}
 
 	# Generate feature tree.
 	$self->_set_feature_tree_object(
@@ -3752,7 +3750,7 @@ sub _write_msm {
 	$fh->close;
 
 	return ( $output_msm, $output_docs );
-} ## end sub _write_msm
+}
 
 
 
@@ -3810,7 +3808,7 @@ sub _compile_wxs {
 
 
 	return $rv;
-} ## end sub _compile_wxs
+}
 
 =head2 Accessors
 
@@ -3939,10 +3937,10 @@ sub _build_wix_dist_dir {
 			? $EVAL_ERROR
 			: 'Unknown error',
 		);
-	} ## end if ( not eval { $dir =...})
+	}
 
 	return $dir;
-} ## end sub _build_wix_dist_dir
+}
 
 
 
@@ -4008,7 +4006,7 @@ sub distribution_version_human {
 	  . $self->build_number()
 	  . ( $self->portable() ? ' Portable' : q{} )
 	  . ( $self->beta_number() ? ' Beta ' . $self->beta_number() : q{} );
-} ## end sub distribution_version_human
+}
 
 
 
@@ -4035,7 +4033,7 @@ sub distribution_version_file {
           . '-' . $self->bits() . 'bit'
 	  . ( $self->portable() ? '-portable' : q{} )
 	  . ( $self->beta_number() ? '-beta-' . $self->beta_number() : q{} );
-} ## end sub distribution_version_file
+}
 
 
 
@@ -4109,7 +4107,7 @@ sub msi_product_icon_id {
 		## no critic (ProhibitExplicitReturnUndef)
 		return undef;
 	}
-} ## end sub msi_product_icon_id
+}
 
 
 
@@ -4138,7 +4136,7 @@ sub msi_product_id {
 	my $guid = $generator->generate_guid($product_name);
 
 	return $guid;
-} ## end sub msi_product_id
+}
 
 
 
@@ -4169,7 +4167,7 @@ sub msm_product_id {
 	$guid =~ s/-/_/msg;
 
 	return $guid;
-} ## end sub msm_product_id
+}
 
 
 
@@ -4196,7 +4194,7 @@ sub msi_upgrade_code {
 	my $guid = $generator->generate_guid($upgrade_ver);
 
 	return $guid;
-} ## end sub msi_upgrade_code
+}
 
 
 
@@ -4229,7 +4227,7 @@ sub msm_package_id {
 	$self->_set_msm_code($guid);
 
 	return $guid;
-} ## end sub msm_package_id
+}
 
 
 
@@ -4346,7 +4344,7 @@ sub msi_perl_major_version {
 
 	return join q{.}, @ver;
 
-} ## end sub msi_perl_major_version
+}
 
 
 =head3 msi_relocation_commandline
@@ -4373,7 +4371,7 @@ sub msi_relocation_commandline {
 	}
 
 	return $answer;
-} ## end sub msi_relocation_commandline
+}
 
 
 
@@ -4401,7 +4399,7 @@ sub msm_relocation_commandline {
 	}
 
 	return $answer;
-} ## end sub msm_relocation_commandline
+}
 
 
 
@@ -4477,7 +4475,7 @@ sub msi_fileid_readme_txt {
 
 	return "[#$readme_id]";
 
-} ## end sub msi_fileid_readme_txt
+}
 
 
 =head3 perl_config_myuname
@@ -4514,7 +4512,7 @@ sub perl_config_myuname {
 	return join q{ }, 'Win32', $self->app_id(), $version, '#1',
 	  scalar localtime $self->_build_start_time(), $bits;
 
-} ## end sub perl_config_myuname
+}
 
 
 
@@ -4538,7 +4536,7 @@ sub get_component_array {
 	}
 
 	return @answer;
-} ## end sub get_component_array
+}
 
 
 
@@ -4595,7 +4593,7 @@ sub mk_bits {
 			) ) );
 
 	return $bits ? 'WIN64' : '#WIN64';
-} ## end sub mk_bits
+}
 
 
 
@@ -4667,7 +4665,7 @@ sub _build_patch_template {
 	}
 
 	return $obj;
-} ## end sub _build_patch_template
+}
 
 
 
@@ -4907,7 +4905,7 @@ sub add_output_file {
 							$self->wix_dist_dir(), 'growl-icon.png'
 						),
 					} ] );
-		} ## end if ( not $self->_get_notify_index...)
+		}
 
 		foreach my $file (@_) {
 			if ( $file =~ m{[.] (?:msi|zip|msm)\Z}msx ) {
@@ -4922,12 +4920,12 @@ sub add_output_file {
 
 				# Increment the ID for next time.
 				$self->_increment_notify_index();
-			} ## end if ( $file =~ m{[.] (?:msi|zip|msm)\Z}msx)
-		} ## end foreach my $file (@_)
-	} ## end if ( eval { require Growl::GNTP...})
+			}
+		}
+	}
 
 	return $self->_add_output_files(@_);
-} ## end sub add_output_file
+}
 
 sub add_output_files {
 	goto &add_output_file;
@@ -4992,7 +4990,7 @@ sub add_icon {
 	);
 
 	return $self;
-} ## end sub add_icon
+}
 
 
 
@@ -5103,7 +5101,7 @@ sub add_env {
 	);
 
 	return $self;
-} ## end sub add_env
+}
 
 
 
@@ -5152,7 +5150,7 @@ sub add_file {
 	  ->add_file( $params{source} );
 
 	return $self;
-} ## end sub add_file
+}
 
 
 
@@ -5213,7 +5211,7 @@ sub insert_fragment {
 	$self->_add_fragment( $id, $fragment );
 
 	return $fragment;
-} ## end sub insert_fragment
+}
 
 
 
@@ -5262,7 +5260,7 @@ sub add_to_fragment {
 	my $fragment = $self->get_fragment_object($id)->add_files(@files);
 
 	return $fragment;
-} ## end sub add_to_fragment
+}
 
 sub _create_rightclick_fragment {
 	my $self = shift;
@@ -5378,7 +5376,7 @@ sub _create_rightclick_fragment {
 	$self->_add_fragment( 'RightClickEntries', $fragment );
 
 	return 1;
-} ## end sub _create_rightclick_fragment
+}
 
 
 

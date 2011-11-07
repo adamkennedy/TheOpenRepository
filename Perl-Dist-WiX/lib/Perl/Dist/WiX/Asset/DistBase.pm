@@ -25,7 +25,7 @@ sub _configure {
 	  : $self->_perl( 'Makefile.PL', @{ $self->_get_makefilepl_param() } );
 
 	return;
-} ## end sub _configure
+}
 
 sub _install_distribution {
 	my $self    = shift;
@@ -46,7 +46,7 @@ sub _install_distribution {
 	  : $self->_make(qw/install UNINST=1/);
 
 	return;
-} ## end sub _install_distribution
+}
 
 sub _name_to_module {
 	my $self = shift;
@@ -72,7 +72,7 @@ sub _name_to_module {
 	$module =~ s{-}{::}msg;
 
 	return $module;
-} ## end sub _name_to_module
+}
 
 sub _module_build_installed {
 	my $self      = shift;
@@ -92,7 +92,7 @@ sub _module_build_installed {
 
 	# We did not find it, so return that fact now.
 	return 0;
-} ## end sub _module_build_installed
+}
 
 #####################################################################
 # Main Methods
@@ -117,7 +117,7 @@ sub _abs_uri {
 	my $answer = URI->new_abs( $path, $cpan );
 	$self->_set_url( $answer->as_string() );
 	return $answer;
-} ## end sub _abs_uri
+}
 
 #####################################################################
 # Support Methods

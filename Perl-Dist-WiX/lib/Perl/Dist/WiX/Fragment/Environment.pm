@@ -111,7 +111,7 @@ sub BUILDARGS {
 		id         => $id,
 		_component => $tag1,
 	};
-} ## end sub BUILDARGS
+}
 
 sub BUILD {
 	my $self = shift;
@@ -127,7 +127,7 @@ sub BUILD {
 	$self->trace_line( 3, "Creating environment fragment.\n" );
 
 	return;
-} ## end sub BUILD
+}
 
 
 

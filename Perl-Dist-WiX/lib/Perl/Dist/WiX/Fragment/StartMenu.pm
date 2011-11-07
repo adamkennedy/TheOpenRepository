@@ -132,7 +132,7 @@ sub _build_root {
 	$self->_set_root( $directory_id => $root );
 
 	return 1;
-} ## end sub _build_root
+}
 
 
 
@@ -167,7 +167,7 @@ sub BUILDARGS {
 	}
 
 	return \%args;
-} ## end sub BUILDARGS
+}
 
 
 
@@ -269,7 +269,7 @@ sub add_shortcut {
 	$self->_get_root( $args{directory_id} )->add_child_tag($component);
 
 	return;
-} ## end sub add_shortcut
+}
 
 # The fragment is already generated. No need to regenerate.
 sub _regenerate { ## no critic(ProhibitUnusedPrivateSubroutines)

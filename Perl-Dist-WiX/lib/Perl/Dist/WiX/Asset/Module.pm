@@ -353,7 +353,7 @@ END_PERL
 
 	# Returns the filelists.
 	return \%filelists;
-} ## end sub install
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

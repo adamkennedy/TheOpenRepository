@@ -82,7 +82,7 @@ sub PDWiX::full_message {
 	$self->growl();
 
 	return $string;
-} ## end sub PDWiX::full_message
+}
 
 sub PDWiX::growl {
 	my $self = shift;
@@ -118,10 +118,10 @@ sub PDWiX::growl {
 			Message => $self->description(),
 			ID      => 0,
 		);
-	} ## end if ( eval { require Growl::GNTP...})
+	}
 
 	return;
-} ## end sub PDWiX::growl
+}
 
 sub PDWiX::Stop::full_message {
 	my $self = shift;
@@ -137,7 +137,7 @@ sub PDWiX::Stop::full_message {
 	$self->growl();
 
 	return $string;
-} ## end sub PDWiX::Stop::full_message
+}
 
 sub PDWiX::NotTask::full_message {
 	my $self = shift;
@@ -153,7 +153,7 @@ sub PDWiX::NotTask::full_message {
 	$self->growl();
 
 	return $string;
-} ## end sub PDWiX::NotTask::full_message
+}
 
 sub PDWiX::Parameter::full_message {
 	my $self = shift;
@@ -172,7 +172,7 @@ sub PDWiX::Parameter::full_message {
 	$self->growl();
 
 	return $string;
-} ## end sub PDWiX::Parameter::full_message
+}
 
 sub PDWiX::ParametersNotHash::full_message {
 	my $self = shift;
@@ -190,7 +190,7 @@ sub PDWiX::ParametersNotHash::full_message {
 	$self->growl();
 
 	return $string;
-} ## end sub PDWiX::ParametersNotHash::full_message
+}
 
 sub PDWiX::Caught::full_message {
 	my $self = shift;
@@ -213,7 +213,7 @@ sub PDWiX::Caught::full_message {
 	$self->growl();
 
 	return $string;
-} ## end sub PDWiX::Caught::full_message
+}
 
 sub PDWiX::Caught::Storable::full_message {
 	my $self = shift;
@@ -262,7 +262,7 @@ sub PDWiX::Caught::Storable::full_message {
 	$self->growl();
 
 	return $string;
-} ## end sub PDWiX::Caught::Storable::full_message
+}
 
 sub PDWiX::Directory::full_message {
 	my $self = shift;
@@ -286,7 +286,7 @@ sub PDWiX::Directory::full_message {
 	$self->growl();
 
 	return $string;
-} ## end sub PDWiX::Directory::full_message
+}
 
 sub PDWiX::File::full_message {
 	my $self = shift;
@@ -310,7 +310,7 @@ sub PDWiX::File::full_message {
 	$self->growl();
 
 	return $string;
-} ## end sub PDWiX::File::full_message
+}
 
 1;
 

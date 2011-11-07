@@ -96,7 +96,7 @@ sub checkpoint_task {
 			    "##### Completed $task (step $step) in "
 			  . ( time - $t )
 			  . " seconds\n\n" );
-	} ## end else [ if ( $self->checkpoint_before...)]
+	}
 
 	# Are we saving at this step?
 	if ( defined first { $step == $_ } @{ $self->checkpoint_after() } ) {
@@ -109,7 +109,7 @@ sub checkpoint_task {
 	}
 
 	return $self;
-} ## end sub checkpoint_task
+}
 
 =head2 checkpoint_file
 
@@ -178,7 +178,7 @@ sub checkpoint_save {
 	  );
 
 	return 1;
-} ## end sub checkpoint_save
+}
 
 =head2 checkpoint_load
 
@@ -274,7 +274,7 @@ sub checkpoint_load {
 	}
 
 	return 1;
-} ## end sub checkpoint_load
+}
 
 no Moose;
 __PACKAGE__->meta()->make_immutable();

@@ -114,8 +114,6 @@ sub _packlist_fix {
 	  ? $CORE_PACKLIST_FIX{$module}
 	  : $module;
 }
-
-#####################################################################
 # CPAN installation and upgrade support
 
 # NOTE: "The object that called it" is supposed to be a Perl::Dist::WiX
@@ -266,8 +264,8 @@ sub install_cpan_upgrades {
 	                default {
 	                        $self->_install_cpan_module( $module, $default_force );
 	                }
-	        } ## end given
-	} ## end for my $module ( @{$module_info...})
+	        }
+	}
 
 	# NOW install delayed modules!
 	for my $module (@delayed_modules) {
@@ -314,7 +312,7 @@ sub install_cpan_upgrades {
 	}                
 
 	return $self;
-} ## end sub install_cpan_upgrades
+}
 
 sub _get_cpan_upgrades_list {
 	my $self = shift;
@@ -348,7 +346,7 @@ sub _get_cpan_upgrades_list {
 	}
 
 	return $cpan_info_file;
-} ## end sub _get_cpan_upgrades_list
+}
 
 sub _install_location {
 	my ( $self, $core ) = @_;
@@ -375,7 +373,7 @@ sub _install_location {
 			buildpl_param    => [ '--installdirs', 'site' ],
 		);
 	}
-} ## end sub _install_location
+}
 
 
 
@@ -413,7 +411,7 @@ sub _install_cpan_module {
 #>>>
 
 	return 1;
-} ## end sub _install_cpan_module
+}
 
 
 
@@ -444,7 +442,7 @@ sub _skip_upgrade {
 	return 1 if $module->cpan_file() =~ m{/ExtUtils-MakeMaker-6 [.] 50}msx;
 
 	return 0;
-} ## end sub _skip_upgrade
+}
 
 
 
@@ -489,7 +487,7 @@ sub install_perl {
 		[ $self->file(qw(perl lib perllocal.pod)) ] );
 
 	return 1;
-} ## end sub install_perl
+}
 
 
 
@@ -586,14 +584,14 @@ sub _get_toolchain {
 		my $file = $module->cpan_file;
 		$file =~ s{\A [[:upper:]] / [[:upper:]][[:upper:]] /}{}msx;
 		push @dists, $file;
-	} ## end foreach my $name ( @{ $self...})
+	}
 
 	# Remove duplicates.
 	my %seen = ();
 	my @final_dists = grep { !$seen{$_}++ } @dists;
 
 	return @final_dists;
-} ## end sub _create_perl_toolchain
+}
 
 
 
@@ -656,7 +654,7 @@ sub install_perl_toolchain {
         #					$self->_install_location(1),
         #				);
         #				next;
-	                } ## end when (/ExtUtils-ParseXS/msx)
+	                }
 	                when (/URI-/msx) {
 
 	                        # Can't rely on t/heuristic.t not finding a www.perl.bv
@@ -741,7 +739,7 @@ sub install_perl_toolchain {
 	                        $casefix = 1;
 
 	                }
-	        } ## end given
+	        }
 
 	        my $mod_name = $self->_packlist_fix($module_id);
 	        $self->trace_line(5, "Module determined to be $mod_name\n");
@@ -757,10 +755,10 @@ sub install_perl_toolchain {
 	                $self->_install_location($core),
 	        );
 #>>>
-	} ## end foreach my $dist ( $toolchain...)
+	}
 	
 	return $self;
-} ## end sub install_perl_toolchain
+}
 
 
 
@@ -782,7 +780,7 @@ sub _name_to_module {
 	$module =~ s{-}{::}msg;
 
 	return $module;
-} ## end sub _name_to_module
+}
 
 no Moose;
 __PACKAGE__->meta()->make_immutable();

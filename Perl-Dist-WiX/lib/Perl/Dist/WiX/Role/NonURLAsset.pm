@@ -208,7 +208,7 @@ EOF
 				$packlist_location
 			),
 		  );
-	} ## end if ( defined $packlist_location)
+	}
 
 	# What file exists, if any?
 	my $packlist;
@@ -258,11 +258,11 @@ EOF
 			$self->_trace_line( 4, q{  } . join "\n  ", @files_list );
 			$filelist = File::List::Object->new()->load_array(@files_list);
 		}
-	} ## end else [ if ( -r $packlist ) ]
+	}
 
 	# Return the filelist processed therough the filters.
 	return $filelist->filter( $self->_filters() );
-} ## end sub _search_packlist
+}
 
 1;
 

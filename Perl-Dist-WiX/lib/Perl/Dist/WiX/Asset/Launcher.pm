@@ -179,7 +179,7 @@ sub install {
 	);
 
 	return 1;
-} ## end sub install
+}
 
 sub _get_icon_file {
 	my $self = shift;
@@ -202,7 +202,7 @@ sub _get_icon_file {
 
 		# Pick up the first parent of the class, and try again.
 		$class = ${"${class}::ISA"}[0];
-	} ## end while ( defined $class and...)
+	}
 
 	PDWiX::File->throw(
 		message => 'File not found.',
@@ -211,7 +211,7 @@ sub _get_icon_file {
 
 	return;
 
-} ## end sub _get_icon_file
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

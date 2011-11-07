@@ -234,7 +234,7 @@ sub BUILDARGS {
 			# Map name to URL via the default package path
 			$args{'url'} = $parent->binary_url( $args{'name'} );
 		}
-	} ## end if ( not defined $args...)
+	}
 
 	if ( $class ne 'Perl::Dist::WiX::Asset::DistFile' ) {
 
@@ -252,8 +252,8 @@ sub BUILDARGS {
 				# file is not used in Websites.
 				$args{'file'} = q{ };
 			}
-		} ## end if ( not defined $args...)
-	} ## end if ( $class ne 'Perl::Dist::WiX::Asset::DistFile')
+		}
+	}
 
 	my %default_args = (
 		url    => $args{'url'},
@@ -263,7 +263,7 @@ sub BUILDARGS {
 	delete @args{ 'url', 'file', 'parent', 'share' };
 
 	return { ( %default_args, %args ) };
-} ## end sub BUILDARGS
+}
 
 
 
@@ -330,7 +330,7 @@ EOF
 				$packlist_location
 			),
 		  );
-	} ## end if ( defined $packlist_location)
+	}
 
 	# What file exists, if any?
 	my $packlist;
@@ -381,11 +381,11 @@ EOF
 			$self->_trace_line( 4, q{  } . join "\n  ", @files_list );
 			$filelist = File::List::Object->new()->load_array(@files_list);
 		}
-	} ## end else [ if ( -r $packlist ) ]
+	}
 
 	# Return the filelist processed therough the filters.
 	return $filelist->filter( $self->_filters() );
-} ## end sub _search_packlist
+}
 
 
 =head2 remove_path

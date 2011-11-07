@@ -70,7 +70,7 @@ sub install_binary {
 	my $filelist = $binary->install();
 
 	return $filelist;
-} ## end sub install_binary
+}
 
 
 
@@ -230,7 +230,7 @@ sub install_distribution_from_file {
 	$self->insert_fragment( $mod_id, $filelist );
 
 	return $self;
-} ## end sub install_distribution_from_file
+}
 
 
 
@@ -298,7 +298,7 @@ sub install_module {
 	}
 
 	return $self;
-} ## end sub install_module
+}
 
 
 
@@ -350,7 +350,7 @@ sub install_modules {
 	}
 
 	return $self;
-} ## end sub install_modules
+}
 
 
 
@@ -393,7 +393,7 @@ sub install_par {
 	$self->insert_fragment( $name, $filelist );
 
 	return $self;
-} ## end sub install_par
+}
 
 
 

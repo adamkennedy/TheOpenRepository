@@ -275,9 +275,6 @@ sub _build_traceobject {
 
 	return WiX3::Traceable->new( tracelevel => $self->_get_trace() );
 }
-
-
-#####################################################################
 # Constructor
 
 sub BUILDARGS {
@@ -298,7 +295,7 @@ sub BUILDARGS {
 	}
 
 	return \%args;
-} ## end sub BUILDARGS
+}
 
 sub BUILD {
 	my $self = shift;
@@ -314,7 +311,7 @@ sub BUILD {
 	}
 
 	return $self;
-} ## end sub BUILD
+}
 
 
 
@@ -354,7 +351,7 @@ sub add_dimension {
 	$self->_add_dimension($name);
 	$self->_set_options( $name => [] );
 	return 1;
-} ## end sub add_dimension
+}
 
 
 
@@ -392,7 +389,7 @@ sub add_option {
 	push @{$option}, [@_];
 	$self->_set_options( $name => $option );
 	return 1;
-} ## end sub add_option
+}
 
 
 
@@ -476,7 +473,7 @@ sub next { ## no critic (ProhibitBuiltinHomonyms)
 			# next dimension will iterate to the
 			# correct value.
 			$self->_set_state( $name => 0 );
-		} ## end foreach my $name ( $self->_get_dimensions...)
+		}
 		if ( not $found ) {
 			$self->_set_eos();
 			return undef;
@@ -493,7 +490,7 @@ sub next { ## no critic (ProhibitBuiltinHomonyms)
 		}
 		$self->_set_state(%state);
 
-	} ## end else [ if ( $self->_has_state...)]
+	}
 
 	# Create the parameter-set
 	my @params = $self->_get_common();
@@ -506,7 +503,7 @@ sub next { ## no critic (ProhibitBuiltinHomonyms)
 
 	# Create the object with those params
 	return $self->_get_class()->new(@params);
-} ## end sub next
+}
 
 
 
@@ -594,9 +591,9 @@ sub run {
 				message => "Failed to remove directory, errors:\n$errors"
 			);	
 		}
-	} ## end while ( my $dist = $self->next...)
+	}
 	return 1;
-} ## end sub run
+}
 
 1;
 

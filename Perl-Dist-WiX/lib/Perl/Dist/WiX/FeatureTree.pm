@@ -100,7 +100,7 @@ sub BUILD {
 	}
 
 	return;
-} ## end sub BUILD
+}
 
 
 
@@ -133,7 +133,7 @@ sub as_string {
 #>>>
 
 	return $answer;
-} ## end sub as_string
+}
 
 
 
@@ -169,7 +169,7 @@ sub as_string_msm {
 #>>>
 
 	return $answer;
-} ## end sub as_string_msm
+}
 
 
 

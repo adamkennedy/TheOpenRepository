@@ -176,7 +176,7 @@ sub _build_icon_file_to {
 		## no critic (ProhibitExplicitReturnUndef)
 		return undef;
 	}
-} ## end sub _build_icon_file_to
+}
 
 
 
@@ -222,7 +222,7 @@ sub install {
 	);
 
 	return 1;
-} ## end sub install
+}
 
 
 # Assembles the content of the .url file.
@@ -240,7 +240,7 @@ sub _content {
 		push @content, 'IconIndex=' . $index;
 	}
 	return join q{}, map {"$_\n"} @content;
-} ## end sub _content
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

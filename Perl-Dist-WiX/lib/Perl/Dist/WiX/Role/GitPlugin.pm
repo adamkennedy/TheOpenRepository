@@ -60,8 +60,6 @@ sub _build_git_describe {
 		PDWiX->throw( 'Could not convert the location of git.exe'
 			  . ' to a path with short names' );
 	}
-
-	## no critic(ProhibitBacktickOperators)
 	$self->trace_line( 2,
 		"Finding current commit using $location describe\n" );
 	my $describe =
@@ -75,7 +73,7 @@ qx{cmd.exe /d /e:on /c "pushd $checkout && $location describe && popd"};
 	$describe =~ s/\n//ms;
 
 	return $describe;
-} ## end sub _build_git_describe
+}
 
 
 no Moose::Role;

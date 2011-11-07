@@ -133,7 +133,7 @@ sub _binary_file {
 	$self->trace_line( 3, "Package $package is in $package_file\n" );
 
 	return $package_file;
-} ## end sub _binary_file
+}
 
 
 # Private routine to map a file or package name to a URL.
@@ -155,7 +155,7 @@ sub _binary_url {
 		$file = $self->_binary_file( $file, @_ );
 	}
 	return $self->binary_root() . q{/} . $file;
-} ## end sub _binary_url
+}
 
 
 
@@ -218,7 +218,7 @@ sub install_gcc_toolchain {
 	}
 
 	return 1;
-} ## end sub install_gcc_toolchain
+}
 
 
 
@@ -260,7 +260,7 @@ sub install_dmake {
 	$self->insert_fragment( 'dmake', $filelist );
 
 	return 1;
-} ## end sub install_dmake
+}
 
 
 
@@ -300,7 +300,7 @@ sub install_pexports {
 	$self->insert_fragment( 'pexports', $filelist );
 
 	return 1;
-} ## end sub install_pexports
+}
 
 
 
@@ -355,12 +355,12 @@ sub install_mingw_make {
 			install_to =>
 			  { 'bin/mingw32-make.exe' => 'c/bin/mingw32-make.exe', },
 		);
-	} ## end else [ if ( 4 == $self->gcc_version...)]
+	}
 
 	$self->insert_fragment( 'mingw_make', $filelist );
 
 	return 1;
-} ## end sub install_mingw_make
+}
 
 no Moose;
 __PACKAGE__->meta()->make_immutable();

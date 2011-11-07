@@ -144,11 +144,11 @@ sub mirror_url {
 			$self->trace_line( 2, "(already up to date)\n",
 				$no_display_trace );
 		}
-	} ## end else [ if ( $url =~ m{\Afile://}msx)]
+	}
 
 	# Return the location downloaded to.
 	return $target;
-} ## end sub mirror_url
+}
 
 
 
@@ -208,7 +208,7 @@ sub copy_file {
 		  or PDWiX->throw("Copy error: $OS_ERROR");
 	}
 	return 1;
-} ## end sub copy_file
+}
 
 
 
@@ -247,7 +247,7 @@ sub move_file {
 	  or PDWiX->throw("Move error: $OS_ERROR");
 
 	return;
-} ## end sub move_file
+}
 
 
 
@@ -294,7 +294,7 @@ sub execute_build {
 		PDWiX->throw('build failed (OS error)');
 	}
 	return 1;
-} ## end sub execute_build
+}
 
 
 
@@ -321,7 +321,7 @@ sub execute_make {
                 #warn('XXX-FIXME (kmx hack): make failed (OS error)');
 	}
 	return 1;
-} ## end sub execute_make
+}
 
 
 
@@ -350,7 +350,7 @@ sub execute_perl {
 		PDWiX->throw('perl failed (OS error)');
 	}
 	return 1;
-} ## end sub execute_perl
+}
 
 
 
@@ -385,7 +385,7 @@ sub execute_any {
 		next if -f catfile( $p, 'gzip.exe' );
 
 		push @keep, $p;
-	} ## end foreach my $p (@path)
+	}
 
 	# Reset the environment
 	local $ENV{'LIB'}               = undef;
@@ -409,7 +409,7 @@ sub execute_any {
 		$self->debug_stdout()->stringify(),
 		$self->debug_stderr()->stringify(),
 	);
-} ## end sub execute_any
+}
 
 
 
@@ -489,7 +489,7 @@ sub extract_archive {
 	}
 
 	return @filelist;
-} ## end sub extract_archive
+}
 
 sub _convert_name {
 	my $name     = shift;
@@ -502,7 +502,7 @@ sub _convert_name {
 	my $local_name = catpath( q{}, $local_dirs, $filename );
 	$local_name = rel2abs($local_name);
 	return $local_name;
-} ## end sub _convert_name
+}
 
 sub _extract_filemap { ## no critic(ProhibitUnusedPrivateSubroutines)
 	my ( $self, $archive, $filemap, $basedir, $file_only ) = @_;
@@ -544,8 +544,8 @@ sub _extract_filemap { ## no critic(ProhibitUnusedPrivateSubroutines)
 				$self->trace_line( 2, "Extracting $f to $full_t\n" );
 				$tar->extract_file( $f, $full_t );
 				push @files, $full_t;
-			} ## end for my $tgt ( keys %{$filemap...})
-		} ## end for my $file ( $tar->get_files...)
+			}
+		}
 
 	} elsif ( $archive =~ m{ [.] tar [.] xz | [.] txz}msx ) {
 
@@ -585,8 +585,8 @@ sub _extract_filemap { ## no critic(ProhibitUnusedPrivateSubroutines)
 				$self->trace_line( 2, "Extracting $f to $full_t\n" );
 				$tar->extract_file( $f, $full_t );
 				push @files, $full_t;
-			} ## end for my $tgt ( keys %{$filemap...})
-		} ## end for my $file ( $tar->get_files...)
+			}
+		}
 
 
 
@@ -595,7 +595,7 @@ sub _extract_filemap { ## no critic(ProhibitUnusedPrivateSubroutines)
 	}
 
 	return @files;
-} ## end sub _extract_filemap
+}
 
 
 
@@ -626,11 +626,11 @@ sub _extract_filemap_zip {
 				PDWiX->throw('Error in archive extraction');
 			}
 			push @files, $filename;
-		} ## end foreach my $member (@members)
-	} ## end while ( my ( $f, $t ) = each...)
+		}
+	}
 
 	return @files;
-} ## end sub _extract_filemap_zip
+}
 
 
 =head2 make_path
@@ -675,7 +675,7 @@ sub make_path {
 		);
 	}
 	return $dir;
-} ## end sub make_path
+}
 
 
 
@@ -750,7 +750,7 @@ sub remake_path {
 		);
 	}
 	return $dir;
-} ## end sub remake_path
+}
 
 
 
@@ -908,7 +908,7 @@ sub make_relocation_file {
 	close $file_out_handle or PDWiX->throw('Ouch!');
 
 	return 1;
-} ## end sub make_relocation_file
+}
 
 no Moose;
 __PACKAGE__->meta()->make_immutable();

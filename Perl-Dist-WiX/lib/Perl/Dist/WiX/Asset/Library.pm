@@ -241,7 +241,7 @@ sub install {
 			a   => catfile( $unpack_to, $build_a->{a} ),
 			@source,
 		  );
-	} ## end if ( defined $build_a )
+	}
 
 	# Copy in the files
 	my $install_to = $self->_get_install_to();
@@ -269,7 +269,7 @@ sub install {
 	  ->filter( $self->_filters() )->filter( [$unpack_to] );
 
 	return $filelist;
-} ## end sub install
+}
 
 
 
@@ -289,7 +289,7 @@ sub _copy_filesref {
 	}
 
 	return @files;
-} ## end sub _copy_filesref
+}
 
 
 
@@ -381,7 +381,7 @@ sub _dll_to_a {
 	}
 
 	return @files;
-} ## end sub _dll_to_a
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
