@@ -47,7 +47,7 @@ our $VERSION = '1.550';
 
 # Keys are what's in the filename, with - being converted to ::.
 # Values are the actual module to use to check whether it's in core.
-my %CORE_MODULE_FIX => (
+my %CORE_MODULE_FIX = (
 	'IO::Compress'         => 'IO::Compress::Base',
 	'Filter'               => 'Filter::Util::Call',
 	'podlators'            => 'Pod::Man',
@@ -65,7 +65,7 @@ my %CORE_MODULE_FIX => (
 # Keys are the module name after processing against %CORE_MODULE_FIX.
 # Values are the directory name the .packlist file is in, with
 # / being converted to ::.
-my %CORE_PACKLIST_FIX => (
+my %CORE_PACKLIST_FIX = (
 	'IO::Compress::Base'    => 'IO::Compress',
 	'Pod::Man'              => 'Pod',
 	'Filter::Util::Call'    => 'Filter',
@@ -77,7 +77,7 @@ my %CORE_PACKLIST_FIX => (
 # List of modules to delay building until last when upgrading all CPAN
 # modules (they depend on upgraded versions of modules that originally
 # were upgraded after them.)
-my @MODULE_DELAY => qw(
+my @MODULE_DELAY = qw(
   CPANPLUS::Dist::Build
   Thread::Queue
 );
