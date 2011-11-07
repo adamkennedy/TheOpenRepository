@@ -53,7 +53,7 @@ use 5.010;
 use Moose 0.90;
 use MooseX::NonMoose;
 use MooseX::Types::Moose qw( Str Int Bool HashRef ArrayRef Maybe );
-use MooseX::Types::URI qw( Uri );
+use Perl::Dist::WiX::Types::URI qw( Uri );
 use Moose::Util::TypeConstraints;
 use English qw( -no_match_vars );
 use Carp qw();

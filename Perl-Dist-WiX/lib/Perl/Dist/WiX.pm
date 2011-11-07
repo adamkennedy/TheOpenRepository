@@ -87,7 +87,7 @@ use List::MoreUtils                         qw(
 use MooseX::Types::Moose                    qw(
 	Int Str Maybe Bool Undef ArrayRef Maybe HashRef
 );
-use MooseX::Types::URI                      qw( 
+use Perl::Dist::WiX::Types::URI             qw( 
 	Uri
 );
 use MooseX::Types::Path::Class              qw(

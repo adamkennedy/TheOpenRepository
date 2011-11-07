@@ -62,7 +62,7 @@ my $builder = Builder->new(
 		'MooseX::Object::Pluggable'  => '0.0011',
 		'MooseX::Singleton'          => '0.26',
 		'MooseX::Types'              => '0.19',
-		'MooseX::Types::URI'         => '0.02',
+		#'MooseX::Types::URI'         => '0.02',
 		'MooseX::Types::Path::Class' => '0.05',
 		'namespace::clean'           => '0.18',
 		'namespace::autoclean'       => '0.12',
@@ -76,6 +76,7 @@ my $builder = Builder->new(
 #		Want to move to Template::Alloy eventually, but can't yet.
 #		'Template::Alloy'            => '1.016',
 		'URI'                        => '1.35',
+		'URI::FromHash'              => '0',
 		'WiX3'                       => '0.010004',
 		'YAML::Tiny'                 => '1.36',
 		'Win32'                      => '0.35',

@@ -1,6 +1,4 @@
-#!/usr/bin/perl
-
-package MooseX::Types::URI;
+package Perl::Dist::WiX::Types::URI;
 
 use strict;
 use warnings;
@@ -71,11 +69,11 @@ __END__
 
 =head1 NAME
 
-MooseX::Types::URI - L<URI> related types and coercions for Moose
+Perl::Dist::WiX::Types::URI - L<URI> related types and coercions for Moose
 
 =head1 SYNOPSIS
 
-	use MooseX::Types::URI qw(Uri FileUri DataUri);
+	use Perl::Dist::WiX::Types::URI qw(Uri FileUri DataUri);
 
 =head1 DESCRIPTION
 
