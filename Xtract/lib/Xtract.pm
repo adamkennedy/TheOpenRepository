@@ -260,18 +260,22 @@ sub _sqlite_table {
 		push @bind, $column->{TYPE_NAME} eq 'BLOB' ? 1 : 0;
 	}
 
-	# Create the table
-	$self->to_dbh->do(
-		"CREATE TABLE $tname (\n"
-		. join( ",\n", map { "\t$_" } @type )
-		. "\n)"
-	);
-
-	# Fill the target table
-	my $placeholders = join ", ",  map { '?' } @$info;
-	return $self->fill(
-		select => [ "SELECT * FROM $from" ],
-		insert => "INSERT INTO $tname VALUES ( $placeholders )",
+	$self->create_table(
+		create => [
+			"CREATE TABLE $tname (\n"
+			. join( ",\n", map { "\t$_" } @type )
+			. "\n)"
+		],
+		select => [
+			"SELECT * FROM $from"
+		],
+		insert => (
+			"INSERT INTO $tname VALUES ( "
+			. join( ", ",
+				map { '?' } @$info
+			)
+			. " )",
+		),
 		blobs  => scalar( grep { $_ } @bind ) ? \@bind : undef,
 	);
 }
@@ -290,7 +294,7 @@ sub _mysql_table {
 	my @name = @{$sth->{NAME_lc}};
 	my @type = @{$sth->{TYPE}};
 	my @null = @{$sth->{NULLABLE}};
-	my @bind = @{$sth->{mysql_is_blob}};
+	my @blob = @{$sth->{mysql_is_blob}};
 	$sth->finish;
 
 	# Generate the create fragments
@@ -311,23 +315,27 @@ sub _mysql_table {
 		$null[$i] = $null[$i] ? 'NULL' : 'NOT NULL';
 	}
 
-	# Create the table
-	$self->to_dbh->do(
-		"CREATE TABLE $tname (\n"
-		. join( ",\n",
-			map {
-				"\t$name[$_] $type[$_] $null[$_]"
-			} (0 .. $#name)
-		)
-		. "\n)"
-	);
-
-	# Fill the target table
-	my $placeholders = join ", ",  map { '?' } @name;
-	return $self->fill(
-		select => [ "SELECT * FROM $from" ],
-		insert => "INSERT INTO $tname VALUES ( $placeholders )",
-		blobs  => scalar( grep { $_ } @bind ) ? \@bind : undef,
+	$self->create_table(
+		create => [
+			"CREATE TABLE $tname (\n"
+			. join( ",\n",
+				map {
+					"\t$name[$_] $type[$_] $null[$_]"
+				} (0 .. $#name)
+			)
+			. "\n)"
+		],
+		select => [
+			"SELECT * FROM $from"
+		],
+		insert => (
+			"INSERT INTO $tname VALUES ( "
+			. join( ", ",
+				map { '?' } @name
+			)
+			. " )",
+		),
+		blobs => scalar( grep { $_ } @blob ) ? \@blob : undef,
 	);
 }
 
@@ -422,72 +430,30 @@ sub add_select {
 				$type[$i] = "$names[$i] BLOB $notnull";
 
 				# This is a blob after all
-				$blob[-1] = 1;
+				$bind[-1] = 1;
 			}
 		}
 	}
 
-	# Create the target table
-	$self->to_dbh->do(
-		"CREATE TABLE $tname (\n"
-		. join(",\n", map { "\t$_" } @type)
-		. "\n)"
+	$self->create_table(
+		create => [
+			"CREATE TABLE $tname (\n"
+			. join(",\n", map { "\t$_" } @type)
+			. "\n)"
+		],
+		select => [
+			$select,
+			@params,
+		],
+		insert => (
+			"INSERT INTO $tname VALUES ( "
+			. join( ", ",
+				map { '?' } @names
+			)
+			. " )",
+		),
+		blobs => scalar( grep { $_ } @bind ) ? \@bind : undef,
 	);
-
-	# Fill the target table
-	my $placeholders = join ", ",  map { '?' } @names;
-	return $self->fill(
-		select => [ $select, @params ],
-		insert => "INSERT INTO $tname VALUES ( $placeholders )",
-		blobs  => scalar( grep { $_ } @bind ) ? \@bind : undef,
-	);
-}
-
-sub fill {
-	my $self   = shift;
-	my %params = @_;
-	my $select = $params{select};
-	my $insert = $params{insert};
-	my $blobs  = $params{blobs};
-
-	# Launch the select query
-	my $from = $self->from_dbh->prepare(shift(@$select));
-	unless ( $from ) {
-		croak($DBI::errstr);
-	}
-	$from->execute(@$select);
-
-	# Stream the data into the target table
-	my $dbh = $self->to_dbh;
-	$dbh->begin_work;
-	$dbh->{AutoCommit} = 0;
-	my $rows = 0;
-	my $to   = $dbh->prepare($insert) or croak($DBI::errstr);
-	while ( my $row = $from->fetchrow_arrayref ) {
-		if ( $blobs ) {
-			# When inserting blobs, we need to use the bind_param method
-			foreach ( 0 .. $#$row ) {
-				if ( $blobs->[$_] ) {
-					$to->bind_param( $_ + 1, $row->[$_], SQL_BLOB );
-				} else {
-					$to->bind_param( $_ + 1, $row->[$_] );
-				}
-			}
-			$to->execute;
-		} else {
-			$to->execute( @$row );
-		}
-		next if ++$rows % 10000;
-		$dbh->commit;
-	}
-	$dbh->commit;
-	$dbh->{AutoCommit} = 1;
-
-	# Clean up
-	$to->finish;
-	$from->finish;
-
-	return $rows;
 }
 
 sub create_table {
