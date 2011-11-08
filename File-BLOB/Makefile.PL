@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 1.04
+use inc::Module::Install::DSL 1.04;
 
 all_from      lib/File/BLOB.pm
 requires_from lib/File/BLOB.pm
