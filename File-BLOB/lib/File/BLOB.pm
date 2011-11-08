@@ -74,14 +74,14 @@ and then file data.
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
 use bytes          ();
 use Carp           ();
 use IO::File       ();
-use Storable       ();
+use Storable       2.16 ();
 use File::Basename ();
-use Params::Util   qw{ _SCALAR _INSTANCE _IDENTIFIER };
+use Params::Util   0.10 ();
 
 # Optional prefork support
 SCOPE: {
@@ -91,7 +91,7 @@ SCOPE: {
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.07';
+	$VERSION = '1.08';
 }
 
 
@@ -225,11 +225,11 @@ An exception will be thrown if an error is encountered.
 
 sub from_cgi {
 	my $class = ref $_[0] ? ref shift : shift;
-	my $cgi   = _INSTANCE(shift, 'CGI') or Carp::croak(
+	my $cgi   = Params::Util::_INSTANCE(shift, 'CGI') or Carp::croak(
 		'First argument to from_cgi was not a CGI object'
 		);
 	my $param = shift;
-	_SCALAR(\$param) or Carp::croak(
+	Params::Util::_SCALAR(\$param) or Carp::croak(
 		'Second argument to from_cgi was not a CGI param'
 		);
 
@@ -316,9 +316,9 @@ sub set_content {
 
 	# Ensure the passed data is a scalar reference
 	my $content;
-	if ( _SCALAR($data) ) {
+	if ( Params::Util::_SCALAR($data) ) {
 		$content = $data;
-	} elsif ( _INSTANCE($data, 'IO::Handle') ) {
+	} elsif ( Params::Util::_INSTANCE($data, 'IO::Handle') ) {
 		# Read in as binary data
 		local $/ = undef;
 		$data->binmode if $data->can('binmode');
@@ -550,7 +550,7 @@ sub _name {
 
 	# The name should be an identifier	
 	$name = lc $name;
-	unless ( _IDENTIFIER($name) ) {
+	unless ( Params::Util::_IDENTIFIER($name) ) {
 		Carp::croak("Header name is not in a valid format");
 	}
 	if ( $name eq 'content' ) { 
@@ -588,7 +588,7 @@ sub _value {
 # Takes a SCALAR reference and returns the MIME type
 sub _mime_type {
 	my $self = shift;
-	my $data = _SCALAR(shift) or Carp::croak(
+	my $data = Params::Util::_SCALAR(shift) or Carp::croak(
 		"Did not provide a SCALAR reference to File::BLOB::_mime_type"
 		);
 	require File::Type;
@@ -613,7 +613,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2005 - 2008 Adam Kennedy.
+Copyright 2005 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
