@@ -1,5 +1,9 @@
 Changes for Perl extension FBP-Perl
 
+0.65 Wed 9 Nov 2011
+	- The use Wx line now includes a version (ADAMK)
+	- Some newline corrections in the repository (DOLMEN)
+
 0.64 Thu 27 Sep 2011
 	- Updating FBP dependency to 0.38 to get namespace attribute
 	- If the project defines a namespace, we now use it across the

@@ -5,9 +5,9 @@ package t::lib::MyFrame1;
 use 5.008;
 use strict;
 use warnings;
-use Wx ':everything';
+use Wx 0.98 ':everything';
 
-our $VERSION = '0.64';
+our $VERSION = '0.65';
 our @ISA     = 'Wx::Frame';
 
 sub new {

@@ -5,7 +5,7 @@ package FBP::Demo::Main;
 use 5.008;
 use strict;
 use warnings;
-use Wx ':everything';
+use Wx 0.98 ':everything';
 
 our $VERSION = '0.01';
 our @ISA     = 'Wx::Frame';

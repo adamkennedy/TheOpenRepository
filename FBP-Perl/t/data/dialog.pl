@@ -3,14 +3,14 @@ package MyDialog1;
 use 5.008;
 use strict;
 use warnings;
-use Wx ':everything';
+use Wx 0.98 ':everything';
 use Wx::STC ();
 use Wx::Grid ();
 use t::lib::Custom ();
 use t::lib::MyClass ();
 use t::lib::MyHtmlWindow ();
 
-our $VERSION = '0.64';
+our $VERSION = '0.65';
 our @ISA     = 'Wx::Dialog';
 
 sub new {

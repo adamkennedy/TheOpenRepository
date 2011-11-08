@@ -5,11 +5,11 @@ package t::lib::Simple;
 use 5.008;
 use strict;
 use warnings;
-use Wx ':everything';
+use Wx 0.98 ':everything';
 use Wx::Html ();
 use Wx::Locale ();
 
-our $VERSION = '0.64';
+our $VERSION = '0.65';
 our @ISA     = 'Wx::App';
 
 sub run {

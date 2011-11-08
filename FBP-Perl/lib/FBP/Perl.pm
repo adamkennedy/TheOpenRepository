@@ -56,7 +56,7 @@ use Params::Util  1.00 ();
 use Data::Dumper 2.122 ();
 use FBP           0.38 ();
 
-our $VERSION    = '0.64';
+our $VERSION    = '0.65';
 our $COMPATIBLE = '0.57';
 
 # Event Binding Table
@@ -511,7 +511,7 @@ sub app_wx {
 	my $self    = shift;
 	my $project = $self->project;
 	my @lines   = (
-		"use Wx ':everything';",
+		"use Wx 0.98 ':everything';",
 	);
 	if ( $project->find_first( isa => 'FBP::HtmlWindow' ) ) {
 		push @lines, "use Wx::Html ();";
@@ -620,7 +620,7 @@ sub form_wx {
 	my $self  = shift;
 	my $topic = shift;
 	my $lines = [
-		"use Wx ':everything';",
+		"use Wx 0.98 ':everything';",
 	];
 	if ( $self->find_plain( $topic => 'FBP::RichTextCtrl' ) ) {
 		push @$lines, "use Wx::STC ();";
