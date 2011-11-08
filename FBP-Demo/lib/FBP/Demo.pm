@@ -3,9 +3,9 @@ package FBP::Demo;
 use 5.008;
 use strict;
 use warnings;
-use Wx ':everything';
+use Wx 0.98 ':everything';
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 our @ISA     = 'Wx::App';
 
 sub run {

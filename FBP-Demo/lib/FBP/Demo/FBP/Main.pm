@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Wx ':everything';
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 our @ISA     = 'Wx::Frame';
 
 sub new {
