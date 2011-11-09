@@ -1,5 +1,11 @@
 Revision history for Perl extension SMS::Send::AU::MyVodafone
 
+1.06 Wed 9 Nov 2011
+	- No functional changes
+	- Updating to Module::Install::DSL 1.04
+
+1.05 skipped
+
 1.04 Wed 24 Dec 2008
 	- Correcting some minor bugs, validating this still works
 	- Upgrading tests to newer style

@@ -37,13 +37,12 @@ sub dies_like {
 my $sender = SMS::Send->new( 'AU::MyVodafone',
 	_login    => $login,
 	_password => $password,
-	);
+);
 isa_ok( $sender, 'SMS::Send' );
 
 # Send a real message
 my $rv = $sender->send_sms(
 	text => $text,
 	to   => $to,
-	);
+);
 ok( $rv, '->send_sms sends a live message ok' );
-

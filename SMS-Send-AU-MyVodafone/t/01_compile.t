@@ -8,9 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 4;
-
-ok( $] >= 5.005, 'Perl version is 5.005 or newer' );
+use Test::More tests => 3;
 
 use_ok( 'SMS::Send' );
 use_ok( 'SMS::Send::AU::MyVodafone' );

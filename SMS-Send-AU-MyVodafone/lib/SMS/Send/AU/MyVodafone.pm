@@ -10,21 +10,21 @@ SMS::Send::AU::MyVodafone - An SMS::Send driver for the myvodafone.com.au websit
 
   # Get the sender and login
   my $sender = SMS::Send->new('AU::MyVodafone',
-  	_login    => '04 444 444', # Whitespace is ignored
-  	_password => 'abcdefg',
-  	);
+      _login    => '04 444 444', # Whitespace is ignored
+      _password => 'abcdefg',
+  );
   
   # Send a message to ourself
   my $sent = $sender->send_sms(
-  	text => 'Messages have a limit of 160 chars',
-  	to   => '+61 4 444 444',
-  	);
+      text => 'Messages have a limit of 160 chars',
+      to   => '+61 4 444 444',
+  );
   
   # Did it send?
   if ( $sent ) {
-  	print "Sent test message\n";
+      print "Sent test message\n";
   } else {
-  	print "Test message failed\n";
+      print "Test message failed\n";
   }
 
 =head1 DESCRIPTION
@@ -65,12 +65,12 @@ Using this driver will cost you money. B<YOU HAVE BEEN WARNED>
 
 use 5.006;
 use strict;
-use SMS::Send::Driver ();
-use WWW::Mechanize    ();
+use SMS::Send::Driver 0.05 ();
+use WWW::Mechanize    1.06 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.04';
+	$VERSION = '1.06';
 	@ISA     = 'SMS::Send::Driver';
 }
 
@@ -94,9 +94,9 @@ my $RE_BADLOGIN = qr/Sorry you have entered an incorrect username or password/;
 
   # Create a new sender using this driver
   my $sender = SMS::Send->new(
-  	_login    => '04 444 444',
-  	_password => 'abcdefg',
-  	);
+      _login    => '04 444 444',
+      _password => 'abcdefg',
+  );
 
 The C<new> constructor takes two parameters, which should be passed
 through from the L<SMS::Send> constructor.
@@ -151,7 +151,7 @@ sub new {
 
 		# State variables
 		logged_in => '',
-		}, $class;
+	}, $class;
 
 	$self;
 }
@@ -184,8 +184,8 @@ sub _send_login {
 			txtUserID   => $self->{login},
 			txtPassword => $self->{password},
 			btnLogin    => 'submit',
-			},
-		);
+		},
+	);
 
 	# Did we login?
 	if ( $self->{mech}->content =~ $RE_BADLOGIN ) {
@@ -219,8 +219,8 @@ sub send_sms {
 	$form->push_input('text', {
 		name  => 'recipients',
 		value => "adhoc$recipient",
-		} );
-	$form->value( messageBody => $message               );
+	} );
+	$form->value( messageBody => $message );
 
 	# Hack some values otherwise changed by JavaScript.
 	# Disable warnings when changing hidden inputs.
@@ -318,7 +318,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2005 - 2008 Adam Kennedy.
+Copyright 2005 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
