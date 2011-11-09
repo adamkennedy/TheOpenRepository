@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 5;
+use Test::More tests => 4;
 
 use_ok( 'SMS::Send'           );
 use_ok( 'SMS::Send::Driver'   );
