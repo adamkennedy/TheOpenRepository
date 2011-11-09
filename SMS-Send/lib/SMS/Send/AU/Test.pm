@@ -47,12 +47,14 @@ shared between multiple driver handles.
 
 =cut
 
+use 5.006;
 use strict;
-use base 'SMS::Send::Driver';
+use SMS::Send::Driver ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
+	@ISA     = 'SMS::Send::Driver';
 }
 
 
@@ -68,7 +70,7 @@ sub new {
 	# Create the object
 	my $self = bless {
 		messages => [],
-		}, $class;
+	}, $class;
 
 	$self;
 }
@@ -77,7 +79,7 @@ sub send_sms {
 	my $self     = shift;
 	my $messages = $self->{messages};
 	push @$messages, [ @_ ];
-	1;
+	return 1;
 }
 
 =pod
@@ -111,8 +113,8 @@ Returns true as a convenience.
 
 sub clear {
 	my $self = shift;
-	$self->{messages} = [];
-	1;
+	$self->{messages} = [ ];
+	return 1;
 }
 
 1;
@@ -129,11 +131,11 @@ For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2005 Adam Kennedy.
+Copyright 2005 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

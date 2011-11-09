@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Test the sending of a message
 
@@ -116,5 +116,3 @@ dies_like(
 	sub { $sender->send_sms( text => 'foo', to => '()' ) },
 	qr/Did not provide a 'to' message destination/,
 );
-
-exit(0);

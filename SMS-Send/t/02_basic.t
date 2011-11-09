@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Test the basic loading, initialisation, etc for SMS::Send.
 # Don't actually send anything yet.
@@ -31,5 +31,3 @@ ok( scalar(grep { $_ eq 'AU::Test' } @drivers) == 1, 'Found "AU::Test" driver' )
 # In detecting these drivers, they should NOT be loaded
 ok( ! defined $SMS::Send::Test::VERSION,
 	'Did not load drivers when locating them' );
-
-exit(0);

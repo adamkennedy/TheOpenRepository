@@ -1,5 +1,17 @@
 Revision history for Perl extension SMS::Send
 
+1.06 Wed 9 Nov 2011
+	- No functional changes
+	- Moved to production version
+	- Updating to Module::Install::DSL 1.04
+	- New Perl back-compatibility target of 5.6
+	- Made the Perl back-compat target explicit
+	- Bumping a variety of dependencies to pick up bug fixes
+	- Don't import from Params::Util
+	- Various whitespace/tabbing fixes
+	- Removed the use of base.pm
+	- Updated bundled author tests and moved to xt
+
 0.05 Wed 14 Nov 2007
 	- No functional changes
 	- Updating to Module::Install 0.68

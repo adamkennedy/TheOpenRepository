@@ -10,21 +10,21 @@ SMS::Send - Driver-based API for sending SMS messages
 
   # Create a sender
   my $sender = SMS::Send->new('SomeDriver',
-  	_login    => 'myname',
-  	_password => 'mypassword',
-  	);
+      _login    => 'myname',
+      _password => 'mypassword',
+  );
   
   # Send a message
   my $sent = $sender->send_sms(
-  	text => 'This is a test message',
-  	to   => '+61 (4) 1234 5678',
-  	);
+      text => 'This is a test message',
+      to   => '+61 (4) 1234 5678',
+  );
   
   # Did the send succeed.
   if ( $sent ) {
-  	print "Message sent ok\n";
+      print "Message sent ok\n";
   } else {
-  	print "Failed to send message\n";
+      print "Failed to send message\n";
   }
 
 =head1 DESCRIPTION
@@ -47,20 +47,18 @@ sent (although some drivers may not be able to provide certainty).
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
 use Carp              ();
 use SMS::Send::Driver ();
-use Params::Util '_HASH0',
-                 '_CLASS',
-                 '_INSTANCE';
+use Params::Util 0.14 ();
 
 # We are a type of Adapter
-use Class::Adapter::Builder
+use Class::Adapter::Builder 1.05
 	AUTOLOAD => 'PUBLIC';
 
 # We need plugin support to find the drivers
-use Module::Pluggable
+use Module::Pluggable 3.7
 	require     => 0,
 	inner       => 0,
 	search_path => [ 'SMS::Send' ],
@@ -69,7 +67,7 @@ use Module::Pluggable
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '1.06';
 }
 
 # Private driver cache
@@ -119,7 +117,7 @@ sub installed_drivers {
   $sender = SMS::Send->new('MyDriver',
       _login    => 'adam',
       _password => 'adam',
-      );
+  );
 
 The C<new> constructor creates a new SMS sender.
 
@@ -143,17 +141,17 @@ Returns a new L<SMS::Send> object, or dies on error.
 sub new {
 	my $class  = shift;
 	my $driver = $class->_DRIVER(shift);
-	my @params = _HASH0($_[0]) ? %{$_[0]} : @_;
+	my @params = Params::Util::_HASH0($_[0]) ? %{$_[0]} : @_;
 
 	# Create the driver and verify
 	my $object = $driver->new( $class->_PRIVATE(@params) );
-	unless ( _INSTANCE($object, 'SMS::Send::Driver') ) {
+	unless ( Params::Util::_INSTANCE($object, 'SMS::Send::Driver') ) {
 		Carp::croak("Driver Error: $driver->new did not return a driver object");
 	}
 
 	# Hand off to create our object
 	my $self = $class->SUPER::new( $object );
-	unless ( _INSTANCE($self, $class) ) {
+	unless ( Params::Util::_INSTANCE($self, $class) ) {
 		die "Internal Error: Failed to create a $class object";
 	}
 
@@ -166,9 +164,9 @@ sub new {
 
   # Send a message to a particular address
   my $result = $sender->send_sms(
-  	text => 'This is a test message',
-  	to   => '+61 4 1234 5678',
-  	);
+      text => 'This is a test message',
+      to   => '+61 4 1234 5678',
+  );
 
 The C<send_sms> method sends a standard text SMS message to a destination
 phone number.
@@ -273,7 +271,7 @@ sub send_sms {
 		text => $text,
 		to   => $to,
 		$self->_PRIVATE(@_),
-		);
+	);
 
 	# Verify we get some sort of result
 	unless ( defined $rv ) {
@@ -362,11 +360,11 @@ For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2005 Adam Kennedy.
+Copyright 2005 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

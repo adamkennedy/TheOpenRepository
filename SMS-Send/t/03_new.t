@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Test the creation of a new SMS::Send object
 
@@ -99,6 +99,3 @@ SCOPE: {
 		qr/did not return a driver object/,
 	);
 }
-
-
-exit(0);

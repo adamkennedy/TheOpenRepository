@@ -1,11 +1,12 @@
 package SMS::Send::BAD4;
 
 use strict;
-use base 'SMS::Send::Driver';
+use SMS::Send::Driver ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.01';
+	@ISA     = 'SMS::Send::Driver';
 }
 
 1;
