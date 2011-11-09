@@ -52,11 +52,11 @@ TO BE COMPLETED
 use 5.008005;
 use strict;
 use warnings;
+use B                  ();
 use Params::Util  1.00 ();
-use Data::Dumper 2.122 ();
 use FBP           0.38 ();
 
-our $VERSION    = '0.65';
+our $VERSION    = '0.66';
 our $COMPATIBLE = '0.57';
 
 # Event Binding Table
@@ -363,10 +363,11 @@ sub project_header {
 }
 
 sub project_pragma {
-	my $self  = shift;
-
+	my $self = shift;
+	my $perl = $self->project_perl;
 	return [
-		"use 5.008;",
+		"use $perl;",
+		( $self->project_utf8 ? "use utf8;" : () ),
 		"use strict;",
 		"use warnings;",
 	]
@@ -379,6 +380,16 @@ sub project_version {
 	return [
 		"our \$VERSION = '$version';",
 	];
+}
+
+sub project_perl {
+	my $self = shift;
+	return $self->project_utf8 ? '5.008005' : '5.008';
+}
+
+sub project_utf8 {
+	my $self = shift;
+	return $self->project->encoding eq 'UTF-8';
 }
 
 
@@ -3344,21 +3355,26 @@ sub text {
 	return $string;
 }
 
+# This gets tricky if you ever hit weird characters
+# or Unicode, so hand off to an expert.
+# The only reason this is a standalone method is so that
+# specialised subclasses can change it if desired.
 sub quote {
 	my $self   = shift;
 	my $string = shift;
+	my $code   = B::perlstring($string);
+	return $code unless $self->project_utf8;
 
-	# This gets tricky if you ever hit weird characters
-	# or Unicode, so hand off to an expert.
-	my $code = do {
-		local $Data::Dumper::Terse = 1;
-		local $Data::Dumper::Useqq = 1;
-		Data::Dumper::Dumper($string);
-	};
+	# Attempt to convert the escaped string into unicode
+	my $unicode = $code;
+	my $found   = $unicode =~ s/
+		( \\\\ | (?: \\x\{[0-9a-f]{3,}\} )+ )
+	/
+		length($1) > 2 ? eval("\"$1\"") : $1
+	/gex;
 
-	# Trim off the trailing space it will add.
-	$code =~ s/\s+\z//;
-	return $code;
+	return $code unless utf8::is_utf8($unicode);
+	return $unicode;
 }
 
 sub wxsize {

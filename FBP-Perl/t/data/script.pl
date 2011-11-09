@@ -2,12 +2,13 @@
 
 ## no critic
 
-use 5.008;
+use 5.008005;
+use utf8;
 use strict;
 use warnings;
 use t::lib::Simple ();
 
-our $VERSION = '0.65';
+our $VERSION = '0.66';
 
 t::lib::Simple->run;
 

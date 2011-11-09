@@ -1,11 +1,12 @@
 package MyPanel1;
 
-use 5.008;
+use 5.008005;
+use utf8;
 use strict;
 use warnings;
 use Wx 0.98 ':everything';
 
-our $VERSION = '0.65';
+our $VERSION = '0.66';
 our @ISA     = 'Wx::Panel';
 
 sub new {

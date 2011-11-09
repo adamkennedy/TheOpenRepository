@@ -1,6 +1,7 @@
 package MyDialog1;
 
-use 5.008;
+use 5.008005;
+use utf8;
 use strict;
 use warnings;
 use Wx 0.98 ':everything';
@@ -10,7 +11,7 @@ use t::lib::Custom ();
 use t::lib::MyClass ();
 use t::lib::MyHtmlWindow ();
 
-our $VERSION = '0.65';
+our $VERSION = '0.66';
 our @ISA     = 'Wx::Dialog';
 
 sub new {
@@ -692,11 +693,11 @@ sub new {
 	$self->{m_grid1}->SetRowSize( 4, 50 );
 	$self->{m_grid1}->AutoSizeRows;
 	$self->{m_grid1}->EnableDragRowSize(1);
-	$self->{m_grid1}->SetRowLabelValue( 0, Wx::gettext(1) );
-	$self->{m_grid1}->SetRowLabelValue( 1, Wx::gettext(2) );
-	$self->{m_grid1}->SetRowLabelValue( 2, Wx::gettext(3) );
-	$self->{m_grid1}->SetRowLabelValue( 3, Wx::gettext(4) );
-	$self->{m_grid1}->SetRowLabelValue( 4, Wx::gettext(5) );
+	$self->{m_grid1}->SetRowLabelValue( 0, Wx::gettext("1") );
+	$self->{m_grid1}->SetRowLabelValue( 1, Wx::gettext("2") );
+	$self->{m_grid1}->SetRowLabelValue( 2, Wx::gettext("3") );
+	$self->{m_grid1}->SetRowLabelValue( 3, Wx::gettext("4") );
+	$self->{m_grid1}->SetRowLabelValue( 4, Wx::gettext("5") );
 	$self->{m_grid1}->SetRowLabelAlignment( wxALIGN_CENTRE, wxALIGN_CENTRE );
 	$self->{m_grid1}->SetLabelBackgroundColour(
 		Wx::SystemSettings::GetColour( wxSYS_COLOUR_INFOBK )

@@ -2,7 +2,8 @@ package FBP::Demo;
 
 ## no critic
 
-use 5.008;
+use 5.008005;
+use utf8;
 use strict;
 use warnings;
 use Wx 0.98 ':everything';
