@@ -44,7 +44,7 @@ dies_like(
 my $sender = SMS::Send->new( 'AU::MyVodafone',
 	_login    => '0444 444 444',
 	_password => 'foobarbaz',
-	);
+);
 isa_ok( $sender, 'SMS::Send' );
 
 # Test some internals
@@ -71,5 +71,3 @@ dies_like(
 	sub { $sender->_OBJECT_->_send_login },
 	qr/Invalid login and password/,
 );
-
-exit(0);
