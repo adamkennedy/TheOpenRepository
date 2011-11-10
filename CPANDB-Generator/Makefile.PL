@@ -7,7 +7,7 @@ requires       Probe::Perl               0.01
 requires       Time::Elapsed             0.26
 requires       ORDB::CPANRT              0.01
 requires       ORDB::CPANUploads         0.04
-requires       ORDB::CPANTesters         0.09
+requires       ORDB::CPANRelease         0.01
 requires       ORDB::CPANMeta            0.01
 requires       ORDB::CPANMeta::Generator 0.10
 requires       Parse::CPAN::Ratings      0.33
