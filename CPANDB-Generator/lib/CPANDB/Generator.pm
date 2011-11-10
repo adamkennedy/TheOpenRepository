@@ -246,9 +246,16 @@ sub run {
 	} );
 
 	# Load the CPAN Testers database
-	$self->say("Fetching CPAN Testers... (This may take a while)");
-	require ORDB::CPANTesters;
-	ORDB::CPANTesters->import( {
+	# $self->say("Fetching CPAN Testers... (This may take a while)");
+	# require ORDB::CPANTesters;
+	# ORDB::CPANTesters->import( {
+		# show_progress => 1,
+	# } );
+
+	# Load the CPAN Testers summary database
+	$self->say("Fetching CPAN Testers...");
+	require ORDB::CPANRelease;
+	ORDB::CPANRelease->import( {
 		show_progress => 1,
 	} );
 
@@ -281,7 +288,7 @@ sub run {
 	$self->do( "ATTACH DATABASE ? AS meta",    {}, $cpanmeta_sqlite          );
 	$self->do( "ATTACH DATABASE ? AS cpan",    {}, $self->cpan_sql           );
 	$self->do( "ATTACH DATABASE ? AS upload",  {}, ORDB::CPANUploads->sqlite );
-	$self->do( "ATTACH DATABASE ? AS testers", {}, ORDB::CPANTesters->sqlite );
+	# $self->do( "ATTACH DATABASE ? AS testers", {}, ORDB::CPANTesters->sqlite );
 	$self->do( "ATTACH DATABASE ? AS rt",      {}, ORDB::CPANRT->sqlite      );
 
 	# Pre-process the cpan data to produce cleaner intermediate
@@ -362,45 +369,45 @@ END_SQL
 
 	# Pre-process the CPAN Testers results to produce a smaller
 	# database that provides sub-totals for each dist/version/result.
-	$self->say("Cleaning CPAN Testers (pass 1)...");
-	$self->do(<<'END_SQL');
-CREATE TABLE t_cpanstats AS
-SELECT
-	dist AS dist,
-	dist || ' ' || version AS dist_version,
-	state AS state
-FROM testers.cpanstats
-WHERE
-	state IN ( 'pass', 'fail', 'unknown', 'na' )
-	AND perl NOT LIKE '%patch%'
-	AND perl NOT LIKE '%RC%'
-	AND (
-		perl LIKE '5.4%'
-		OR perl LIKE '5.5%'
-		OR perl LIKE '5.6%'
-		OR perl LIKE '5.8%'
-		OR perl LIKE '5.10%'
-		OR perl LIKE '5.12%'
-		OR perl LIKE '5.14%'
-	)
-	AND dist_version in (
-		select dist_version from t_distribution
-	)
-END_SQL
+	# $self->say("Cleaning CPAN Testers (pass 1)...");
+	# $self->do(<<'END_SQL');
+# CREATE TABLE t_cpanstats AS
+# SELECT
+	# dist AS dist,
+	# dist || ' ' || version AS dist_version,
+	# state AS state
+# FROM testers.cpanstats
+# WHERE
+	# state IN ( 'pass', 'fail', 'unknown', 'na' )
+	# AND perl NOT LIKE '%patch%'
+	# AND perl NOT LIKE '%RC%'
+	# AND (
+		# perl LIKE '5.4%'
+		# OR perl LIKE '5.5%'
+		# OR perl LIKE '5.6%'
+		# OR perl LIKE '5.8%'
+		# OR perl LIKE '5.10%'
+		# OR perl LIKE '5.12%'
+		# OR perl LIKE '5.14%'
+	# )
+	# AND dist_version in (
+		# select dist_version from t_distribution
+	# )
+# END_SQL
 
 	# Step two, group into the smaller totals table
-	$self->say("Cleaning CPAN Testers (pass 2)...");
-	$self->do(<<'END_SQL');
-CREATE TABLE t_testers AS
-SELECT
-	dist AS dist,
-	state AS state,
-	COUNT(*) AS total
-FROM
-	t_cpanstats
-GROUP BY
-	dist_version, state
-END_SQL
+	# $self->say("Cleaning CPAN Testers (pass 2)...");
+	# $self->do(<<'END_SQL');
+# CREATE TABLE t_testers AS
+# SELECT
+	# dist AS dist,
+	# state AS state,
+	# COUNT(*) AS total
+# FROM
+	# t_cpanstats
+# GROUP BY
+	# dist_version, state
+# END_SQL
 
 	# Index the totals table
 	$self->say("Cleaning CPAN Testers (indexing)...");
@@ -839,23 +846,23 @@ END_SQL
 	}
 
 	# Fill the CPAN Testers totals
-	$self->say("Generating columns distribution.(pass|fail|unknown|na)...");
-	SCOPE: {
-		my $testers = $self->dbh->selectall_arrayref(
-			'SELECT * FROM t_testers', {}
-		);
-		$self->dbh->begin_work;
-		foreach my $t ( @$testers ) {
-			$self->do(
-				"UPDATE distribution SET $t->[1] = ? WHERE distribution = ?",
-				{}, $t->[2], $t->[0],
-			);
-			next if ++$counter % 100;
-			$self->dbh->commit;
-			$self->dbh->begin_work;
-		}
-		$self->dbh->commit;
-	}
+	# $self->say("Generating columns distribution.(pass|fail|unknown|na)...");
+	# SCOPE: {
+		# my $testers = $self->dbh->selectall_arrayref(
+			# 'SELECT * FROM t_testers', {}
+		# );
+		# $self->dbh->begin_work;
+		# foreach my $t ( @$testers ) {
+			# $self->do(
+				# "UPDATE distribution SET $t->[1] = ? WHERE distribution = ?",
+				# {}, $t->[2], $t->[0],
+			# );
+			# next if ++$counter % 100;
+			# $self->dbh->commit;
+			# $self->dbh->begin_work;
+		# }
+		# $self->dbh->commit;
+	# }
 
 	# Index the rest of the distribution table
 	$self->create_index( distribution => qw{
@@ -879,8 +886,8 @@ END_SQL
 	$self->do( "DROP TABLE t_requires"     );
 	$self->do( "DROP TABLE t_distribution" );
 	$self->do( "DROP TABLE t_uploaded"     );
-	$self->do( "DROP TABLE t_cpanstats"    );
-	$self->do( "DROP TABLE t_testers"      );
+	# $self->do( "DROP TABLE t_cpanstats"    );
+	# $self->do( "DROP TABLE t_testers"      );
 	$self->do( "DROP TABLE t_ticket"       );
 
 	# Clean up databases
@@ -888,7 +895,7 @@ END_SQL
 	$self->do( "DETACH DATABASE cpan"    );
 	$self->do( "DETACH DATABASE upload"  );
 	$self->do( "DETACH DATABASE meta"    );
-	$self->do( "DETACH DATABASE testers" );
+	# $self->do( "DETACH DATABASE testers" );
 	$self->do( "DETACH DATABASE rt"      );
 
 	# Shrink the main database file

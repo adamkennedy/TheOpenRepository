@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.91;
+use inc::Module::Install::DSL 1.04;
 
 all_from       lib/CPANDB/Generator.pm
 requires_from  lib/CPANDB/Generator.pm
