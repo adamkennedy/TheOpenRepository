@@ -1,6 +1,6 @@
 Changes for Perl extension FBP-Perl
 
-0.66 Wed 9 Nov 2011
+0.66 Fri 11 Nov 2011
 	- Moving quote generation from Data::Dumper to B::perlstring
 	- First attempt at generating native UTF-8 Perl code
 	- Generated UTF-8 projects now depend on Perl 5.8.5 to guarentee
