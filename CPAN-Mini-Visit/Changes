@@ -1,5 +1,10 @@
 Changes for Perl extension CPAN-Mini-Visit
 
+1.14 Fri 11 Nov 2011
+	- Moving to a production version.
+	- Force dependency on new Locale::Maketext to rid ourself of some
+	  troublesome and annoying warnings.
+
 0.13 Wed 30 Mar 2011
 	- Clean out mentions of the 'skip' option; this functionality can be 
 	  achieved by passing a sub to the 'ignore' option

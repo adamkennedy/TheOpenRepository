@@ -75,7 +75,7 @@ use Archive::Extract  0.32 ();
 use CPAN::Mini       0.576 ();
 use Params::Util      1.00 ();
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 # $VERSION = eval $VERSION;
 
 use Object::Tiny 1.06 qw{

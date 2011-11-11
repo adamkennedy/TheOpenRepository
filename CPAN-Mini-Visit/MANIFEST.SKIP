@@ -2,7 +2,7 @@
 # Copied from http://svn.ali.as/cpan/tools/shared/MANIFEST.SKIP
 
 # Distribution build and packaging files
-^MYMETA.yml$
+^MYMETA.
 ^Makefile$
 ^Makefile\.[a-z]+$
 ^blib/
