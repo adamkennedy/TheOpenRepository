@@ -218,7 +218,7 @@ END_SQL
 			);
 			if ( -f $path ) {
 				# Add to the ignore list
-				$seen{"$one/$two/$dist"} = 1;
+				$seen{$dist} = 1;
 				next;
 			}
 
@@ -235,7 +235,11 @@ END_SQL
 		$dbh->commit;
 
 		# NOW we need to start ignoring something
-		$ignore = [ sub { $seen{$_[0]} } ];
+		$ignore = [
+			sub {
+				$seen{ $_[0]->{dist} }
+			}
+		];
 	}
 
 	# Clear indexes for speed
