@@ -356,6 +356,7 @@
 			<File
 				RelativePath=".\SpecialRefresh.cpp"
 				>
+			</File>
 			<File
 				RelativePath=".\stdafx.cpp"
 				>
