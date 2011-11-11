@@ -354,6 +354,9 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SpecialRefresh.cpp"
+				>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
