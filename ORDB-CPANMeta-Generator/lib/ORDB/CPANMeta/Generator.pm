@@ -39,10 +39,10 @@ use Params::Util        1.00 ();
 use Getopt::Long        2.34 ();
 use DBI                1.609 ();
 use CPAN::Mini         0.576 ();
-use CPAN::Mini::Visit   0.11 ();
+use CPAN::Mini::Visit   1.14 ();
 use Xtract::Publish     0.12 ();
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 use Object::Tiny 1.06 qw{
 	minicpan
