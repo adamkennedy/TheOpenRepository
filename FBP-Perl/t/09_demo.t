@@ -50,7 +50,7 @@ SCOPE: {
 	my $want  = slurp($output);
 	SKIP: {
 		if ( $ENV{ADAMK_RELEASE} ) {
-			skip("Ignoring known-broken for release", 2);
+			skip("Ignoring known-broken for release", 3);
 		}
 
 		code( $have, $want, '->app_class ok' );
