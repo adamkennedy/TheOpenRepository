@@ -47,11 +47,11 @@ notes framework file.
 sub release_notes_filename {
 	my $self = shift;
 	my $filename =
-	    $self->perl_version_human() . q{.}
-	  . $self->build_number()
-	  . '-' . $self->bits() . 'bit'
-	  . ( $self->portable() ? '-portable' : '' )
-	  . ( $self->beta_number() ? '.beta.' . $self->beta_number() : q{} )
+	  $self->perl_version_human
+	  . '.' . $self->build_number
+	  . '-' . $self->bits . 'bit'
+	  . ($self->portable ? '-portable' : '')
+	  . ($self->beta_number>0 ? '-beta' . $self->beta_number : '')
 	  . '.html';
 
 	return $filename;

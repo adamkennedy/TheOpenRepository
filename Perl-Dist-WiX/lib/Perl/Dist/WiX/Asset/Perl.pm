@@ -402,16 +402,13 @@ EOF
 
 	# If using gcc4, copy the helper dll into perl's bin directory.
 	if ( 4 == $self->_gcc_version() ) {
-	        $self->_copy(
-	                catfile(
-	                        $self->_get_image_dir(), 'c',
-	                        'bin',                   'libgcc_s_sjlj-1.dll'
-	                ),
-	                catfile(
-	                        $self->_get_image_dir(), 'perl',
-	                        'bin',                   'libgcc_s_sjlj-1.dll'
-	                ),
-	        );
+                my $from;
+                
+                $from = catfile($self->_get_image_dir, qw/c bin libgcc_s_sjlj-1.dll/);
+	        $self->_copy($from, catfile($self->_get_image_dir, qw/perl bin libgcc_s_sjlj-1.dll/)) if -f $from;
+                
+                $from = catfile($self->_get_image_dir, qw/c bin libstdc++-6.dll/);
+                $self->_copy($from, catfile($self->_get_image_dir, qw/perl bin libstdc++-6.dll/)) if -f $from;
 	}
 
 	# Delete a2p.exe if relocatable (Can't relocate a binary).

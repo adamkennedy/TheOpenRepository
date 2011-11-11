@@ -3540,8 +3540,11 @@ sub _get_msi_property_list {
 		$list->add_simple_property( 'ARPNOMODIFY', 1 );
 	}
 	$list->add_simple_property( 'ARPCOMMENTS',
-		$self->app_name . ' ' . $self->perl_version_human . '.' . $self->build_number .
-		($self->beta_number > 0 ? '-beta' . $self->beta_number : '')
+		$self->app_name . ' ' . $self->perl_version_human
+		. '.' . $self->build_number
+                #. '-' . $self->bits . 'bit'               #it is already mentioned in app_name
+                #. ( $self->portable ? '-portable' : '' )  #"portable" cannot happen by MSI
+		. ($self->beta_number>0 ? '-beta' . $self->beta_number : '')
                 );
 	$list->add_simple_property( 'ARPCONTACT', $self->app_publisher() );
 	$list->add_simple_property( 'ARPURLINFOABOUT',
@@ -4005,10 +4008,11 @@ sub distribution_version_human {
 	}
 
 	return
-	    $version . q{.}
-	  . $self->build_number()
-	  . ( $self->portable() ? ' Portable' : q{} )
-	  . ( $self->beta_number() ? ' Beta ' . $self->beta_number() : q{} );
+	  $version
+	  . '.' . $self->build_number
+          . '-' . $self->bits . 'bit'
+          . ($self->portable ? ' Portable' : '')
+          . ($self->beta_number>0 ? ' Beta' . $self->beta_number : '');
 }
 
 
@@ -4031,11 +4035,11 @@ sub distribution_version_file {
 	}
 
 	return
-	    $version . q{.}
-	  . $self->build_number()
-          . '-' . $self->bits() . 'bit'
-	  . ( $self->portable() ? '-portable' : q{} )
-	  . ( $self->beta_number() ? '-beta-' . $self->beta_number() : q{} );
+	  $version
+	  . '.' . $self->build_number
+          . '-' . $self->bits . 'bit'
+	  . ($self->portable ? '-portable' : '')
+	  . ($self->beta_number>0 ? '-beta' . $self->beta_number : '');
 }
 
 
@@ -4504,10 +4508,10 @@ sub perl_config_myuname {
 	if ( $self->smoketest() ) {
 		$version .= '.smoketest';
 	} else {
-		$version .= q{.} . $self->build_number();
-		if ( $self->beta_number() > 0 ) {
-			$version .= '.beta_' . $self->beta_number();
-		}
+		$version .= '.' . $self->build_number
+                  #. '-' . $self->bits . 'bit' #not needed as we have 'x64' / 'i386' in the end of myuname
+		  . ($self->portable ? '-portable' : '')
+		  . ($self->beta_number>0 ? '-beta' . $self->beta_number : '')
 	}
 
 	my $bits = ( 64 == $self->bits() ) ? 'x64' : 'i386';

@@ -19,10 +19,7 @@ use Carp qw(carp);
 use Getopt::Long qw(GetOptions);
 use Pod::Usage qw(pod2usage);
 use FindBin;
-
 use Win32::API;
-use constant HWND_BROADCAST => -1;
-use constant WM_SETTINGCHANGE => 0x1a;
 
 sub usage;
 sub version;
@@ -53,7 +50,7 @@ if (not defined $directory) {
 }
 
 # Get the appropriate environment entries.
-my ($hklm_env, $hkcu_env); 
+my ($hklm_env, $hklm_env_ro, $hkcu_env); 
 if ($system) {
 	$hklm_env = Win32::TieRegistry->new(
 		'HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/Session Manager/Environment', 
@@ -63,6 +60,14 @@ if ($system) {
 		}
 	); # returns undef if SYSTEM ENV not writable
 }
+
+$hklm_env_ro = Win32::TieRegistry->new(
+	'HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/Session Manager/Environment', 
+	{ 
+		Access => KEY_READ() | 256,
+		Delimiter => '/', 
+	}
+); # read only SYSTEM ENV - for checking existing PATH items
 
 $hkcu_env = Win32::TieRegistry->new(
     'HKEY_CURRENT_USER/Environment', 
@@ -82,18 +87,29 @@ if (defined($hklm_env)) {
 	$location = 'user';
 }
 
-my (@items_to_add);
-@items_to_add = map { catdir( $directory, $_ ); } qw{c\bin perl\site\bin perl\bin};
+my @existing_path_items;
+push(@existing_path_items, split(/;/,$hklm_env_ro->GetValue('Path'))) if $hklm_env_ro;
+push(@existing_path_items, split(/;/,$hkcu_env->GetValue('Path'))) if $hkcu_env;
+for (@existing_path_items) { $_ =~ s/[\\]*$// }; #remove trailing backslahes
+
+my @items_to_add = map { catdir($directory, $_); } qw{c\bin perl\site\bin perl\bin};
  
 if (defined $env) {
 	my $path = $env->GetValue('Path');
+        my $changed = 0;
 	foreach my $i (@items_to_add) {
-		$path = "$path;$i" unless $path =~ /\Q$i\E/;
-		say "Adding $i to the $location path." unless $quiet;
+		my @found = grep(/^\Q$i\E$/i, @existing_path_items);
+		if (scalar(@found) == 0) {
+		  $path = "$path;$i";
+		  say "Adding $i to the $location path." unless $quiet;
+                  $changed = 1;
+		}
 	}
-	$env->SetValue('Path', $path);
-	$env->SetValue('TERM', 'dumb');
-	say "Adding TERM=dumb to the $location environment." unless $quiet;
+	$env->SetValue('Path', $path) if $changed;
+	if( !defined($env->GetValue('TERM')) || $env->GetValue('TERM') ne 'dumb') {
+	  $env->SetValue('TERM', 'dumb');
+	  say "Adding TERM=dumb to the $location environment." unless $quiet;
+	}
 }
 else {
 	if ($system) {
@@ -103,11 +119,14 @@ else {
 	}
 }
 
-# avoiding the need for re-login or reboot
-my $SendMessage = Win32::API->new("user32", "SendMessage", 'NNNP', 'N') or die "Couldn't create SendMessage: $!\n";
-my $RetVal = $SendMessage->Call(HWND_BROADCAST,WM_SETTINGCHANGE,0,'Environment');
-
-say 'Updating environment variables added.' unless $quiet;
+#gonna send WM_SETTINGCHANGE broadcast - to avoid the need for logout/login
+my $HWND_BROADCAST = -1;
+my $WM_SETTINGCHANGE = 0x1a;
+my $SMTO_ABORTIFHUNG = 0x0002;
+my $result = pack('L', 999999); #allocate one DWORD (32bits)
+my $SendMessageTimeout = Win32::API->new("user32", "SendMessageTimeout", 'NNNPNNP', 'N') or die "Can't import SendMessageTimeout: $!\n";  
+$SendMessageTimeout->Call($HWND_BROADCAST,$WM_SETTINGCHANGE,0,'Environment',$SMTO_ABORTIFHUNG,5000,$result);
+$result = unpack('L',$result);
 
 exit(0);
 
@@ -127,8 +146,6 @@ EOF
 
 	return;
 }
-
-
 
 sub usage {
 	my $error = shift;

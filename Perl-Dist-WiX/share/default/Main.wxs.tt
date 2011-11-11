@@ -133,7 +133,7 @@
 	<CustomAction Id="CA_FileList" Property="CA_Relocate"
 				  Value="MSI;[INSTALLDIR];[% dist.msi_relocation_idlist %]" Return="check" />
 	<CustomAction Id="CA_Relocate" BinaryKey="B_ClearFolder" DllEntry="Relocate" Return="check" Execute="deferred" />
-
+	<CustomAction Id="CA_SpecialRefresh" BinaryKey="B_ClearFolder" DllEntry="SpecialRefresh" Execute="deferred" Impersonate="yes" />
 	<InstallExecuteSequence>
 		<Custom Action="CA_SetARPInstallLoc" Before="RegisterProduct" />
 		<Custom Action="CA_Location_Perl" After="CostFinalize"/>
@@ -142,6 +142,7 @@
 		<Custom Action="CA_Relocate" After="CA_FileList">
 			<![CDATA[NOT (NO_RELOCATE OR Installed)]]>
 		</Custom>
+		<Custom Action="CA_SpecialRefresh" After="WriteEnvironmentStrings" />
 	</InstallExecuteSequence>
 	<Property Id="RELOCFILE" Secure="yes"/>
 	<Property Id="RELOCFILE.[% dist.msm_package_id_property %]" Secure="yes"/>
