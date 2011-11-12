@@ -235,6 +235,7 @@ sub run {
 	$self->say("Fetching CPAN Uploads...");
 	require ORDB::CPANUploads;
 	ORDB::CPANUploads->import( {
+		maxage        => 60 * 60,
 		show_progress => 1,
 	} );
 
@@ -242,20 +243,15 @@ sub run {
 	$self->say("Fetching CPAN RT...");
 	require ORDB::CPANRT;
 	ORDB::CPANRT->import( {
+		maxage        => 60 * 60,
 		show_progress => 1,
 	} );
-
-	# Load the CPAN Testers database
-	# $self->say("Fetching CPAN Testers... (This may take a while)");
-	# require ORDB::CPANTesters;
-	# ORDB::CPANTesters->import( {
-		# show_progress => 1,
-	# } );
 
 	# Load the CPAN Testers summary database
 	$self->say("Fetching CPAN Testers...");
 	require ORDB::CPANRelease;
 	ORDB::CPANRelease->import( {
+		maxage        => 60 * 60,
 		show_progress => 1,
 	} );
 
@@ -279,6 +275,7 @@ sub run {
 		$self->say("Fetching META.yml Data...");
 		require ORDB::CPANMeta;
 		ORDB::CPANMeta->import( {
+			maxage        => 60 * 60,
 			show_progress => 1,
 		} );
 	}
@@ -288,8 +285,8 @@ sub run {
 	$self->do( "ATTACH DATABASE ? AS meta",    {}, $cpanmeta_sqlite          );
 	$self->do( "ATTACH DATABASE ? AS cpan",    {}, $self->cpan_sql           );
 	$self->do( "ATTACH DATABASE ? AS upload",  {}, ORDB::CPANUploads->sqlite );
-	# $self->do( "ATTACH DATABASE ? AS testers", {}, ORDB::CPANTesters->sqlite );
 	$self->do( "ATTACH DATABASE ? AS rt",      {}, ORDB::CPANRT->sqlite      );
+	$self->do( "ATTACH DATABASE ? AS testers", {}, ORDB::CPANRelease->sqlite );
 
 	# Pre-process the cpan data to produce cleaner intermediate
 	# temp tables that produce better joins later on.
@@ -318,12 +315,33 @@ END_SQL
 		release
 	} );
 
+	# Pre-process the CPAN testers data to produce a cleaner intermediate
+	# temp table that will join efficiently later.
+	$self->say("Cleaning CPAN Testers...");
+	$self->do(<<'END_SQL');
+CREATE TABLE t_testers AS
+SELECT
+	dist || ' ' || version as dist_version,
+	pass,
+	fail,
+	na,
+	unknown
+FROM testers.release
+ORDER BY
+	dist_version
+END_SQL
+
+	$self->create_index( t_testers => qw{
+		dist_version
+	} );
+
 	# Pre-process the uploads data to produce a cleaner intermediate
 	# temp table that won't break the joins we'll need to do later on.
 	$self->say("Cleaning CPAN Uploads...");
 	$self->do(<<'END_SQL');
 CREATE TABLE t_uploaded AS
 SELECT
+	dist || ' ' || version as dist_version,
 	author || '/' || filename as release,
 	DATE(released, 'unixepoch') AS uploaded
 FROM upload.uploads
@@ -334,7 +352,10 @@ ORDER BY
 END_SQL
 
 	# Index the temporary tables so our joins don't take forever
-	$self->create_index( t_uploaded => 'release' );
+	$self->create_index( t_uploaded => qw{
+		release
+		dist_version
+	} );
 
 	# Pre-process the RT data to produce a cleaner intermediate
 	# temp table that won't break the joins we'll need to do later on.
@@ -365,55 +386,6 @@ END_SQL
 		distribution
 		status
 		severity
-	} );
-
-	# Pre-process the CPAN Testers results to produce a smaller
-	# database that provides sub-totals for each dist/version/result.
-	# $self->say("Cleaning CPAN Testers (pass 1)...");
-	# $self->do(<<'END_SQL');
-# CREATE TABLE t_cpanstats AS
-# SELECT
-	# dist AS dist,
-	# dist || ' ' || version AS dist_version,
-	# state AS state
-# FROM testers.cpanstats
-# WHERE
-	# state IN ( 'pass', 'fail', 'unknown', 'na' )
-	# AND perl NOT LIKE '%patch%'
-	# AND perl NOT LIKE '%RC%'
-	# AND (
-		# perl LIKE '5.4%'
-		# OR perl LIKE '5.5%'
-		# OR perl LIKE '5.6%'
-		# OR perl LIKE '5.8%'
-		# OR perl LIKE '5.10%'
-		# OR perl LIKE '5.12%'
-		# OR perl LIKE '5.14%'
-	# )
-	# AND dist_version in (
-		# select dist_version from t_distribution
-	# )
-# END_SQL
-
-	# Step two, group into the smaller totals table
-	# $self->say("Cleaning CPAN Testers (pass 2)...");
-	# $self->do(<<'END_SQL');
-# CREATE TABLE t_testers AS
-# SELECT
-	# dist AS dist,
-	# state AS state,
-	# COUNT(*) AS total
-# FROM
-	# t_cpanstats
-# GROUP BY
-	# dist_version, state
-# END_SQL
-
-	# Index the totals table
-	$self->say("Cleaning CPAN Testers (indexing)...");
-	$self->create_index( t_testers => qw{
-		dist
-		state
 	} );
 
 	# Create the author table
@@ -450,11 +422,11 @@ CREATE TABLE distribution (
 	meta INTEGER NOT NULL,
 	license TEXT NULL,
 	release TEXT NOT NULL,
-	uploaded TEXT NOT NULL,
-	pass INTEGER NOT NULL,
-	fail INTEGER NOT NULL,
-	unknown INTEGER NOT NULL,
-	na INTEGER NOT NULL,
+	uploaded TEXT NULL,
+	pass INTEGER NULL,
+	fail INTEGER NULL,
+	unknown INTEGER NULL,
+	na INTEGER NULL,
 	rating TEXT NULL,
 	ratings INTEGER NOT NULL,
 	weight INTEGER NOT NULL,
@@ -473,20 +445,21 @@ SELECT
 	0 as meta,
 	NULL as license,
 	d.release AS release,
-	u.uploaded AS uploaded,
-	0 AS pass,
-	0 AS fail,
-	0 AS unknown,
-	0 AS na,
+	ur.uploaded AS uploaded,
+	t.pass AS pass,
+	t.fail AS fail,
+	t.unknown AS unknown,
+	t.na AS na,
 	NULL AS rating,
 	0 AS ratings,
 	0 AS weight,
 	0 AS volatility
 FROM
-	t_distribution d,
-	t_uploaded u
-WHERE
-	d.release = u.release
+	t_distribution d
+LEFT JOIN
+	t_uploaded ur USING ( release )
+LEFT JOIN
+	t_testers t USING ( dist_version )
 ORDER BY
 	distribution
 END_SQL
@@ -596,18 +569,17 @@ END_SQL
 		module
 		version
 		phase
+		core
 	} );
 
 	# Clean broken versions
 	SCOPE: {
 		$self->say("Cleaning table t_requires...");
-		my $dirty = $self->dbh->selectall_arrayref( <<'END_SQL', {} );
+		$self->dbh->begin_work;
+
+		my $version_list = $self->dbh->selectall_arrayref( <<'END_SQL', {} );
 SELECT
-	r.distribution,
-	r.module,
-	r.version,
-	r.phase,
-	r.core
+	DISTINCT(r.version)
 FROM
 	t_requires r
 WHERE
@@ -615,12 +587,37 @@ WHERE
 	OR
 	r.version like 'v%'
 END_SQL
-		foreach my $t_requires ( @$dirty ) {
-			my $new_version = $t_requires->[2];
-			my $new_core    = $t_requires->[4];
+		foreach my $version ( map { $_->[0] } @$version_list ) {
+			my $new_version = $version;
 			if ( defined $new_version ) {
 				$new_version =~ s/[^\d._]//g;
 			}
+			$self->do(
+				<<'END_SQL', {},
+UPDATE
+	t_requires
+SET
+	version = ?
+WHERE
+	version = ?
+END_SQL
+				$new_version,
+				$version,
+			);
+		}
+
+		my $core_list = $self->dbh->selectall_arrayref( <<'END_SQL', {} );
+SELECT
+	DISTINCT(r.version)
+FROM
+	t_requires r
+WHERE
+	r.version like '>%'
+	OR
+	r.version like 'v%'
+END_SQL
+		foreach my $core ( map { $_->[0] } @$core_list ) {
+			my $new_core = $core;
 			if ( defined $new_core ) {
 				$new_core =~ s/[^\d._]//g;
 			}
@@ -629,20 +626,12 @@ END_SQL
 UPDATE
 	t_requires
 SET
-	version = ?,
-	core    = ?
+	core = ?,
 WHERE
-	distribution = ?
-	AND
-	module = ?
-	AND
-	phase = ?
+	core = ?
 END_SQL
-				$new_version,
 				$new_core,
-				$t_requires->[0],
-				$t_requires->[1],
-				$t_requires->[3],
+				$core,
 			);
 		}
 
@@ -666,6 +655,9 @@ SET
 WHERE
 	version = ''
 END_SQL
+
+		# Finished all changes
+		$self->dbh->commit;
 	}
 
 	# Create the distribution dependency table
@@ -845,25 +837,6 @@ END_SQL
 		$self->dbh->commit;
 	}
 
-	# Fill the CPAN Testers totals
-	# $self->say("Generating columns distribution.(pass|fail|unknown|na)...");
-	# SCOPE: {
-		# my $testers = $self->dbh->selectall_arrayref(
-			# 'SELECT * FROM t_testers', {}
-		# );
-		# $self->dbh->begin_work;
-		# foreach my $t ( @$testers ) {
-			# $self->do(
-				# "UPDATE distribution SET $t->[1] = ? WHERE distribution = ?",
-				# {}, $t->[2], $t->[0],
-			# );
-			# next if ++$counter % 100;
-			# $self->dbh->commit;
-			# $self->dbh->begin_work;
-		# }
-		# $self->dbh->commit;
-	# }
-
 	# Index the rest of the distribution table
 	$self->create_index( distribution => qw{
 		version
@@ -886,8 +859,7 @@ END_SQL
 	$self->do( "DROP TABLE t_requires"     );
 	$self->do( "DROP TABLE t_distribution" );
 	$self->do( "DROP TABLE t_uploaded"     );
-	# $self->do( "DROP TABLE t_cpanstats"    );
-	# $self->do( "DROP TABLE t_testers"      );
+	$self->do( "DROP TABLE t_testers"      );
 	$self->do( "DROP TABLE t_ticket"       );
 
 	# Clean up databases
@@ -895,7 +867,7 @@ END_SQL
 	$self->do( "DETACH DATABASE cpan"    );
 	$self->do( "DETACH DATABASE upload"  );
 	$self->do( "DETACH DATABASE meta"    );
-	# $self->do( "DETACH DATABASE testers" );
+	$self->do( "DETACH DATABASE testers" );
 	$self->do( "DETACH DATABASE rt"      );
 
 	# Shrink the main database file
