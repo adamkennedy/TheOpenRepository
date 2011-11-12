@@ -268,7 +268,7 @@ sub run {
 			prefer_bin => $prefer_bin,
 			publish    => undef,
 			warnings   => 1,
-			delta      => 1,
+			delta      => 0,
 		);
 		$cpanmeta->run;
 	} else {
