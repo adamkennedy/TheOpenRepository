@@ -287,6 +287,7 @@ END_SQL
 				$dist->{meta_version}   = $meta->version;
 				$dist->{meta_abstract}  = $meta->abstract;
 				$dist->{meta_generated} = $meta->generated_by;
+				$dist->{meta_generated} =~ s/,.+//;
 				$dist->{meta_license}   = join ', ', $meta->licenses;
 				$dist->{meta_from}      = undef;
 
