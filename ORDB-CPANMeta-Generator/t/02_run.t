@@ -79,7 +79,7 @@ is_deeply( $distributions, [
 		'Fetch the current AU terror alert level',
 		'Module::Install version 0.63',
 		undef,
-		'perl'
+		'perl_5'
 	],
 	[
 		'ADAMK/CSS-Tiny-1.15.tar.gz',
@@ -89,7 +89,7 @@ is_deeply( $distributions, [
 		'Read/Write .css files with as little code as possible',
 		'ExtUtils::MakeMaker version 6.32',
 		undef,
-		'perl'
+		'perl_5'
 	],
 	[
 		'ADAMK/Config-Tiny-2.12.tar.gz',
@@ -99,7 +99,7 @@ is_deeply( $distributions, [
 		'Read/Write .ini style files with as little code as possible',
 		'ExtUtils::MakeMaker version 6.32',
 		undef,
-		'perl'
+		'perl_5'
 	],
 	[
 		'ANDYA/HTML-Tiny-1.05.tar.gz',
@@ -109,7 +109,7 @@ is_deeply( $distributions, [
 		'Lightweight, dependency free HTML/XML generation',
 		'ExtUtils::MakeMaker version 6.48',
 		undef,
-		'perl'
+		'perl_5'
 	]
 ], 'Distributions ok' );
 is_deeply( $dependencies, [
