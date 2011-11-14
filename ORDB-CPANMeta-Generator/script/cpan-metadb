@@ -2,11 +2,11 @@
 
 use 5.008;
 use strict;
-use Params::Util                   qw{ _STRING };
+use Params::Util                   ();
 use Getopt::Long                   ();
-use ORDB::CPANMeta::Generator 0.11 ();
+use ORDB::CPANMeta::Generator 0.12 ();
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 # Check params
 my $DELTA = 0;
@@ -18,7 +18,7 @@ Getopt::Long::GetOptions(
 
 # Check the minicpan location
 my $minicpan = shift @ARGV;
-unless ( _STRING($minicpan) and -d $minicpan ) {
+unless ( Params::Util::_STRING($minicpan) and -d $minicpan ) {
 	die('Missing or non-existant minicpan directory');
 }
 

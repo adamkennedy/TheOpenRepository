@@ -2,6 +2,7 @@ Changes for Perl extension ORDB-CPANMeta-Generator
 
 0.12 to be released
 	- Updating CPAN::Mini::Visit dependency to rid us of warnings
+	- Updating to use CPAN::Meta
 
 0.11 Tue 29 Mar 2011
 	- Read from either META.json or META.yaml
