@@ -19,7 +19,7 @@ use strict;
 use warnings;
 use File::Spec          0.80 ();
 use HTML::Spry::DataSet 0.01 ();
-use Google::Chart       0.05014;
+# use Google::Chart       0.05014;
 use List::Util          0.01;
 
 # Download and load the CPAN data
@@ -140,9 +140,9 @@ sub dataset {
 		sql_more  => @more ? \@more : '',
 	);
 	$self->spry->add( $name, $header, @report );
-	$self->chart( $title, @report )->render_to_file(
-		filename => $self->file( "$name.png" ),
-	);
+	# $self->chart( $title, @report )->render_to_file(
+		# filename => $self->file( "$name.png" ),
+	# );
 }
 
 sub report {
@@ -160,17 +160,26 @@ sub report {
 
 sub chart {
 	my $self   = shift;
-	my $title  = shift;
+
+	# Create the chart
+	my $title = Google::Chart::Title->new( text => shift );
+	my $chart = Google::Chart->create(
+		Line => (
+			size  => "400x300",
+			title => $title,
+		)
+	);
+
+	# Fill the chart with data
 	my @report = map { $_->[1] } @_;
 	my $scale  = List::Util::max @report;
-	my @data   = map {
-		$scale ? ($_ / $scale * 100) : 0
-	} @report;
-	Google::Chart->new(
-		title => { text => $title },
-		type  => 'Line',
-		data  => \@data,
+	$chart->add_dataset(
+		data => [ map {
+			$scale ? ($_ / $scale * 100) : 0
+		} @report ],
 	);
+
+	return $chart;
 }
 
 
