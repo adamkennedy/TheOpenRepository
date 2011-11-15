@@ -6,6 +6,7 @@ CPAN:
   histfile: cpan/histfile
   keep_source_where: cpan/sources
   make: c/bin/dmake.exe
+  make_install_make_command: c/bin/dmake.exe
   makepl_arg: ''
   patch: c/bin/patch.exe
   prefs_dir: cpan/prefs
