@@ -142,7 +142,7 @@
 		<Custom Action="CA_Relocate" After="CA_FileList">
 			<![CDATA[NOT (NO_RELOCATE OR Installed)]]>
 		</Custom>
-		<Custom Action="CA_SpecialRefresh" After="WriteEnvironmentStrings" />
+		<Custom Action="CA_SpecialRefresh" After="PublishProduct" /> <!-- or After="WriteEnvironmentStrings" -->
 	</InstallExecuteSequence>
 	<Property Id="RELOCFILE" Secure="yes"/>
 	<Property Id="RELOCFILE.[% dist.msm_package_id_property %]" Secure="yes"/>

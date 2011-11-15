@@ -280,7 +280,17 @@ sub install_cpan_upgrades {
 	        'perl/lib/CPANPLUS/Config.pm' => $self->image_dir(),
 	        { dist => $self, } );
 
-	# Install newest dev version of CPAN if we haven't already.
+        # Install newest dev version of EU::MM if we haven't already.
+	if ( not $self->fragment_exists('ExtUtils_MakeMaker') ) {
+	        $self->install_distribution(
+	                name             => 'MSCHWERN/ExtUtils-MakeMaker-6.63_02.tar.gz',
+	                mod_name         => 'ExtUtils::MakeMaker',
+	                makefilepl_param => ['INSTALLDIRS=perl'],
+	                buildpl_param    => [ '--installdirs', 'core' ],
+	        );
+	}
+
+        # Install newest dev version of CPAN if we haven't already.
 	if ( not $self->fragment_exists('CPAN') ) {
 	        $self->install_distribution(
 	                name             => 'ANDK/CPAN-1.9800.tar.gz',                        
