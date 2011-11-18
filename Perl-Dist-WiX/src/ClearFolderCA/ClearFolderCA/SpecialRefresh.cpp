@@ -8,7 +8,7 @@
 
 UINT __stdcall SpecialRefresh(MSIHANDLE hModule) {    
     SendMessageTimeout( HWND_BROADCAST, WM_SETTINGCHANGE, 0,
-                        (LPARAM) TEXT("Environment"), SMTO_ABORTIFHUNG,
+                        (LPARAM) _T("Environment"), SMTO_ABORTIFHUNG,
                         5000, NULL );
 
     return ERROR_SUCCESS;
