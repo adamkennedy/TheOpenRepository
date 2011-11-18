@@ -169,13 +169,8 @@ around '_build_library_information' => sub {
       'mingw-make'      => 'kmx/32_tools/32bit_gmake-3.82-bin_20110503.zip',
       'pexports'        => 'kmx/32_tools/32bit_pexports-0.44-bin_20100110.zip',
       'patch'           => 'kmx/32_tools/32bit_patch-2.5.9-7-bin_20100110_UAC.zip',
-
       'gcc-toolchain'   => 'kmx/32_gcctoolchain/mingw64-w32-gcc4.4.7-pre_20111101.zip',
       'gcc-license'     => 'kmx/32_gcctoolchain/mingw64-w32-gcc4.4.7-pre_20111101-lic.zip',      
-      #XXX-FIXME just testing 4.5.4
-      #'gcc-toolchain'   => 'kmx/32_gcctoolchain/mingw64-w32-gcc4.5.4-pre_20111102.zip',
-      #'gcc-license'     => 'kmx/32_gcctoolchain/mingw64-w32-gcc4.5.4-pre_20111102-lic.zip',
-
       'libdb'           => 'kmx/32_libs/5.14/32bit_db-5.1.25-bin_20110506.zip',
       'libexpat'        => 'kmx/32_libs/5.14/32bit_expat-2.0.1-sezero20110428-bin_20110506.zip',
       'freeglut'        => 'kmx/32_libs/5.14/32bit_freeglut-2.6.0-bin_20110506.zip',
