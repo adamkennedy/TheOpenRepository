@@ -20,6 +20,7 @@ use Getopt::Long qw(GetOptions);
 use Pod::Usage qw(pod2usage);
 use FindBin;
 use Win32::API;
+use Config;
 
 sub usage;
 sub version;
@@ -93,10 +94,10 @@ push(@existing_path_items, split(/;/,$hkcu_env->GetValue('Path'))) if $hkcu_env;
 for (@existing_path_items) { $_ =~ s/[\\]*$// }; #remove trailing backslahes
 
 my @items_to_add = map { catdir($directory, $_); } qw{c\bin perl\site\bin perl\bin};
+my $changed = 0;
  
 if (defined $env) {
 	my $path = $env->GetValue('Path');
-        my $changed = 0;
 	foreach my $i (@items_to_add) {
 		my @found = grep(/^\Q$i\E$/i, @existing_path_items);
 		if (scalar(@found) == 0) {
@@ -109,6 +110,7 @@ if (defined $env) {
 	if( !defined($env->GetValue('TERM')) || $env->GetValue('TERM') ne 'dumb') {
 	  $env->SetValue('TERM', 'dumb');
 	  say "Adding TERM=dumb to the $location environment." unless $quiet;
+	  $changed = 1;
 	}
 }
 else {
@@ -119,14 +121,22 @@ else {
 	}
 }
 
-#gonna send WM_SETTINGCHANGE broadcast - to avoid the need for logout/login
-my $HWND_BROADCAST = -1;
-my $WM_SETTINGCHANGE = 0x1a;
-my $SMTO_ABORTIFHUNG = 0x0002;
-my $result = pack('L', 999999); #allocate one DWORD (32bits)
-my $SendMessageTimeout = Win32::API->new("user32", "SendMessageTimeout", 'NNNPNNP', 'N') or die "Can't import SendMessageTimeout: $!\n";  
-$SendMessageTimeout->Call($HWND_BROADCAST,$WM_SETTINGCHANGE,0,'Environment',$SMTO_ABORTIFHUNG,5000,$result);
-$result = unpack('L',$result);
+if ($changed) {
+  #gonna send WM_SETTINGCHANGE broadcast - to avoid the need for logout/login
+  my $HWND_BROADCAST   = 0xFFFF;
+  my $WM_SETTINGCHANGE = 0x001A;
+  my $SMTO_ABORTIFHUNG = 0x0002;
+  my $null = pack('xxxxxxxx'); # 8 x zero byte
+
+  if ($Config{archname} =~ /MSWin32-x64/) {
+    #XXX-FIXME probably a bug in Win32::API causes a crash when calling SendMessageTimeout on x64
+    warn "\nBEWARE: You need to logout/login to make updates of environment variables effective!\n";
+  }
+  else {
+    my $SendMessageTimeout = Win32::API->new("user32", "SendMessageTimeout", 'NNNPNNP', 'N') or die "Can't import SendMessageTimeout: $!\n";  
+    $SendMessageTimeout->Call($HWND_BROADCAST,$WM_SETTINGCHANGE,0,'Environment',$SMTO_ABORTIFHUNG,5000,$null);
+  }
+}
 
 exit(0);
 
