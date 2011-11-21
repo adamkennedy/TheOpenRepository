@@ -45,6 +45,7 @@ my $builder = Builder->new(
 		'File::Remove'               => '1.42', # TODO: Should take out and use File::Path instead.
 		'File::ShareDir'             => '1.02',
 		'File::Spec'                 => '3.29',
+		'File::Slurp'                => '9999.13',
 		'File::Temp'                 => '0.21',
 		'HTTP::Status'               => '5.817',
 		'IPC::Run3'                  => '0.042',

@@ -30,6 +30,8 @@ use English qw( -no_match_vars );
 use File::Spec::Functions qw( catfile );
 use IO::File qw();
 use File::List::Object qw();
+use File::Find::Rule;
+use File::Slurp;
 
 our $VERSION = '1.550';
 
