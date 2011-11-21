@@ -66,7 +66,36 @@ release notes to upload to a web site.
 
 =cut
 
-
+sub _get_dist_pkgs {
+  my $self = shift;
+  my $dir = $self->image_dir . "/licenses";
+  my $results = {};  
+  my @files = File::Find::Rule->file->name('_INFO_')->in($dir);
+  for my $file (@files) {
+    my @lines = read_file($file);
+    my ($pkg, $src, $home, $comment) = ('','','','');
+    for my $l (@lines) {
+      my ($label, $txt) = $l =~ /^([^: ]+): *(.*)$/;                  
+      if (!$label) {
+        $results->{$pkg} = { Sources=>$src, Homepage=>$home, Comment=>$comment } if $pkg;
+        ($pkg, $src, $home, $comment) = ('','','','');
+        next;
+      }  
+      $label = lc($label);
+      $pkg  = $txt if $label eq 'package';
+      $src  = $txt if $label eq 'sources';
+      $home = $txt if $label eq 'homepage';
+      $comment .= ($comment ? "\n" : "") . $txt if $label eq 'comment';
+    }
+    $results->{$pkg} = { Sources=>$src, Homepage=>$home, Comment=>$comment } if $pkg;
+  }
+  
+  my $rv = '';
+  for my $p (sort keys(%$results)) {
+    $rv .= "<tr><td>$p</td><td><a href='$results->{$p}->{Homepage}'>$results->{$p}->{Homepage}</a></td><td><a href='$results->{$p}->{Sources}'>Source</a></td><td></td></tr>";
+  }
+  return $rv;
+}
 
 sub _get_cpan_link {
 	my $self = shift;
@@ -114,6 +143,7 @@ sub create_release_notes {
 		dist      => $self,
 		dist_list => $dist_list,
 		dist_date => $date,
+		dist_pkgs => $self->_get_dist_pkgs,
 	};
 
 	my $tt = $self->patch_template();
