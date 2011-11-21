@@ -120,6 +120,7 @@ sub create_release_notes {
 	my $self = shift;
 	my $dist_list;
 	my ( $name, $ver, $link );
+	my @all_dists;
 
 	foreach my $dist ( $self->_get_distributions() ) {
 		$link = $self->_get_cpan_link($dist);
@@ -131,8 +132,12 @@ sub create_release_notes {
 		if ( not defined $name ) {
 			$self->trace_line( 0, "Could not parse $dist\n" );
 		}
-		$dist_list .= qq{<tr><td>$name</td><td>$ver</td><td>}
-		  . qq{<a href="$link">Source</a></td></tr>\n};
+		push @all_dists, { name=>$name, ver=>$ver, link=>$link };
+	}
+	@all_dists = sort {lc($a->{name}) cmp lc($b->{name})} @all_dists;
+	for (@all_dists) {
+		$dist_list .= qq{<tr><td>$_->{name}</td><td>$_->{ver}</td><td>}
+			. qq{<a href="$_->{link}">Source</a></td></tr>\n};
 	}
 
 	my @time   = localtime;
