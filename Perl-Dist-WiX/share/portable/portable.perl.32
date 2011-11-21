@@ -39,13 +39,13 @@ Config:
   installprivlib: perl/lib
   installscript: perl/bin
   installsitearch: perl/site/lib
-  installsitebin: perl/site/bin
+  installsitebin: perl/bin
   installsitehtml1dir: ''
   installsitehtml3dir: ''
   installsitelib: perl/site/lib
   installsiteman1dir: ''
   installsiteman3dir: ''
-  installsitescript: 'perl/site/bin'
+  installsitescript: 'perl/bin'
   installstyle: perl/lib
   installusrbinperl: ~
   installvendorarch: 'perl/vendor/lib'
@@ -95,12 +95,11 @@ Config:
   vendorprefix: perl/vendor
   vendorprefixexp: perl/vendor
   vendorscript: ''
-  sitescript: perl/site/bin
-  sitescriptexp: perl/site/bin
+  sitescript: perl/bin
+  sitescriptexp: perl/bin
   vendorscriptexp: perl/bin
   usrinc: c/include
 Env:
   PATH:
     - c/bin
-    - perl/site/bin
     - perl/bin
