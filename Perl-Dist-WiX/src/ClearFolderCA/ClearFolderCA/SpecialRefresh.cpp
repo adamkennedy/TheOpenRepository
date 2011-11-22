@@ -7,9 +7,10 @@
 #include "stdafx.h"
 
 UINT __stdcall SpecialRefresh(MSIHANDLE hModule) {    
+    DWORD_PTR dwResult;
     SendMessageTimeout( HWND_BROADCAST, WM_SETTINGCHANGE, 0,
                         (LPARAM) _T("Environment"), SMTO_ABORTIFHUNG,
-                        5000, NULL );
+                        5000, &dwResult );
 
     return ERROR_SUCCESS;
 }
