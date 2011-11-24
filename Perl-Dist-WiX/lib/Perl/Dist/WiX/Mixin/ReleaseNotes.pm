@@ -94,7 +94,7 @@ sub _get_dist_pkgs {
   
   my $rv = '';
   for my $p (sort keys(%$results)) {
-    $rv .= "<tr><td>$p</td><td><a href='$results->{$p}->{Homepage}'>$results->{$p}->{Homepage}</a></td><td><a href='$results->{$p}->{Sources}'>Source</a></td><td></td></tr>";
+    $rv .= "<tr><td>$p</td><td><a href='$results->{$p}->{Homepage}'>$results->{$p}->{Homepage}</a></td><td><a href='$results->{$p}->{Sources}'>Source</a></td><td></td></tr>\n";
   }
   return $rv;
 }

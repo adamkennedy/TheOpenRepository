@@ -103,6 +103,16 @@ has force => (
 );
 
 
+=head3 follow_deps
+
+=cut
+
+has follow_deps => (
+	is      => 'bare',
+	isa     => Bool,
+	reader  => '_get_follow_deps',
+	default => 0,
+);
 
 =head3 packlist
 
@@ -185,6 +195,7 @@ sub install {
 	my $packlist_flag = $self->_get_packlist();
 	my $use_sqlite    = $self->_use_sqlite();
 	my $output_dir    = $self->_get_output_dir();
+	my $follow_deps   = $self->_get_follow_deps();
 	my $vendor =
 	    !$self->_get_parent()->portable()                    ? 1
 	  : ( $self->_get_parent()->perl_major_version() >= 12 ) ? 1
@@ -216,7 +227,12 @@ CPAN::HandleConfig->load unless \$CPAN::Config_loaded++;
 \$CPAN::Config->{'use_sqlite'} = q[$use_sqlite];
 \$CPAN::Config->{'prefs_dir'} = q[$dp_dir];
 \$CPAN::Config->{'patches_dir'} = q[$dp_dir];
-\$CPAN::Config->{'prerequisites_policy'} = q[ignore];
+if ($follow_deps) {
+  \$CPAN::Config->{'prerequisites_policy'} = q[follow];
+}
+else {
+  \$CPAN::Config->{'prerequisites_policy'} = q[ignore];
+}
 \$CPAN::Config->{'connect_to_internet_ok'} = q[$internet_available];
 \$CPAN::Config->{'ftp'} = q[];
 if ($vendor) {
@@ -284,7 +300,7 @@ END_PERL
 	}
 
 	# Dump the CPAN script to a temp file and execute
-	$self->_trace_line( 1, "Running install(s) of $name\n" );
+	$self->_trace_line( 1, "Running install of $name [skip_tests=$force, follow_deps=$follow_deps]\n" );
 	$self->_trace_line( 2, '  at ' . localtime() . "\n" );
 	my $cpan_file = catfile( $self->_get_build_dir(), 'cpan_string.pl' );
   SCOPE: {
