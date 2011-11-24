@@ -1,5 +1,9 @@
 Revision history for Perl extension AutoLoader
 
+5.72  Thu Nov 24 19:15 2011
+  - Update FSF address.
+  - Fix META.yml info on upstream.
+
 5.71  Sat Nov 20 01:20 2010
   - Merge another test change from core:
     Use "lvalue" attribute for testing since "locked"
