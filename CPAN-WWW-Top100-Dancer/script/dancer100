@@ -1,0 +1,11 @@
+#!/usr/bin/perl
+
+use 5.008;
+use strict;
+use warnings;
+use Dancer;
+use CPAN::WWW::Top100::Dancer;
+
+our $VERSION = '0.01';
+
+dance;
