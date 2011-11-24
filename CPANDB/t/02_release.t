@@ -12,10 +12,29 @@ unless ( $ENV{RELEASE_TESTING} ) {
 	exit(0);
 }
 
-plan( tests => 32 );
+plan( tests => 35 );
 
 # Download and load the database
 use_ok( 'CPANDB' );
+
+
+
+
+######################################################################
+# Age tracking
+
+SCOPE: {
+	my $latest = CPANDB->latest;
+	like( $latest, qr/^\d\d\d\d-\d\d-\d\d$/, 'Got date' );
+	my $datetime = CPANDB->latest_datetime;
+	isa_ok( $datetime, 'DateTime' );
+	my $age = CPANDB->age;
+	ok(
+		defined Params::Util::_NONNEGINT($age),
+		'Got non-negative integer for ->age',
+	);
+	diag("Age: $age days");
+}
 
 
 
@@ -27,7 +46,11 @@ use_ok( 'CPANDB' );
 my $d = CPANDB->distribution('Config-Tiny');
 isa_ok( $d, 'CPANDB::Distribution' );
 isa_ok( $d->uploaded_datetime, 'DateTime' );
-isa_ok( $d->age, 'DateTime::Duration' );
+my $age = $d->age;
+ok(
+	defined Params::Util::_NONNEGINT($age),
+	'Got non-negative integer for ->age',
+);
 
 
 
@@ -124,6 +147,9 @@ SCOPE: {
 SCOPE: {
 	my $vector = CPANDB::Distribution->vector('weight');
 	isa_ok( $vector, 'Statistics::Basic::Vector' );
-	my $age = CPANDB::Distribution->vector('age_months');
-	isa_ok( $vector, 'Statistics::Basic::Vector' );
+	my $age = CPANDB::Distribution->vector(
+		'age_months',
+		'WHERE uploaded IS NOT NULL',
+	);
+	isa_ok( $age, 'Statistics::Basic::Vector' );
 }

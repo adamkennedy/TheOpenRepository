@@ -4,11 +4,16 @@ use 5.008005;
 use strict;
 use warnings;
 use IO::File             ();
-use Params::Util         1.00 ();
-use ORLite::Mirror       1.20 ();
+use DateTime        0.55 ();
+use Params::Util    1.00 ();
+use ORLite::Mirror  1.20 ();
 use CPANDB::Distribution ();
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
+our @LOCATION = (
+	locale    => 'C',
+	time_zone => 'UTC',
+);
 
 sub import {
 	my $class  = shift;
@@ -28,6 +33,40 @@ sub import {
 	ORLite::Mirror->import( $params );
 
 	return 1;
+}
+
+sub latest {
+	my $class = shift;
+
+	# Find the distribution most recently uploaded
+	my @latest = CPANDB::Distribution->select(
+		'ORDER BY uploaded DESC LIMIT 1',
+	);
+	unless ( @latest == 1 ) {
+		die "Unexpected number of uploads";
+	}
+
+	# When was it?
+	return $latest[0]->uploaded;
+}
+
+sub latest_datetime {
+	my $class  = shift;
+	my @latest = split /\D+/, $class->latest;
+	return DateTime->new(
+		year  => $latest[0],
+		month => $latest[1],
+		day   => $latest[2],
+		@LOCATION,
+	);
+}
+
+sub age {
+	my $class    = shift;
+	my $latest   = $class->latest_datetime;
+	my $today    = DateTime->today( @LOCATION );
+	my $duration = $today - $latest;
+	return $duration->in_units('days');
 }
 
 sub distribution {

@@ -171,30 +171,11 @@ no means prohibited.
 The C<pragma> method provides a convenient method for fetching a pragma
 for a database. See the L<SQLite> documentation for more details.
 
-=head2 distribution
-
-  my $dist = CPANDB->distribution('Config-Tiny');
-
-The C<distribution> method is a convenient shortcut for direct access to
-the L<CPANDB::Distribution> object for a single named distribution.
-
-=head2 graph
-
-  my $everything = CPANDB->graph;
-
-Originally created as a proof of concept for L<Graph> integration, the C<graph>
-method creates a single giant L<Graph::Directed> object representing the
-dependency structure of the entire CPAN at a distribution-to-distribution level.
-
-The graphing features of L<CPANDB> are considered optional. To use this method
-you will need to install L<Graph::Directed> yourself, and set up a dependency
-in any code that uses L<Graph> features.
-
 =head1 SUPPORT
 
 B<CPANDB> is based on L<ORLite>.
 
-Documentation created by L<ORLite::Pod> 0.08.
+Documentation created by L<ORLite::Pod> 0.10.
 
 Bugs should be reported via the CPAN bug tracker at
 
@@ -208,7 +189,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2009 - 2010 Adam Kennedy.
+Copyright 2009 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

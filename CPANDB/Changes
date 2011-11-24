@@ -1,5 +1,10 @@
 Changes for Perl extension CPANDB
 
+0.16 Thu 24 Nov 2011
+	- Added CPANDB->latest method
+	- Added CPANDB->latest_datetime method
+	- Added CPANDB->age_days method
+
 0.15 Sat 11 Sep 2010
 	- Added CPAN::Distribution::perl_version method
 

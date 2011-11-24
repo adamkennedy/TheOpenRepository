@@ -6,7 +6,7 @@ use warnings;
 use DateTime 0.50 ();
 use ORLite::Statistics 0.03;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 my $today = DateTime->today( time_zone => 'UTC' );
 
@@ -39,17 +39,25 @@ sub uploaded_datetime {
 		year      => $date[0],
 		month     => $date[1],
 		day       => $date[2],
-		locale    => 'C',
-		time_zone => 'UTC',
+		@CPANDB::LOCATION,
 	);
 }
 
 sub age {
-	$today - $_[0]->uploaded_datetime;
+	my $class    = shift;
+	my $duration = $class->age_duration;
+	return $duration->in_units('days');
+}
+
+sub age_duration {
+	my $class    = shift;
+	my $latest   = $class->uploaded_datetime;
+	my $today    = DateTime->today( @CPANDB::LOCATION );
+	return $today - $latest;
 }
 
 sub age_months {
-	$_[0]->age->in_units('months');
+	$_[0]->age_duration->in_units('months');
 }
 
 sub quartile {

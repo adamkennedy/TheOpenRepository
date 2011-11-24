@@ -66,7 +66,7 @@ compatible with SQLite can be used in the parameter.
 
 Returns a list of B<CPANDB::Requires> objects when called in list context, or a
 reference to an C<ARRAY> of B<CPANDB::Requires> objects when called in scalar
- context.
+context.
 
 Throws an exception on error, typically directly from the L<DBI> layer.
 
@@ -162,25 +162,11 @@ following SQL command.
       module TEXT NOT NULL,
       version TEXT NULL,
       phase TEXT NOT NULL,
-      PRIMARY KEY (
-          distribution,
-          module,
-          phase
-      )
-  ,
-      FOREIGN KEY (
-          distribution
-      )
-      REFERENCES distribution (
-          distribution
-      )
-  ,
-      FOREIGN KEY (
-          module
-      )
-      REFERENCES module (
-          module
-      )
+      PRIMARY KEY (distribution,
+      module,
+      phase),
+      FOREIGN KEY (distribution) REFERENCES distribution (distribution),
+      FOREIGN KEY (module) REFERENCES module (module)
   )
 
 =head1 SUPPORT
@@ -195,7 +181,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2009 - 2010 Adam Kennedy.
+Copyright 2009 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
