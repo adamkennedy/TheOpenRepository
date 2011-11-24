@@ -1,0 +1,11 @@
+<div id="page">
+    <div id="content">
+        <div id="header">
+            <h1>Perl is dancing</h1>
+            <h2>You&rsquo;ve joined the dance floor!</h2>
+        </div>
+        <h1>Modules</h1>
+        <p>Things to do with modules</p>
+        <p><a href="/module/Config::Tiny">Config::Tiny</a></p>
+    </div>
+</div>

@@ -1,0 +1,11 @@
+<div id="page">
+    <div id="content">
+        <div id="header">
+            <h1>Perl is dancing</h1>
+            <h2>You&rsquo;ve joined the dance floor!</h2>
+        </div>
+        <h1>Authors</h1>
+        <p>Things to do with authors</p>
+        <p><a href="/author/ADAMK">Adam Kennedy</a></p>
+    </div>
+</div>

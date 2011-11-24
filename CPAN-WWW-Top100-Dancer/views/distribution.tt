@@ -1,0 +1,11 @@
+<div id="page">
+    <div id="content">
+        <div id="header">
+            <h1>Perl is dancing</h1>
+            <h2>You&rsquo;ve joined the dance floor!</h2>
+        </div>
+        <h1>Distribution: [% this.distribution %]</h1>
+        <pre>[% json %]</pre>
+	<p><a href="/distribution/[% this.distribution %]/graph">Dependency Graph</a></p>
+    </div>
+</div>

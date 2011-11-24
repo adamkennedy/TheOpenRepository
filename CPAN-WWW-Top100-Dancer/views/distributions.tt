@@ -1,0 +1,11 @@
+<div id="page">
+    <div id="content">
+        <div id="header">
+            <h1>Perl is dancing</h1>
+            <h2>You&rsquo;ve joined the dance floor!</h2>
+        </div>
+        <h1>Distributions</h1>
+        <p>Things to do with distributions</p>
+        <p><a href="/distribution/Config-Tiny">Config-Tiny</a></p>
+    </div>
+</div>
