@@ -1,5 +1,9 @@
 Changes for Perl extension CPANDB
 
+0.17 Fri 25 Nov 2011
+	- Updated to ORLite 1.51 for overlay support
+	- Added CPANDB::Author->distributions method
+
 0.16 Thu 24 Nov 2011
 	- Added CPANDB->latest method
 	- Added CPANDB->latest_datetime method

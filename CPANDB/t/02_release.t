@@ -12,7 +12,7 @@ unless ( $ENV{RELEASE_TESTING} ) {
 	exit(0);
 }
 
-plan( tests => 35 );
+plan( tests => 37 );
 
 # Download and load the database
 use_ok( 'CPANDB' );
@@ -51,6 +51,11 @@ ok(
 	defined Params::Util::_NONNEGINT($age),
 	'Got non-negative integer for ->age',
 );
+
+my $author = CPANDB::Author->load('ADAMK');
+isa_ok( $author, 'CPANDB::Author' );
+my @dists = $author->distributions;
+ok( scalar(@dists) > 100, 'Found lots of distributions' );
 
 
 

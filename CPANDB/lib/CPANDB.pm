@@ -6,10 +6,10 @@ use warnings;
 use IO::File             ();
 use DateTime        0.55 ();
 use Params::Util    1.00 ();
+use ORLite          1.51 ();
 use ORLite::Mirror  1.20 ();
-use CPANDB::Distribution ();
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 our @LOCATION = (
 	locale    => 'C',
 	time_zone => 'UTC',
