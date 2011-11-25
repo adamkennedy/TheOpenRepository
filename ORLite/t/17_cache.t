@@ -32,7 +32,7 @@ package Foo::Bar;
 use strict;
 use vars qw{\$VERSION};
 BEGIN {
-	\$VERSION = '1.51';
+	\$VERSION = '1.23';
 }
 
 use ORLite {
@@ -72,7 +72,7 @@ package Foo::Bar;
 use strict;
 use vars qw{\$VERSION};
 BEGIN {
-	\$VERSION = '1.51';
+	\$VERSION = '1.23';
 }
 
 use ORLite {
