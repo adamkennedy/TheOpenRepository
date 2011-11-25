@@ -1,5 +1,11 @@
 Changes for Perl extension ORLite
 
+1.51 Fri 25 Nov 2011
+	- Module::Install::DSL updated to 1.04
+	- Automatically load overlay classes if there exist. That is, where a
+	  Foo/TableName.pm module exists in addition to the automatically
+	  generated Foo::TableName class.
+
 1.50 Tue 7 Jun 2011
 	- Removed normalize as a supported parameter, normalizing columns turns
 	  out not to work in practice. However, we always normalize tables to

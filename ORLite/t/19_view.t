@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Tests the basic functionality of SQLite.
+# Tests support for views
 
 use strict;
 
