@@ -14,7 +14,7 @@ use File::Remove 'clear';
 use t::lib::Test;
 
 # Where will the cache file be written to
-my $cached = catfile( qw{ t Foo-Bar-1-23-ORLite-1-50-user_version-2.pm } );
+my $cached = catfile( qw{ t Foo-Bar-1-23-ORLite-1-51-user_version-2.pm } );
 clear($cached);
 ok( ! -e $cached, 'Cache file does not initially exist' );
 
@@ -32,7 +32,7 @@ package Foo::Bar;
 use strict;
 use vars qw{\$VERSION};
 BEGIN {
-	\$VERSION = '1.23';
+	\$VERSION = '1.51';
 }
 
 use ORLite {
@@ -72,7 +72,7 @@ package Foo::Bar;
 use strict;
 use vars qw{\$VERSION};
 BEGIN {
-	\$VERSION = '1.23';
+	\$VERSION = '1.51';
 }
 
 use ORLite {
