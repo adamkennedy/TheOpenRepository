@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 15;
+use Test::More tests => 18;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
@@ -83,7 +83,7 @@ SCOPE: {
 		code( $have, $want, '->app_class ok' );
 	}
 	compiles( $have, 'Shim class compiled' );
-	$INC{'FBP/Demo/Frame/Main.pm'} = 1;
+	$INC{'FBP/Demo/Main.pm'} = 1;
 }
 
 

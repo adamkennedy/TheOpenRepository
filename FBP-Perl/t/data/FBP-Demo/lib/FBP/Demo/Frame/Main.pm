@@ -1,4 +1,4 @@
-package FBP::Demo::Frame::Main;
+package FBP::Demo::Main;
 
 ## no critic
 

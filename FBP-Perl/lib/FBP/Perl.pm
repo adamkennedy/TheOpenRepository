@@ -456,9 +456,10 @@ sub app_class {
 	my $isa     = $self->app_isa;
 
 	# Find the first frame, our default top frame
-	my $require = $self->form_package(
-		$self->project->find_first( isa => 'FBP::Frame' )
-	);
+	my $frame   = $self->project->find_first( isa => 'FBP::Frame' );
+	my $require = $self->shim
+		? $self->shim_package($frame)
+		: $self->form_package($frame);
 
 	return [
 		"package $package;",
@@ -542,14 +543,16 @@ sub app_wx {
 }
 
 sub app_forms {
-	my $self = shift;
+	my $self  = shift;
+	my @forms = $self->project->forms;
+	my @names = $self->shim
+		? ( map { $self->shim_package($_) } @forms )
+		: ( map { $self->form_package($_) } @forms );
 
 	return [
 		map {
 			"use $_ ();"
-		} map {
-			$self->form_package($_)
-		} $self->project->forms
+		} @names
 	];
 }
 
@@ -578,6 +581,7 @@ sub shim_class {
 	my $package = $self->shim_package($form);
 	my $header  = $self->shim_header($form);
 	my $pragma  = $self->shim_pragma($form);
+	my $more    = $self->shim_more($form);
 	my $version = $self->shim_version($form);
 	my $isa     = $self->shim_isa($form);
 
@@ -586,6 +590,7 @@ sub shim_class {
 		"",
 		@$header,
 		@$pragma,
+		@$more,
 		"",
 		@$version,
 		@$isa,
@@ -614,6 +619,18 @@ sub shim_header {
 
 sub shim_pragma {
 	shift->project_pragma(@_);
+}
+
+sub shim_more {
+	my $self = shift;
+	my $form = shift;
+
+	# We only need to load our super class
+	my $super = $self->form_package($form);
+
+	return [
+		"use $super ();",
+	];
 }
 
 sub shim_version {
@@ -689,15 +706,31 @@ sub form_class {
 sub form_package {
 	my $self = shift;
 	my $form = shift;
-	my $name = $form->name;
 
-	# If the project has a namespace nest the name inside it
-	if ( $self->project->namespace ) {
-		$name = join '::', $self->app_package, $name;
+	unless ( $self->project->namespace ) {
+		# A simple standalone full namespace
+		if ( $self->shim ) {
+			return join '::', $form->name, 'FBP';
+		} else {
+			return $form->name;
+		}
 	}
 
-	# Otherwise the name is the full namespace
-	return $name;
+	# Nest the name inside the project namespace
+	if ( $self->shim ) {
+		return join(
+			'::',
+			$self->app_package,
+			'FBP',
+			$form->name,
+		);
+	} else {
+		return join(
+			'::',
+			$self->app_package,
+			$form->name,
+		);
+	}
 }
 
 sub form_header {
