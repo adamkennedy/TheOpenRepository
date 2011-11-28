@@ -305,6 +305,7 @@ sub new {
 	unless ( defined $self->nocritic ) {
 		$self->{nocritic} = 0;
 	}
+	$self->{shim}     = $self->shim     ? 1 : 0;
 	$self->{nocritic} = $self->nocritic ? 1 : 0;
 
 	return $self;
@@ -320,6 +321,10 @@ sub version {
 
 sub prefix {
 	$_[0]->{prefix};
+}
+
+sub shim {
+	$_[0]->{shim};
 }
 
 sub i18n {
@@ -401,8 +406,8 @@ sub project_utf8 {
 
 sub script_app {
 	my $self    = shift;
-	my $pragma  = $self->script_pragma;
 	my $header  = $self->script_header;
+	my $pragma  = $self->script_pragma;
 	my $package = $self->app_package;
 	my $version = $self->script_version;
 
@@ -565,6 +570,77 @@ sub app_isa {
 
 
 ######################################################################
+# Shim Generators
+
+sub shim_class {
+	my $self = shift;
+	my $form = shift;
+	my $package = $self->shim_package($form);
+	my $header  = $self->shim_header($form);
+	my $pragma  = $self->shim_pragma($form);
+	my $version = $self->shim_version($form);
+	my $isa     = $self->shim_isa($form);
+
+	return [
+		"package $package;",
+		"",
+		@$header,
+		@$pragma,
+		"",
+		@$version,
+		@$isa,
+		"",
+		"1;",
+	];
+}
+
+sub shim_package {
+	my $self = shift;
+	my $form = shift;
+	my $name = $form->name;
+
+	# If the project has a namespace nest the name inside it
+	if ( $self->project->namespace ) {
+		$name = join '::', $self->app_package, $name;
+	}
+
+	# Otherwise the name is the full namespace
+	return $name;
+}
+
+sub shim_header {
+	shift->project_header(@_);
+}
+
+sub shim_pragma {
+	shift->project_pragma(@_);
+}
+
+sub shim_version {
+	my $self = shift;
+	my $form = shift;
+
+	# Ignore the form and inherit from the parent project
+	return $self->project_version;
+}
+
+sub shim_isa {
+	my $self = shift;
+	my $form = shift;
+
+	# Get the main form class
+	my $super = $self->form_package($form);
+
+	return [
+		"our \@ISA     = '$super';",
+	];
+}
+
+
+
+
+
+######################################################################
 # Form Generators
 
 sub dialog_class {
@@ -584,7 +660,7 @@ sub form_class {
 	my $form    = shift;
 	my $package = $self->form_package($form);
 	my $header  = $self->form_header($form);
-	my $pragma  = $self->project_pragma($form);
+	my $pragma  = $self->form_pragma($form);
 	my $wx      = $self->form_wx($form);
 	my $more    = $self->form_custom($form);
 	my $version = $self->form_version($form);
@@ -613,18 +689,23 @@ sub form_class {
 sub form_package {
 	my $self = shift;
 	my $form = shift;
+	my $name = $form->name;
 
 	# If the project has a namespace nest the name inside it
 	if ( $self->project->namespace ) {
-		return join '::', $self->app_package, $form->name;
+		$name = join '::', $self->app_package, $name;
 	}
 
 	# Otherwise the name is the full namespace
-	return $form->name;
+	return $name;
 }
 
 sub form_header {
 	shift->project_header(@_);
+}
+
+sub form_pragma {
+	shift->project_pragma(@_);
 }
 
 sub form_wx {
