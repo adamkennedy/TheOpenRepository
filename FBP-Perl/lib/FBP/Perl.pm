@@ -56,7 +56,7 @@ use B                  ();
 use Params::Util  1.00 ();
 use FBP           0.38 ();
 
-our $VERSION    = '0.66';
+our $VERSION    = '0.67';
 our $COMPATIBLE = '0.57';
 
 # Event Binding Table
