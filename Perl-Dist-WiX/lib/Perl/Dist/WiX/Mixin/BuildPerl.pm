@@ -432,6 +432,9 @@ sub _skip_upgrade {
 	# If the ID is CGI::Carp, there's a bug in the index.
 	return 1 if $module->id() eq 'CGI::Carp';
 
+	# upgrading Locale::Constants causes installation of older Locale-Codes-3.16
+	return 1 if $module->cpan_file() =~ m{/Locale-Codes-3 [.] 16}msx;
+
 	# If the ID is ExtUtils::MakeMaker, we've already installed it.
 	# There were some files gotten rid of after 6.50, so
 	# install_cpan_upgrades thinks that it needs to upgrade

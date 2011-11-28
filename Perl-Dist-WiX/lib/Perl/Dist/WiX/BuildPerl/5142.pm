@@ -47,8 +47,9 @@ around '_install_perl_plugin' => sub {
       win32/config_H.gc
       win32/config_H.gc64nox
       win32/FindExt.pm
-      ext\NDBM_File\hints\MSWin32.pl
-      ext\ODBM_File\hints\MSWin32.pl
+      dist/threads/threads.xs
+      ext/NDBM_File/hints/MSWin32.pl
+      ext/ODBM_File/hints/MSWin32.pl
     } ],
     license => {
       'perl-5.14.2/Readme'   => 'perl/Readme',
