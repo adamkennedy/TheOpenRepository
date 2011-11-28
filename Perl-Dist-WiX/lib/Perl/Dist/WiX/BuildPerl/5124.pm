@@ -141,8 +141,7 @@ around '_build_toolchain_modules' => sub {
     LWP
 
     File::Slurp
-    Capture::Tiny
-    Perl::OSType
+    Capture::Tiny    
   };
 
   return \@modules_list;
