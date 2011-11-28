@@ -281,7 +281,7 @@ has '_is_git_snapshot' => (
 has 'required_module_corelist' => (
   is       => 'ro',
   init_arg => undef,
-  default  => sub { '2.49' },
+  default  => sub { '2.56' },
 );
 
 no Moose::Role;

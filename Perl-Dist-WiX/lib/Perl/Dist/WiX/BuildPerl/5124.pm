@@ -63,7 +63,6 @@ around '_build_toolchain_modules' => sub {
   shift;
   my $self = shift;
 
-  warn "XXX-DEBUG '_build_toolchain_modules'";
   #XXX-FIXME hack by kmx: removed ExtUtils::ParseXS from the list below
   my @modules_list = ( qw {
     ExtUtils::MakeMaker
@@ -143,12 +142,17 @@ around '_build_toolchain_modules' => sub {
 
     File::Slurp
     Capture::Tiny
+    Perl::OSType
   };
 
   return \@modules_list;
 };
 
 around '_get_forced_toolchain_dists' => sub {
+  #return {
+  #  'LWP' => 'GAAS/libwww-perl-5.837.tar.gz', # New version of LWP creates problems for https on 64 bit systems
+  #  'CPAN' => 'ANDK/CPAN-1.97_51.tar.gz',
+  #}
   return {};
 };
 
@@ -280,7 +284,7 @@ has '_is_git_snapshot' => (
 has 'required_module_corelist' => (
   is       => 'ro',
   init_arg => undef,
-  default  => sub { '2.49' },
+  default  => sub { '2.56' },
 );
 
 no Moose::Role;
