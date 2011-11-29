@@ -1,12 +1,6 @@
-use inc::Module::Install;
+use inc::Module::Install::DSL 1.04;
 
-name          'Parse-CSV';
-all_from      'lib/Parse/CSV.pm';
-requires      'Carp'         => 0;
-requires      'IO::File'     => 0;
-requires      'Text::CSV_XS' => '0.42';
-requires      'Params::Util' => '0.17';
-test_requires 'File::Spec'   => '0.80';
-test_requires 'Test::More'   => '0.47';
-
-WriteAll;
+all_from      lib/Parse/CSV.pm
+requires_from lib/Parse/CSV.pm
+test_requires File::Spec   0.80
+test_requires Test::More   0.47

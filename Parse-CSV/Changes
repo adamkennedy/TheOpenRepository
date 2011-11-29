@@ -1,25 +1,20 @@
-Revision history for Perl extension Parse::CSV
-1.02 Sun 27 Feb 2011
-	- renaming method setcolnames to colnames. So everybody knows that this is a getter/setter pair 
+Revision history for Perl extension Parse-CSV
 
-1.02 Wed 24 Nov 2010
-	- POD Change
+1.03 Tue 29 Nov 2011
+	- Upgrade to Module::Install::DSL 1.04
+	- The 'fields' constructor param is now 'names'
+	- Added back-compatibility support for older 'fields' indefinitely
+	- Added 'names' accessor to get or set the column names on the fly
+	- POD changes
+	- Adding tests for names
+	- RT bug #31389 "fields" is a method of Text::CSV_XS
+	- RT Bug #51692
+	- RT bug #51081 Some replacements of "CVS" with "CSV"
+	- Added tests for fields and string
 
-1.02 Thu 04 Nov 2010
-	- adding new methods:
-		- "setcolnames" changes (or gets) colnames of your fields-array (hashkeys). It is like renaming colnames.
-		- "addcolnames" adds colnames at the end of your fields-array (hashkeys). 
-	- adding tests
+1.02 not released
 
-1.01 Sun 29 Aug 2010
-	- adding new method:
-		- "fields" is a method of Text::CSV_XS (RT bug #31389 fields() method
-	- Pod-fixes 
-		- RT Bug #51692
-		- some replacements of "CVS" with "CSV" (RT bug #51081)
-	- adding tests
-		- method fields 
-		- method string
+1.01 not released
 
 1.01 Sat 10 May 2008
 	- Methods combine/string/print were infinite looping, fixed

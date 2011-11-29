@@ -1,15 +1,15 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Compile testing for Parse::CSV
 
 use strict;
-use File::Spec::Functions ':ALL';
 BEGIN {
 	$|  = 1;
 	$^W = 1;
 }
 
-use Test::More tests => 56;
+use Test::More tests => 54;
+use File::Spec::Functions ':ALL';
 use Parse::CSV;
 
 my $readfile = catfile( 't', 'data', 'simple.csv' );
@@ -25,7 +25,7 @@ ok( -f $readfile, "$readfile exists" );
 SCOPE: {
 	my $csv = Parse::CSV->new(
 		file => $readfile,
-		);
+	);
 	isa_ok( $csv, 'Parse::CSV' );
 	is( $csv->row,    0,  '->row returns 0' );
 	is( $csv->errstr, '', '->errstr returns ""' );
@@ -67,7 +67,7 @@ SCOPE: {
 	my $csv = Parse::CSV->new(
 		file   => $readfile,
 		fields => 'auto',
-		);
+	);
 	isa_ok( $csv, 'Parse::CSV' );
 	is( $csv->row,    1,  '->row returns 1' );
 	is( $csv->errstr, '', '->errstr returns ""' );
@@ -93,10 +93,8 @@ SCOPE: {
 	is( $csv->row,    3,  '->row returns 3' );
 	is( $csv->errstr, '', '->errstr returns ""' );
 
-	is_deeply( [ $csv->colnames ], [ qw{a b c d e} ], '->colnames() (get) returns as expected' );
-	is_deeply( [ $csv->addcolnames("fext") ], [ qw{a b c d e fext} ], '->addcolnames() returns as expected' );
-	is_deeply( [ $csv->colnames ], [ qw{a b c d e fext} ], '->colnames() after addcolumns() returns as expected' );
-	is_deeply( [ $csv->colnames(qw{aa b c d e fext}) ], [ qw{aa b c d e fext} ], '->colnames() (set) returns as expected' );
+	is_deeply( [ $csv->names ], [ qw{a b c d e} ], '->colnames() (get) returns as expected' );
+	is_deeply( [ $csv->names(qw{aa b c d e fext}) ], [ qw{aa b c d e fext} ], '->colnames() (set) returns as expected' );
 
 	# Get the line after the end
 	my $fetch3 = $csv->fetch;
@@ -118,7 +116,7 @@ SCOPE: {
 		file   => $readfile,
 		fields => 'auto',
 		filter => sub { bless $_, 'Foo' },
-		);
+	);
 	isa_ok( $csv, 'Parse::CSV' );
 	is( $csv->row,    1,  '->row returns 1' );
 	is( $csv->errstr, '', '->errstr returns ""' );
@@ -150,7 +148,7 @@ SCOPE: {
 		file   => $readfile,
 		fields => 'auto',
 		filter => sub { $_->{a} =~ /\d/ ? undef : $_ },
-		);
+	);
 	isa_ok( $csv, 'Parse::CSV' );
 	is( $csv->row,    1,  '->row returns 1' );
 	is( $csv->errstr, '', '->errstr returns ""' );
@@ -168,6 +166,3 @@ SCOPE: {
 	is( $csv->row,    3,  '->row returns 3' );
 	is( $csv->errstr, '', '->errstr returns ""' );
 }
-
-
-exit(0);
