@@ -25,7 +25,7 @@ Parse::CSV - Highly flexible CSV parser for large files
   my $objects = Parse::CSV->new(
       handle => $io_handle,
       sep_char   => ';',
-      names      => 'auto',
+      names      => 1,
       filter     => sub { My::Object->new( $_ ) },
   );
   
@@ -161,7 +161,7 @@ values found in the CSV file.
 If the C<names> param is B<not> provided, the parser will return simple
 array references of the columns.
 
-If the C<names> param is the string 'auto', the names will be
+If the C<names> param is true and not a reference, the names will be
 automatically determined by reading the first line of the CSV file and
 using those values as the field names.
 
@@ -227,7 +227,7 @@ sub new {
 	}
 
 	# Handle automatic field names
-	if ( Params::Util::_STRING($self->{names}) and lc($self->{names}) eq 'auto' ) {
+	if ( Params::Util::_STRING($self->{names}) and $self->{names} ) {
 		# Grab the first line
 		my $line = $self->_getline;
 		unless ( defined $line ) {
@@ -370,7 +370,7 @@ The C<row> method returns the current row of the CSV file.
 
 This is a one-based count, so when you first create the parser,
 the value of C<row> will be zero (unless you are using
-C<< names => 'auto' >> in which case it will be 1).
+C<names> on automatic in which case it will be 1).
 
 =cut
 
