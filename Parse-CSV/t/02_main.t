@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 54;
+use Test::More tests => 71;
 use File::Spec::Functions ':ALL';
 use Parse::CSV;
 
@@ -66,7 +66,7 @@ SCOPE: {
 SCOPE: {
 	my $csv = Parse::CSV->new(
 		file  => $readfile,
-		names => 'auto',
+		names => 1,
 	);
 	isa_ok( $csv, 'Parse::CSV' );
 	is( $csv->row,    1,  '->row returns 1' );

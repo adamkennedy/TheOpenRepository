@@ -109,7 +109,7 @@ use Params::Util 0.22 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.03';
+	$VERSION = '1.99';
 }
 
 

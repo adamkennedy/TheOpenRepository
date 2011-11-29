@@ -1,6 +1,7 @@
 Revision history for Perl extension Parse-CSV
 
-1.03 Tue 29 Nov 2011
+1.99 Tue 29 Nov 2011
+	- Significant refactoring of the way column names are handled
 	- Upgrade to Module::Install::DSL 1.04
 	- The 'fields' constructor param is now 'names'
 	- The 'names' param treats any true non-reference as 'auto'
