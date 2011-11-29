@@ -31,7 +31,7 @@ use IPC::Run3             0.042 ();
 use Time::HiRes          1.9709 ();
 use Time::Elapsed          0.24 ();
 use DBI                    1.57 ':sql_types';
-use DBD::SQLite            1.25 ();
+use DBD::SQLite            1.35 ();
 use Xtract::Scan                ();
 use Xtract::Scan::SQLite        ();
 use Xtract::Scan::mysql         ();
@@ -43,14 +43,14 @@ our $VERSION = '0.16';
 
 use Mouse 0.93;
 
-has from         => ( is => 'ro', isa => 'Str'  );
-has user         => ( is => 'ro', isa => 'Str'  );
-has pass         => ( is => 'ro', isa => 'Str'  );
-has to           => ( is => 'ro', isa => 'Str'  );
-has index        => ( is => 'ro', isa => 'Bool' );
-has trace        => ( is => 'ro', isa => 'Bool' );
-has sqlite_cache => ( is => 'ro', isa => 'Int'  );
-has argv         => ( is => 'ro', isa => 'ArrayRef[Str]' );
+has from         => ( is => 'ro', isa => 'Str'             );
+has user         => ( is => 'ro', isa => 'Str'             );
+has pass         => ( is => 'ro', isa => 'Str'             );
+has to           => ( is => 'ro', isa => 'Str'             );
+has index        => ( is => 'ro', isa => 'Bool'            );
+has trace        => ( is => 'ro', isa => 'Bool'            );
+has sqlite_cache => ( is => 'ro', isa => 'Int'             );
+has argv         => ( is => 'ro', isa => 'ArrayRef[Str]'   );
 has publish      => ( is => 'rw', isa => 'Xtract::Publish' );
 
 no Mouse;
@@ -88,6 +88,11 @@ sub main {
 		$FROM = "DBI:$FROM";
 	}
 
+	# Check required params
+	unless ( $FROM ) {
+		croak("Did not provide a 'from' param");
+	}
+
 	# Create the program instance
 	my $self = $class->new(
 		from  => $FROM,
@@ -109,7 +114,6 @@ sub main {
 	# Run the object
 	$self->run;
 }
-
 
 
 
@@ -248,7 +252,7 @@ sub create_table {
 	my $to   = $dbh->prepare($insert) or croak($DBI::errstr);
 	while ( my $row = $from->fetchrow_arrayref ) {
 		if ( $bind ) {
-			# When inserting blobs, we need to use the bind_param method
+			# Table contains complex content, use full binding
 			foreach ( 0 .. $#$row ) {
 				if ( defined $bind->[$_] ) {
 					$to->bind_param( $_ + 1, $row->[$_], $bind->[$_] );
