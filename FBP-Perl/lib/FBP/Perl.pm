@@ -53,11 +53,12 @@ use 5.008005;
 use strict;
 use warnings;
 use B                  ();
+use Scalar::Util  1.19 ();
 use Params::Util  1.00 ();
 use FBP           0.38 ();
 
 our $VERSION    = '0.67';
-our $COMPATIBLE = '0.57';
+our $COMPATIBLE = '0.67';
 
 # Event Binding Table
 our %EVENT = (
@@ -305,8 +306,10 @@ sub new {
 	unless ( defined $self->nocritic ) {
 		$self->{nocritic} = 0;
 	}
-	$self->{shim}     = $self->shim     ? 1 : 0;
-	$self->{nocritic} = $self->nocritic ? 1 : 0;
+	$self->{nocritic}  = $self->nocritic  ? 1 : 0;
+	$self->{shim}      = $self->shim      ? 1 : 0;
+	$self->{shim_deep} = $self->shim_deep ? 1 : 0;
+	$self->{shim_deep} = 0 unless $self->shim;
 
 	return $self;
 }
@@ -323,10 +326,6 @@ sub prefix {
 	$_[0]->{prefix};
 }
 
-sub shim {
-	$_[0]->{shim};
-}
-
 sub i18n {
 	$_[0]->{i18n};
 }
@@ -337,6 +336,14 @@ sub i18n_trim {
 
 sub nocritic {
 	$_[0]->{nocritic};
+}
+
+sub shim {
+	$_[0]->{shim};
+}
+
+sub shim_deep {
+	$_[0]->{shim_deep};
 }
 
 
@@ -562,10 +569,13 @@ sub app_version {
 
 sub app_isa {
 	my $self = shift;
+	return $self->ourisa(
+		$self->app_super(@_)
+	);
+}
 
-	return [
-		"our \@ISA     = 'Wx::App';",
-	];
+sub app_super {
+	return 'Wx::App';
 }
 
 
@@ -606,6 +616,11 @@ sub shim_package {
 
 	# If the project has a namespace nest the name inside it
 	if ( $self->project->namespace ) {
+		if ( $self->shim_deep ) {
+			my $type = Scalar::Util::blessed($form);
+			$type =~ s/^.*?(\w+)$/$1/;
+			$name = join '::', $type, $name;
+		}
 		$name = join '::', $self->app_package, $name;
 	}
 
@@ -643,14 +658,13 @@ sub shim_version {
 
 sub shim_isa {
 	my $self = shift;
-	my $form = shift;
+	return $self->ourisa(
+		$self->shim_super(@_)
+	);
+}
 
-	# Get the main form class
-	my $super = $self->form_package($form);
-
-	return [
-		"our \@ISA     = '$super';",
-	];
+sub shim_super {
+	shift->form_package(@_);
 }
 
 
@@ -659,18 +673,6 @@ sub shim_isa {
 
 ######################################################################
 # Form Generators
-
-sub dialog_class {
-	shift->form_class(@_);
-}
-
-sub frame_class {
-	shift->form_class(@_);
-}
-
-sub panel_class {
-	shift->form_class(@_);
-}
 
 sub form_class {
 	my $self    = shift;
@@ -701,6 +703,18 @@ sub form_class {
 		"",
 		"1;",
 	];
+}
+
+sub dialog_class {
+	shift->form_class(@_);
+}
+
+sub frame_class {
+	shift->form_class(@_);
+}
+
+sub panel_class {
+	shift->form_class(@_);
 }
 
 sub form_package {
@@ -791,23 +805,21 @@ sub form_version {
 }
 
 sub form_isa {
+	my $self  = shift;
+	return $self->ourisa(
+		$self->form_super(@_)
+	);
+}
+
+sub form_super {
 	my $self = shift;
 	my $form = shift;
 	if ( $form->isa('FBP::Dialog') ) {
-		return [
-			"our \@ISA     = 'Wx::Dialog';",
-		];
-
+		return 'Wx::Dialog';
 	} elsif ( $form->isa('FBP::Frame') ) {
-		return [
-			"our \@ISA     = 'Wx::Frame';",
-		];
-
+		return 'Wx::Frame';
 	} elsif ( $form->isa('FBP::Panel') ) {
-		return [
-			"our \@ISA     = 'Wx::Panel';",
-		];
-
+		return 'Wx::Panel';
 	} else {
 		die "Unsupported form " . ref($form);
 	}
@@ -816,7 +828,7 @@ sub form_isa {
 sub form_new {
 	my $self    = shift;
 	my $form    = shift;
-	my $super   = $self->form_super($form);
+	my $super   = $self->form_supernew($form);
 	my @windows = $self->children_create($form);
 	my @sizers  = $self->form_sizers($form);
 	my $status  = $form->find_first( isa => 'FBP::StatusBar' );
@@ -847,21 +859,21 @@ sub form_new {
 	);
 }
 
-sub form_super {
+sub form_supernew {
 	my $self = shift;
 	my $form = shift;
 	if ( $form->isa('FBP::Dialog') ) {
-		return $self->dialog_super($form);
+		return $self->dialog_supernew($form);
 	} elsif ( $form->isa('FBP::Frame') ) {
-		return $self->frame_super($form);
+		return $self->frame_supernew($form);
 	} elsif ( $form->isa('FBP::Panel') ) {
-		return $self->panel_super($form);
+		return $self->panel_supernew($form);
 	} else {
 		die "Unsupported top class " . ref($form);
 	}
 }
 
-sub dialog_super {
+sub dialog_supernew {
 	my $self     = shift;
 	my $dialog   = shift;
 	my $id       = $self->object_id($dialog);
@@ -881,7 +893,7 @@ sub dialog_super {
 	);
 }
 
-sub frame_super {
+sub frame_supernew {
 	my $self     = shift;
 	my $frame    = shift;
 	my $id       = $self->object_id($frame);
@@ -901,7 +913,7 @@ sub frame_super {
 	);
 }
 
-sub panel_super {
+sub panel_supernew {
 	my $self     = shift;
 	my $panel    = shift;
 	my $id       = $self->object_id($panel);
@@ -3402,6 +3414,30 @@ sub list {
 		s/\\(.)/$1/g;
 	}
 	return @list;
+}
+
+sub ourisa {
+	my $self  = shift;
+	my @super = shift;
+
+	# Complex inheritance
+	if ( @super > 1 ) {
+		return [
+			"our \@ISA     = qw{",
+			( map { "\t$_" } @super ),
+			"};",
+		];
+	}
+
+	# Simple inheritance
+	if ( @super ) {
+		return [
+			"our \@ISA     = '$super[0]';",
+		];
+	}
+
+	# No inheritance
+	return [ ];
 }
 
 sub wx {

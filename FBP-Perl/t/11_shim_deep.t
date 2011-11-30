@@ -26,10 +26,11 @@ my $project = $fbp->find_first(
 	isa => 'FBP::Project',
 );
 my $code = FBP::Perl->new(
-	project  => $project,
-	version  => '0.01',
-	nocritic => 1,
-	shim     => 1,
+	project   => $project,
+	version   => '0.01',
+	nocritic  => 1,
+	shim      => 1,
+	shim_deep => 1,
 );
 isa_ok( $project, 'FBP::Project' );
 isa_ok( $code, 'FBP::Perl' );
@@ -68,7 +69,7 @@ SCOPE: {
 # Shim Generation
 
 SCOPE: {
-	my $output= catfile( 't', 'data', 'FBP-Demo', 'lib', 'FBP', 'Demo', 'MainShim.pm' );
+	my $output= catfile( 't', 'data', 'FBP-Demo', 'lib', 'FBP', 'Demo', 'Frame', 'Main.pm' );
 	ok( -f $output, "Found test file $output" );
 
 	# Generate the frame code
@@ -94,7 +95,7 @@ SCOPE: {
 # App Generation
 
 SCOPE: {
-	my $output = catfile( 't', 'data', 'FBP-Demo', 'lib', 'FBP', 'Demo.pm' );
+	my $output = catfile( 't', 'data', 'FBP-Demo', 'lib', 'FBP', 'DemoDeep.pm' );
 	ok( -f $output, "Found test file $output" );
 
 	# Generate the launch script

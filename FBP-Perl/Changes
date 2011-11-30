@@ -1,9 +1,14 @@
 Changes for Perl extension FBP-Perl
 
-0.67 to be released
+0.67 Wed 30 Nov 2011
 	- Added form_pragma defaulting to project_pragma
 	- Added shim support throughout the entire stack.
 	- Added shim_class to get the code for shim classes
+	- Changed *_super to *_supernew
+	- Split logic from *_isa into *_super and have it just
+	  wrap calls to *_super and ourisa
+	- Added shim_deep to supper generating shims under a sub
+	  namespace based on the type of form object
 
 0.66 Fri 11 Nov 2011
 	- Moving quote generation from Data::Dumper to B::perlstring
