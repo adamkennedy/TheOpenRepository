@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 12;
+use Test::More tests => 14;
 use Test::NoWarnings;
 use t::lib::Test;
 use FBP::Perl;
@@ -26,21 +26,50 @@ ok( $fbp->parse_file($input), '->parse_file ok' );
 my $project = $fbp->find_first(
 	isa => 'FBP::Project',
 );
-my $code = FBP::Perl->new(
+my $perl = FBP::Perl->new(
 	project => $project,
 	version => $FBP::Perl::VERSION,
 );
 isa_ok( $project, 'FBP::Project' );
-isa_ok( $code, 'FBP::Perl' );
-is( $code->i18n,      1, '->i18n'      );
-is( $code->i18n_trim, 0, '->i18n_trim' );
+isa_ok( $perl, 'FBP::Perl' );
+is( $perl->i18n,      1, '->i18n'      );
+is( $perl->i18n_trim, 0, '->i18n_trim' );
 
 # Test Dialog string generators
 my $dialog = $fbp->form('MyDialog1');
 isa_ok( $dialog, 'FBP::Dialog' );
 
 # Generate the entire dialog constructor
-my $have = $code->dialog_class($dialog);
+my $have = $perl->dialog_class($dialog);
 my $want = slurp($output);
 code( $have, $want, '->dialog_class ok' );
 compiles( $have, 'Dialog class compiled' );
+
+
+
+
+
+######################################################################
+# Unit Testing
+
+# Regression test for ourisa
+SCOPE: {
+	is_deeply(
+		$perl->ourisa('Foo'),
+		[
+			"our \@ISA     = 'Foo';",
+		],
+		'->ourisa(single) ok',
+	);
+
+	is_deeply(
+		$perl->ourisa('Foo', 'Bar'),
+		[
+			"our \@ISA     = qw{",
+			"\tFoo",
+			"\tBar",
+			"};",
+		],
+		'->ourisa(multiple) ok',
+	);
+}

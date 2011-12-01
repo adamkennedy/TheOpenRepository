@@ -57,7 +57,7 @@ use Scalar::Util  1.19 ();
 use Params::Util  1.00 ();
 use FBP           0.38 ();
 
-our $VERSION    = '0.67';
+our $VERSION    = '0.68';
 our $COMPATIBLE = '0.67';
 
 # Event Binding Table
@@ -3418,21 +3418,20 @@ sub list {
 
 sub ourisa {
 	my $self  = shift;
-	my @super = shift;
 
 	# Complex inheritance
-	if ( @super > 1 ) {
+	if ( @_ > 1 ) {
 		return [
 			"our \@ISA     = qw{",
-			( map { "\t$_" } @super ),
+			( map { "\t$_" } @_ ),
 			"};",
 		];
 	}
 
 	# Simple inheritance
-	if ( @super ) {
+	if ( @_ ) {
 		return [
-			"our \@ISA     = '$super[0]';",
+			"our \@ISA     = '$_[0]';",
 		];
 	}
 

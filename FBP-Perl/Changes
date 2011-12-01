@@ -1,5 +1,8 @@
 Changes for Perl extension FBP-Perl
 
+0.68 Thu 1 Dec 2011
+	- Fixed a multiple inheritance bug in ourisa
+
 0.67 Wed 30 Nov 2011
 	- Added form_pragma defaulting to project_pragma
 	- Added shim support throughout the entire stack.
