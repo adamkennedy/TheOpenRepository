@@ -1,5 +1,9 @@
 Changes for Perl extension Test-NoWarnings
 
+1.04 Thu 1 Dec 2011 - Adam Kennedy
+	- Added the experimental :early debugging pragma to cause warnings
+	  to be emitted immediately. This should stay off otherwise (ADAMK)
+
 1.03 Tue 2 Aug 2011 - Adam Kennedy
 	- Test::Builder and Test::Tester dependencies were the wrong way
 	  around, corrected (ADAMK)
