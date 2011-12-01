@@ -1,6 +1,9 @@
 package FBP::Demo::Frame::Main;
 
-use 5.008;
+## no critic
+
+use 5.008005;
+use utf8;
 use strict;
 use warnings;
 use FBP::Demo::FBP::Main ();

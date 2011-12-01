@@ -1,9 +1,12 @@
 package FBP::Demo::FBP::Main;
 
-use 5.008;
+## no critic
+
+use 5.008005;
+use utf8;
 use strict;
 use warnings;
-use Wx ':everything';
+use Wx 0.98 ':everything';
 
 our $VERSION = '0.03';
 our @ISA     = 'Wx::Frame';
@@ -16,9 +19,9 @@ sub new {
 		$parent,
 		-1,
 		"Main Window",
-		Wx::wxDefaultPosition,
+		wxDefaultPosition,
 		[ 500, 300 ],
-		Wx::wxDEFAULT_FRAME_STYLE | Wx::wxTAB_TRAVERSAL,
+		wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL,
 	);
 
 	$self->{m_staticText1} = Wx::StaticText->new(
@@ -30,17 +33,17 @@ sub new {
 	$self->{m_staticline1} = Wx::StaticLine->new(
 		$self,
 		-1,
-		Wx::wxDefaultPosition,
-		Wx::wxDefaultSize,
-		Wx::wxLI_HORIZONTAL,
+		wxDefaultPosition,
+		wxDefaultSize,
+		wxLI_HORIZONTAL,
 	);
 
 	$self->{simple_button} = Wx::Button->new(
 		$self,
 		-1,
 		"Simple buttin with click event",
-		Wx::wxDefaultPosition,
-		Wx::wxDefaultSize,
+		wxDefaultPosition,
+		wxDefaultSize,
 	);
 
 	Wx::Event::EVT_BUTTON(
@@ -51,10 +54,10 @@ sub new {
 		},
 	);
 
-	my $bSizer1 = Wx::BoxSizer->new(Wx::wxVERTICAL);
-	$bSizer1->Add( $self->{m_staticText1}, 0, Wx::wxALL, 5 );
-	$bSizer1->Add( $self->{m_staticline1}, 0, Wx::wxEXPAND | Wx::wxALL, 5 );
-	$bSizer1->Add( $self->{simple_button}, 0, Wx::wxALL, 5 );
+	my $bSizer1 = Wx::BoxSizer->new(wxVERTICAL);
+	$bSizer1->Add( $self->{m_staticText1}, 0, wxALL, 5 );
+	$bSizer1->Add( $self->{m_staticline1}, 0, wxEXPAND | wxALL, 5 );
+	$bSizer1->Add( $self->{simple_button}, 0, wxALL, 5 );
 
 	$self->SetSizer($bSizer1);
 	$self->Layout;
@@ -63,7 +66,7 @@ sub new {
 }
 
 sub simple_button_click {
-	die 'Handler method simple_button_click for event simple_button.OnButtonClick not implemented';
+	warn 'Handler method simple_button_click for event simple_button.OnButtonClick not implemented';
 }
 
 1;
