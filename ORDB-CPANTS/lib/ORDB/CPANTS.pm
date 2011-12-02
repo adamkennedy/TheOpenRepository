@@ -13,7 +13,8 @@ sub import {
 	my $params = Params::Util::_HASH(shift) || {};
 
 	# Pass through any params from above
-	$params->{url}    ||= 'http://cpants.perl.org/static/cpants_all.db.gz';
+	#$params->{url}    ||= 'http://cpants.perl.org/static/cpants_all.db.gz';
+	$params->{url}    ||= 'http://cpants.charsbar.org/static/cpants_all.db.gz';
 	$params->{maxage} ||= 7 * 24 * 60 * 60; # One week
 
 	# Prevent double-initialisation

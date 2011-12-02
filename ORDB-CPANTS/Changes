@@ -1,6 +1,10 @@
 Changes for Perl extension ORDB-CPANTS
 
+0.06
+	- Change URL to point to ISHIGAKI's CPANTS live instance (DOLMEN)
+
 0.05 Tue 19 May 2009
+	- [Never published on the CPAN]
 	- Upgrading to Module::Install::DSL 0.88
 	- Adding support for import params
 
