@@ -70,6 +70,7 @@ has parent => (
 		'_get_output_dir'   => 'output_dir',
 		'_get_modules_dir'  => 'modules_dir',
 		'_get_license_dir'  => 'license_dir',
+		'_get_bits'         => 'bits',
 		'_get_build_dir'    => 'build_dir',
 		'_get_cpan'         => 'cpan',
 		'_get_bin_perl'     => 'bin_perl',

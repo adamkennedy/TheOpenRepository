@@ -337,6 +337,9 @@ sub install {
 	# Build win32 perl
 	SCOPE: {
 
+	        # necessary workaround for building 32bit perl on 64bit Windows
+                local $ENV{PROCESSOR_ARCHITECTURE} = ($self->_get_bits == 64) ? 'AMD64' : 'x86';
+
 	        # Prepare to patch
 	        my $image_dir = $self->_get_image_dir();
 	        my $INST_TOP = catdir( $image_dir, $self->_get_install_to() );
