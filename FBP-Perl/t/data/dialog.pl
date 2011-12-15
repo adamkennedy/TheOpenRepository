@@ -11,7 +11,7 @@ use t::lib::Custom ();
 use t::lib::MyClass ();
 use t::lib::MyHtmlWindow ();
 
-our $VERSION = '0.68';
+our $VERSION = '0.69';
 our @ISA     = 'Wx::Dialog';
 
 sub new {
@@ -58,6 +58,13 @@ sub new {
 	$self->{m_textCtrl1}->SetMaxLength(50);
 	$self->{m_textCtrl1}->SetBackgroundColour(
 		Wx::Colour->new( 255, 128, 0 )
+	);
+
+	Wx::Event::EVT_CHAR(
+		$self->{m_textCtrl1},
+		sub {
+			$self->on_char($_[1]);
+		},
 	);
 
 	Wx::Event::EVT_TEXT(
@@ -428,6 +435,13 @@ sub new {
 		0,
 		10,
 		5,
+	);
+
+	Wx::Event::EVT_KEY_UP(
+		$self->{m_spinCtrl1},
+		sub {
+			$self->on_key_up($_[1]);
+		},
 	);
 
 	$self->{m_radioBox1} = Wx::RadioBox->new(
@@ -907,6 +921,10 @@ sub m_htmlWin1 {
 	$_[0]->{m_htmlWin1};
 }
 
+sub on_char {
+	warn 'Handler method on_char for event m_textCtrl1.OnChar not implemented';
+}
+
 sub refresh {
 	warn 'Handler method refresh for event m_textCtrl1.OnText not implemented';
 }
@@ -925,6 +943,10 @@ sub list_item_activated {
 
 sub list_item_selected {
 	warn 'Handler method list_item_selected for event m_listCtrl1.OnListItemSelected not implemented';
+}
+
+sub on_key_up {
+	warn 'Handler method on_key_up for event m_spinCtrl1.OnKeyUp not implemented';
 }
 
 sub on_radio_box {

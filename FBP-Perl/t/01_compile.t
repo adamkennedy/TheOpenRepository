@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use constant CONSTANTS => 140;
+use constant CONSTANTS => 138;
 
 use Test::More tests => 7 + CONSTANTS;
 use Test::NoWarnings;
@@ -28,12 +28,14 @@ SKIP: {
 	use_ok( 'Wx::Calendar' );
 
 	%FBP::Perl::EVENT = %FBP::Perl::EVENT;
-	foreach my $symbol ( sort grep { defined $_ } map { $_->[0] } values %FBP::Perl::EVENT ) {
+	foreach my $symbol ( sort grep { defined $_ } map { $_->[1] } values %FBP::Perl::EVENT ) {
 		next unless defined $symbol;
 		next unless length  $symbol;
 
 		# Handle possibly unsupported elements
 		next if $symbol eq 'EVT_DATE_CHANGED';
+		next if $symbol eq 'EVT_TREE_ITEM_GETTOOLTIP';
+		next if $symbol eq 'EVT_TREE_STATE_IMAGE_CLICK';
 
 		my $found = eval "defined &Wx::Event::$symbol";
 		ok( $found, "Wx::Event::$symbol macro exists" );

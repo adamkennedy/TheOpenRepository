@@ -57,164 +57,164 @@ use Scalar::Util  1.19 ();
 use Params::Util  1.00 ();
 use FBP           0.38 ();
 
-our $VERSION    = '0.68';
+our $VERSION    = '0.69';
 our $COMPATIBLE = '0.67';
 
 # Event Binding Table
 our %EVENT = (
 	# Common low level painting events
-	OnEraseBackground         => [ 'EVT_ERASE_BACKGROUND'           ],
-	OnPaint                   => [ 'EVT_PAINT'                      ],
-	OnSize                    => [ 'EVT_SIZE'                       ],
-	OnUpdateUI                => [ 'EVT_UPDATE_UI'                  ],
+	OnEraseBackground         => [ 2, 'EVT_ERASE_BACKGROUND'           ],
+	OnPaint                   => [ 2, 'EVT_PAINT'                      ],
+	OnSize                    => [ 2, 'EVT_SIZE'                       ],
+	OnUpdateUI                => [ 2, 'EVT_UPDATE_UI'                  ],
 
 	# wxActivateEvent
-	OnActivate                => [ 'EVT_ACTIVATE'                   ],
-	OnActivateApp             => [ 'EVT_ACTIVATE_APP'               ],
+	OnActivate                => [ 2, 'EVT_ACTIVATE'                   ],
+	OnActivateApp             => [ 2, 'EVT_ACTIVATE_APP'               ],
 
 	# wxCalendar
-	OnCalendar                => [ 'EVT_CALENDAR'                   ],
-	OnCalendarSelChanged      => [ 'EVT_CALENDAR_SEL_CHANGED'       ],
-	OnCalendarDay             => [ 'EVT_CALENDAR_DAY'               ],
-	OnCalendarMonth           => [ 'EVT_CALENDAR_MONTH'             ],
-	OnCalendarYear            => [ 'EVT_CALENDAR_YEAR'              ],
-	OnCalendarWeekDayClicked  => [ 'EVT_CALENDAR_WEEKDAY_CLICKED'   ],
+	OnCalendar                => [ 2, 'EVT_CALENDAR'                   ],
+	OnCalendarSelChanged      => [ 2, 'EVT_CALENDAR_SEL_CHANGED'       ],
+	OnCalendarDay             => [ 2, 'EVT_CALENDAR_DAY'               ],
+	OnCalendarMonth           => [ 2, 'EVT_CALENDAR_MONTH'             ],
+	OnCalendarYear            => [ 2, 'EVT_CALENDAR_YEAR'              ],
+	OnCalendarWeekDayClicked  => [ 2, 'EVT_CALENDAR_WEEKDAY_CLICKED'   ],
 
 	# wxChoicebook
-	OnChoicebookPageChanged   => [ 'EVT_CHOICEBOOK_PAGE_CHANGED'    ],
-	OnChoicebookPageChanging  => [ 'EVT_CHOICEBOOK_PAGE_CHANGING'   ],
+	OnChoicebookPageChanged   => [ 2, 'EVT_CHOICEBOOK_PAGE_CHANGED'    ],
+	OnChoicebookPageChanging  => [ 2, 'EVT_CHOICEBOOK_PAGE_CHANGING'   ],
 
 	# wxCommandEvent
-	OnButtonClick             => [ 'EVT_BUTTON'                     ],
-	OnCheckBox                => [ 'EVT_CHECKBOX'                   ],
-	OnChoice                  => [ 'EVT_CHOICE'                     ],
-	OnCombobox                => [ 'EVT_COMBOBOX'                   ],
-	OnListBox                 => [ 'EVT_LISTBOX'                    ],
-	OnListBoxDClick           => [ 'EVT_LISTBOX_DCLICK'             ],
-	OnText                    => [ 'EVT_TEXT'                       ],
-	OnTextEnter               => [ 'EVT_TEXT_ENTER'                 ],
-	OnMenu                    => [ 'EVT_MENU'                       ],
-	OnMenuRange               => [ 'EVT_MENU_RANGE'                 ],
+	OnButtonClick             => [ 2, 'EVT_BUTTON'                     ],
+	OnCheckBox                => [ 2, 'EVT_CHECKBOX'                   ],
+	OnChoice                  => [ 2, 'EVT_CHOICE'                     ],
+	OnCombobox                => [ 2, 'EVT_COMBOBOX'                   ],
+	OnListBox                 => [ 2, 'EVT_LISTBOX'                    ],
+	OnListBoxDClick           => [ 2, 'EVT_LISTBOX_DCLICK'             ],
+	OnText                    => [ 2, 'EVT_TEXT'                       ],
+	OnTextEnter               => [ 2, 'EVT_TEXT_ENTER'                 ],
+	OnMenu                    => [ 2, 'EVT_MENU'                       ],
+	OnMenuRange               => [ 2, 'EVT_MENU_RANGE'                 ],
 
 	# wxColourPickerCtrl
-	OnColourChanged           => [ 'EVT_COLOURPICKER_CHANGED'       ],
+	OnColourChanged           => [ 2, 'EVT_COLOURPICKER_CHANGED'       ],
 
 	# wxCloseEvent
-	OnClose                   => [ 'EVT_CLOSE'                      ],
+	OnClose                   => [ 2, 'EVT_CLOSE'                      ],
 
 	# wxDatePickerCtrl
-	OnDateChanged             => [ 'EVT_DATE_CHANGED'               ],
+	OnDateChanged             => [ 2, 'EVT_DATE_CHANGED'               ],
 
 	# wxFilePickerCtrl
-	OnFileChanged             => [ 'EVT_FILEPICKER_CHANGED'         ],
+	OnFileChanged             => [ 2, 'EVT_FILEPICKER_CHANGED'         ],
 
 	# wxFocusEvent
-	OnKillFocus               => [ 'EVT_KILL_FOCUS'                 ],
-	OnSetFocus                => [ 'EVT_SET_FOCUS'                  ],
+	OnKillFocus               => [ 2, 'EVT_KILL_FOCUS'                 ],
+	OnSetFocus                => [ 2, 'EVT_SET_FOCUS'                  ],
 
 	# wxFontPickerCtrl
-	OnFontChanged             => [ 'EVT_FONTPICKER_CHANGED'         ],
+	OnFontChanged             => [ 2, 'EVT_FONTPICKER_CHANGED'         ],
 
 	# wxGrid
-	OnGridCellLeftClick       => [ 'EVT_GRID_CELL_LEFT_CLICK'       ],
-	OnGridCellRightClick      => [ 'EVT_GRID_CELL_RIGHT_CLICK'      ],
-	OnGridCellLeftDClick      => [ 'EVT_GRID_CELL_LEFT_DCLICK'      ],
-	OnGridCellRightDClick     => [ 'EVT_GRID_CELL_RIGHT_DCLICK'     ],
-	OnGridLabelLeftClick      => [ 'EVT_GRID_LABEL_LEFT_CLICK'      ],
-	OnGridLabelRightClick     => [ 'EVT_GRID_LABEL_RIGHT_CLICK'     ],
-	OnGridLabelLeftDClick     => [ 'EVT_GRID_LABEL_LEFT_DCLICK'     ],
-	OnGridLabelRightDClick    => [ 'EVT_GRID_LABEL_RIGHT_DCLICK'    ],
-	OnGridCellChange          => [ 'EVT_GRID_CELL_CHANGE'           ],
-	OnGridSelectCell          => [ 'EVT_GRID_SELECT_CELL'           ],
-	OnGridEditorHidden        => [ 'EVT_GRID_EDITOR_HIDDEN'         ],
-	OnGridEditorShown         => [ 'EVT_GRID_EDITOR_SHOWN'          ],
-	OnGridColSize             => [ 'EVT_GRID_COL_SIZE'              ],
-	OnGridRowSize             => [ 'EVT_GRID_ROW_SIZE'              ],
-	OnGridRangeSelect         => [ 'EVT_GRID_RANGE_SELECT'          ],
-	OnGridEditorCreated       => [ 'EVT_GRID_EDITOR_CREATED'        ],
+	OnGridCellLeftClick       => [ 2, 'EVT_GRID_CELL_LEFT_CLICK'       ],
+	OnGridCellRightClick      => [ 2, 'EVT_GRID_CELL_RIGHT_CLICK'      ],
+	OnGridCellLeftDClick      => [ 2, 'EVT_GRID_CELL_LEFT_DCLICK'      ],
+	OnGridCellRightDClick     => [ 2, 'EVT_GRID_CELL_RIGHT_DCLICK'     ],
+	OnGridLabelLeftClick      => [ 2, 'EVT_GRID_LABEL_LEFT_CLICK'      ],
+	OnGridLabelRightClick     => [ 2, 'EVT_GRID_LABEL_RIGHT_CLICK'     ],
+	OnGridLabelLeftDClick     => [ 2, 'EVT_GRID_LABEL_LEFT_DCLICK'     ],
+	OnGridLabelRightDClick    => [ 2, 'EVT_GRID_LABEL_RIGHT_DCLICK'    ],
+	OnGridCellChange          => [ 2, 'EVT_GRID_CELL_CHANGE'           ],
+	OnGridSelectCell          => [ 2, 'EVT_GRID_SELECT_CELL'           ],
+	OnGridEditorHidden        => [ 2, 'EVT_GRID_EDITOR_HIDDEN'         ],
+	OnGridEditorShown         => [ 2, 'EVT_GRID_EDITOR_SHOWN'          ],
+	OnGridColSize             => [ 2, 'EVT_GRID_COL_SIZE'              ],
+	OnGridRowSize             => [ 2, 'EVT_GRID_ROW_SIZE'              ],
+	OnGridRangeSelect         => [ 2, 'EVT_GRID_RANGE_SELECT'          ],
+	OnGridEditorCreated       => [ 2, 'EVT_GRID_EDITOR_CREATED'        ],
 
 	# Not sure why wxFormBuilder makes these grid event duplicates
 	# so we just slavishly cargo cult what they do in the C code.
-	OnGridCmdCellLeftClick    => [ 'EVT_GRID_CELL_LEFT_CLICK'       ],
-	OnGridCmdCellRightClick   => [ 'EVT_GRID_CELL_RIGHT_CLICK'      ],
-	OnGridCmdCellLeftDClick   => [ 'EVT_GRID_CELL_LEFT_DCLICK'      ],
-	OnGridCmdCellRightDClick  => [ 'EVT_GRID_CELL_RIGHT_DCLICK'     ],
-	OnGridCmdLabelLeftClick   => [ 'EVT_GRID_LABEL_LEFT_CLICK'      ],
-	OnGridCmdLabelRightClick  => [ 'EVT_GRID_LABEL_RIGHT_CLICK'     ],
-	OnGridCmdLabelLeftDClick  => [ 'EVT_GRID_LABEL_LEFT_DCLICK'     ],
-	OnGridCmdLabelRightDClick => [ 'EVT_GRID_LABEL_RIGHT_DCLICK'    ],
-	OnGridCmdCellChange       => [ 'EVT_GRID_CELL_CHANGE'           ],
-	OnGridCmdSelectCell       => [ 'EVT_GRID_SELECT_CELL'           ],
-	OnGridCmdEditorHidden     => [ 'EVT_GRID_EDITOR_HIDDEN'         ],
-	OnGridCmdEditorShown      => [ 'EVT_GRID_EDITOR_SHOWN'          ],
-	OnGridCmdColSize          => [ 'EVT_GRID_COL_SIZE'              ],
-	OnGridCmdRowSize          => [ 'EVT_GRID_ROW_SIZE'              ],
-	OnGridCmdRangeSelect      => [ 'EVT_GRID_RANGE_SELECT'          ],
-	OnGridCmdEditorCreated    => [ 'EVT_GRID_EDITOR_CREATED'        ],
+	OnGridCmdCellLeftClick    => [ 2, 'EVT_GRID_CELL_LEFT_CLICK'       ],
+	OnGridCmdCellRightClick   => [ 2, 'EVT_GRID_CELL_RIGHT_CLICK'      ],
+	OnGridCmdCellLeftDClick   => [ 2, 'EVT_GRID_CELL_LEFT_DCLICK'      ],
+	OnGridCmdCellRightDClick  => [ 2, 'EVT_GRID_CELL_RIGHT_DCLICK'     ],
+	OnGridCmdLabelLeftClick   => [ 2, 'EVT_GRID_LABEL_LEFT_CLICK'      ],
+	OnGridCmdLabelRightClick  => [ 2, 'EVT_GRID_LABEL_RIGHT_CLICK'     ],
+	OnGridCmdLabelLeftDClick  => [ 2, 'EVT_GRID_LABEL_LEFT_DCLICK'     ],
+	OnGridCmdLabelRightDClick => [ 2, 'EVT_GRID_LABEL_RIGHT_DCLICK'    ],
+	OnGridCmdCellChange       => [ 2, 'EVT_GRID_CELL_CHANGE'           ],
+	OnGridCmdSelectCell       => [ 2, 'EVT_GRID_SELECT_CELL'           ],
+	OnGridCmdEditorHidden     => [ 2, 'EVT_GRID_EDITOR_HIDDEN'         ],
+	OnGridCmdEditorShown      => [ 2, 'EVT_GRID_EDITOR_SHOWN'          ],
+	OnGridCmdColSize          => [ 2, 'EVT_GRID_COL_SIZE'              ],
+	OnGridCmdRowSize          => [ 2, 'EVT_GRID_ROW_SIZE'              ],
+	OnGridCmdRangeSelect      => [ 2, 'EVT_GRID_RANGE_SELECT'          ],
+	OnGridCmdEditorCreated    => [ 2, 'EVT_GRID_EDITOR_CREATED'        ],
 
 	# wxHtmlWindow
-	OnHtmlCellClicked         => [ 'EVT_HTML_CELL_CLICKED'          ],
-	OnHtmlCellHover           => [ 'EVT_HTML_CELL_HOVER'            ],
-	OnHtmlLinkClicked         => [ 'EVT_HTML_LINK_CLICKED'          ],
+	OnHtmlCellClicked         => [ 2, 'EVT_HTML_CELL_CLICKED'          ],
+	OnHtmlCellHover           => [ 2, 'EVT_HTML_CELL_HOVER'            ],
+	OnHtmlLinkClicked         => [ 2, 'EVT_HTML_LINK_CLICKED'          ],
 
 	# wxIdleEvent
-	OnIdle                    => [ 'EVT_IDLE'                       ],
+	OnIdle                    => [ 2, 'EVT_IDLE'                       ],
 
 	# wxKeyEvent
-	OnChar                    => [ 'EVT_CHAR'                       ],
-	OnKeyDown                 => [ 'EVT_KEY_DOWN'                   ],
-	OnKeyUp                   => [ 'EVT_KEY_UP'                     ],
+	OnChar                    => [ 1, 'EVT_CHAR'                       ],
+	OnKeyDown                 => [ 1, 'EVT_KEY_DOWN'                   ],
+	OnKeyUp                   => [ 1, 'EVT_KEY_UP'                     ],
 
 	# wxListEvent
-	OnListBeginDrag           => [ 'EVT_LIST_BEGIN_DRAG'            ],
-	OnListBeginRDrag          => [ 'EVT_LIST_BEGIN_RDRAG'           ],
-	OnListBeginLabelEdit      => [ 'EVT_LIST_BEGIN_LABEL_EDIT'      ],
-	OnListCacheHint           => [ 'EVT_LIST_CACHE_HINT'            ],
-	OnListEndLabelEdit        => [ 'EVT_LIST_END_LABEL_EDIT'        ],
-	OnListDeleteItem          => [ 'EVT_LIST_DELETE_ITEM'           ],
-	OnListDeleteAllItems      => [ 'EVT_LIST_DELETE_ALL_ITEMS'      ],
-	OnListInsertItem          => [ 'EVT_LIST_INSERT_ITEM'           ],
-	OnListItemActivated       => [ 'EVT_LIST_ITEM_ACTIVATED'        ],
-	OnListItemSelected        => [ 'EVT_LIST_ITEM_SELECTED'         ],
-	OnListItemDeselected      => [ 'EVT_LIST_ITEM_DESELECTED'       ],
-	OnListItemFocused         => [ 'EVT_LIST_ITEM_FOCUSED'          ],
-	OnListItemMiddleClick     => [ 'EVT_LIST_MIDDLE_CLICK'          ],
-	OnListItemRightClick      => [ 'EVT_LIST_RIGHT_CLICK'           ],
-	OnListKeyDown             => [ 'EVT_LIST_KEY_DOWN'              ],
-	OnListColClick            => [ 'EVT_LIST_COL_CLICK'             ],
-	OnListColRightClick       => [ 'EVT_LIST_COL_RIGHT_CLICK'       ],
-	OnListColBeginDrag        => [ 'EVT_LIST_COL_BEGIN_DRAG'        ],
-	OnListColDragging         => [ 'EVT_LIST_COL_DRAGGING'          ],
-	OnListColEndDrag          => [ 'EVT_LIST_COL_END_DRAG'          ],
+	OnListBeginDrag           => [ 2, 'EVT_LIST_BEGIN_DRAG'            ],
+	OnListBeginRDrag          => [ 2, 'EVT_LIST_BEGIN_RDRAG'           ],
+	OnListBeginLabelEdit      => [ 2, 'EVT_LIST_BEGIN_LABEL_EDIT'      ],
+	OnListCacheHint           => [ 2, 'EVT_LIST_CACHE_HINT'            ],
+	OnListEndLabelEdit        => [ 2, 'EVT_LIST_END_LABEL_EDIT'        ],
+	OnListDeleteItem          => [ 2, 'EVT_LIST_DELETE_ITEM'           ],
+	OnListDeleteAllItems      => [ 2, 'EVT_LIST_DELETE_ALL_ITEMS'      ],
+	OnListInsertItem          => [ 2, 'EVT_LIST_INSERT_ITEM'           ],
+	OnListItemActivated       => [ 2, 'EVT_LIST_ITEM_ACTIVATED'        ],
+	OnListItemSelected        => [ 2, 'EVT_LIST_ITEM_SELECTED'         ],
+	OnListItemDeselected      => [ 2, 'EVT_LIST_ITEM_DESELECTED'       ],
+	OnListItemFocused         => [ 2, 'EVT_LIST_ITEM_FOCUSED'          ],
+	OnListItemMiddleClick     => [ 2, 'EVT_LIST_MIDDLE_CLICK'          ],
+	OnListItemRightClick      => [ 2, 'EVT_LIST_RIGHT_CLICK'           ],
+	OnListKeyDown             => [ 2, 'EVT_LIST_KEY_DOWN'              ],
+	OnListColClick            => [ 2, 'EVT_LIST_COL_CLICK'             ],
+	OnListColRightClick       => [ 2, 'EVT_LIST_COL_RIGHT_CLICK'       ],
+	OnListColBeginDrag        => [ 2, 'EVT_LIST_COL_BEGIN_DRAG'        ],
+	OnListColDragging         => [ 2, 'EVT_LIST_COL_DRAGGING'          ],
+	OnListColEndDrag          => [ 2, 'EVT_LIST_COL_END_DRAG'          ],
 
 	# wxMenuEvent
-	OnMenuSelection           => [ 'EVT_MENU'                       ],
+	OnMenuSelection           => [ 2, 'EVT_MENU'                       ],
 
 	# wxMouseEvent
-	OnEnterWindow             => [ 'EVT_ENTER_WINDOW'               ],
-	OnLeaveWindow             => [ 'EVT_LEAVE_WINDOW'               ],
-	OnLeftDClick              => [ 'EVT_LEFT_DCLICK'                ],
-	OnLeftDown                => [ 'EVT_LEFT_DOWN'                  ],
-	OnLeftUp                  => [ 'EVT_LEFT_UP'                    ],
-	OnMiddleDClick            => [ 'EVT_MIDDLE_DCLICK'              ],
-	OnMiddleDown              => [ 'EVT_MIDDLE_DOWN'                ],
-	OnMiddleUp                => [ 'EVT_MIDDLE_UP'                  ],
-	OnMotion                  => [ 'EVT_MOTION'                     ],
-	OnMouseEvents             => [ 'EVT_MOUSE_EVENTS'               ],
-	OnMouseWheel              => [ 'EVT_MOUSEWHEEL'                 ],
-	OnRightDClick             => [ 'EVT_RIGHT_DCLICK'               ],
-	OnRightDown               => [ 'EVT_RIGHT_DOWN'                 ],
-	OnRightUp                 => [ 'EVT_RIGHT_UP'                   ],
+	OnEnterWindow             => [ 2, 'EVT_ENTER_WINDOW'               ],
+	OnLeaveWindow             => [ 2, 'EVT_LEAVE_WINDOW'               ],
+	OnLeftDClick              => [ 2, 'EVT_LEFT_DCLICK'                ],
+	OnLeftDown                => [ 2, 'EVT_LEFT_DOWN'                  ],
+	OnLeftUp                  => [ 2, 'EVT_LEFT_UP'                    ],
+	OnMiddleDClick            => [ 2, 'EVT_MIDDLE_DCLICK'              ],
+	OnMiddleDown              => [ 2, 'EVT_MIDDLE_DOWN'                ],
+	OnMiddleUp                => [ 2, 'EVT_MIDDLE_UP'                  ],
+	OnMotion                  => [ 2, 'EVT_MOTION'                     ],
+	OnMouseEvents             => [ 2, 'EVT_MOUSE_EVENTS'               ],
+	OnMouseWheel              => [ 2, 'EVT_MOUSEWHEEL'                 ],
+	OnRightDClick             => [ 2, 'EVT_RIGHT_DCLICK'               ],
+	OnRightDown               => [ 2, 'EVT_RIGHT_DOWN'                 ],
+	OnRightUp                 => [ 2, 'EVT_RIGHT_UP'                   ],
 
 	# wxNotebookEvent
-	OnNotebookPageChanging    => [ 'EVT_NOTEBOOK_PAGE_CHANGING'     ],
-	OnNotebookPageChanged     => [ 'EVT_NOTEBOOK_PAGE_CHANGED'      ],
+	OnNotebookPageChanging    => [ 2, 'EVT_NOTEBOOK_PAGE_CHANGING'     ],
+	OnNotebookPageChanged     => [ 2, 'EVT_NOTEBOOK_PAGE_CHANGED'      ],
 
 	# wxRadioBox
-	OnRadioBox                => [ 'EVT_RADIOBOX'                   ],
+	OnRadioBox                => [ 2, 'EVT_RADIOBOX'                   ],
 
 	# wxRadioButton
-	OnRadioButton             => [ 'EVT_RADIOBUTTON'                ],
+	OnRadioButton             => [ 2, 'EVT_RADIOBUTTON'                ],
 
 	# wxStdDialogButtonSizer (placeholders)
 	OnOKButtonClick           => [                                  ],
@@ -227,46 +227,46 @@ our %EVENT = (
 	OnContextTextButtonClick  => [                                  ],
 
 	# wxSearchCtrl
-	OnSearchButton            => [ 'EVT_SEARCHCTRL_SEARCH_BTN'      ],
-	OnCancelButton            => [ 'EVT_SEARCHCTRL_CANCEL_BTN'      ],
+	OnSearchButton            => [ 2, 'EVT_SEARCHCTRL_SEARCH_BTN'      ],
+	OnCancelButton            => [ 2, 'EVT_SEARCHCTRL_CANCEL_BTN'      ],
 
 	# wxSpinButton
-	OnSpin                    => [ 'EVT_SCROLL_THUMBTRACK'          ],
-	OnSpinUp                  => [ 'EVT_SCROLL_LINEUP'              ],
-	OnSpinDown                => [ 'EVT_SCROLL_LINEDOWN'            ],
+	OnSpin                    => [ 2, 'EVT_SCROLL_THUMBTRACK'          ],
+	OnSpinUp                  => [ 2, 'EVT_SCROLL_LINEUP'              ],
+	OnSpinDown                => [ 2, 'EVT_SCROLL_LINEDOWN'            ],
 
 	# wxSplitterEvent
-	OnSplitterSashPosChanging => [ 'EVT_SPLITTER_SASH_POS_CHANGING' ],
-	OnSplitterSashPosChanged  => [ 'EVT_SPLITTER_SASH_POS_CHANGED'  ],
-	OnSplitterUnsplit         => [ 'EVT_SPLITTER_UNSPLIT'           ],
-	OnSplitterDClick          => [ 'EVT_SPLITTER_DCLICK'            ],
+	OnSplitterSashPosChanging => [ 2, 'EVT_SPLITTER_SASH_POS_CHANGING' ],
+	OnSplitterSashPosChanged  => [ 2, 'EVT_SPLITTER_SASH_POS_CHANGED'  ],
+	OnSplitterUnsplit         => [ 2, 'EVT_SPLITTER_UNSPLIT'           ],
+	OnSplitterDClick          => [ 2, 'EVT_SPLITTER_DCLICK'            ],
 
 	# wxToolbar events
-	OnToolClicked             => [ 'EVT_TOOL'                       ],
-	OnToolRClicked            => [ 'EVT_TOOL_RCLICKED'              ],
-	OnToolEnter               => [ 'EVT_TOOL_ENTER'                 ],
+	OnToolClicked             => [ 2, 'EVT_TOOL'                       ],
+	OnToolRClicked            => [ 2, 'EVT_TOOL_RCLICKED'              ],
+	OnToolEnter               => [ 2, 'EVT_TOOL_ENTER'                 ],
 
 	# wxTreeCtrl events
-	OnTreeGetInfo             => [ 'EVT_TREE_GET_INFO'              ],
-	OnTreeSetInfo             => [ 'EVT_TREE_SET_INFO'              ],
-	OnTreeItemGetTooltip      => [ 'EVT_TREE_ITEM_GETTOOLTIP'       ],
-	OnTreeStateImageClick     => [ 'EVT_TREE_STATE_IMAGE_CLICK'     ],
-	OnTreeBeginDrag           => [ 'EVT_TREE_BEGIN_DRAG'            ],
-	OnTreeBeginRDrag          => [ 'EVT_TREE_BEGIN_RDRAG'           ],
-	OnTreeEndDrag             => [ 'EVT_TREE_END_DRAG'              ],
-	OnTreeBeginLabelEdit      => [ 'EVT_TREE_BEGIN_LABEL_EDIT'      ],
-	OnTreeEndLabelEdit        => [ 'EVT_TREE_END_LABEL_EDIT'        ],
-	OnTreeItemActivated       => [ 'EVT_TREE_ITEM_ACTIVATED'        ],
-	OnTreeItemCollapsed       => [ 'EVT_TREE_ITEM_COLLAPSED'        ],
-	OnTreeItemCollapsing      => [ 'EVT_TREE_ITEM_COLLAPSING'       ],
-	OnTreeItemExpanded        => [ 'EVT_TREE_ITEM_EXPANDED'         ],
-	OnTreeItemExpanding       => [ 'EVT_TREE_ITEM_EXPANDING'        ],
-	OnTreeItemRightClick      => [ 'EVT_TREE_ITEM_RIGHT_CLICK'      ],
-	OnTreeItemMiddleClick     => [ 'EVT_TREE_ITEM_MIDDLE_CLICK'     ],
-	OnTreeSelChanged          => [ 'EVT_TREE_SEL_CHANGED'           ],
-	OnTreeSelChanging         => [ 'EVT_TREE_SEL_CHANGING'          ],
-	OnTreeKeyDown             => [ 'EVT_TREE_KEY_DOWN'              ],
-	OnTreeItemMenu            => [ 'EVT_TREE_ITEM_MENU'             ],
+	OnTreeGetInfo             => [ 2, 'EVT_TREE_GET_INFO'              ],
+	OnTreeSetInfo             => [ 2, 'EVT_TREE_SET_INFO'              ],
+	OnTreeItemGetTooltip      => [ 2, 'EVT_TREE_ITEM_GETTOOLTIP'       ],
+	OnTreeStateImageClick     => [ 2, 'EVT_TREE_STATE_IMAGE_CLICK'     ],
+	OnTreeBeginDrag           => [ 2, 'EVT_TREE_BEGIN_DRAG'            ],
+	OnTreeBeginRDrag          => [ 2, 'EVT_TREE_BEGIN_RDRAG'           ],
+	OnTreeEndDrag             => [ 2, 'EVT_TREE_END_DRAG'              ],
+	OnTreeBeginLabelEdit      => [ 2, 'EVT_TREE_BEGIN_LABEL_EDIT'      ],
+	OnTreeEndLabelEdit        => [ 2, 'EVT_TREE_END_LABEL_EDIT'        ],
+	OnTreeItemActivated       => [ 2, 'EVT_TREE_ITEM_ACTIVATED'        ],
+	OnTreeItemCollapsed       => [ 2, 'EVT_TREE_ITEM_COLLAPSED'        ],
+	OnTreeItemCollapsing      => [ 2, 'EVT_TREE_ITEM_COLLAPSING'       ],
+	OnTreeItemExpanded        => [ 2, 'EVT_TREE_ITEM_EXPANDED'         ],
+	OnTreeItemExpanding       => [ 2, 'EVT_TREE_ITEM_EXPANDING'        ],
+	OnTreeItemRightClick      => [ 2, 'EVT_TREE_ITEM_RIGHT_CLICK'      ],
+	OnTreeItemMiddleClick     => [ 2, 'EVT_TREE_ITEM_MIDDLE_CLICK'     ],
+	OnTreeSelChanged          => [ 2, 'EVT_TREE_SEL_CHANGED'           ],
+	OnTreeSelChanging         => [ 2, 'EVT_TREE_SEL_CHANGING'          ],
+	OnTreeKeyDown             => [ 2, 'EVT_TREE_KEY_DOWN'              ],
+	OnTreeItemMenu            => [ 2, 'EVT_TREE_ITEM_MENU'             ],
 );
 
 
@@ -3218,17 +3218,33 @@ sub object_bindings {
 		my $method = $window->$attribute() or next;
 
 		# Add the binding for it
-		my $macro = $EVENT{$attribute}->[0];
-		push @lines, (
-			"",
-			"Wx::Event::$macro(",
-			"\t\$self,",
-			"\t$variable,",
-			"\tsub {",
-			"\t\tshift->$method(\@_);",
-			"\t},",
-			");",
-		);
+		my $args  = $EVENT{$attribute}->[0];
+		my $macro = $EVENT{$attribute}->[1];
+		if ( $args == 1 ) {
+			# Using $self here is a cop out but ok for now
+			push @lines, (
+				"",
+				"Wx::Event::$macro(",
+				"\t$variable,",
+				"\tsub {",
+				"\t\t\$self->$method(\$_[1]);",
+				"\t},",
+				");",
+			);
+		} elsif ( $args == 2 ) {
+			push @lines, (
+				"",
+				"Wx::Event::$macro(",
+				"\t\$self,",
+				"\t$variable,",
+				"\tsub {",
+				"\t\tshift->$method(\@_);",
+				"\t},",
+				");",
+			);
+		} else {
+			die "Unexpected arg count $args";
+		}
 	}
 
 	return @lines;

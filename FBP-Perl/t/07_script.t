@@ -8,12 +8,13 @@ BEGIN {
 
 use Test::More tests => 9;
 use Test::NoWarnings;
+use File::Spec::Functions ':ALL';
 use t::lib::Test;
 use FBP::Perl;
 
 # Find the sample files
-my $input  = File::Spec->catfile( 't', 'data', 'simple.fbp' );
-my $output = File::Spec->catfile( 't', 'data', 'script.pl'  );
+my $input  = catfile( 't', 'data', 'simple.fbp' );
+my $output = catfile( 't', 'data', 'script.pl'  );
 ok( -f $input,  "Found test file $input"  );
 ok( -f $output, "Found test file $output" );
 
