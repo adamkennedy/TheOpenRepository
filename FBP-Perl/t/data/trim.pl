@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use Wx 0.98 ':everything';
 
-our $VERSION = '0.68';
+our $VERSION = '0.69';
 our @ISA     = 'Wx::Panel';
 
 sub new {
