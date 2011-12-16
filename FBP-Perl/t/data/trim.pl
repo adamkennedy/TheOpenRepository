@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use Wx 0.98 ':everything';
 
-our $VERSION = '0.69';
+our $VERSION = '0.70';
 our @ISA     = 'Wx::Panel';
 
 sub new {
@@ -93,6 +93,10 @@ sub new {
 	$self->Layout;
 
 	return $self;
+}
+
+sub on_enter_window {
+	warn 'Handler method on_enter_window for event MyPanel1.OnEnterWindow not implemented';
 }
 
 1;

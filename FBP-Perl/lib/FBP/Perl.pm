@@ -57,7 +57,7 @@ use Scalar::Util  1.19 ();
 use Params::Util  1.00 ();
 use FBP           0.38 ();
 
-our $VERSION    = '0.69';
+our $VERSION    = '0.70';
 our $COMPATIBLE = '0.67';
 
 # Event Binding Table
@@ -65,7 +65,6 @@ our %EVENT = (
 	# Common low level painting events
 	OnEraseBackground         => [ 2, 'EVT_ERASE_BACKGROUND'           ],
 	OnPaint                   => [ 2, 'EVT_PAINT'                      ],
-	OnSize                    => [ 2, 'EVT_SIZE'                       ],
 	OnUpdateUI                => [ 2, 'EVT_UPDATE_UI'                  ],
 
 	# wxActivateEvent
@@ -157,8 +156,14 @@ our %EVENT = (
 	OnHtmlCellHover           => [ 2, 'EVT_HTML_CELL_HOVER'            ],
 	OnHtmlLinkClicked         => [ 2, 'EVT_HTML_LINK_CLICKED'          ],
 
+	# wxIconizeEvent
+	OnIconize                 => [ 2, 'EVT_ICONIZE'                    ],
+
 	# wxIdleEvent
 	OnIdle                    => [ 2, 'EVT_IDLE'                       ],
+
+	# wxInitDialogEvent
+	OnInitDialog              => [ 2, 'EVT_INIT_DIALOG'                ],
 
 	# wxKeyEvent
 	OnChar                    => [ 1, 'EVT_CHAR'                       ],
@@ -215,6 +220,9 @@ our %EVENT = (
 
 	# wxRadioButton
 	OnRadioButton             => [ 2, 'EVT_RADIOBUTTON'                ],
+
+	# wxSizeEvent
+	OnSize                    => [ 2, 'EVT_SIZE'                       ],
 
 	# wxStdDialogButtonSizer (placeholders)
 	OnOKButtonClick           => [                                  ],
@@ -983,6 +991,7 @@ sub form_methods {
 	my $self    = shift;
 	my $form    = shift;
 	my @objects = (
+		$form,
 		$form->find( isa => 'FBP::Window' ),
 		$form->find( isa => 'FBP::MenuItem' ),
 		$form->find( isa => 'FBP::StdDialogButtonSizer' ),

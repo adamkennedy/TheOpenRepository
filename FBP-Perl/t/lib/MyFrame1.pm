@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use Wx 0.98 ':everything';
 
-our $VERSION = '0.69';
+our $VERSION = '0.70';
 our @ISA     = 'Wx::Frame';
 
 sub new {
@@ -125,6 +125,26 @@ sub new {
 	$self->Layout;
 
 	return $self;
+}
+
+sub on_activate {
+	warn 'Handler method on_activate for event t::lib::MyFrame1.OnActivate not implemented';
+}
+
+sub on_activate_app {
+	warn 'Handler method on_activate_app for event t::lib::MyFrame1.OnActivateApp not implemented';
+}
+
+sub on_close {
+	warn 'Handler method on_close for event t::lib::MyFrame1.OnClose not implemented';
+}
+
+sub on_iconize {
+	warn 'Handler method on_iconize for event t::lib::MyFrame1.OnIconize not implemented';
+}
+
+sub on_idle {
+	warn 'Handler method on_idle for event t::lib::MyFrame1.OnIdle not implemented';
 }
 
 sub menu_event {

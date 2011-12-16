@@ -1,5 +1,9 @@
 Changes for Perl extension FBP-Perl
 
+0.70 Fri 16 Dec 2011
+	- Added support for events in the top level Form objects
+	- Added support for OnIconize and OnInitDialog events
+
 0.69 Thu 15 Dec 2011
 	- Added support for two-parameter event bindings
 	- Skip some macros that fail on Linux

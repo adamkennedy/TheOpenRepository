@@ -11,7 +11,7 @@ use t::lib::Custom ();
 use t::lib::MyClass ();
 use t::lib::MyHtmlWindow ();
 
-our $VERSION = '0.69';
+our $VERSION = '0.70';
 our @ISA     = 'Wx::Dialog';
 
 sub new {
@@ -919,6 +919,10 @@ sub new {
 
 sub m_htmlWin1 {
 	$_[0]->{m_htmlWin1};
+}
+
+sub on_init_dialog {
+	warn 'Handler method on_init_dialog for event MyDialog1.OnInitDialog not implemented';
 }
 
 sub on_char {
