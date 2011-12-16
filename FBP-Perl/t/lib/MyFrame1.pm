@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use Wx 0.98 ':everything';
 
-our $VERSION = '0.70';
+our $VERSION = '0.71';
 our @ISA     = 'Wx::Frame';
 
 sub new {
@@ -24,6 +24,41 @@ sub new {
 		Wx::wxDEFAULT_FRAME_STYLE | Wx::wxTAB_TRAVERSAL,
 	);
 	$self->CreateStatusBar( 2, Wx::wxST_SIZEGRIP, -1 );
+
+	Wx::Event::EVT_ACTIVATE(
+		$self,
+		sub {
+			shift->on_activate(@_);
+		},
+	);
+
+	Wx::Event::EVT_ACTIVATE_APP(
+		$self,
+		sub {
+			shift->on_activate_app(@_);
+		},
+	);
+
+	Wx::Event::EVT_CLOSE(
+		$self,
+		sub {
+			shift->on_close(@_);
+		},
+	);
+
+	Wx::Event::EVT_ICONIZE(
+		$self,
+		sub {
+			shift->on_iconize(@_);
+		},
+	);
+
+	Wx::Event::EVT_IDLE(
+		$self,
+		sub {
+			shift->on_idle(@_);
+		},
+	);
 
 	$self->{m_menu1} = Wx::Menu->new;
 

@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use Wx 0.98 ':everything';
 
-our $VERSION = '0.70';
+our $VERSION = '0.71';
 our @ISA     = 'Wx::Panel';
 
 sub new {
@@ -19,6 +19,23 @@ sub new {
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
 		Wx::wxTAB_TRAVERSAL,
+	);
+	$self->SetBackgroundColour(
+		Wx::Colour->new( 255, 0, 0 )
+	);
+
+	Wx::Event::EVT_ENTER_WINDOW(
+		$self,
+		sub {
+			shift->on_enter_window(@_);
+		},
+	);
+
+	Wx::Event::EVT_LEAVE_WINDOW(
+		$self,
+		sub {
+			shift->on_leave_window(@_);
+		},
 	);
 
 	$self->{m_staticText6} = Wx::StaticText->new(
@@ -97,6 +114,10 @@ sub new {
 
 sub on_enter_window {
 	warn 'Handler method on_enter_window for event MyPanel1.OnEnterWindow not implemented';
+}
+
+sub on_leave_window {
+	warn 'Handler method on_leave_window for event MyPanel1.OnLeaveWindow not implemented';
 }
 
 1;

@@ -1,5 +1,10 @@
 Changes for Perl extension FBP-Perl
 
+0.71 Fri 16 Dec 2011
+	- Adding a number of missing events
+	- Fixed missing Wx::Event::EVT_MACROS for the top level form
+	- Fixed several incorrect macro argument counts
+
 0.70 Fri 16 Dec 2011
 	- Added support for events in the top level Form objects
 	- Added support for OnIconize and OnInitDialog events

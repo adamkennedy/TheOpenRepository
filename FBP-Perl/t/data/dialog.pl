@@ -11,7 +11,7 @@ use t::lib::Custom ();
 use t::lib::MyClass ();
 use t::lib::MyHtmlWindow ();
 
-our $VERSION = '0.70';
+our $VERSION = '0.71';
 our @ISA     = 'Wx::Dialog';
 
 sub new {
@@ -25,6 +25,13 @@ sub new {
 		wxDefaultPosition,
 		wxDefaultSize,
 		wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER,
+	);
+
+	Wx::Event::EVT_INIT_DIALOG(
+		$self,
+		sub {
+			shift->on_init_dialog(@_);
+		},
 	);
 
 	$self->{m_staticText1} = t::lib::MyClass->new(

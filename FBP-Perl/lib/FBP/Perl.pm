@@ -57,19 +57,19 @@ use Scalar::Util  1.19 ();
 use Params::Util  1.00 ();
 use FBP           0.38 ();
 
-our $VERSION    = '0.70';
+our $VERSION    = '0.71';
 our $COMPATIBLE = '0.67';
 
 # Event Binding Table
 our %EVENT = (
 	# Common low level painting events
-	OnEraseBackground         => [ 2, 'EVT_ERASE_BACKGROUND'           ],
-	OnPaint                   => [ 2, 'EVT_PAINT'                      ],
+	OnEraseBackground         => [ 1, 'EVT_ERASE_BACKGROUND'           ],
+	OnPaint                   => [ 1, 'EVT_PAINT'                      ],
 	OnUpdateUI                => [ 2, 'EVT_UPDATE_UI'                  ],
 
 	# wxActivateEvent
-	OnActivate                => [ 2, 'EVT_ACTIVATE'                   ],
-	OnActivateApp             => [ 2, 'EVT_ACTIVATE_APP'               ],
+	OnActivate                => [ 1, 'EVT_ACTIVATE'                   ],
+	OnActivateApp             => [ 1, 'EVT_ACTIVATE_APP'               ],
 
 	# wxCalendar
 	OnCalendar                => [ 2, 'EVT_CALENDAR'                   ],
@@ -93,13 +93,12 @@ our %EVENT = (
 	OnText                    => [ 2, 'EVT_TEXT'                       ],
 	OnTextEnter               => [ 2, 'EVT_TEXT_ENTER'                 ],
 	OnMenu                    => [ 2, 'EVT_MENU'                       ],
-	OnMenuRange               => [ 2, 'EVT_MENU_RANGE'                 ],
 
 	# wxColourPickerCtrl
 	OnColourChanged           => [ 2, 'EVT_COLOURPICKER_CHANGED'       ],
 
 	# wxCloseEvent
-	OnClose                   => [ 2, 'EVT_CLOSE'                      ],
+	OnClose                   => [ 1, 'EVT_CLOSE'                      ],
 
 	# wxDatePickerCtrl
 	OnDateChanged             => [ 2, 'EVT_DATE_CHANGED'               ],
@@ -108,48 +107,48 @@ our %EVENT = (
 	OnFileChanged             => [ 2, 'EVT_FILEPICKER_CHANGED'         ],
 
 	# wxFocusEvent
-	OnKillFocus               => [ 2, 'EVT_KILL_FOCUS'                 ],
-	OnSetFocus                => [ 2, 'EVT_SET_FOCUS'                  ],
+	OnKillFocus               => [ 1, 'EVT_KILL_FOCUS'                 ],
+	OnSetFocus                => [ 1, 'EVT_SET_FOCUS'                  ],
 
 	# wxFontPickerCtrl
 	OnFontChanged             => [ 2, 'EVT_FONTPICKER_CHANGED'         ],
 
 	# wxGrid
-	OnGridCellLeftClick       => [ 2, 'EVT_GRID_CELL_LEFT_CLICK'       ],
-	OnGridCellRightClick      => [ 2, 'EVT_GRID_CELL_RIGHT_CLICK'      ],
-	OnGridCellLeftDClick      => [ 2, 'EVT_GRID_CELL_LEFT_DCLICK'      ],
-	OnGridCellRightDClick     => [ 2, 'EVT_GRID_CELL_RIGHT_DCLICK'     ],
-	OnGridLabelLeftClick      => [ 2, 'EVT_GRID_LABEL_LEFT_CLICK'      ],
-	OnGridLabelRightClick     => [ 2, 'EVT_GRID_LABEL_RIGHT_CLICK'     ],
-	OnGridLabelLeftDClick     => [ 2, 'EVT_GRID_LABEL_LEFT_DCLICK'     ],
-	OnGridLabelRightDClick    => [ 2, 'EVT_GRID_LABEL_RIGHT_DCLICK'    ],
-	OnGridCellChange          => [ 2, 'EVT_GRID_CELL_CHANGE'           ],
-	OnGridSelectCell          => [ 2, 'EVT_GRID_SELECT_CELL'           ],
-	OnGridEditorHidden        => [ 2, 'EVT_GRID_EDITOR_HIDDEN'         ],
-	OnGridEditorShown         => [ 2, 'EVT_GRID_EDITOR_SHOWN'          ],
-	OnGridColSize             => [ 2, 'EVT_GRID_COL_SIZE'              ],
-	OnGridRowSize             => [ 2, 'EVT_GRID_ROW_SIZE'              ],
-	OnGridRangeSelect         => [ 2, 'EVT_GRID_RANGE_SELECT'          ],
-	OnGridEditorCreated       => [ 2, 'EVT_GRID_EDITOR_CREATED'        ],
+	OnGridCellLeftClick       => [ 1, 'EVT_GRID_CELL_LEFT_CLICK'       ],
+	OnGridCellRightClick      => [ 1, 'EVT_GRID_CELL_RIGHT_CLICK'      ],
+	OnGridCellLeftDClick      => [ 1, 'EVT_GRID_CELL_LEFT_DCLICK'      ],
+	OnGridCellRightDClick     => [ 1, 'EVT_GRID_CELL_RIGHT_DCLICK'     ],
+	OnGridLabelLeftClick      => [ 1, 'EVT_GRID_LABEL_LEFT_CLICK'      ],
+	OnGridLabelRightClick     => [ 1, 'EVT_GRID_LABEL_RIGHT_CLICK'     ],
+	OnGridLabelLeftDClick     => [ 1, 'EVT_GRID_LABEL_LEFT_DCLICK'     ],
+	OnGridLabelRightDClick    => [ 1, 'EVT_GRID_LABEL_RIGHT_DCLICK'    ],
+	OnGridCellChange          => [ 1, 'EVT_GRID_CELL_CHANGE'           ],
+	OnGridSelectCell          => [ 1, 'EVT_GRID_SELECT_CELL'           ],
+	OnGridEditorHidden        => [ 1, 'EVT_GRID_EDITOR_HIDDEN'         ],
+	OnGridEditorShown         => [ 1, 'EVT_GRID_EDITOR_SHOWN'          ],
+	OnGridColSize             => [ 1, 'EVT_GRID_COL_SIZE'              ],
+	OnGridRowSize             => [ 1, 'EVT_GRID_ROW_SIZE'              ],
+	OnGridRangeSelect         => [ 1, 'EVT_GRID_RANGE_SELECT'          ],
+	OnGridEditorCreated       => [ 1, 'EVT_GRID_EDITOR_CREATED'        ],
 
 	# Not sure why wxFormBuilder makes these grid event duplicates
 	# so we just slavishly cargo cult what they do in the C code.
-	OnGridCmdCellLeftClick    => [ 2, 'EVT_GRID_CELL_LEFT_CLICK'       ],
-	OnGridCmdCellRightClick   => [ 2, 'EVT_GRID_CELL_RIGHT_CLICK'      ],
-	OnGridCmdCellLeftDClick   => [ 2, 'EVT_GRID_CELL_LEFT_DCLICK'      ],
-	OnGridCmdCellRightDClick  => [ 2, 'EVT_GRID_CELL_RIGHT_DCLICK'     ],
-	OnGridCmdLabelLeftClick   => [ 2, 'EVT_GRID_LABEL_LEFT_CLICK'      ],
-	OnGridCmdLabelRightClick  => [ 2, 'EVT_GRID_LABEL_RIGHT_CLICK'     ],
-	OnGridCmdLabelLeftDClick  => [ 2, 'EVT_GRID_LABEL_LEFT_DCLICK'     ],
-	OnGridCmdLabelRightDClick => [ 2, 'EVT_GRID_LABEL_RIGHT_DCLICK'    ],
-	OnGridCmdCellChange       => [ 2, 'EVT_GRID_CELL_CHANGE'           ],
-	OnGridCmdSelectCell       => [ 2, 'EVT_GRID_SELECT_CELL'           ],
-	OnGridCmdEditorHidden     => [ 2, 'EVT_GRID_EDITOR_HIDDEN'         ],
-	OnGridCmdEditorShown      => [ 2, 'EVT_GRID_EDITOR_SHOWN'          ],
-	OnGridCmdColSize          => [ 2, 'EVT_GRID_COL_SIZE'              ],
-	OnGridCmdRowSize          => [ 2, 'EVT_GRID_ROW_SIZE'              ],
-	OnGridCmdRangeSelect      => [ 2, 'EVT_GRID_RANGE_SELECT'          ],
-	OnGridCmdEditorCreated    => [ 2, 'EVT_GRID_EDITOR_CREATED'        ],
+	OnGridCmdCellLeftClick    => [ 1, 'EVT_GRID_CELL_LEFT_CLICK'       ],
+	OnGridCmdCellRightClick   => [ 1, 'EVT_GRID_CELL_RIGHT_CLICK'      ],
+	OnGridCmdCellLeftDClick   => [ 1, 'EVT_GRID_CELL_LEFT_DCLICK'      ],
+	OnGridCmdCellRightDClick  => [ 1, 'EVT_GRID_CELL_RIGHT_DCLICK'     ],
+	OnGridCmdLabelLeftClick   => [ 1, 'EVT_GRID_LABEL_LEFT_CLICK'      ],
+	OnGridCmdLabelRightClick  => [ 1, 'EVT_GRID_LABEL_RIGHT_CLICK'     ],
+	OnGridCmdLabelLeftDClick  => [ 1, 'EVT_GRID_LABEL_LEFT_DCLICK'     ],
+	OnGridCmdLabelRightDClick => [ 1, 'EVT_GRID_LABEL_RIGHT_DCLICK'    ],
+	OnGridCmdCellChange       => [ 1, 'EVT_GRID_CELL_CHANGE'           ],
+	OnGridCmdSelectCell       => [ 1, 'EVT_GRID_SELECT_CELL'           ],
+	OnGridCmdEditorHidden     => [ 1, 'EVT_GRID_EDITOR_HIDDEN'         ],
+	OnGridCmdEditorShown      => [ 1, 'EVT_GRID_EDITOR_SHOWN'          ],
+	OnGridCmdColSize          => [ 1, 'EVT_GRID_COL_SIZE'              ],
+	OnGridCmdRowSize          => [ 1, 'EVT_GRID_ROW_SIZE'              ],
+	OnGridCmdRangeSelect      => [ 1, 'EVT_GRID_RANGE_SELECT'          ],
+	OnGridCmdEditorCreated    => [ 1, 'EVT_GRID_EDITOR_CREATED'        ],
 
 	# wxHtmlWindow
 	OnHtmlCellClicked         => [ 2, 'EVT_HTML_CELL_CLICKED'          ],
@@ -157,13 +156,13 @@ our %EVENT = (
 	OnHtmlLinkClicked         => [ 2, 'EVT_HTML_LINK_CLICKED'          ],
 
 	# wxIconizeEvent
-	OnIconize                 => [ 2, 'EVT_ICONIZE'                    ],
+	OnIconize                 => [ 1, 'EVT_ICONIZE'                    ],
 
 	# wxIdleEvent
-	OnIdle                    => [ 2, 'EVT_IDLE'                       ],
+	OnIdle                    => [ 1, 'EVT_IDLE'                       ],
 
 	# wxInitDialogEvent
-	OnInitDialog              => [ 2, 'EVT_INIT_DIALOG'                ],
+	OnInitDialog              => [ 1, 'EVT_INIT_DIALOG'                ],
 
 	# wxKeyEvent
 	OnChar                    => [ 1, 'EVT_CHAR'                       ],
@@ -196,20 +195,20 @@ our %EVENT = (
 	OnMenuSelection           => [ 2, 'EVT_MENU'                       ],
 
 	# wxMouseEvent
-	OnEnterWindow             => [ 2, 'EVT_ENTER_WINDOW'               ],
-	OnLeaveWindow             => [ 2, 'EVT_LEAVE_WINDOW'               ],
-	OnLeftDClick              => [ 2, 'EVT_LEFT_DCLICK'                ],
-	OnLeftDown                => [ 2, 'EVT_LEFT_DOWN'                  ],
-	OnLeftUp                  => [ 2, 'EVT_LEFT_UP'                    ],
-	OnMiddleDClick            => [ 2, 'EVT_MIDDLE_DCLICK'              ],
-	OnMiddleDown              => [ 2, 'EVT_MIDDLE_DOWN'                ],
-	OnMiddleUp                => [ 2, 'EVT_MIDDLE_UP'                  ],
-	OnMotion                  => [ 2, 'EVT_MOTION'                     ],
-	OnMouseEvents             => [ 2, 'EVT_MOUSE_EVENTS'               ],
-	OnMouseWheel              => [ 2, 'EVT_MOUSEWHEEL'                 ],
-	OnRightDClick             => [ 2, 'EVT_RIGHT_DCLICK'               ],
-	OnRightDown               => [ 2, 'EVT_RIGHT_DOWN'                 ],
-	OnRightUp                 => [ 2, 'EVT_RIGHT_UP'                   ],
+	OnEnterWindow             => [ 1, 'EVT_ENTER_WINDOW'               ],
+	OnLeaveWindow             => [ 1, 'EVT_LEAVE_WINDOW'               ],
+	OnLeftDClick              => [ 1, 'EVT_LEFT_DCLICK'                ],
+	OnLeftDown                => [ 1, 'EVT_LEFT_DOWN'                  ],
+	OnLeftUp                  => [ 1, 'EVT_LEFT_UP'                    ],
+	OnMiddleDClick            => [ 1, 'EVT_MIDDLE_DCLICK'              ],
+	OnMiddleDown              => [ 1, 'EVT_MIDDLE_DOWN'                ],
+	OnMiddleUp                => [ 1, 'EVT_MIDDLE_UP'                  ],
+	OnMotion                  => [ 1, 'EVT_MOTION'                     ],
+	OnMouseEvents             => [ 1, 'EVT_MOUSE_EVENTS'               ],
+	OnMouseWheel              => [ 1, 'EVT_MOUSEWHEEL'                 ],
+	OnRightDClick             => [ 1, 'EVT_RIGHT_DCLICK'               ],
+	OnRightDown               => [ 1, 'EVT_RIGHT_DOWN'                 ],
+	OnRightUp                 => [ 1, 'EVT_RIGHT_UP'                   ],
 
 	# wxNotebookEvent
 	OnNotebookPageChanging    => [ 2, 'EVT_NOTEBOOK_PAGE_CHANGING'     ],
@@ -222,7 +221,7 @@ our %EVENT = (
 	OnRadioButton             => [ 2, 'EVT_RADIOBUTTON'                ],
 
 	# wxSizeEvent
-	OnSize                    => [ 2, 'EVT_SIZE'                       ],
+	OnSize                    => [ 1, 'EVT_SIZE'                       ],
 
 	# wxStdDialogButtonSizer (placeholders)
 	OnOKButtonClick           => [                                  ],
@@ -239,9 +238,9 @@ our %EVENT = (
 	OnCancelButton            => [ 2, 'EVT_SEARCHCTRL_CANCEL_BTN'      ],
 
 	# wxSpinButton
-	OnSpin                    => [ 2, 'EVT_SCROLL_THUMBTRACK'          ],
-	OnSpinUp                  => [ 2, 'EVT_SCROLL_LINEUP'              ],
-	OnSpinDown                => [ 2, 'EVT_SCROLL_LINEDOWN'            ],
+	OnSpin                    => [ 1, 'EVT_SCROLL_THUMBTRACK'          ],
+	OnSpinUp                  => [ 1, 'EVT_SCROLL_LINEUP'              ],
+	OnSpinDown                => [ 1, 'EVT_SCROLL_LINEDOWN'            ],
 
 	# wxSplitterEvent
 	OnSplitterSashPosChanging => [ 2, 'EVT_SPLITTER_SASH_POS_CHANGING' ],
@@ -841,16 +840,20 @@ sub form_new {
 	my @sizers  = $self->form_sizers($form);
 	my $status  = $form->find_first( isa => 'FBP::StatusBar' );
 
-	my @set = ();
+	my @lines = ();
 	if ( $self->form_setsizehints($form) ) {
 		my $minsize = $self->wxsize($form->minimum_size);
 		my $maxsize = $self->wxsize($form->maximum_size);
-		push @set, "\$self->SetSizeHints( $minsize, $maxsize );";
+		push @lines, "\$self->SetSizeHints( $minsize, $maxsize );";
 	}
 	if ( $status ) {
 		my $statusbar = $self->statusbar_create($status, $form);
-		push @set, @$statusbar;
+		push @lines, @$statusbar;
 	}
+
+	# Add common modifications
+	push @lines, $self->window_changes($form);
+	push @lines, $self->object_bindings($form);
 
 	return $self->nested(
 		"sub new {",
@@ -858,7 +861,7 @@ sub form_new {
 		"my \$parent = shift;",
 		"",
 		$super,
-		@set,
+		@lines,
 		"",
 		( map { @$_, "" } grep { scalar @$_ } @windows ),
 		( map { @$_, "" } grep { scalar @$_ } @sizers  ),
@@ -868,17 +871,21 @@ sub form_new {
 }
 
 sub form_supernew {
-	my $self = shift;
-	my $form = shift;
+	my $self  = shift;
+	my $form  = shift;
+	my $lines = undef;
+
 	if ( $form->isa('FBP::Dialog') ) {
-		return $self->dialog_supernew($form);
+		$lines = $self->dialog_supernew($form);
 	} elsif ( $form->isa('FBP::Frame') ) {
-		return $self->frame_supernew($form);
+		$lines = $self->frame_supernew($form);
 	} elsif ( $form->isa('FBP::Panel') ) {
-		return $self->panel_supernew($form);
+		$lines = $self->panel_supernew($form);
 	} else {
 		die "Unsupported top class " . ref($form);
 	}
+
+	return $lines;
 }
 
 sub dialog_supernew {
@@ -1179,15 +1186,7 @@ sub window_create {
 	}
 
 	# Add common modifications
-	push @$lines, $self->window_selection($window);
-	push @$lines, $self->window_minimum_size($window);
-	push @$lines, $self->window_maximum_size($window);
-	push @$lines, $self->window_fg($window);
-	push @$lines, $self->window_bg($window);
-	push @$lines, $self->window_font($window);
-	push @$lines, $self->window_tooltip($window);
-	push @$lines, $self->window_disable($window);
-	push @$lines, $self->window_hide($window);
+	push @$lines, $self->window_changes($window);
 	push @$lines, $self->object_bindings($window);
 
 	return $lines;
@@ -3073,6 +3072,24 @@ sub staticboxsizer_pack {
 ######################################################################
 # Window Statement Fragments
 
+sub window_changes {
+	my $self   = shift;
+	my $window = shift;
+	my @lines  = ();
+
+	push @lines, $self->window_selection($window);
+	push @lines, $self->window_minimum_size($window);
+	push @lines, $self->window_maximum_size($window);
+	push @lines, $self->window_fg($window);
+	push @lines, $self->window_bg($window);
+	push @lines, $self->window_font($window);
+	push @lines, $self->window_tooltip($window);
+	push @lines, $self->window_disable($window);
+	push @lines, $self->window_hide($window);
+
+	return @lines;
+}
+
 sub window_selection {
 	my $self   = shift;
 	my $window = shift;
@@ -3216,31 +3233,20 @@ sub window_hide {
 
 sub object_bindings {
 	my $self     = shift;
-	my $window   = shift;
-	my $variable = $self->object_variable($window);
+	my $object   = shift;
+	my $variable = $self->object_variable($object);
 
 	my @lines = ();
 	foreach my $attribute ( sort keys %EVENT ) {
-		next unless $window->can($attribute);
+		next unless $object->can($attribute);
 
 		# Is there something to bind to
-		my $method = $window->$attribute() or next;
+		my $method = $object->$attribute() or next;
 
 		# Add the binding for it
 		my $args  = $EVENT{$attribute}->[0];
 		my $macro = $EVENT{$attribute}->[1];
-		if ( $args == 1 ) {
-			# Using $self here is a cop out but ok for now
-			push @lines, (
-				"",
-				"Wx::Event::$macro(",
-				"\t$variable,",
-				"\tsub {",
-				"\t\t\$self->$method(\$_[1]);",
-				"\t},",
-				");",
-			);
-		} elsif ( $args == 2 ) {
+		if ( $args == 2 ) {
 			push @lines, (
 				"",
 				"Wx::Event::$macro(",
@@ -3251,9 +3257,31 @@ sub object_bindings {
 				"\t},",
 				");",
 			);
-		} else {
-			die "Unexpected arg count $args";
+			next;
 		}
+		if ( $variable eq '$self' ) {
+			push @lines, (
+				"",
+				"Wx::Event::$macro(",
+				"\t\$self,",
+				"\tsub {",
+				"\t\tshift->$method(\@_);",
+				"\t},",
+				");",
+			);
+			next;
+		}
+
+		# Using $self here is a cop out but ok for now
+		push @lines, (
+			"",
+			"Wx::Event::$macro(",
+			"\t$variable,",
+			"\tsub {",
+			"\t\t\$self->$method(\$_[1]);",
+			"\t},",
+			");",
+		);
 	}
 
 	return @lines;
@@ -3287,7 +3315,9 @@ sub object_scope {
 sub object_variable {
 	my $self   = shift;
 	my $object = shift;
-	if ( $self->object_lexical($object) ) {
+	if ( $object->does('FBP::Form') ) {
+		return '$self';
+	} elsif ( $self->object_lexical($object) ) {
 		return '$' . $object->name;
 	} else {
 		return '$self->{' . $object->name . '}';
@@ -3297,7 +3327,7 @@ sub object_variable {
 sub object_parent {
 	my $self   = shift;
 	my $object = shift;
-	if ( $object and not $object->DOES('FBP::Form') ) {
+	if ( $object and not $object->does('FBP::Form') ) {
 		return $self->object_variable($object);
 	} else {
 		return '$self';

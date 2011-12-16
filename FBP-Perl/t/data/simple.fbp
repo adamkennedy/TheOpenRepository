@@ -3932,7 +3932,7 @@
             </object>
         </object>
         <object class="Panel" expanded="0">
-            <property name="bg"></property>
+            <property name="bg">255,0,0</property>
             <property name="context_help"></property>
             <property name="context_menu">1</property>
             <property name="enabled">1</property>
@@ -3962,7 +3962,7 @@
             <event name="OnKeyDown"></event>
             <event name="OnKeyUp"></event>
             <event name="OnKillFocus"></event>
-            <event name="OnLeaveWindow"></event>
+            <event name="OnLeaveWindow">on_leave_window</event>
             <event name="OnLeftDClick"></event>
             <event name="OnLeftDown"></event>
             <event name="OnLeftUp"></event>

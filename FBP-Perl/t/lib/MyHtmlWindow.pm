@@ -4,7 +4,7 @@ use strict;
 use Wx;
 use Wx::Html;
 
-our $VERSION = '0.70';
+our $VERSION = '0.71';
 our @ISA     = 'Wx::Html';
 
 sub new {
