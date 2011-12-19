@@ -1,5 +1,11 @@
 Revision history for Perl extension SelfLoader
 
+1.20    Mon Dec 19 20:03 2011
+  - Update FSF address also in separate license file, duh.
+
+1.19    Mon Dec 19 20:00 2011
+  - Update FSF address.
+
 1.18    Sat Nov 20 01:30 2010
   - port commit a3a44df66ac2cb0beb603b3dd9697fd81cfcfb30
     from core:
