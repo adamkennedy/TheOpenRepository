@@ -44,7 +44,7 @@ isa_ok( $dialog, 'FBP::Dialog' );
 my $have = $perl->dialog_class($dialog);
 my $want = slurp($output);
 code( $have, $want, '->dialog_class ok' );
-compiles( $have, 'Dialog class compiled' );
+compiles( $have, 'MyDialog1', 'Dialog class compiled' );
 
 
 

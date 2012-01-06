@@ -1,5 +1,11 @@
 Changes for Perl extension FBP-Perl
 
+0.72 to be released
+	- Calendar controls now include Wx::Calendar correctly
+	- Test scripts now instantiate the test dialogs
+	- Temporarily use Wx::DateTime::Now until wxDefaultDateTime works
+	- Fixed some bug in the custom classes used in testing
+
 0.71 Fri 16 Dec 2011
 	- Adding a number of missing events
 	- Fixed missing Wx::Event::EVT_MACROS for the top level form

@@ -5,7 +5,7 @@ use Wx;
 use Wx::Html;
 
 our $VERSION = '0.71';
-our @ISA     = 'Wx::Html';
+our @ISA     = 'Wx::HtmlWindow';
 
 sub new {
 	shift->SUPER::new(@_);

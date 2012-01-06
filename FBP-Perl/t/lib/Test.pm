@@ -24,7 +24,8 @@ sub code {
 }
 
 sub compiles {
-	my $code = shift;
+	my $code    = shift;
+	my $package = shift;
 	if ( ref $code ) {
 		$code = join '', map { "$_\n" } @$code;
 	}
@@ -34,10 +35,22 @@ sub compiles {
 		if ( $ENV{ADAMK_RELEASE} ) {
 			$Test->ok( 1, "Skipped $_[0]" );
 		} else {
+			# Compile the dialog
 			local $@;
-			my $rv = do { eval "return 1;\n$code"; };
+			my $rv = do { eval $code };
 			$Test->diag( $@ ) if $@;
 			$Test->ok( $rv, $_[0] );
+
+			# Try to create the object
+			if ( $package ) {
+				Test::More::use_ok('Wx');
+				my $app = Wx::SimpleApp->new;
+				Test::More::isa_ok( $app, 'Wx::App' );
+
+				# Create the Form
+				my $form = $package->new;
+				isa_ok( $form, 'Wx::Window' );
+			}
 		}
 	}
 }

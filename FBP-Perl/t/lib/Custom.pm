@@ -5,4 +5,8 @@ use Wx ();
 our $VERSION = '0.71';
 our @ISA     = 'Wx::StaticText';
 
+sub new {
+	shift->SUPER::new( @_, 'Text' );
+}
+
 1;
