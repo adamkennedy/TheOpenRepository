@@ -1,5 +1,8 @@
 Changes for Perl extension FBP
 
+0.39 Mon 9 Jan 2012
+	- Moved FBP::HyperLink to FBP::HyperlinkCtrl
+
 0.38 Tue 27 Sep 2011
 	- Added FBP::Project::encoding method
 	- Added FBP::Project::namespace method

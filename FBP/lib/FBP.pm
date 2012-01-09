@@ -69,7 +69,7 @@ use FBP::GridBagSizer         ();
 use FBP::GridBagSizerItem     ();
 use FBP::GridSizer            ();
 use FBP::HtmlWindow           ();
-use FBP::HyperLink            ();
+use FBP::HyperlinkCtrl        ();
 use FBP::Listbook             ();
 use FBP::ListbookPage         ();
 use FBP::ListBox              ();
@@ -107,7 +107,7 @@ use FBP::ToolBar              ();
 use FBP::ToolSeparator        ();
 use FBP::TreeCtrl             ();
 
-our $VERSION = '0.38';
+our $VERSION = '0.39';
 
 extends 'FBP::Object';
 with    'FBP::Children';
@@ -258,7 +258,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2009 - 2011 Adam Kennedy.
+Copyright 2009 - 2012 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

@@ -302,9 +302,9 @@ is( $radiobox->style, 'wxRA_SPECIFY_COLS', '->style' );
 
 # HyperLink properties
 my $hyperlink = $fbp->find_first(
-	isa => 'FBP::HyperLink',
+	isa => 'FBP::HyperlinkCtrl',
 );
-isa_ok( $hyperlink, 'FBP::HyperLink' );
+isa_ok( $hyperlink, 'FBP::HyperlinkCtrl' );
 is( $hyperlink->name, 'm_hyperlink1', '->name' );
 is( $hyperlink->label, 'wxFormBuilder Website', '->label' );
 is( $hyperlink->url, 'http://www.wxformbuilder.org', '->url' );

@@ -2,7 +2,7 @@ package FBP::ColourPickerCtrl;
 
 use Mouse;
 
-our $VERSION = '0.38';
+our $VERSION = '0.39';
 
 extends 'FBP::Control';
 

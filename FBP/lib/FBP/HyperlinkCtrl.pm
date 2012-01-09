@@ -1,8 +1,8 @@
-package FBP::HyperLink;
+package FBP::HyperlinkCtrl;
 
 use Mouse;
 
-our $VERSION = '0.38';
+our $VERSION = '0.39';
 
 extends 'FBP::Control';
 
