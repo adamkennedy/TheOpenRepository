@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 15;
+use Test::More tests => 24;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
@@ -55,7 +55,7 @@ SCOPE: {
 
 		code( $have, $want, '->app_class ok' );
 	}
-	compiles( $have, 'Project class compiled' );
+	compiles( $have, 'FBP::Demo::Main', 'Project class compiled' );
 	$INC{'FBP/Demo/Main.pm'} = 1;
 }
 
@@ -74,7 +74,7 @@ SCOPE: {
 	my $have = $code->app_class;
 	my $want = slurp($output);
 	code( $have, $want, '->app_class ok' );
-	compiles( $have, 'Project class compiled' );
+	compiles( $have, 'FBP::Demo', 'Project class compiled' );
 	$INC{'FBP/Demo.pm'} = 1;
 }
 
@@ -93,5 +93,5 @@ SCOPE: {
 	my $have = $code->script_app;
 	my $want = slurp($output);
 	code( $have, $want, '->app_class ok' );
-	compiles( $have, 'Launch script compiled' );
+	compiles( $have, undef, 'Launch script compiled' );
 }

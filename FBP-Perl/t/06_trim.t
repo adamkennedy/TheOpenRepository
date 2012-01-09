@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 12;
+use Test::More tests => 15;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
@@ -47,4 +47,4 @@ isa_ok( $dialog, 'FBP::Panel' );
 my $have = $code->dialog_class($dialog);
 my $want = slurp($output);
 code( $have, $want, '->dialog_class ok' );
-compiles( $have, 'Dialog class compiled' );
+compiles( $have, 'MyPanel1', 'Dialog class compiled' );

@@ -57,7 +57,7 @@ use Scalar::Util  1.19 ();
 use Params::Util  1.00 ();
 use FBP           0.39 ();
 
-our $VERSION    = '0.71';
+our $VERSION    = '0.72';
 our $COMPATIBLE = '0.67';
 
 # Event Macro Binding Table
@@ -836,6 +836,9 @@ sub form_wx {
 		push @$lines, "use Wx::DateTime ();";
 	} elsif ( $self->find_plain( $topic => 'FBP::DatePickerCtrl' ) ) {
 		push @$lines, "use Wx::DateTime ();";
+	}
+	if ( $self->find_plain( $topic => 'FBP::RichTextCtrl' ) ) {
+		push @$lines, "use Wx::RichText ();";
 	}
 	return $lines;
 }
@@ -2177,6 +2180,7 @@ sub richtextctrl_create {
 	my $parent   = $self->object_parent(@_);
 	my $id       = $self->object_id($control);
 	# my $value    = $self->wx('wxEmptyString'); # NOT IMPLEMENTED
+	my $value    = $self->quote('');
 	my $position = $self->object_position($control);
 	my $size     = $self->object_wxsize($control);
 
@@ -2184,7 +2188,7 @@ sub richtextctrl_create {
 		$self->object_new($control),
 		"$parent,",
 		"$id,",
-		"undef,",
+		"$value,",
 		"$position,",
 		"$size,",
 		$self->window_style($control),
@@ -2881,7 +2885,7 @@ sub gridbagsizer_pack {
 			my $width  = $child->width;
 			my $height = $child->height;
 			push @lines, $self->nested(
-				"$variable->AddSpacer(",
+				"$variable->Add(",
 				"$width,",
 				"$height,",
 				"Wx::GBPosition->new( $row, $column ),",
@@ -2891,9 +2895,8 @@ sub gridbagsizer_pack {
 				");",
 			);
 		} else {
-			my $type = $child->isa('FBP::Sizer') ? 'Sizer' : 'Window';
 			push @lines, $self->nested(
-				"$variable->Add$type(",
+				"$variable->Add(",
 				$self->object_variable($child) . ',',
 				"Wx::GBPosition->new( $row, $column ),",
 				"Wx::GBSpan->new( $rowspan, $colspan ),",
@@ -3828,7 +3831,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2010 - 2011 Adam Kennedy.
+Copyright 2010 - 2012 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

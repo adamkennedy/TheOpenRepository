@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 9;
+use Test::More tests => 12;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
@@ -39,4 +39,4 @@ isa_ok( $code, 'FBP::Perl' );
 my $have = $code->script_app;
 my $want = slurp($output);
 code( $have, $want, '->app_class ok' );
-compiles( $have, 'Project class compiled' );
+compiles( $have, undef, 'Project class compiled' );

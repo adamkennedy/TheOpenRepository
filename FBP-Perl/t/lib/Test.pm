@@ -6,7 +6,7 @@ use Test::Builder;
 use Test::LongString;
 use Exporter ();
 
-our $VERSION = '0.71';
+our $VERSION = '0.72';
 our @ISA     = 'Exporter';
 our @EXPORT  = qw{ code compiles slurp };
 
@@ -33,10 +33,15 @@ sub compiles {
 		local $Test::Builder::Level = $Test::Builder::Level + 1;
 		my $Test = Test::Builder->new;
 		if ( $ENV{ADAMK_RELEASE} ) {
-			$Test->ok( 1, "Skipped $_[0]" );
+			foreach ( 1 .. 4 ) {
+				$Test->ok( 1, "Skipped $_[0]" );
+			}
 		} else {
 			# Compile the dialog
 			local $@;
+			unless ( $package ) {
+				$code = "return 1; $code";
+			}
 			my $rv = do { eval $code };
 			$Test->diag( $@ ) if $@;
 			$Test->ok( $rv, $_[0] );
@@ -49,7 +54,11 @@ sub compiles {
 
 				# Create the Form
 				my $form = $package->new;
-				isa_ok( $form, 'Wx::Window' );
+				Test::More::isa_ok( $form, 'Wx::Object' );
+			} else {
+				foreach ( 1 .. 3 ) {
+					$Test->ok( 1, "Skipped $_[0]" );
+				}
 			}
 		}
 	}

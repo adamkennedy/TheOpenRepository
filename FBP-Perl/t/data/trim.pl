@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use Wx 0.98 ':everything';
 
-our $VERSION = '0.71';
+our $VERSION = '0.72';
 our @ISA     = 'Wx::Panel';
 
 sub new {
@@ -73,21 +73,21 @@ sub new {
 	my $gbSizer2 = Wx::GridBagSizer->new( 0, 0 );
 	$gbSizer2->SetFlexibleDirection(Wx::wxBOTH);
 	$gbSizer2->SetNonFlexibleGrowMode(Wx::wxFLEX_GROWMODE_SPECIFIED);
-	$gbSizer2->AddWindow(
+	$gbSizer2->Add(
 		$self->{m_staticText6},
 		Wx::GBPosition->new( 0, 0 ),
 		Wx::GBSpan->new( 1, 3 ),
 		Wx::wxALIGN_CENTER_HORIZONTAL | Wx::wxALL,
 		5,
 	);
-	$gbSizer2->AddWindow(
+	$gbSizer2->Add(
 		$self->{m_button5},
 		Wx::GBPosition->new( 1, 0 ),
 		Wx::GBSpan->new( 1, 1 ),
 		Wx::wxALL,
 		5,
 	);
-	$gbSizer2->AddSpacer(
+	$gbSizer2->Add(
 		20,
 		10,
 		Wx::GBPosition->new( 1, 1 ),
@@ -95,7 +95,7 @@ sub new {
 		Wx::wxEXPAND,
 		5,
 	);
-	$gbSizer2->AddSizer(
+	$gbSizer2->Add(
 		$bSizer11,
 		Wx::GBPosition->new( 1, 2 ),
 		Wx::GBSpan->new( 1, 1 ),

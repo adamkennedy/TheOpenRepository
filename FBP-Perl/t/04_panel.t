@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 10;
+use Test::More tests => 13;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
@@ -43,4 +43,4 @@ isa_ok( $panel, 'FBP::FormPanel' );
 my $have = $code->panel_class($panel);
 my $want = slurp($output);
 code( $have, $want, '->panel_class ok' );
-compiles( $have, 'Panel class compiled' );
+compiles( $have, 'MyPanel1', 'Panel class compiled' );

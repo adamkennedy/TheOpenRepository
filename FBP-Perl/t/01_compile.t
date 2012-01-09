@@ -8,7 +8,7 @@ BEGIN {
 
 use constant CONSTANTS => 122;
 
-use Test::More tests => 7 + ( CONSTANTS * 2 );
+use Test::More tests => 8 + ( CONSTANTS * 2 );
 use Test::NoWarnings;
 
 use_ok( 'FBP::Perl' );
@@ -26,6 +26,7 @@ SKIP: {
 	use_ok( 'Wx::Grid' );
 	use_ok( 'Wx::DateTime' );
 	use_ok( 'Wx::Calendar' );
+	use_ok( 'Wx::RichText' );
 
 	SCOPE: {
 		my %seen = ();

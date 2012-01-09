@@ -1,10 +1,14 @@
 Changes for Perl extension FBP-Perl
 
-0.72 to be released
+0.72 Mon 9 Jan 2012
+	- Update FBP dependency to 0.39
 	- Calendar controls now include Wx::Calendar correctly
 	- Test scripts now instantiate the test dialogs
 	- Temporarily use Wx::DateTime->new until wxDefaultDateTime works
 	- Fixed some bug in the custom classes used in testing
+	- use Wx::RichText () when a form contains a RichTextCtrl
+	- RichTextCtrl constructor default not "" instead of undef
+	- Only use ->Add for gridbagsizers
 
 0.71 Fri 16 Dec 2011
 	- Adding a number of missing events

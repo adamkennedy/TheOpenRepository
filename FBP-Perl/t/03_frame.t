@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 10;
+use Test::More tests => 13;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
@@ -44,4 +44,4 @@ isa_ok( $frame, 'FBP::Frame' );
 my $have = $code->frame_class($frame);
 my $want = slurp($output);
 code( $have, $want, '->frame_class ok' );
-compiles( $have, 'Frame class compiled' );
+compiles( $have, 't::lib::MyFrame1', 'Frame class compiled' );

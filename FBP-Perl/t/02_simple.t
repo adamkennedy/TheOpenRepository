@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 14;
+use Test::More tests => 17;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;

@@ -9,11 +9,12 @@ use Wx::STC ();
 use Wx::Grid ();
 use Wx::Calendar ();
 use Wx::DateTime ();
+use Wx::RichText ();
 use t::lib::Custom ();
 use t::lib::MyClass ();
 use t::lib::MyHtmlWindow ();
 
-our $VERSION = '0.71';
+our $VERSION = '0.72';
 our @ISA     = 'Wx::Dialog';
 
 sub new {
@@ -403,7 +404,7 @@ sub new {
 	$self->{m_calendar2} = Wx::CalendarCtrl->new(
 		$self->{m_panel11},
 		-1,
-		undef,
+		Wx::DateTime->new,
 		wxDefaultPosition,
 		wxDefaultSize,
 		wxCAL_MONDAY_FIRST | wxCAL_SHOW_HOLIDAYS | wxCAL_SHOW_SURROUNDING_WEEKS,
@@ -587,7 +588,7 @@ sub new {
 		wxTAB_TRAVERSAL,
 	);
 
-	$self->{m_hyperlink1} = Wx::HyperLink->new(
+	$self->{m_hyperlink1} = Wx::HyperlinkCtrl->new(
 		$self->{m_panel6},
 		-1,
 		Wx::gettext("wxFormBuilder Website"),
@@ -666,7 +667,7 @@ sub new {
 	$self->{m_richText1} = Wx::RichTextCtrl->new(
 		$self->{m_panel13},
 		-1,
-		undef,
+		"",
 		wxDefaultPosition,
 		wxDefaultSize,
 		wxVSCROLL | wxHSCROLL | wxNO_BORDER | wxWANTS_CHARS,
