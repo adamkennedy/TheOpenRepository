@@ -55,7 +55,7 @@ use warnings;
 use B                  ();
 use Scalar::Util  1.19 ();
 use Params::Util  1.00 ();
-use FBP           0.38 ();
+use FBP           0.39 ();
 
 our $VERSION    = '0.71';
 our $COMPATIBLE = '0.67';
@@ -1180,7 +1180,7 @@ sub window_create {
 		$lines = $self->grid_create($window, $parent);
 	} elsif ( $window->isa('FBP::HtmlWindow') ) {
 		$lines = $self->htmlwindow_create($window, $parent);
-	} elsif ( $window->isa('FBP::HyperLink') ) {
+	} elsif ( $window->isa('FBP::HyperlinkCtrl') ) {
 		$lines = $self->hyperlink_create($window, $parent);
 	} elsif ( $window->isa('FBP::Listbook') ) {
 		# We emulate the creation of simple listbooks via treebooks
@@ -1380,7 +1380,7 @@ sub calendarctrl_create {
 	my $parent   = $self->object_parent(@_);
 	my $id       = $self->object_id($control);
 	# my $value    = $self->wx('wxDefaultDateTime'); # NOT IMPLEMENTED
-	my $value    = 'Wx::DateTime::Now()';
+	my $value    = 'Wx::DateTime->new'; # Believed to be equivalent
 	my $position = $self->object_position($control);
 	my $size     = $self->object_wxsize($control);
 
@@ -1527,7 +1527,7 @@ sub datepickerctrl_create {
 	my $parent   = $self->object_parent(@_);
 	my $id       = $self->object_id($control);
 	# my $value    = $self->wx('wxDefaultDateTime'); # NOT IMPLEMENTED
-	my $value    = 'Wx::DateTime::Now()';
+	my $value    = 'Wx::DateTime->new'; # Believed to be equivalent
 	my $position = $self->object_position($control);
 	my $size     = $self->object_wxsize($control);
 
