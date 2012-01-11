@@ -6,7 +6,7 @@ use Test::Builder;
 use Test::LongString;
 use Exporter ();
 
-our $VERSION = '0.72';
+our $VERSION = '0.73';
 our @ISA     = 'Exporter';
 our @EXPORT  = qw{ code compiles slurp };
 

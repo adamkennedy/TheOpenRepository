@@ -57,7 +57,7 @@ use Scalar::Util  1.19 ();
 use Params::Util  1.00 ();
 use FBP           0.39 ();
 
-our $VERSION    = '0.72';
+our $VERSION    = '0.73';
 our $COMPATIBLE = '0.67';
 
 # Event Macro Binding Table
@@ -3165,12 +3165,13 @@ sub window_selection {
 }
 
 sub window_minimum_size {
-	my $self   = shift;
-	my $window = shift;
+	my $self    = shift;
+	my $window  = shift;
+	my $minimum = $window->minimum_size;
 
-	if ( $window->minimum_size ) {
+	if ( $minimum and $self->size($minimum) ) {
 		my $variable = $self->object_variable($window);
-		my $size     = $self->wxsize( $window->minimum_size );
+		my $size     = $self->wxsize($minimum);
 		return (
 			"$variable->SetMinSize( $size );",
 		);
@@ -3180,12 +3181,13 @@ sub window_minimum_size {
 }
 
 sub window_maximum_size {
-	my $self   = shift;
-	my $window = shift;
+	my $self    = shift;
+	my $window  = shift;
+	my $maximum = $window->maximum_size;
 
-	if ( $window->maximum_size ) {
+	if ( $maximum and $self->size($maximum) ) {
 		my $variable = $self->object_variable($window);
-		my $size     = $self->wxsize( $window->maximum_size );
+		my $size     = $self->wxsize($maximum);
 		return (
 			"$variable->SetMaxSize( $size );",
 		);

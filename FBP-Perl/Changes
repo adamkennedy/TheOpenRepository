@@ -1,5 +1,9 @@
 Changes for Perl extension FBP-Perl
 
+0.73 Wed 11 Jan 2012
+	- Don't generate ->SetMinSize or ->SetMaxSize when there is an explicit
+	  -1,-1 default in addition to the implicit default
+
 0.72 Mon 9 Jan 2012
 	- Update FBP dependency to 0.39
 	- Calendar controls now include Wx::Calendar correctly
