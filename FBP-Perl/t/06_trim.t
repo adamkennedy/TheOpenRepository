@@ -49,7 +49,7 @@ my $want = slurp($output);
 code( $have, $want, '->dialog_class ok' );
 SKIP: {
 	unless ( $^O eq 'MSWin32' ) {
-		skip("Top level panels seem to segfault on Unix", 1);
+		skip("Top level panels seem to segfault on Unix", 4);
 	}
 	compiles( $have, 'MyPanel1', 'Panel class compiled' );
 }
