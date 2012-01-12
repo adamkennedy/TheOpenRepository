@@ -55,7 +55,11 @@ sub compiles {
 				Test::More::isa_ok( $app, 'Wx::App' );
 
 				# Create the Form
-				my $form = $package->new;
+				my $parent = undef;
+				if ( $package->isa('Wx::Panel') ) {
+					$parent = Wx::Frame->new;
+				}
+				my $form = $package->new($parent);
 				Test::More::isa_ok( $form, 'Wx::Object' );
 			} else {
 				foreach ( 1 .. 3 ) {
