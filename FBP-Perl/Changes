@@ -1,5 +1,8 @@
 Changes for Perl extension FBP-Perl
 
+0.75 Fri 13 Jan 2012
+	- Revert the usage of dval in the test suite
+
 0.74 Thu 12 Jan 2012
 	- Don't load Wx::STC when forms contain a Wx::RichTextCtrl
 	- Skip the panel tests on Unix, since they segfault weirdly

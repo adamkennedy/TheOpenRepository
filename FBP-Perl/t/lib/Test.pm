@@ -6,7 +6,7 @@ use Test::Builder;
 use Test::LongString;
 use Exporter ();
 
-our $VERSION = '0.74';
+our $VERSION = '0.75';
 our @ISA     = 'Exporter';
 our @EXPORT  = qw{ code compiles slurp };
 
@@ -43,7 +43,7 @@ sub compiles {
 				$code = "return 1; $code";
 			}
 			my $rv = do {
-				dval($code);
+				eval($code);
 			};
 			$Test->diag( $@ ) if $@;
 			$Test->ok( $rv, $_[0] );
