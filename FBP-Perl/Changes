@@ -2,6 +2,7 @@ Changes for Perl extension FBP-Perl
 
 0.74 Thu 12 Jan 2012
 	- Don't load Wx::STC when forms contain a Wx::RichTextCtrl
+	- Skip the panel tests on Unix, since they segfault weirdly
 
 0.73 Wed 11 Jan 2012
 	- Don't generate ->SetMinSize or ->SetMaxSize when there is an explicit
