@@ -43,4 +43,9 @@ isa_ok( $panel, 'FBP::FormPanel' );
 my $have = $code->panel_class($panel);
 my $want = slurp($output);
 code( $have, $want, '->panel_class ok' );
-compiles( $have, 'MyPanel1', 'Panel class compiled' );
+SKIP: {
+	unless ( $^O eq 'MSWin32' ) {
+		skip("Top level panels seem to segfault on Unix", 1);
+	}
+	compiles( $have, 'MyPanel1', 'Panel class compiled' );
+}
