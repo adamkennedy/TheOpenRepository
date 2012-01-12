@@ -43,7 +43,7 @@ sub compiles {
 				$code = "return 1; $code";
 			}
 			my $rv = do {
-				deval($code);
+				dval($code);
 			};
 			$Test->diag( $@ ) if $@;
 			$Test->ok( $rv, $_[0] );
