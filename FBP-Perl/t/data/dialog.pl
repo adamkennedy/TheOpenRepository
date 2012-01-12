@@ -5,7 +5,6 @@ use utf8;
 use strict;
 use warnings;
 use Wx 0.98 ':everything';
-use Wx::STC ();
 use Wx::Grid ();
 use Wx::Calendar ();
 use Wx::DateTime ();
@@ -14,7 +13,7 @@ use t::lib::Custom ();
 use t::lib::MyClass ();
 use t::lib::MyHtmlWindow ();
 
-our $VERSION = '0.73';
+our $VERSION = '0.74';
 our @ISA     = 'Wx::Dialog';
 
 sub new {

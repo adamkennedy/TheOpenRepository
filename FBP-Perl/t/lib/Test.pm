@@ -6,7 +6,7 @@ use Test::Builder;
 use Test::LongString;
 use Exporter ();
 
-our $VERSION = '0.73';
+our $VERSION = '0.74';
 our @ISA     = 'Exporter';
 our @EXPORT  = qw{ code compiles slurp };
 
@@ -42,7 +42,9 @@ sub compiles {
 			unless ( $package ) {
 				$code = "return 1; $code";
 			}
-			my $rv = do { eval $code };
+			my $rv = do {
+				deval($code);
+			};
 			$Test->diag( $@ ) if $@;
 			$Test->ok( $rv, $_[0] );
 
@@ -74,6 +76,29 @@ sub slurp {
 	my $text = <FILE>;
 	close( FILE ) or die "close($file) failed: $!";
 	return $text;
+}
+
+sub dval {
+	# Write the code to the temp file
+	require File::Temp;
+	my ($fh, $filename) = File::Temp::tempfile();
+	$fh->print($_[0]);
+	close $fh;
+	require $filename;
+	unlink $filename;
+
+	# Print the debugging output
+	# my @trace = map {
+		# s/\s*[{;]$//;
+		# s/^s/  s/;
+		# s/^p/\np/;
+		# "$_\n"
+	# } grep {
+		# /^(?:package|sub)\b/
+	# } split /\n/, $_[0];
+	# print STDERR @trace, "\nCode saved as $filename\n\n";
+
+	return 1;
 }
 
 1;

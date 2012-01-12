@@ -57,7 +57,7 @@ use Scalar::Util  1.19 ();
 use Params::Util  1.00 ();
 use FBP           0.39 ();
 
-our $VERSION    = '0.73';
+our $VERSION    = '0.74';
 our $COMPATIBLE = '0.67';
 
 # Event Macro Binding Table
@@ -822,9 +822,6 @@ sub form_wx {
 	my $lines = [
 		"use Wx 0.98 ':everything';",
 	];
-	if ( $self->find_plain( $topic => 'FBP::RichTextCtrl' ) ) {
-		push @$lines, "use Wx::STC ();";
-	}
 	if ( $self->find_plain( $topic => 'FBP::HtmlWindow' ) ) {
 		push @$lines, "use Wx::Html ();";
 	}
