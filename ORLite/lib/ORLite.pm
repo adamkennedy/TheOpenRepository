@@ -9,7 +9,6 @@ use File::Spec   0.80 ();
 use File::Path   2.08 ();
 use File::Basename  0 ();
 use Params::Util 0.33 ();
-use Data::Dumper    0 ();
 use DBI         1.607 ();
 use DBD::SQLite  1.27 ();
 
@@ -49,7 +48,6 @@ sub import {
 	my %params = (
 		# Simple defaults here, complex defaults later
 		package    => scalar(caller),
-        dbi_attr   => {},
 		create     => 0,
 		cleanup    => '',
 		array      => 0,
@@ -130,18 +128,12 @@ sub import {
 		$class->prune($file) if $params{prune};
 	}
 
-    # Set default DBI connect attrs
-    my %default_dbi_attr = (
-        PrintError => 0,
-        RaiseError => 1,
-    );
-
-    # Merge default DBI connect attrs with dbi_attr param
-    my %dbi_attr = ( %default_dbi_attr, %{$params{dbi_attr}} );
-
 	# Connect to the database
 	my $dsn = "dbi:SQLite:$file";
-	my $dbh = DBI->connect( $dsn, undef, undef, \%dbi_attr );
+	my $dbh = DBI->connect( $dsn, undef, undef, {
+		PrintError => 0,
+		RaiseError => 1,
+	} );
 
 	# Schema custom creation support
 	if ( $created and Params::Util::_CODELIKE($params{create}) ) {
@@ -168,9 +160,6 @@ sub import {
 	my $xsaccessor = $params{xsaccessor};
 	my $array      = $params{array};
 
-    # Prepare DBI attr hashref stringification
-    my $dbi_attr   = Data::Dumper->Dump([\%dbi_attr], ['dbi_attr']);
-
 	# Generate the support package code
 	my $code = <<"END_PERL";
 package $pkg;
@@ -181,8 +170,6 @@ use DBI         1.607 ();
 use DBD::SQLite  1.27 ();
 
 my \$DBH = undef;
-
-my $dbi_attr
 
 sub orlite { '$VERSION' }
 
@@ -195,7 +182,10 @@ sub dbh {
 }
 
 sub connect {
-	DBI->connect( \$_[0]->dsn, undef, undef, \$dbi_attr );
+	DBI->connect( \$_[0]->dsn, undef, undef, {
+		PrintError => 0,
+		RaiseError => 1,
+	} );
 }
 
 sub connected {
@@ -939,23 +929,6 @@ create a new SQLite file on demand.
 If the C<create> option is provided, the path provided must be creatable.
 When creating the database, L<ORLite> will also create any missing
 directories as needed.
-
-=head2 dbi_attr
-
-This option allows you to specify a hash ref which will be passed
-to L<DBI>'s connect method. The default hash ref is
-
-    {
-        PrintError => 0,
-        RaiseError => 1,
-    }
-
-DBI attrs provided as an option will be merged into the default
-hash, so you have to explicitly enable C<PrintError> and/or disable
-C<RaiseError> if you want different values. See L<DBI> for details.
-
-This option is very useful to set the C<sqlite_unicode> attr which
-enables comfortable utf8 handling. See L<DBD::SQLite> for details.
 
 =head2 user_version
 
