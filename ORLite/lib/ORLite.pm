@@ -168,14 +168,14 @@ sub import {
 	my $cleanup    = $params{cleanup};
 	my $xsaccessor = $params{xsaccessor};
 	my $array      = $params{array};
-
-	# Prepare unicode attr line
-	my $unicode_attr = $params{unicode} ? "\t\tsqlite_unicode => 1,\n" : '';
+	my $unicode    = $params{unicode} ? "\n\t\tsqlite_unicode => 1," : '';
+	my $version    = $unicode ? '5.008005' : '5.006';
 
 	# Generate the support package code
 	my $code = <<"END_PERL";
 package $pkg;
 
+use $version;
 use strict;
 use Carp              ();
 use DBI         1.607 ();
@@ -196,8 +196,8 @@ sub dbh {
 sub connect {
 	DBI->connect( \$_[0]->dsn, undef, undef, {
 		PrintError => 0,
-		RaiseError => 1,
-$unicode_attr	} );
+		RaiseError => 1,$unicode
+	} );
 }
 
 sub connected {
