@@ -56,6 +56,7 @@ sub import {
 		tables     => 1,
 		views      => 0,
 		x_update   => 0,
+		unicode    => 0,
 	);
 	if ( defined Params::Util::_STRING($_[1]) ) {
 		# Support the short form "use ORLite 'db.sqlite'"
@@ -128,12 +129,20 @@ sub import {
 		$class->prune($file) if $params{prune};
 	}
 
-	# Connect to the database
-	my $dsn = "dbi:SQLite:$file";
-	my $dbh = DBI->connect( $dsn, undef, undef, {
+	# Default DBI attrs
+	my $dbi_attrs = {
 		PrintError => 0,
 		RaiseError => 1,
-	} );
+	};
+
+	# Unicode support
+	if ( $params{unicode} ) {
+		$dbi_attrs->{sqlite_unicode} = 1;
+	}
+
+	# Connect to the database
+	my $dsn = "dbi:SQLite:$file";
+	my $dbh = DBI->connect( $dsn, undef, undef, $dbi_attrs );
 
 	# Schema custom creation support
 	if ( $created and Params::Util::_CODELIKE($params{create}) ) {
@@ -160,6 +169,9 @@ sub import {
 	my $xsaccessor = $params{xsaccessor};
 	my $array      = $params{array};
 
+	# Prepare unicode attr line
+	my $unicode_attr = $params{unicode} ? "\t\tsqlite_unicode => 1,\n" : '';
+
 	# Generate the support package code
 	my $code = <<"END_PERL";
 package $pkg;
@@ -185,7 +197,7 @@ sub connect {
 	DBI->connect( \$_[0]->dsn, undef, undef, {
 		PrintError => 0,
 		RaiseError => 1,
-	} );
+$unicode_attr	} );
 }
 
 sub connected {
@@ -1102,6 +1114,13 @@ to do nasty tricks with symbol tables in order to alter or replace methods.
 The C<shim> option is global. It will alter the structure of all table
 classes at once. However, unless you are making alterations to a class
 the impact of this different class structure should be zero.
+
+=head2 unicode
+
+You can use this option to tell L<ORLite> that your database uses unicode.
+
+At the moment, it just enables the C<sqlite_unicode> option while
+connecting to your database. There'll be more in the future.
 
 =head1 ROOT PACKAGE METHODS
 
