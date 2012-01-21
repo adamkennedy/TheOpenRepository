@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite
 
+1.52 Sat 21 Jan 2012
+	- Added initial unicode => 1 support (MEMOWE)
+
 1.51 Fri 25 Nov 2011
 	- Module::Install::DSL updated to 1.04
 	- Automatically load overlay classes if there exist. That is, where a
