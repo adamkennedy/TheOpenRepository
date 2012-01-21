@@ -5,16 +5,17 @@
 BEGIN {
 	$|  = 1;
 	$^W = 1;
+}
+use Test::More;
 
-	use Test::More;
-
+BEGIN {
 	# Tests won't succeed before 5.8.5
 	if ( $] < 5.008005 ) {
 		plan skip_all => 'Perl 5.8.5 or above required.';
 	}
 }
 
-use utf8;
+eval "use utf8"; die $@ if $@;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
