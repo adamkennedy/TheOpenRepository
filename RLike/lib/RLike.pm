@@ -34,7 +34,7 @@ use RLike::Vector     ();
 
 our $VERSION = '0.01';
 our @ISA     = 'Exporter';
-our @EXPORT  = qw{ c };
+our @EXPORT  = qw{ c length sum mean var };
 
 =pod
 
@@ -51,6 +51,22 @@ sub c {
 			Params::Util::_INSTANCE($_, 'RLike::Vector') ? @$_ : $_
 		} @_
 	);
+}
+
+sub length {
+	shift->length;
+}
+
+sub sum {
+	shift->sum;
+}
+
+sub mean {
+	shift->mean;
+}
+
+sub var {
+	shift->var;
 }
 
 1;

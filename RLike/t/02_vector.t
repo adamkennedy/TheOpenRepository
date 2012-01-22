@@ -5,7 +5,7 @@ BEGIN {
 	$|  = 1;
 	$^W = 1;
 }
-use Test::More tests => 12;
+use Test::More tests => 17;
 use Test::NoWarnings;
 use RLike::Vector;
 
@@ -19,8 +19,15 @@ use RLike::Vector;
 SCOPE: {
 	my $one = RLike::Vector->new(1);
 	isa_ok( $one, 'RLike::Vector' );
-	is( $one->length, 1, '->length ok' );
-	is_deeply( [ $one->list ], [ 1 ], '->list ok' );
+	is( $one->n, 0, '1->n' );
+	is( $one->l, 1, '1->l' );
+	is_deeply( [ $one->list ], [ 1 ], '1->list ok' );
+
+	my $three = RLike::Vector->new(1, 2, 3);
+	isa_ok( $three, 'RLike::Vector' );
+	is( $three->n, 2, '3->n' );
+	is( $three->l, 3, '3->l' );
+	is_deeply( [ $three->list ], [ 1, 2, 3 ], '3->list' );
 }
 
 

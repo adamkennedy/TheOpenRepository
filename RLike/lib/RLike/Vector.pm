@@ -42,10 +42,27 @@ sub new {
 	return bless [ @_ ], $class;
 }
 
+sub n {
+	my $self = shift;
+	return $#$self;
+}
+
+sub l {
+	my $self = shift;
+	return scalar @$self;
+}
+
 sub list {
 	my $self = shift;
 	return @$self;
 }
+
+
+
+
+
+######################################################################
+# Interface Methods
 
 sub length {
 	my $self = shift;
