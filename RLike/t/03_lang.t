@@ -1,13 +1,13 @@
 #!/usr/bin/perl
 
-# Tests for the RLike c() function
+# Tests for the RLike command interface
 
 use strict;
 BEGIN {
 	$|  = 1;
 	$^W = 1;
 }
-use Test::More tests => 12;
+use Test::More tests => 20;
 use Test::NoWarnings;
 use RLike;
 
@@ -18,7 +18,7 @@ use RLike;
 ######################################################################
 # Main Tests
 
-# Test the c() concatonation function
+# Test the c() concatonation command
 SCOPE: {
 	my $null = c();
 	is( $null, undef, 'c() ok' );
@@ -36,7 +36,7 @@ SCOPE: {
 	is( $five->l, 5, 'c( two, 3, two ) l' );
 }
 
-# Test the length() function
+# Test the length() command
 SCOPE: {
 	is_deeply(
 		length( c(1) ),
@@ -50,7 +50,49 @@ SCOPE: {
 	);
 }
 
-# Test the sum() function
+# Test the max() command
+SCOPE: {
+	is_deeply(
+		max( c(1) ),
+		c(1),
+		'max(c(1)) ok',
+	);
+	is_deeply(
+		max( c(1,2) ),
+		c(2),
+		'max(c(1,2)) ok',
+	);
+}
+
+# Test the min() command
+SCOPE: {
+	is_deeply(
+		min( c(1) ),
+		c(1),
+		'min(c(1)) ok',
+	);
+	is_deeply(
+		min( c(1,2) ),
+		c(1),
+		'min(c(1,2)) ok',
+	);
+}
+
+# Test the range() command
+SCOPE: {
+	is_deeply(
+		range( c(1) ),
+		c(1,1),
+		'range(c(1)) ok',
+	);
+	is_deeply(
+		range( c(1,2) ),
+		c(1,2),
+		'range(c(1,2)) ok',
+	);
+}
+
+# Test the sum() command
 SCOPE: {
 	is_deeply(
 		sum( c(1) ),
@@ -61,5 +103,19 @@ SCOPE: {
 		sum( c(1,2) ),
 		c(3),
 		'sum(c(1,2)) ok',
+	);
+}
+
+# Test the mean() command
+SCOPE: {
+	is_deeply(
+		mean( c(1) ),
+		c(1),
+		'mean(c(1)) ok',
+	);
+	is_deeply(
+		mean( c(1,2) ),
+		c(1.5),
+		'mean(c(1,2)) ok',
 	);
 }
