@@ -213,7 +213,7 @@ sub raise {
 	my $rn = scalar @$r;
 	return RLike::Vector->new(
 		map {
-			$l->[ $_ % $ln ] ^ $r->[ $_ % $rn ]
+			$l->[ $_ % $ln ] ** $r->[ $_ % $rn ]
 		} ( 0 .. List::Util::max($#$l, $#$r) )
 	);
 }
