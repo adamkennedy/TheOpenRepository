@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 221;
+use Test::More tests => 201;
 
 # Check their perl version
 BEGIN {
