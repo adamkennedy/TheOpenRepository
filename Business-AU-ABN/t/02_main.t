@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 175;
+use Test::More tests => 221;
 
 # Check their perl version
 BEGIN {
@@ -43,6 +43,7 @@ my @good = (
 	# Format variations
 	'31103572158'      => '31 103 572 158',
 	' 31 103 572 158 ' => '31 103 572 158',
+	'31103572158001'   => '31 103 572 158 001',
 	);
 while ( @good ) {
 	check_good( shift(@good), shift(@good) );
@@ -58,6 +59,7 @@ my @bad = (
 	'12345678901234567890' => 'ABNs are 11 digits, not 20',
 	'31 103 572 157'  => 'ABN looks correct, but fails checksum',
 	'31 103 572 157 ' => 'ABN looks correct, but fails checksum',
+	'31103572158000'  => 'Cannot have the group identifier 000',
 	);
 while ( @bad ) {
 	check_bad( shift(@bad), shift(@bad) );

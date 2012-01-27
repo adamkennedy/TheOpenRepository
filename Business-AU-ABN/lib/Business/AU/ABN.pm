@@ -7,9 +7,9 @@ package Business::AU::ABN;
 
 use 5.005;
 use strict;
-use Exporter     ();
-use List::Util   ();
-use Params::Util qw{ _INSTANCE _CLASSISA };
+use Exporter          ();
+use List::Util   1.11 ();
+use Params::Util 0.25 ();
 use overload '""'   => 'to_string',
              'bool' => sub () { 1 };
 
@@ -18,7 +18,7 @@ use constant WEIGHT => qw{10 1 3 5 7 9 11 13 15 17 19};
 
 use vars qw{$VERSION @ISA @EXPORT_OK $errstr};
 BEGIN {
-	$VERSION   = '1.08';
+	$VERSION   = '1.09';
 	@ISA       = 'Exporter';
 	@EXPORT_OK = 'validate_abn';
 	$errstr    = '';
@@ -44,12 +44,12 @@ sub new {
 # forms around the true method _validate_abn.
 sub validate_abn {
 	# Object method
-	if ( _INSTANCE( $_[0], 'Business::AU::ABN' ) ) {
+	if ( Params::Util::_INSTANCE( $_[0], 'Business::AU::ABN' ) ) {
 		return $_[0]->to_string;
 	}
 
 	# Class method
-	if ( _CLASSISA($_[0], 'Business::AU::ABN') ) {
+	if ( Params::Util::_CLASSISA($_[0], 'Business::AU::ABN') ) {
 		return $_[0]->_validate_abn($_[1]);
 	}
 
@@ -62,7 +62,7 @@ sub validate_abn {
 # little more memory, but is much more obvious in function.
 # Returns true if correct, false if not, or undef on error.
 sub _validate_abn {
-	my $class = shift;	
+	my $class = shift;
 	$errstr = '';
 
 	# Make sure we at least have a string to check
@@ -77,7 +77,7 @@ sub _validate_abn {
 	# An ABN with a "group number" attached is 14 digits.
 	my $group = '';
 	if ( length $abn == 14 ) {
-		($abn, $group) = /^(\d{11})(\d{3})$/ or die 'Regex unexpectedly failed';
+		($abn, $group) = $abn =~ /^(\d{11})(\d{3})$/ or die 'Regex unexpectedly failed';
 
 		# Group numbers are allocated sequentially, starting at 001.
 		# This means that 000 is not a legal group identifier.

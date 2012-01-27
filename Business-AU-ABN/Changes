@@ -1,5 +1,9 @@
 Revision history for Perl extension Business-AU-ABN
 
+1.09 Fri 27 Jan 2012
+	- Upgraded to Module::Install 1.04
+	- Fixed bug preventing use of 14 digit ABNs (DDICK)
+
 1.08 Sat 10 May 2008
 	- Removing the use of "use base 'Exporter';"
 	- Upgraded to Module::Install 0.76
