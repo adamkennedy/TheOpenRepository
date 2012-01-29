@@ -1,5 +1,8 @@
 Changes for Perl extension FBP-Perl
 
+0.77 Mon 30 Jan 2012
+	- Update FBP dependency to 0.40 for OnCombobox fix
+
 0.76 Sun 29 Jan 2012
 	- Added support for OnToggleButton events
 

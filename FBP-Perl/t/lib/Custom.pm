@@ -2,7 +2,7 @@ package My::CustomControl;
 
 use Wx ();
 
-our $VERSION = '0.76';
+our $VERSION = '0.77';
 our @ISA     = 'Wx::StaticText';
 
 sub new {

@@ -55,9 +55,9 @@ use warnings;
 use B                  ();
 use Scalar::Util  1.19 ();
 use Params::Util  1.00 ();
-use FBP           0.39 ();
+use FBP           0.40 ();
 
-our $VERSION    = '0.76';
+our $VERSION    = '0.77';
 our $COMPATIBLE = '0.67';
 
 # Event Macro Binding Table

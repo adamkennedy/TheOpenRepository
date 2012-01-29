@@ -13,7 +13,7 @@ use t::lib::Custom ();
 use t::lib::MyClass ();
 use t::lib::MyHtmlWindow ();
 
-our $VERSION = '0.76';
+our $VERSION = '0.77';
 our @ISA     = 'Wx::Dialog';
 
 sub new {
@@ -210,6 +210,14 @@ sub new {
 			"a'b",
 			"c\"d\\\"",
 		],
+	);
+
+	Wx::Event::EVT_COMBOBOX(
+		$self,
+		$self->{m_comboBox1},
+		sub {
+			shift->on_combobox(@_);
+		},
 	);
 
 	Wx::Event::EVT_TEXT(
@@ -956,6 +964,10 @@ sub m_button1 {
 
 sub toggle_me {
 	warn 'Handler method toggle_me for event m_toggleBtn1.OnToggleButton not implemented';
+}
+
+sub on_combobox {
+	warn 'Handler method on_combobox for event m_comboBox1.OnCombobox not implemented';
 }
 
 sub list_col_click {
