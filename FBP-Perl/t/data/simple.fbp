@@ -391,7 +391,7 @@
                                         <event name="OnRightUp"></event>
                                         <event name="OnSetFocus"></event>
                                         <event name="OnSize"></event>
-                                        <event name="OnToggleButton"></event>
+                                        <event name="OnToggleButton">toggle_me</event>
                                         <event name="OnUpdateUI"></event>
                                     </object>
                                 </object>

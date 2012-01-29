@@ -10,7 +10,7 @@ use Wx 0.98 ':everything';
 use Wx::Html ();
 use Wx::Locale ();
 
-our $VERSION = '0.75';
+our $VERSION = '0.76';
 our @ISA     = 'Wx::App';
 
 sub run {

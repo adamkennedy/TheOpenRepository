@@ -13,7 +13,7 @@ use t::lib::Custom ();
 use t::lib::MyClass ();
 use t::lib::MyHtmlWindow ();
 
-our $VERSION = '0.75';
+our $VERSION = '0.76';
 our @ISA     = 'Wx::Dialog';
 
 sub new {
@@ -115,6 +115,14 @@ sub new {
 	$self->{m_toggleBtn1}->SetValue(1);
 	$self->{m_toggleBtn1}->SetToolTip(
 		Wx::gettext("Toggle something")
+	);
+
+	Wx::Event::EVT_TOGGLEBUTTON(
+		$self,
+		$self->{m_toggleBtn1},
+		sub {
+			shift->toggle_me(@_);
+		},
 	);
 
 	$self->{m_bpButton1} = Wx::BitmapButton->new(
@@ -944,6 +952,10 @@ sub refresh {
 
 sub m_button1 {
 	warn 'Handler method m_button1 for event m_button1.OnButtonClick not implemented';
+}
+
+sub toggle_me {
+	warn 'Handler method toggle_me for event m_toggleBtn1.OnToggleButton not implemented';
 }
 
 sub list_col_click {

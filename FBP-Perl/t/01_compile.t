@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use constant CONSTANTS => 122;
+use constant CONSTANTS => 123;
 
 use Test::More tests => 8 + ( CONSTANTS * 2 );
 use Test::NoWarnings;

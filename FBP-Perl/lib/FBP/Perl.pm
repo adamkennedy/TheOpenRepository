@@ -57,7 +57,7 @@ use Scalar::Util  1.19 ();
 use Params::Util  1.00 ();
 use FBP           0.39 ();
 
-our $VERSION    = '0.75';
+our $VERSION    = '0.76';
 our $COMPATIBLE = '0.67';
 
 # Event Macro Binding Table
@@ -85,6 +85,7 @@ our %MACRO = (
 
 	# wxCommandEvent
 	OnButtonClick             => [ 2, 'EVT_BUTTON'                     ],
+	OnToggleButton            => [ 2, 'EVT_TOGGLEBUTTON'               ],
 	OnCheckBox                => [ 2, 'EVT_CHECKBOX'                   ],
 	OnChoice                  => [ 2, 'EVT_CHOICE'                     ],
 	OnCombobox                => [ 2, 'EVT_COMBOBOX'                   ],

@@ -1,5 +1,8 @@
 Changes for Perl extension FBP-Perl
 
+0.76 Sun 29 Jan 2012
+	- Added support for OnToggleButton events
+
 0.75 Fri 13 Jan 2012
 	- Revert the usage of dval in the test suite
 
