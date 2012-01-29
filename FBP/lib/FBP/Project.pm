@@ -2,7 +2,7 @@ package FBP::Project;
 
 use Mouse;
 
-our $VERSION = '0.39';
+our $VERSION = '0.40';
 
 extends 'FBP::Object';
 with    'FBP::Children';

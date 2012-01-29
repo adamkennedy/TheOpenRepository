@@ -1,5 +1,8 @@
 Changes for Perl extension FBP
 
+0.40 Mon 30 Jan 2012
+	- Corrected FBP::ComboBox::OnComboBox to OnCombobox
+
 0.39 Mon 9 Jan 2012
 	- Moved FBP::HyperLink to FBP::HyperlinkCtrl
 

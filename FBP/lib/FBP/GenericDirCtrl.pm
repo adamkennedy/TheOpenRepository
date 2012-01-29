@@ -2,7 +2,7 @@ package FBP::GenericDirCtrl;
 
 use Mouse;
 
-our $VERSION = '0.39';
+our $VERSION = '0.40';
 
 extends 'FBP::Control';
 with    'FBP::TreeCtrlBase';

@@ -3,7 +3,7 @@ package FBP::StaticBitmap;
 use Mouse;
 use Scalar::Util ();
 
-our $VERSION = '0.39';
+our $VERSION = '0.40';
 
 extends 'FBP::Window';
 

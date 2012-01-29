@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 353;
+use Test::More tests => 354;
 use Test::NoWarnings;
 use Scalar::Util 'refaddr';
 use File::Spec::Functions ':ALL';
@@ -176,6 +176,7 @@ is_deeply(
 	[ 'one', 'two', "a'b", 'c"d \\"' ],
 	'->items',
 );
+is( $combo->OnCombobox, 'on_combobox', '->OnCombobox' );
 
 # Line properties
 my $line = $fbp->find_first(

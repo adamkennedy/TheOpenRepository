@@ -2,7 +2,7 @@ package FBP::ComboBox;
 
 use Mouse;
 
-our $VERSION = '0.39';
+our $VERSION = '0.40';
 
 extends 'FBP::ControlWithItems';
 
@@ -18,7 +18,7 @@ has style => (
 	isa => 'Str',
 );
 
-has OnComboBox => (
+has OnCombobox => (
 	is  => 'ro',
 	isa => 'Str',
 );
