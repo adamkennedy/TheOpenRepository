@@ -1,5 +1,9 @@
 Changes for Perl extension FBP-Perl
 
+0.78 Mon 30 Jan 2012
+	- Update FBP dependency to 0.41 for FBP::Sizer::minimum_size
+	- Generate SetMinSize for FBP::Sizer elements
+
 0.77 Mon 30 Jan 2012
 	- Update FBP dependency to 0.40 for OnCombobox fix
 

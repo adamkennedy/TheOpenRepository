@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use Wx 0.98 ':everything';
 
-our $VERSION = '0.77';
+our $VERSION = '0.78';
 our @ISA     = 'Wx::Frame';
 
 sub new {

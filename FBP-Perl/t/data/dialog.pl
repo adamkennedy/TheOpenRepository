@@ -13,7 +13,7 @@ use t::lib::Custom ();
 use t::lib::MyClass ();
 use t::lib::MyHtmlWindow ();
 
-our $VERSION = '0.77';
+our $VERSION = '0.78';
 our @ISA     = 'Wx::Dialog';
 
 sub new {
@@ -781,6 +781,7 @@ sub new {
 	$self->{m_genericDirCtrl1}->ShowHidden(0);
 
 	my $bSizer10 = Wx::BoxSizer->new(wxHORIZONTAL);
+	$bSizer10->SetMinSize( [ -1, 50 ] );
 	$bSizer10->Add( $self->{m_bitmap1}, 0, wxALL, 5 );
 	$bSizer10->Add( $self->{m_textCtrl1}, 0, wxALL, 5 );
 	$bSizer10->Add( $self->{m_button1}, 0, wxALL, 5 );

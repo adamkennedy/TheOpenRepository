@@ -55,9 +55,9 @@ use warnings;
 use B                  ();
 use Scalar::Util  1.19 ();
 use Params::Util  1.00 ();
-use FBP           0.40 ();
+use FBP           0.41 ();
 
-our $VERSION    = '0.77';
+our $VERSION    = '0.78';
 our $COMPATIBLE = '0.67';
 
 # Event Macro Binding Table
@@ -2763,6 +2763,7 @@ sub boxsizer_pack {
 	# Add the content for this sizer
 	my @lines = (
 		"$scope$variable = Wx::BoxSizer->new($orient);",
+		$self->object_minimum_size($sizer),
 	);
 	foreach my $item ( @{$sizer->children} ) {
 		my $child  = $item->children->[0];
@@ -2811,6 +2812,7 @@ sub flexgridsizer_pack {
 	# Add the content for this sizer
 	my @lines = (
 		"$scope$variable = Wx::FlexGridSizer->new( $params );",
+		$self->object_minimum_size($sizer),
 	);
 	foreach my $row ( split /\s*,\s*/, $sizer->growablerows ) {
 		push @lines, "$variable->AddGrowableRow($row);";
@@ -2862,6 +2864,7 @@ sub gridbagsizer_pack {
 	# Add the content for this sizer
 	my @lines = (
 		"$scope$variable = Wx::GridBagSizer->new( $params );",
+		$self->object_minimum_size($sizer),
 	);
 	foreach my $row ( split /,/, $sizer->growablerows ) {
 		push @lines, "$variable->AddGrowableRow($row);";
@@ -2926,6 +2929,7 @@ sub gridsizer_pack {
 	# Add the content for this sizer
 	my @lines = (
 		"$scope$variable = Wx::GridSizer->new( $params );",
+		$self->object_minimum_size($sizer),
 	);
 	foreach my $item ( @{$sizer->children} ) {
 		my $child  = $item->children->[0];
@@ -2969,6 +2973,7 @@ sub stddialogbuttonsizer_pack {
 
 	return [
 		"$scope$variable = Wx::StdDialogButtonSizer->new;",
+		$self->object_minimum_size($sizer),
 		@lines,
 		"$variable->Realize;",
 	];
@@ -3094,6 +3099,7 @@ sub staticboxsizer_pack {
 		"\t),",
 		"\t$orient,",
 		");",
+		$self->object_minimum_size($sizer),
 	);
 	foreach my $item ( @{$sizer->children} ) {
 		my $child  = $item->children->[0];
@@ -3135,8 +3141,8 @@ sub window_changes {
 	my @lines  = ();
 
 	push @lines, $self->window_selection($window);
-	push @lines, $self->window_minimum_size($window);
-	push @lines, $self->window_maximum_size($window);
+	push @lines, $self->object_minimum_size($window);
+	push @lines, $self->object_maximum_size($window);
 	push @lines, $self->window_fg($window);
 	push @lines, $self->window_bg($window);
 	push @lines, $self->window_font($window);
@@ -3156,38 +3162,6 @@ sub window_selection {
 		my $selection = $window->selection || 0;
 		return (
 			"$variable->SetSelection($selection);",
-		);
-	}
-
-	return;
-}
-
-sub window_minimum_size {
-	my $self    = shift;
-	my $window  = shift;
-	my $minimum = $window->minimum_size;
-
-	if ( $minimum and $self->size($minimum) ) {
-		my $variable = $self->object_variable($window);
-		my $size     = $self->wxsize($minimum);
-		return (
-			"$variable->SetMinSize( $size );",
-		);
-	}
-
-	return;
-}
-
-sub window_maximum_size {
-	my $self    = shift;
-	my $window  = shift;
-	my $maximum = $window->maximum_size;
-
-	if ( $maximum and $self->size($maximum) ) {
-		my $variable = $self->object_variable($window);
-		my $size     = $self->wxsize($maximum);
-		return (
-			"$variable->SetMaxSize( $size );",
 		);
 	}
 
@@ -3346,6 +3320,38 @@ sub object_macro {
 		"\t},",
 		");",
 	);
+}
+
+sub object_minimum_size {
+	my $self    = shift;
+	my $object  = shift;
+	my $minimum = $object->minimum_size;
+
+	if ( $minimum and $self->size($minimum) ) {
+		my $variable = $self->object_variable($object);
+		my $size     = $self->wxsize($minimum);
+		return (
+			"$variable->SetMinSize( $size );",
+		);
+	}
+
+	return;
+}
+
+sub object_maximum_size {
+	my $self    = shift;
+	my $object  = shift;
+	my $maximum = $object->maximum_size;
+
+	if ( $maximum and $self->size($maximum) ) {
+		my $variable = $self->object_variable($object);
+		my $size     = $self->wxsize($maximum);
+		return (
+			"$variable->SetMaxSize( $size );",
+		);
+	}
+
+	return;
 }
 
 sub object_connect {
