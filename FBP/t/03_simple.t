@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 354;
+use Test::More tests => 355;
 use Test::NoWarnings;
 use Scalar::Util 'refaddr';
 use File::Spec::Functions ':ALL';
@@ -194,12 +194,14 @@ is( $line->styles,       'wxLI_HORIZONTAL|wxNO_BORDER', '->styles'       );
 
 # Sizer properties
 my $sizer = $fbp->find_first(
-	isa => 'FBP::Sizer',
+	isa  => 'FBP::Sizer',
+	name => 'bSizer8',
 );
 isa_ok( $sizer, 'FBP::Sizer' );
-is( $sizer->name,       'bSizer1',      '->name'       );
-is( $sizer->orient,     'wxHORIZONTAL', '->orient'     );
-is( $sizer->permission, 'none',         '->permission' );
+is( $sizer->name,         'bSizer8',     '->name'         );
+is( $sizer->orient,       'wxHORIZONTAL', '->orient'       );
+is( $sizer->permission,   'none',         '->permission'   );
+is( $sizer->minimum_size, '-1,50',        '->minimum_size' );
 
 # Listbook properties
 my $listbook = $fbp->find_first(

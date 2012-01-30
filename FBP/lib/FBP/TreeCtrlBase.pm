@@ -2,7 +2,7 @@ package FBP::TreeCtrlBase;
 
 use Mouse::Role;
 
-our $VERSION = '0.40';
+our $VERSION = '0.41';
 
 has OnTreeBeginDrag => (
 	is  => 'ro',

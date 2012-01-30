@@ -2,7 +2,7 @@ package FBP::Form;
 
 use Mouse::Role;
 
-our $VERSION = '0.40';
+our $VERSION = '0.41';
 
 with 'FBP::Children';
 

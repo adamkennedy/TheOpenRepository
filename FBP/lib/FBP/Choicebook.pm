@@ -2,7 +2,7 @@ package FBP::Choicebook;
 
 use Mouse;
 
-our $VERSION = '0.40';
+our $VERSION = '0.41';
 
 extends 'FBP::Control';
 with    'FBP::Children';

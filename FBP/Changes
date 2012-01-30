@@ -1,5 +1,9 @@
 Changes for Perl extension FBP
 
+0.41 Mon 30 Jan 2012
+	- Added FBP::Sizer::minimum_size method
+	- Added FBP::Sizer POD documentation
+
 0.40 Mon 30 Jan 2012
 	- Corrected FBP::ComboBox::OnComboBox to OnCombobox
 

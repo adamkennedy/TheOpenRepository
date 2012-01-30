@@ -12,7 +12,7 @@ FBP::Children - Role for objects which can contain other objects
 
 use Mouse::Role;
 
-our $VERSION = '0.40';
+our $VERSION = '0.41';
 
 has children => (
 	is      => 'ro',
@@ -103,9 +103,8 @@ sub find_first {
 			} else {
 				last unless $object->can($method);
 				my $value = $object->$method();
-				unless ( defined $value and $value eq $where[$i + 1] ) {
-					last;
-				}
+				last unless defined $value;
+				last unless $value eq $where[$i + 1];
 			}
 			$i += 2;
 		}

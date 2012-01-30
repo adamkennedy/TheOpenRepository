@@ -2,7 +2,7 @@ package FBP::Frame;
 
 use Mouse;
 
-our $VERSION = '0.40';
+our $VERSION = '0.41';
 
 extends 'FBP::Window';
 with    'FBP::Form';
