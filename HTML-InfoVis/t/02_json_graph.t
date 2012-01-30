@@ -17,7 +17,7 @@ isa_ok( $graph, 'HTML::InfoVis::Graph' );
 $graph->add_edge('foo' => 'bar');
 
 my $json = $graph->as_json;
-is( "$json\n", <<'END_JSON', '->as_json ok' );
+is( $json, <<'END_JSON', '->as_json ok' );
 [
    {
       "adjacencies" : [],

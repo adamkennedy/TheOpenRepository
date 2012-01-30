@@ -1,6 +1,5 @@
-use inc::Module::Install::DSL 0.91;
+use inc::Module::Install::DSL 1.04;
 
 all_from      lib/HTML/InfoVis.pm
-requires      JSON       2.10
-requires      Graph      0.77
+requires_from lib/HTML/InfoVis/Graph.pm
 test_requires Test::More 0.42

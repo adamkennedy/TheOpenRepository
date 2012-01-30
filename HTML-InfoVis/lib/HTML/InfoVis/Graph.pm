@@ -32,10 +32,10 @@ for generating an anonymous JSON structure representing the graph.
 
 use 5.006;
 use strict;
-use JSON  ();
-use Graph ();
+use JSON  2.16 ();
+use Graph 0.85 ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =pod
 
