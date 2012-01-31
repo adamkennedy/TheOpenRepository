@@ -568,7 +568,7 @@ L<CPAN::Mini>
 
 Funding provided by The Perl Foundation.
 
-Copyright 2005 - 2011 Adam Kennedy.
+Copyright 2005 - 2012 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
