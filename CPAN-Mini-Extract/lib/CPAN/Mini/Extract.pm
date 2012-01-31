@@ -52,26 +52,27 @@ maintainer while doing so.
 
 use 5.006;
 use strict;
-use Carp                   ();
-use File::Spec             ();
-use File::Basename         ();
-use File::Path             ();
-use File::Remove           ();
-use List::Util             ();
-use File::HomeDir          ();
-use File::Temp             ();
-use URI::file              ();
-use IO::File               ();
-use IO::Uncompress::Gunzip ();
-use Archive::Tar           ();
-use Params::Util           ();
-use LWP::Online            ();
-use File::Find::Rule       ();
-use CPAN::Mini             ();
+use Carp                         ();
+use File::Spec             0.80  ();
+use File::Basename               ();
+use File::Path                   ();
+use File::Remove           0.34  ();
+use List::Util             1.15  ();
+use File::HomeDir          0.88  ();
+use File::Temp             0.21  ();
+use URI                    1.37  ();
+use URI::file                    ();
+use IO::File               1.14  ();
+use IO::Uncompress::Gunzip 2.017 ();
+use Archive::Tar           1.22  ();
+use Params::Util           1.00  ();
+use LWP::Online            0.03  ();
+use File::Find::Rule       0.30  ();
+use CPAN::Mini             0.550 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.21';
+	$VERSION = '1.22';
 	@ISA     = 'CPAN::Mini';
 }
 
@@ -261,22 +262,22 @@ sub run {
 	# If we want to force re-expansion,
 	# remove all current expansion dirs.
 	if ( $self->{extract_force} ) {
-		$self->trace("Flushing all expansion directories (extract_force enabled)\n");
+		$self->log("Flushing all expansion directories (extract_force enabled)\n");
 		my $authors_dir = File::Spec->catfile( $self->{extract}, 'authors' );
 		if ( -e $authors_dir ) {
-			$self->trace("Removing $authors_dir...");
+			$self->log("Removing $authors_dir...");
 			File::Remove::remove( \1, $authors_dir ) or Carp::croak(
 				"Failed to remove previous expansion directory '$authors_dir'"
 				);
-			$self->trace(" removed\n");
+			$self->log(" removed\n");
 		}
 	}
 
 	# Update the CPAN::Mini local mirror
 	if ( $self->{offline} and $CPAN::Mini::VERSION < 0.570 ) {
-		$self->trace("Skipping minicpan update (offline mode enabled)\n");
+		$self->log("Skipping minicpan update (offline mode enabled)\n");
 	} else {
-		$self->trace("Updating minicpan local mirror...\n");
+		$self->log("Updating minicpan local mirror...\n");
 		$self->update_mirror;
 	}
 
@@ -284,7 +285,7 @@ sub run {
 	if ( $self->{extract_check} or $self->{extract_force} ) {
 		# Expansion checking is enabled, and we didn't do a normal
 		# forced check, so find the full list of files to check.
-		$self->trace("Tarball expansion checking enabled\n");
+		$self->log("Tarball expansion checking enabled\n");
 		my @files = File::Find::Rule->new
 					    ->name('*.tar.gz')
 					    ->file
@@ -292,12 +293,12 @@ sub run {
 					    ->in( $self->{local} );
 
 		# Filter to just those we need to extract
-		$self->trace("Checking " . scalar(@files) . " tarballs\n");
+		$self->log("Checking " . scalar(@files) . " tarballs\n");
 		@files = grep { ! -d File::Spec->catfile( $self->{extract}, $_ ) } @files;
 		if ( @files ) {
-			$self->trace("Scheduling " . scalar(@files) . " tarballs for expansion\n");
+			$self->log("Scheduling " . scalar(@files) . " tarballs for expansion\n");
 		} else {
-			$self->trace("No tarballs need to be extracted\n");
+			$self->log("No tarballs need to be extracted\n");
 		}
 
 		# Expand each of the tarballs
@@ -307,7 +308,7 @@ sub run {
 		}
 	}
 
-	$self->trace("Completed minicpan extraction\n");
+	$self->log("Completed minicpan extraction\n");
 	$changes;
 }
 
@@ -484,7 +485,7 @@ sub _extract_archive {
 		my $to_file = File::Spec->catfile( $to, $wanted );
 		my $to_dir  = File::Basename::dirname( $to_file );
 		File::Path::mkpath( $to_dir, $self->{trace}, $self->{dirmode} );
-		$self->trace("write $to_file\n");
+		$self->log("write $to_file\n");
 
 		my $rv;
 		SCOPE: {
@@ -540,7 +541,7 @@ sub _tar_error {
 	$message .= " (Archive::Tar warning)" if $@ =~ /Archive::Tar warning/;
 	$message .= "\n";
 
-	$self->trace( $message );
+	$self->log($message);
 }
 
 1;
