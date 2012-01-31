@@ -53,22 +53,22 @@ maintainer while doing so.
 use 5.006;
 use strict;
 use Carp                         ();
-use File::Spec             0.80  ();
 use File::Basename               ();
 use File::Path                   ();
-use File::Remove           0.34  ();
-use List::Util             1.15  ();
-use File::HomeDir          0.88  ();
-use File::Temp             0.21  ();
-use URI                    1.37  ();
+use File::Spec              0.80 ();
+use File::Remove            0.34 ();
+use List::Util              1.15 ();
+use File::HomeDir           0.88 ();
+use File::Temp              0.21 ();
+use URI                     1.37 ();
 use URI::file                    ();
-use IO::File               1.14  ();
+use IO::File                1.14 ();
 use IO::Uncompress::Gunzip 2.017 ();
-use Archive::Tar           1.22  ();
-use Params::Util           1.00  ();
-use LWP::Online            0.03  ();
-use File::Find::Rule       0.30  ();
-use CPAN::Mini             0.550 ();
+use Archive::Tar            1.22 ();
+use Params::Util            1.00 ();
+use LWP::Online             0.03 ();
+use File::Find::Rule        0.30 ();
+use CPAN::Mini          1.111004 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
