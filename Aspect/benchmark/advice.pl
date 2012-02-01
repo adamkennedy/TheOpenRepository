@@ -36,6 +36,7 @@
 #      deep5: 10 wallclock secs (10.27 usr +  0.00 sys = 10.27 CPU) @ 48709.21/s (n=500000)
 
 use strict;
+use Sub::Uplevel;
 use Aspect;
 
 
@@ -155,9 +156,9 @@ around {
 ######################################################################
 # Benchmark Execution
 
-use Benchmark ':all';
+use Benchmark qw{ :all :hireswallclock };
 
-timethese( 500000, {
+timethese( 100000, {
 	control         => 'Foo::control()',
 	before          => 'Foo::before()',
 	after           => 'Foo::after()',
@@ -167,4 +168,5 @@ timethese( 500000, {
 	deep1           => 'Foo::deep1()',
 	deep5           => 'Foo::deep5()',
 	deep10          => 'Foo::deep10()',
+	uplevel         => 'Sub::Uplevel::uplevel( 1, \&Foo::control )',
 } );
