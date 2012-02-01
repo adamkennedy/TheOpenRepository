@@ -1,5 +1,10 @@
 Changes for Perl extension Aspect-Library-Timer
 
+1.08 Wed 1 Feb 2012
+	- Updating to Module::Install 1.04
+	- Fixing a big stupid bug in the totalling math that was generating
+	  a ton of warnings and then calculating exclusive time wrong.
+
 1.07 Thu 26 May 2011
 	- Updating Aspect dependency to 1.00
 
