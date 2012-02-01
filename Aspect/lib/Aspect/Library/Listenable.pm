@@ -4,7 +4,6 @@ package Aspect::Library::Listenable;
 # specifically instead of getting default (event), and event cloning
 
 use strict;
-use warnings;
 use Carp                               ();
 use Scalar::Util                       ();
 use Sub::Install                       ();

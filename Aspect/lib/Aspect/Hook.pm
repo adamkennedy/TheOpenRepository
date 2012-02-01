@@ -1,7 +1,6 @@
 package Aspect::Hook;
 
 use strict;
-use warnings;
 
 our $VERSION = '1.02';
 

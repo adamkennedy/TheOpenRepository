@@ -24,7 +24,6 @@ continue to function as normal.
 =cut
 
 use strict;
-use warnings;
 use Aspect   ();
 use Exporter ();
 

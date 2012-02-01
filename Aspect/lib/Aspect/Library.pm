@@ -1,7 +1,6 @@
 package Aspect::Library;
 
 use strict;
-use warnings;
 
 our $VERSION = '1.02';
 

@@ -1,7 +1,6 @@
 package Aspect::Pointcut::Wantarray;
 
 use strict;
-use warnings;
 use Carp             ();
 use Aspect::Pointcut ();
 

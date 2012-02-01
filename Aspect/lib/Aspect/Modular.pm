@@ -1,7 +1,6 @@
 package Aspect::Modular;
 
 use strict;
-use warnings;
 use Aspect::Library ();
 
 our $VERSION = '1.02';

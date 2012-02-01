@@ -3,7 +3,6 @@ package Aspect::Pointcut::Logic;
 # A base class for logic pointcuts
 
 use strict;
-use warnings;
 use Carp             ();
 use Params::Util     ();
 use Aspect::Pointcut ();

@@ -29,7 +29,6 @@ It's usage is effectively summarised by the synopsis.
 =cut 
 
 use strict;
-use warnings;
 
 our $VERSION = '1.02';
 

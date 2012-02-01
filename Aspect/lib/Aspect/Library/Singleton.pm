@@ -1,7 +1,6 @@
 package Aspect::Library::Singleton;
 
 use strict;
-use warnings;
 use Aspect::Modular        ();
 use Aspect::Advice::Before ();
 use Aspect::Pointcut::Call ();

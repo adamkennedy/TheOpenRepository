@@ -35,7 +35,6 @@ C<!>, C<&> and C<|>.
 =cut
 
 use strict;
-use warnings;
 use Aspect::Pointcut::Or  ();
 use Aspect::Pointcut::And ();
 use Aspect::Pointcut::Not ();

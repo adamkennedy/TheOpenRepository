@@ -1,7 +1,6 @@
 package Aspect::Advice::Around;
 
 use strict;
-use warnings;
 
 # Added by eilara as hack around caller() core dump
 # NOTE: Now we've switched to Sub::Uplevel can this be removed? --ADAMK

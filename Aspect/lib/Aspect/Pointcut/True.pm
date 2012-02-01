@@ -1,7 +1,6 @@
 package Aspect::Pointcut::True;
 
 use strict;
-use warnings;
 use Aspect::Pointcut ();
 
 our $VERSION = '1.02';

@@ -1,7 +1,6 @@
 package Aspect::Pointcut::Returning;
 
 use strict;
-use warnings;
 use Carp             ();
 use Aspect::Pointcut ();
 

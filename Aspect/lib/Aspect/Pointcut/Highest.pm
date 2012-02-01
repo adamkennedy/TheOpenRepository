@@ -1,7 +1,6 @@
 package Aspect::Pointcut::Highest;
 
 use strict;
-use warnings;
 use Carp                               ();
 use Scalar::Util                       ();
 use Params::Util                       ();

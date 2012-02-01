@@ -1,7 +1,6 @@
 package Aspect::Point::Static;
 
 use strict;
-use warnings;
 use Carp          ();
 use Aspect::Point ();
 

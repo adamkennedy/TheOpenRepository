@@ -1,7 +1,6 @@
 package Aspect::Library::Breakpoint;
 
 use strict;
-use warnings;
 use Aspect::Library        ();
 use Aspect::Advice::Before ();
 

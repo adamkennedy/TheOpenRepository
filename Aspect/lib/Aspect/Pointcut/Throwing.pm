@@ -1,7 +1,6 @@
 package Aspect::Pointcut::Throwing;
 
 use strict;
-use warnings;
 use Carp                        ();
 use Params::Util                ();
 use Aspect::Pointcut            ();

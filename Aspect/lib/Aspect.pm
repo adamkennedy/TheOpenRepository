@@ -427,7 +427,6 @@ declarator to the highest level declarator for enabling complete aspect classes.
 
 use 5.008002;
 use strict;
-use warnings;
 
 # Added by eilara as hack around caller() core dump
 # NOTE: Now we've switched to Sub::Uplevel can this be removed?

@@ -1,7 +1,6 @@
 package Aspect::Pointcut::And;
 
 use strict;
-use warnings;
 use Aspect::Pointcut::Logic ();
 
 our $VERSION = '1.02';

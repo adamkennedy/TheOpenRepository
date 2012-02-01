@@ -1,7 +1,6 @@
 package Aspect::Pointcut::Cflow;
 
 use strict;
-use warnings;
 use Carp                   ();
 use Params::Util           ();
 use Aspect::Pointcut       ();
