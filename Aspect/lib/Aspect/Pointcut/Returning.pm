@@ -5,7 +5,7 @@ use warnings;
 use Carp             ();
 use Aspect::Pointcut ();
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 our @ISA     = 'Aspect::Pointcut';
 
 
@@ -58,7 +58,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2009 - 2011 Adam Kennedy.
+Copyright 2009 - 2012 Adam Kennedy.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

@@ -45,7 +45,7 @@ use warnings;
 use Aspect::Point ();
 use Exporter      ();
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 our @ISA     = 'Exporter';
 our @EXPORT  = qw{
 	type

@@ -63,35 +63,35 @@ SCOPE: {
 SCOPE: {
 	my $advice = after {
 		$_->exception('three');
-	} call qr/^B::/
+	} call qr/^BB::/
 	& throwing 'Exception1';
 	is( $advice->installed, 5, 'Installed to 5 functions' );
 
 	throws_ok(
-		sub { B::one() },
+		sub { BB::one() },
 		qr/^one/,
 		'Hooked negative string exception is not in the pointcut',
 	);
 
 	throws_ok(
-		sub { B::two() },
+		sub { BB::two() },
 		qr/^two/,
 		'Hooked negative string exception is not in the pointcut',
 	);
 
 	throws_ok(
-		sub { B::three() },
+		sub { BB::three() },
 		qr/^three/,
 		'Hooked positive object exception is in the pointcut',
 	);
 
 	throws_ok(
-		sub { B::four() },
+		sub { BB::four() },
 		'Exception2',
 		'Hooked negative object exception is not in the pointcut',
 	);
 
-	is( B::five(), 'five', 'B::five() returns without throwing' );
+	is( BB::five(), 'five', 'BB::five() returns without throwing' );
 }
 
 
@@ -205,7 +205,7 @@ sub five {
 	return 'five';
 }
 
-package B;
+package BB;
 
 sub one {
 	die 'one';

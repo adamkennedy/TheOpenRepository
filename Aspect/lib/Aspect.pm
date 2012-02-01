@@ -455,7 +455,7 @@ use Aspect::Advice::Before      ();
 use Aspect::Point               ();
 use Aspect::Point::Static       ();
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 our %FLAGS   = ();
 
 # Track the location of exported functions so that pointcuts
@@ -1461,7 +1461,7 @@ L<Aspect::Library::Trace>
 
 Copyright 2001 by Marcel GrE<uuml>nauer
 
-Some parts copyright 2009 - 2011 Adam Kennedy.
+Some parts copyright 2009 - 2012 Adam Kennedy.
 
 Parts of the initial introduction courtesy Wikipedia.
 

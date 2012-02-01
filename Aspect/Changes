@@ -1,5 +1,9 @@
 Revision history for Perl extension Aspect
 
+1.02 Wed 1 Feb 2012
+	- Updating to Module::Install 1.04
+	- Adding B:: to the recursively excluded classes to avoid hooking
+
 1.01 Thu 9 Jun 2011
 	- Added experimental function interface for the join point context.
 	- Move the library tests into the numeric order
