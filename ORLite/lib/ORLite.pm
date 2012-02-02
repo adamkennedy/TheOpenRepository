@@ -8,7 +8,7 @@ use Carp              ();
 use File::Spec   0.80 ();
 use File::Path   2.08 ();
 use File::Basename  0 ();
-use Params::Util 0.33 ();
+use Params::Util 1.00 ();
 use DBI         1.607 ();
 use DBD::SQLite  1.27 ();
 
@@ -55,8 +55,8 @@ sub import {
 		shim       => 0,
 		tables     => 1,
 		views      => 0,
-		x_update   => 0,
 		unicode    => 0,
+		x_update   => 0,
 	);
 	if ( defined Params::Util::_STRING($_[1]) ) {
 		# Support the short form "use ORLite 'db.sqlite'"
@@ -129,24 +129,17 @@ sub import {
 		$class->prune($file) if $params{prune};
 	}
 
-	# Default DBI attrs
-	my $dbi_attrs = {
-		PrintError => 0,
-		RaiseError => 1,
-	};
-
-	# Unicode support
-	if ( $params{unicode} ) {
-		$dbi_attrs->{sqlite_unicode} = 1;
-	}
-
 	# Connect to the database
 	my $dsn = "dbi:SQLite:$file";
-	my $dbh = DBI->connect( $dsn, undef, undef, $dbi_attrs );
+	my $dbh = DBI->connect( $dsn, undef, undef, {
+		PrintError => 0,
+		RaiseError => 1,
+		$params{unicode} ? ( sqlite_unicode => 1 ) : ( ),
+	} );
 
 	# Schema custom creation support
 	if ( $created and Params::Util::_CODELIKE($params{create}) ) {
-		$params{create}->( $dbh );
+		$params{create}->($dbh);
 	}
 
 	# Check the schema version before generating
