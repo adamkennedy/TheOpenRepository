@@ -4,7 +4,8 @@ use 5.008005;
 use strict;
 use warnings;
 use Params::Util   0.38 ();
-use ORLite::Mirror 1.12 ();
+use ORLite         1.52 ();
+use ORLite::Mirror 1.22 ();
 
 our $VERSION = '0.05';
 

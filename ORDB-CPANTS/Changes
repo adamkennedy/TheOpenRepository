@@ -1,12 +1,12 @@
 Changes for Perl extension ORDB-CPANTS
 
-0.06
+0.05 Fri 3 Feb 2012
 	- Change URL to point to ISHIGAKI's CPANTS live instance (DOLMEN)
-
-0.05 Tue 19 May 2009
-	- [Never published on the CPAN]
-	- Upgrading to Module::Install::DSL 0.88
 	- Adding support for import params
+	- Upgrading to Module::Install::DSL 1.04
+	- Upgrading to ORLite for 1.52 and ORLite::Mirror 1.22 adding
+	  a plethora of different options we can supply to import.
+	- Updated ORLite::Pod auto-generated documentation
 
 0.04 Sun 26 Apr 2009
 	- Upgrading Module::Install to 0.85
