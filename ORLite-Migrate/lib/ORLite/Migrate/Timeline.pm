@@ -75,7 +75,7 @@ use DBI          ();
 use DBD::SQLite  ();
 use Params::Util ();
 
-our $VERSION = '1.09';
+our $VERSION = '1.10';
 
 
 

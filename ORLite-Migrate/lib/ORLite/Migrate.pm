@@ -15,7 +15,7 @@ use ORLite       1.28 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.09';
+	$VERSION = '1.10';
 	@ISA     = 'ORLite';
 }
 
@@ -38,6 +38,9 @@ sub import {
 		%params = %{ $_[1] };
 	} else {
 		Carp::croak("Missing, empty or invalid params HASH");
+	}
+	if ( $params{timeline} and not defined $params{create} ) {
+		$params{create} = 1;
 	}
 	$params{create} = $params{create} ? 1 : 0;
 	unless (

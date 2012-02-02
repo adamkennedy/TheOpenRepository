@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite-Migrate
 
+1.10 Thu 2 Feb 2012
+	- Providing a timeline value implies create if undefined
+
 1.09 Mon 24 Oct 2011
 	- Spelling fix (gregoa herrmann)
 	- Updating to Module::Install 1.04

@@ -11,7 +11,7 @@ use DBI      ();
 
 use vars qw{$VERSION @ISA @EXPORT $FILE};
 BEGIN {
-	$VERSION = '1.09';
+	$VERSION = '1.10';
 	@ISA     = 'Exporter';
 	@EXPORT  = qw{
 		file
