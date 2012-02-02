@@ -75,7 +75,10 @@ use DBI          ();
 use DBD::SQLite  ();
 use Params::Util ();
 
-our $VERSION = '1.10';
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '1.10';
+}
 
 
 
