@@ -18,7 +18,7 @@ use ORLite                   1.37 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.22';
+	$VERSION = '1.23';
 	@ISA     = 'ORLite';
 }
 
@@ -374,6 +374,88 @@ same way, but provide a URL instead of a file name.
 If the URL explicitly ends with a '.gz' or '.bz2' then L<ORLite::Mirror>
 will decompress the file before loading it.
 
+=head1 OPTIONS
+
+B<ORLite::Mirror> adds an extensive set of options to those provided by the
+underlying L<ORLite> library.
+
+=head2 url
+
+The compulsory C<url> parameter should be a string containing the remote
+location of the SQLite database we will be mirroring.
+
+B<ORLite::Mirror> supports downloading the database compressed, and then
+transparently decompressing the file locally. Compression support is
+controlled by the extension on the remote database. 
+
+The extensions C<.gz> (for gunzip) and C<.bz2> (for bunzip2) are currently
+supported.
+
+=head2 maxage
+
+The optional C<maxage> parameter controls how often B<ORLite::Mirror>
+should check the remote server to see if the data has been updated.
+
+This allows programs using the database to start quickly the majority of
+the time, but continue to receive automatic updates periodically.
+
+The value is the number of integer seconds we should avoid checking the
+remote server for. The default is 86400 seconds (one 24 hour day).
+
+=head2 show_progress
+
+The optional C<show_progress> parameter will be passed through to the
+underlying L<LWP::UserAgent> that will fetch the remote database file.
+
+When set to true, it causes a progress bar to be displayed on the terminal
+as the database file is downloaded.
+
+=head2 env_proxy
+
+The optional C<env_proxy> parameter will be passed through to the
+underlying L<LWP::UserAgent> that will fetch the remote database file.
+
+When set to true, it causes L<LWP::UserAgent> to read the location of a
+proxy server from the environment.
+
+=head2 prune
+
+The optional C<prune> parameter should be used when the surrounding
+program wants to avoid leaving files on the host system.
+
+It causes any files or directories created during the operation of
+B<ORLite::Mirror> to be deleted on program exit at C<END>-time.
+
+=head2 index
+
+One challenge when distributing SQLite database is the quantity of data
+store on disk to support the indexes on your database.
+
+For a moderately indexed database where all primary and foreign key columns
+have indexes, the amount of data in the indexes can be nearly as large as
+the data stored for the tables themselves.
+
+Because each user of the database module will be interested in different
+things, the indexes that the original creator chooses to place on the
+database may not even be used at all and other valuable indexes may not
+exist at all.
+
+To allow sufficiently flexibility, we recommend that SQLite database be
+distributed without any indexes. This greatly reduces the file size and
+download time for the database file.
+
+The optional C<index> parameter should then be used by each different
+consumer of that module to index just the columns that are of specific
+interest and will be used in the queries that will be run on the database.
+
+The value should be set to an C<ARRAY> reference containing a list of
+column names in C<tablename.columnname> form.
+
+  index => [
+      'table1.column1',
+      'table1.column2',
+  ],
+
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker at
@@ -388,7 +470,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2008 - 2011 Adam Kennedy.
+Copyright 2008 - 2012 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

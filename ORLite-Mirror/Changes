@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite-Mirror
 
+1.23 Fri 3 Feb 2012
+	- Updating Module::Install::DSL to 1.04
+	- Added documentation for the constructor options.
+
 1.22 Wed 2 Aug 2011
 	- Added env_proxy => 1 to enable LWP proxy support
 
