@@ -16,26 +16,42 @@ sub get_advice {
 	my $self     = shift;
 	my $pointcut = shift;
 	my $handler  = @_ ? shift : \&handler;
+	my $DISABLE  = 0;
 	Aspect::Advice::Around->new(
 		lexical  => $self->lexical,
 		pointcut => $pointcut,
 		code     => sub {
+			# Prevent recursion in the report handler
+			if ( $DISABLE ) {
+				$_->proceed;
+				return;
+			}
+
 			# Capture the time
 			my @start = Time::HiRes::gettimeofday();
-			$_->proceed;
+			local $@;
+			eval {
+				$_->proceed;
+			};
+			my $error = $@;
 			my @stop  = Time::HiRes::gettimeofday();
 
 			# Process the time
-			$handler->(
-				$_->sub_name,
-				\@start,
-				\@stop,
-				Time::HiRes::tv_interval(
+			$DISABLE++;
+			eval {
+				$handler->(
+					$_->sub_name,
 					\@start,
 					\@stop,
-				)
-			);
+					Time::HiRes::tv_interval(
+						\@start,
+						\@stop,
+					)
+				);
+			};
+			$DISABLE--;
 
+			die $error if $error;
 			return;
 		},
 	);

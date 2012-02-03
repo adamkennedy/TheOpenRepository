@@ -6,20 +6,30 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 8;
+use Test::More tests => 9;
 use Time::HiRes ();
 use Aspect;
+
+my $RECURSION = 0;
 
 # Set up the aspect
 my @TIMING   = ();
 my $pointcut = call qr/^Foo::/;
 my $handler  = sub {
+	if ( $RECURSION++ ) {
+		die "Recursion in timer handler";
+	}
+	Foo::bar();
 	push @TIMING, [ @_ ];
+	$RECURSION--;
 };
 aspect Timer => $pointcut, $handler;
 
 Foo::bar();
-Foo::foo();
+eval {
+	Foo::foo();
+};
+like( $@, qr/Exception in foo/, 'Got expected exception' );
 
 is( scalar(@TIMING), 3, 'Three timing hooks fired'    );
 is( $TIMING[0]->[0], 'Foo::bar', 'First call is bar'  );
@@ -34,6 +44,7 @@ package Foo;
 
 sub foo {
 	bar();
+	die "Exception in foo";
 }
 
 sub bar {

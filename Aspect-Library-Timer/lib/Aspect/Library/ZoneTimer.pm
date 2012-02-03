@@ -52,7 +52,11 @@ sub get_advice {
 				# Execute the function and capture timing
 				push @STACK, [ $zone, { } ];
 				my @start = Time::HiRes::gettimeofday();
-				$_->proceed;
+				local $@;
+				eval {
+					$_->proceed;
+				};
+				my $error = $@;
 				my @stop  = Time::HiRes::gettimeofday();
 				my $frame = pop @STACK;
 				my $total = $frame->[1];
@@ -96,8 +100,11 @@ sub get_advice {
 						);
 					};
 					$DISABLE--;
-					die $@ if $@;
 				}
+
+				# Pass through any exceptions
+				die $error if $error;
+				return;
 			},
 		);
 	}
