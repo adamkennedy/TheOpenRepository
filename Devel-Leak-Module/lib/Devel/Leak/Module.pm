@@ -22,10 +22,8 @@ no strict 'refs';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01_04';
-}
+	$VERSION = '0.02';
 
-BEGIN {
 	# Force sort::hints to be populated early, to avoid a case where
 	# calling all_modules creates a new namespace.
 	my @foo = qw{ b c a };
@@ -34,6 +32,7 @@ BEGIN {
 	# If Scalar::Util and List::Util are around, load them.
 	# This prevents a problem when tests are run in the debugger.
 	# If they AREN'T available, we don't care
+	local $@;
 	eval "require Scalar::Util; require List::Util;";
 }
 
@@ -158,7 +157,7 @@ sub _CLASS ($) {
 sub _OCCUPIED ($) {
 	# Handle the most likely case
 	my $class = shift or return undef;
-	return 1 if defined @{"${class}::ISA"};
+	return 1 if @{"${class}::ISA"};
 
 	# Get the list of glob names, ignoring namespaces
 	foreach ( keys %{"${class}::"} ) {
@@ -193,7 +192,7 @@ L<Devel::Leak>, L<Devel::Leak::Object>
 
 =head1 COPYRIGHT
 
-Copyright 2007 - 2008 Adam Kennedy.
+Copyright 2007 - 2012 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

@@ -2,15 +2,15 @@
 
 use 5.005;
 use strict;
-use Devel::Leak::Module;
+use Devel::Leak::Module ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01_03';
+	$VERSION = '0.02';
 }
 
 # Set the initial checkpoint
-Devel::Leak::Module::checkpoint;
+Devel::Leak::Module::checkpoint();
 
 # Load the passed modules
 foreach my $load ( @ARGV ) {
@@ -20,8 +20,7 @@ foreach my $load ( @ARGV ) {
 	} else {
 		print "Loaded:   $load (failed!)\n";
 	}
+	Devel::Leak::Module::print_new();
 }
-
-Devel::Leak::Module::print_new();
 
 exit(0);
