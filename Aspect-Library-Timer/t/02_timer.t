@@ -7,6 +7,7 @@ BEGIN {
 }
 
 use Test::More tests => 8;
+use Time::HiRes ();
 use Aspect;
 
 # Set up the aspect
@@ -36,7 +37,7 @@ sub foo {
 }
 
 sub bar {
-	sleep 1;
+	Time::HiRes::sleep(1.1);
 }
 
 1;

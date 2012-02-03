@@ -7,6 +7,7 @@ BEGIN {
 }
 
 use Test::More tests => 11;
+use Time::HiRes ();
 use Aspect;
 
 # Set up the aspect
@@ -15,13 +16,23 @@ my @TIMING = ();
 my $foo = call 'Foo::foo' | call 'Foo::baz';
 my $bar = call 'Foo::bar';
 
+my $recursion = 0;
+
 aspect ZoneTimer => (
 	zones => {
 		foo => $foo,
 		bar => $bar,
 	},
 	handler => sub {
+		# In addition to accumulating the test output,
+		# this will also test the recursion protection for
+		# report handlers.
+		if ( $recursion++ ) {
+			die "Unexpected recursion in report handler";
+		}
+		Foo::baz();
 		push @TIMING, [ @_ ];
+		$recursion--;
 	},
 );
 
@@ -56,6 +67,5 @@ sub bar {
 }
 
 sub baz {
-	sleep 1;
+	Time::HiRes::sleep(0.2);
 }
-

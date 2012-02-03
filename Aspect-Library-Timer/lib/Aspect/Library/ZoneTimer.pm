@@ -11,7 +11,7 @@ use Time::HiRes     1.9718 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.08';
+	$VERSION = '1.09';
 	@ISA     = 'Aspect::Modular';
 }
 
@@ -43,7 +43,8 @@ sub get_advice {
 			pointcut => $pointcut,
 			code     => sub {
 				# Shortcut if we are inside the same zone
-				if ( @STACK and $STACK[-1]->[0] eq $zone ) {
+				# or inside the handler.
+				if ( $DISABLE or @STACK and $STACK[-1]->[0] eq $zone ) {
 					$_->proceed;
 					return;
 				}
