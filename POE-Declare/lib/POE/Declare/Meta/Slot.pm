@@ -46,7 +46,7 @@ use warnings;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.58';
+	$VERSION = '0.59';
 }
 
 use Class::XSAccessor {
@@ -81,7 +81,7 @@ L<POE>, L<POE::Declare>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2011 Adam Kennedy.
+Copyright 2006 - 2012 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

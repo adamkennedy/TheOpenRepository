@@ -1,5 +1,8 @@
 Changes for Perl extension POE-Declare
 
+0.59 Fri 3 Feb 2012
+	- Removed the use of the deprecated defined @array
+
 0.58 Fri 10 Jun 2011
 	- It is now legal to ->finish a session twice, as long as the session
 	  still exists in POE terms. The second call will silently shortcut.

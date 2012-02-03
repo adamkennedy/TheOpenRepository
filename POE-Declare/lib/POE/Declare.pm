@@ -46,7 +46,7 @@ with layer stacked upon layer ad-infinitum to produce a delegation
 heirachy which allows for powerful and complex systems that are relatively
 easy to maintain.
 
-This can be particularly noticable as the scale of a L<POE> codebase gets
+This can be particularly noticable as the scale of a POE codebase gets
 larger. At three levels of abstraction the layering in POE becomes quite
 difficult, and progess past about the third layer of abstraction becomes
 extremely difficult.
@@ -131,7 +131,7 @@ No special syntax is needed for inheritance, as L<POE::Declare> works
 directly on top of Perl's native inheritance.
 
   # Parent.pm - Object that connects to a service
-  package Parent;
+  package My::Parent;
   
   use strict;
   use POE::Declare {
@@ -148,10 +148,10 @@ directly on top of Perl's native inheritance.
   compile;
   
   # Child.pm - Connect to an (optionally) authenticating service
-  package Child;
+  package My::Child;
   
   use strict;
-  use base 'Parent';
+  use base 'My::Parent';
   use POE::Declare {
       Username     => 'Param',
       Password     => 'Param',
@@ -258,7 +258,7 @@ use constant SELF => HEAP;
 
 use vars qw{$VERSION @ISA @EXPORT %ATTR %EVENT %META};
 BEGIN {
-	$VERSION = '0.58';
+	$VERSION = '0.59';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{ SELF declare compile };
 
@@ -285,7 +285,7 @@ sub import {
 	if ( defined ${"$callpkg\::VERSION"} ) {
 		Carp::croak("$callpkg already exists, cannot use POE::Declare");
 	}
-	if ( defined @{"$callpkg\::ISA"} ) {
+	if ( @{"$callpkg\::ISA"} ) {
 		# Are we a subclass of an existing POE::Declare class
 		unless ( $callpkg->isa('POE::Declare::Object') ) {
 			# This isn't a POE::Declare class
@@ -495,7 +495,7 @@ L<POE>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2011 Adam Kennedy.
+Copyright 2006 - 2012 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 1.01;
+use inc::Module::Install::DSL 1.04;
 
 all_from      lib/POE/Declare.pm
 requires_from lib/POE/Declare.pm
