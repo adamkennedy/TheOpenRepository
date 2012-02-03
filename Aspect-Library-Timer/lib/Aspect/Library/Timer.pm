@@ -28,28 +28,31 @@ sub get_advice {
 			}
 
 			# Capture the time
-			my @start = Time::HiRes::gettimeofday();
-			local $@;
-			eval {
-				$_->proceed;
-			};
-			my $error = $@;
-			my @stop  = Time::HiRes::gettimeofday();
+			my $error = '';
+			SCOPE: {
+				local $@;
+				my @start = Time::HiRes::gettimeofday();
+				eval {
+					$_->proceed;
+				};
+				$error = $@;
+				my @stop  = Time::HiRes::gettimeofday();
 
-			# Process the time
-			$DISABLE++;
-			eval {
-				$handler->(
-					$_->sub_name,
-					\@start,
-					\@stop,
-					Time::HiRes::tv_interval(
+				# Process the time
+				$DISABLE++;
+				eval {
+					$handler->(
+						$_->sub_name,
 						\@start,
 						\@stop,
-					)
-				);
-			};
-			$DISABLE--;
+						Time::HiRes::tv_interval(
+							\@start,
+							\@stop,
+						)
+					);
+				};
+				$DISABLE--;
+			}
 
 			die $error if $error;
 			return;
