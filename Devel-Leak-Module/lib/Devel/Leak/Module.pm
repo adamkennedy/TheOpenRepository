@@ -8,11 +8,26 @@ Devel::Leak::Module - Track loaded modules and namespaces
 
 =head1 SYNOPSIS
 
-TO BE COMPLETED
+  # 1. Load all modules we believe are needed
+  require My::Everything;
+  
+  # 2. Set a checkpoint for all loaded modules/packages/namespaces
+  Devel::Leak::Module::checkpoint();
+  
+  # 3. Run code that should not result in loading any new code
+  My::foo();
+  
+  # 4. Confirm that no new code was loaded during
+  Devel::Leak::Module::print_new();
 
 =head1 DESCRIPTION
 
-=head1 METHODS
+B<Devel::Leak::Module> is a simple little convenience module for tracking
+module, package and namespace creation.
+
+The synopsis code above describes pretty much the main way that it works.
+
+=head1 FUNCTIONS
 
 =cut
 
@@ -54,26 +69,6 @@ sub checkpoint {
 	return 1;
 }
 
-sub new_namespaces {
-	grep { ! $NAMESPACES{$_} } all_namespaces();
-}
-
-sub new_packages {
-	grep { ! $PACKAGES{$_} } all_packages();
-}
-
-sub new_modules {
-	grep { ! $MODULES{$_} } all_modules();
-}
-
-# Boolean true/false for if there are any new anything
-sub any_new {
-	return 1 if new_namespaces();
-	return 1 if new_packages();
-	return 1 if new_modules();
-	return '';
-}
-
 # Print a summary of newly created things
 sub print_new {
 	my %parts = map { $_ => 1 } (@_ ? @_ : qw{ namespace package module });
@@ -96,12 +91,44 @@ sub print_new {
 
 }
 
+# Boolean true/false for if there are any new anything
+sub any_new {
+	return 1 if new_namespaces();
+	return 1 if new_packages();
+	return 1 if new_modules();
+	return '';
+}
+
+sub new_modules {
+	grep { ! $MODULES{$_} } all_modules();
+}
+
+sub new_packages {
+	grep { ! $PACKAGES{$_} } all_packages();
+}
+
+sub new_namespaces {
+	grep { ! $NAMESPACES{$_} } all_namespaces();
+}
+
 
 
 
 
 #####################################################################
 # Capture Functions
+
+# Get the list of all modules
+sub all_modules {
+	sort grep { $_ ne 'dumpvar.pl' } keys %INC;
+}
+
+# Start with all the namespaces,
+# limited to the ones that look like classes.
+# Then check each namespace actually contains something.
+sub all_packages {
+	grep { _OCCUPIED($_) } grep { _CLASS($_) } all_namespaces();
+}
 
 sub all_namespaces {
 	my @names = ();
@@ -112,18 +139,6 @@ sub all_namespaces {
 		unshift @stack, _namespaces($c);
 	}
 	return @names;
-}
-
-# Start with all the namespaces,
-# limited to the ones that look like classes.
-# Then check each namespace actually contains something.
-sub all_packages {
-	grep { _OCCUPIED($_) } grep { _CLASS($_) } all_namespaces();
-}
-
-# Get the list of all modules
-sub all_modules {
-	sort grep { $_ ne 'dumpvar.pl' } keys %INC;
 }
 
 
