@@ -10,7 +10,7 @@ use Class::Autouse ();
 
 our $VERSION;
 BEGIN {
-	$VERSION = '2.00';
+	$VERSION = '2.01';
 }
 
 # Anti-loop protection.

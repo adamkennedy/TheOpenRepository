@@ -15,9 +15,14 @@ use File::Spec 0.80 ();
 use List::Util 1.18 ();
 use Scalar::Util    ();
 
+# Globals
+use vars qw{ $VERSION @ISA $DB $DEBUG };
+use vars qw{ $DEVEL $SUPERLOAD $NOSTAT $NOPREBLESS $STATICISA   }; # Load environment
+use vars qw{ %SPECIAL %LOADED %BAD %TRIED_CLASS %TRIED_METHOD   }; # Special cases
+use vars qw{ @LOADERS @SUGAR $HOOKS $ORIGINAL_CAN $ORIGINAL_ISA }; # Working information
+
 # Handle optimisation switches via constants to allow debugging and
 # similar functions to be optimised out at compile time if not in use.
-our ($DB, $DEBUG);
 BEGIN {
 	$DB    = 0 unless defined &DB::DB;
 	$DEBUG = 0 unless defined $DEBUG;
@@ -26,15 +31,9 @@ use constant DB    => !! $DB;
 use constant DEBUG => !! $DEBUG;
 print "Class::Autouse -> Debugging Activated.\n" if DEBUG;
 
-# Globals
-use vars qw{ $VERSION @ISA };
-use vars qw{ $DEVEL $SUPERLOAD $NOSTAT $NOPREBLESS $STATICISA   }; # Load environment
-use vars qw{ %SPECIAL %LOADED %BAD %TRIED_CLASS %TRIED_METHOD   }; # Special cases
-use vars qw{ @LOADERS @SUGAR $HOOKS $ORIGINAL_CAN $ORIGINAL_ISA }; # Working information
-
 # Compile-time Initialisation and Optimisation
 BEGIN {
-	$VERSION = '2.00';
+	$VERSION = '2.01';
 
 	# Become an exporter so we don't get complaints when we act as a pragma.
 	# I don't fully understand the reason for this, but it works and I can't
@@ -752,7 +751,7 @@ sub _namespace_occupied ($) {
 
 	# Handle the most likely case
 	my $class = shift or return undef;
-	return 1 if defined @{"${class}::ISA"};
+	return 1 if @{"${class}::ISA"};
 
 	# Get the list of glob names, ignoring namespaces
 	foreach ( keys %{"${class}::"} ) {
@@ -764,9 +763,7 @@ sub _namespace_occupied ($) {
 				# This is a Class::Autouse hook.  Ignore.
 				next;
 			}
-			else {
-				return 1;
-			}
+			return 1;
 		}
 	}
 
