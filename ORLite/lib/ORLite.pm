@@ -699,7 +699,7 @@ END_PERL
 				$code .= <<"END_PERL";
 use $xsclass 1.05 {
 	getters => {
-${id}${rowid}$t->{pl_accessor}
+${rowid}${id}$t->{pl_accessor}
 	},
 };
 
