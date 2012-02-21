@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite
 
+1.54 Tue 21 Feb 2012
+	- Added experimental x_rowid parameter to maintain SQLite rowids in
+	  the objects
+
 1.53 Tue 21 Feb 2012
 	- Add a ->id convenience method alias when table 'foo' has a single
 	  numeric primary key 'foo_id' so you can use $foo->id

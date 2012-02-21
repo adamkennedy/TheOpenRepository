@@ -14,7 +14,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.53';
+	$VERSION = '1.54';
 }
 
 # Support for the 'prune' option
@@ -57,6 +57,7 @@ sub import {
 		views      => 0,
 		unicode    => 0,
 		x_update   => 0,
+		x_rowid    => 0,
 	);
 	if ( defined Params::Util::_STRING($_[1]) ) {
 		# Support the short form "use ORLite 'db.sqlite'"
@@ -372,11 +373,6 @@ END_PERL
 			 	{ Slice => {} },
 			);
 
-			# Convenience escaping for the column names
-			foreach my $c ( @$columns ) {
-				$c->{qname} = "\"$c->{name}\"";
-			}
-
 			# Track array vs hash implementation on a per-table
 			# basis so that we can force views to always be done
 			# array-wise (to compensate for some weird SQLite
@@ -386,38 +382,69 @@ END_PERL
 				$t->{array} = 1;
 			}
 
+			# Track usage of rowid on a per-table basis because
+			# views don't always support rowid.
+			$t->{rowid} = $params{x_rowid};
+			if ( $t->{type} eq 'view' ) {
+				$t->{rowid} = 0;
+			}
+
+			# Analyze the primary keys structure
+			my $select = $t->{select} = [ @$columns ];
+			$t->{pk}  = [ grep { $_->{pk} } @$columns ];
+			$t->{pkn} = scalar @{$t->{pk}};
+			$t->{pk1} = $t->{pk}->[0] if $t->{pkn} == 1;
+			if ( $t->{pk1} ) {
+				$t->{rowid} &&= $t->{pk1};
+				if ( $t->{pk1}->{name} eq $t->{name} . '_id' ) {
+					$t->{id} = $t->{pk1};
+				}
+			} elsif ( $t->{rowid} ) {
+				# Add rowid to the query
+				$t->{rowid} = {
+					cid        => -1,
+					name       => 'rowid',
+					type       => 'integer',
+					notnull    => 1,
+					dflt_value => undef,
+					pk         => 0,
+				};
+				push @$select, $t->{rowid};
+			}
+
+			# Do we allow object creation?
+			$t->{create} = $t->{pkn};
+			$t->{create} = 1 if $t->{rowid};
+			$t->{create} = 0 if $readonly;
+
 			# Generate the object keys for the columns
 			if ( $t->{array} ) {
-				foreach my $i ( 0 .. $#$columns ) {
+				foreach my $i ( 0 .. $#$select ) {
 					$columns->[$i]->{xs}    = $i;
 					$columns->[$i]->{key}   = "[$i]";
 				}
 			} else {
-				foreach my $c ( @$columns ) {
+				foreach my $c ( @$select ) {
 					$c->{xs}  = "'$c->{name}'";
 					$c->{key} = "{$c->{name}}";
 				}
 			}
 
-			# Generate the primary key list
-			$t->{pk}     = [ grep { $_->{pk} } @$columns ];
-			$t->{pks}    = scalar @{$t->{pk}};
-			$t->{create} = !! ( $t->{pks} and ! $readonly );
-			if ( $t->{pks} == 1 ) {
-				if ( $t->{pk}->[0]->{name} eq $t->{name} . '_id' ) {
-					$t->{id} = $t->{pk}->[0];
-				}
+			# Convenience escaping for the column names
+			foreach my $c ( @$select ) {
+				$c->{qname} = "\"$c->{name}\"";
 			}
 
 			# Generate the main SQL fragments
-			$t->{sql_cols}   = join ', ', map { $_->{qname} } @$columns;
-			$t->{sql_vals}   = join ', ', ( '?' ) x scalar @$columns;
-			$t->{sql_select} = "select $t->{sql_cols} from $t->{qname}";
+			$t->{sql_scols}  = join ', ', map { $_->{qname} } @$select;
+			$t->{sql_icols}  = join ', ', map { $_->{qname} } @$columns;
+			$t->{sql_ivals}  = join ', ', ( '?' ) x scalar @$columns;
+			$t->{sql_select} = "select $t->{sql_scols} from $t->{qname}";
 			$t->{sql_count}  = "select count(*) from $t->{qname}";
 			$t->{sql_insert} =
 				"insert into $t->{qname} " .
-				"( $t->{sql_cols} ) " .
-				"values ( $t->{sql_vals} )";
+				"( $t->{sql_icols} ) " .
+				"values ( $t->{sql_ivals} )";
 			$t->{sql_where} = join ' and ',
 				map { "$_->{qname} = ?" } @{$t->{pk}};
 
@@ -432,10 +459,15 @@ END_PERL
 				"\t\t\$self->$_->{key},"
 			} @$columns;
 
-			if ( $t->{pks} == 1 ) {
-				$t->{pl_fill} = "\t\$self->$t->{pk}->[0]->{key} " .
+			if ( $t->{pk1} ) {
+				$t->{pl_fill} =
+					"\t\$self->$t->{pk1}->{key} " .
 					"= \$dbh->func('last_insert_rowid') " .
-					"unless \$self->$t->{pk}->[0]->{key};";
+					"unless \$self->$t->{pk1}->{key};";
+			} elsif ( $t->{rowid} ) {
+				$t->{pl_fill} =
+					"\t\$self->$t->{rowid}->{key} " .
+					"= \$dbh->func('last_insert_rowid');";
 			} else {
 				$t->{pl_fill} = '';
 			}
@@ -470,6 +502,7 @@ END_PERL
 
 		# Generate the per-table code
 		foreach my $t ( @$tables ) {
+			my @select  = @{$t->{select}};
 			my @columns = @{$t->{columns}};
 			my $slice   = $t->{array}
 				? '{}'
@@ -563,7 +596,7 @@ END_PERL
 			}
 
 			# Add the primary key based single object loader
-			if ( $t->{pks} ) {
+			if ( $t->{pkn} ) {
 				if ( $t->{array} ) {
 					$code .= <<"END_PERL";
 sub load {
@@ -617,7 +650,9 @@ sub create {
 sub insert {
 	my \$self = shift;
 	my \$dbh  = $pkg->dbh;
-	\$dbh->do( '$t->{sql_insert}', {},
+	\$dbh->do(
+		'$t->{sql_insert}',
+		{},
 $t->{pl_insert}
 	);
 $t->{pl_fill}
@@ -634,7 +669,8 @@ $t->{pl_where}
 	Carp::croak("Must use truncate to delete all rows") unless \@_;
 	return $pkg->do(
 		'delete from $t->{qname} ' . shift,
-		{}, \@_,
+		{},
+		\@_,
 	);
 }
 
@@ -667,29 +703,41 @@ END_PERL
 				my $xsclass = $t->{array}
 					? 'Class::XSAccessor::Array'
 					: 'Class::XSAccessor';
-				my $pkid = $t->{id}
+				my $id = $t->{id}
 					? "\t\t$t->{id}->{name} => $t->{id}->{xs},\n"
 					: '';
-			
-
+				my $rowid = ($t->{id} and $t->{rowid})
+					? "\t\t$t->{rowid}->{name} => $t->{rowid}->{xs},\n"
+					: '';
 
 				$code .= <<"END_PERL";
 use $xsclass 1.05 {
 	getters => {
-$pkid
-$t->{pl_accessor}
+${id}${rowid}$t->{pl_accessor}
 	},
 };
 
 END_PERL
 			} else {
-				$code .= <<"END_PERL" if $t->{id};
+				if ( $t->{id} and $t->{rowid} ) {
+					$code .= <<"END_PERL";
+sub rowid {
+	\$_[0]->$t->{rowid}->{key};
+}
+
+END_PERL
+				}
+
+				if ( $t->{id} ) {
+					$code .= <<"END_PERL";
 sub id {
 	\$_[0]->$t->{id}->{key};
 }
-END_PERL
 
-				$code .= join "\n\n", map { <<"END_PERL" } grep { ! $_->{fk} } @columns;
+END_PERL
+				}
+
+				$code .= join "\n\n", map { <<"END_PERL" } grep { ! $_->{fk} } @select;
 sub $_->{name} {
 	\$_[0]->$_->{key};
 }

@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 74;
+use Test::More tests => 75;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -86,6 +86,7 @@ my $new = Foo::Bar::TableOne->create( col2 => 'bar' );
 isa_ok( $new, 'Foo::Bar::TableOne' );
 is( $new->col1, 2,     '->col1 ok' );
 is( $new->col2, 'bar', '->col2 ok' );
+ok( ! $new->can('rowid'), '->rowid does not exist' );
 ok(
 	Foo::Bar::TableOne->create( col2 => 'bar' ),
 	'Created row 3',
@@ -185,7 +186,7 @@ SCOPE: {
 # Truncate
 SCOPE: {
 	ok( Foo::Bar::TableOne->truncate, '->truncate ok' );
-	is( Foo::Bar::TableOne->count, 0, 'Commit ok' );	
+	is( Foo::Bar::TableOne->count, 0, 'Commit ok' );
 }
 
 

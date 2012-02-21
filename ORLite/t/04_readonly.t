@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 12;
+use Test::More tests => 13;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -51,6 +51,7 @@ is( Foo::Bar->orlite, $t::lib::Test::VERSION, '->orlite ok' );
 ok( Foo::Bar->can('sqlite'), '->sqlite method exists' );
 ok( Foo::Bar::TableOne->can('load'),   '->load method exists'   );
 ok( Foo::Bar::TableOne->can('select'), '->select method exists' );
+ok( ! Foo::Bar::TableOne->can('rowid'), '->rowid does not exist' );
 
 # Check the user_version value
 is( Foo::Bar->pragma('user_version'), 10, '->user_version ok' );
