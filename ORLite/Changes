@@ -1,5 +1,10 @@
 Changes for Perl extension ORLite
 
+1.55 Tue 21 Feb 2012
+	- Removed x_rowid parameter and make the rowid logic compulsory.
+	- As a result, ORLite now supports creating and x_update'ing objects
+	  even when they come from tables without primary keys.
+
 1.54 Tue 21 Feb 2012
 	- Added experimental x_rowid parameter to maintain SQLite rowids in
 	  the objects

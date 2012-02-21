@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 36;
+use Test::More tests => 43;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -26,8 +26,8 @@ package Foo::Bar;
 
 use strict;
 use ORLite {
-	file    => '$file',
-	x_rowid => 1,
+	file     => '$file',
+	x_update => 1,
 };
 
 1;
@@ -45,13 +45,38 @@ SCOPE: {
 		rowid     => 123,
 		firstname => 'Adam',
 		lastname  => 'Kennedy',
-		age       => '123',
+		age       => 1,
 	);
 	isa_ok( $object, 'Foo::Bar::One' );
 	is( $object->rowid, 1, '->rowid ok' );
 	is( $object->firstname, 'Adam', '->firstname ok' );
 	is( $object->lastname, 'Kennedy', '->lastname ok' );
-	is( $object->age, 123, '->age ok' );
+	is( $object->age, 1, '->age ok' );
+
+	# Create a clone of the object
+	my $clone = Foo::Bar::One->create(
+		firstname => 'Bob',
+		lastname  => 'Kennedy',
+		age       => 2,
+	);
+	isa_ok( $clone, 'Foo::Bar::One' );
+	is( $clone->rowid, 2, '->rowid ok' );
+
+	# Updating the clone should not change the original
+	ok(
+		$clone->update( age => 3 ),
+		'Updating only one object',
+	);
+	my @check = Foo::Bar::One->select('where rowid = 1');
+	is( scalar(@check), 1, 'Found original object' );
+	is( $check[0]->age, 1, 'Age of original was not changed' );
+
+	# Deleting the clone should not delete the original
+	ok(
+		$clone->delete,
+		'Deleting only one object',
+	);
+	is( Foo::Bar::One->count, 1, 'One row remains' );
 }
 
 
@@ -111,7 +136,7 @@ SCOPE: {
 	ok( ! $object->can('rowid'), '->rowid ok' );
 	is( $object->firstname, 'Adam', '->firstname ok' );
 	is( $object->lastname, 'Kennedy', '->lastname ok' );
-	is( $object->age, 123, '->age ok' );
+	is( $object->age, 1, '->age ok' );
 }
 
 

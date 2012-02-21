@@ -14,7 +14,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.54';
+	$VERSION = '1.55';
 }
 
 # Support for the 'prune' option
@@ -57,7 +57,6 @@ sub import {
 		views      => 0,
 		unicode    => 0,
 		x_update   => 0,
-		x_rowid    => 0,
 	);
 	if ( defined Params::Util::_STRING($_[1]) ) {
 		# Support the short form "use ORLite 'db.sqlite'"
@@ -367,11 +366,15 @@ END_PERL
 			$t->{class} =~ s/_([a-z])/uc($1)/ge;
 			$t->{class} = "${pkg}::$t->{class}";
 
-			# Load the column data
+			# Load the structural column list
 			my $columns = $t->{columns} = $dbh->selectall_arrayref(
 				"pragma table_info('$t->{name}')",
 			 	{ Slice => {} },
 			);
+
+			# The list of columns we will select, which can
+			# be different to the general list.
+			my $select = $t->{select} = [ @$columns ];
 
 			# Track array vs hash implementation on a per-table
 			# basis so that we can force views to always be done
@@ -384,13 +387,12 @@ END_PERL
 
 			# Track usage of rowid on a per-table basis because
 			# views don't always support rowid.
-			$t->{rowid} = $params{x_rowid};
+			$t->{rowid} = 1;
 			if ( $t->{type} eq 'view' ) {
 				$t->{rowid} = 0;
 			}
 
 			# Analyze the primary keys structure
-			my $select = $t->{select} = [ @$columns ];
 			$t->{pk}  = [ grep { $_->{pk} } @$columns ];
 			$t->{pkn} = scalar @{$t->{pk}};
 			$t->{pk1} = $t->{pk}->[0] if $t->{pkn} == 1;
@@ -660,18 +662,7 @@ $t->{pl_fill}
 }
 
 sub delete {
-	my \$self = shift;
-	return $pkg->do(
-		'delete from $t->{qname} where $t->{sql_where}',
-		{},
-$t->{pl_where}
-	) if ref \$self;
-	Carp::croak("Must use truncate to delete all rows") unless \@_;
-	return $pkg->do(
-		'delete from $t->{qname} ' . shift,
-		{},
-		\@_,
-	);
+	$pkg->do('delete from $t->{qname} where rowid = ?', {}, shift->rowid);
 }
 
 sub truncate {
@@ -753,10 +744,7 @@ END_PERL
 
 			# Add the experimental update method
 			if ( $t->{create} and $params{x_update} ) {
-				my @pk    = map { $_->{name} } @{$t->{pk}};
-				my $wsql  = join ' and ', map { "\"$_\" = ?" } @pk;
-				my $wattr = join ', ',    map { "\$self->$_" } @pk;
-				my $set   = $t->{array}
+				my $set = $t->{array}
 					? '$self->set( $_ => $set{$_} ) foreach keys %set;'
 					: '$self->{$_} = $set{$_} foreach keys %set;';
 				$code .= <<"END_PERL";
@@ -768,8 +756,8 @@ sub update {
 	my \$rows = $pkg->do(
 		'update $t->{qname} set ' .
 		join( ', ', map { "\\"\$_\\" = ?" } keys \%set ) .
-		' where $wsql',
-		{}, values \%set, $wattr,
+		' where "rowid" = ?',
+		{}, values \%set, \$self->rowid,
 	);
 	unless ( \$rows == 1 ) {
 		die "Expected to update 1 row, actually updated \$rows";
