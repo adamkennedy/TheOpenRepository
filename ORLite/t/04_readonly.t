@@ -49,9 +49,9 @@ END_PERL
 # Check standard methods exist
 is( Foo::Bar->orlite, $t::lib::Test::VERSION, '->orlite ok' );
 ok( Foo::Bar->can('sqlite'), '->sqlite method exists' );
-ok( Foo::Bar::TableOne->can('load'),   '->load method exists'   );
+ok( Foo::Bar::TableOne->can('load'),   '->load method exists' );
 ok( Foo::Bar::TableOne->can('select'), '->select method exists' );
-ok( ! Foo::Bar::TableOne->can('rowid'), '->rowid does not exist' );
+ok( Foo::Bar::TableOne->can('rowid'),  '->rowid exist' );
 
 # Check the user_version value
 is( Foo::Bar->pragma('user_version'), 10, '->user_version ok' );

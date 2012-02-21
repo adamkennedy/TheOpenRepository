@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 75;
+use Test::More tests => 74;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -84,9 +84,9 @@ ok(
 isa_ok( Foo::Bar::TableOne->load(1), 'Foo::Bar::TableOne' );
 my $new = Foo::Bar::TableOne->create( col2 => 'bar' );
 isa_ok( $new, 'Foo::Bar::TableOne' );
-is( $new->col1, 2,     '->col1 ok' );
+is( $new->col1, 2, '->col1 ok' );
 is( $new->col2, 'bar', '->col2 ok' );
-ok( ! $new->can('rowid'), '->rowid does not exist' );
+is( $new->rowid, 2, '->rowid ok' );
 ok(
 	Foo::Bar::TableOne->create( col2 => 'bar' ),
 	'Created row 3',
@@ -147,8 +147,8 @@ SCOPE: {
 	is_deeply( $short2->[0], [ 1, 'foo' ], 'Found correct alternative' );
 
 	# Delete one of the objects via the class delete method
-	my $rv1 = Foo::Bar::TableOne->delete('where col2 = ?', 'bar');
-	is( $rv1, 2, 'Deleted 2 rows' );
+	my @delete = Foo::Bar::TableOne->select('where col2 = ?', 'bar');
+	$_->delete foreach @delete;
 	is( Foo::Bar::TableOne->count, 1, 'Confirm 2 rows were deleted' );
 
 	# Delete one of the objects via the instance delete method

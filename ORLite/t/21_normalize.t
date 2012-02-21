@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 79;
+use Test::More tests => 78;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -150,8 +150,8 @@ SCOPE: {
 	is_deeply( $short2->[0], [ 1, 'foo' ], 'Found correct alternative' );
 
 	# Delete one of the objects via the class delete method
-	my $rv1 = Foo::Bar::TableOne->delete('where ColumnTwo = ?', 'bar');
-	is( $rv1, 2, 'Deleted 2 rows' );
+	my @delete = Foo::Bar::TableOne->select('where ColumnTwo = ?', 'bar');
+	$_->delete foreach @delete;
 	is( Foo::Bar::TableOne->count, 1, 'Confirm 2 rows were deleted' );
 
 	# Delete one of the objects via the instance delete method
