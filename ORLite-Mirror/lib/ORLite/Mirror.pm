@@ -10,15 +10,13 @@ use File::Remove             1.42 ();
 use File::HomeDir            0.69 ();
 use File::ShareDir           1.00 ();
 use Params::Util             0.33 ();
-use IO::Uncompress::Gunzip  2.008 ();
-use IO::Uncompress::Bunzip2 2.008 ();
 use LWP::UserAgent          5.806 ();
 use LWP::Online              1.07 ();
 use ORLite                   1.37 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.23';
+	$VERSION = '1.24';
 	@ISA     = 'ORLite';
 }
 
@@ -178,6 +176,7 @@ sub import {
 		my $refreshed = 0;
 		if ( $path =~ /\.gz$/ ) {
 			unless ( $response->code == 304 and -f $path ) {
+				require IO::Uncompress::Gunzip;
 				IO::Uncompress::Gunzip::gunzip(
 					$path      => $db,
 					BinModeOut => 1,
@@ -186,6 +185,7 @@ sub import {
 			}
 		} elsif ( $path =~ /\.bz2$/ ) {
 			unless ( $response->code == 304 and -f $path ) {
+				require IO::Uncompress::Bunzip2;
 				IO::Uncompress::Bunzip2::bunzip2(
 					$path      => $db,
 					BinModeOut => 1,

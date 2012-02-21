@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite-Mirror
 
+1.24 to be released
+	- Move decompression modules to require to save 2-3 meg of memory
+
 1.23 Fri 3 Feb 2012
 	- Updating Module::Install::DSL to 1.04
 	- Added documentation for the constructor options.
