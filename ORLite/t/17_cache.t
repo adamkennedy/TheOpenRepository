@@ -14,7 +14,12 @@ use File::Remove 'clear';
 use t::lib::Test;
 
 # Where will the cache file be written to
-my $cached = catfile( qw{ t Foo-Bar-1-23-ORLite-1-52-user_version-2.pm } );
+my $orlite_version = $t::lib::Test::VERSION;
+$orlite_version =~ s/[\._]/-/g;
+my $cached = catfile( 
+	"t",
+	"Foo-Bar-1-23-ORLite-$orlite_version-user_version-2.pm",
+);
 clear($cached);
 ok( ! -e $cached, 'Cache file does not initially exist' );
 

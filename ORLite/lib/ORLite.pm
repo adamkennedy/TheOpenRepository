@@ -351,24 +351,24 @@ END_PERL
 		);
 		my %tindex = map { $_->{name} => $_ } @$tables;
 
-		# Capture the raw schema column information
-		foreach my $table ( @$tables ) {
+		# Capture the raw schema information and do first-pass work
+		foreach my $t ( @$tables ) {
 			# Convenience pre-quoted form of the table name
-			$table->{qname} = '"' . $table->{name} . '"';
+			$t->{qname} = '"' . $t->{name} . '"';
 
 			# What will be the class for this table
-			$table->{class} = $table->{name};
-			if ( $table->{class} ne lc $table->{class} ) {
-				$table->{class} =~ s/([a-z])([A-Z])/${1}_${2}/g;
-				$table->{class} =~ s/_+/_/g;
+			$t->{class} = $t->{name};
+			if ( $t->{class} ne lc $t->{class} ) {
+				$t->{class} =~ s/([a-z])([A-Z])/${1}_${2}/g;
+				$t->{class} =~ s/_+/_/g;
 			}
-			$table->{class} = ucfirst lc $table->{class};
-			$table->{class} =~ s/_([a-z])/uc($1)/ge;
-			$table->{class} = "${pkg}::$table->{class}";
+			$t->{class} = ucfirst lc $t->{class};
+			$t->{class} =~ s/_([a-z])/uc($1)/ge;
+			$t->{class} = "${pkg}::$t->{class}";
 
 			# Load the column data
-			my $columns = $table->{columns} = $dbh->selectall_arrayref(
-				"pragma table_info('$table->{name}')",
+			my $columns = $t->{columns} = $dbh->selectall_arrayref(
+				"pragma table_info('$t->{name}')",
 			 	{ Slice => {} },
 			);
 
@@ -381,13 +381,13 @@ END_PERL
 			# basis so that we can force views to always be done
 			# array-wise (to compensate for some weird SQLite
 			# column quoting differences between tables and views
-			$table->{array} = $array;
-			if ( $table->{type} eq 'view' ) {
-				$table->{array} = 1;
+			$t->{array} = $array;
+			if ( $t->{type} eq 'view' ) {
+				$t->{array} = 1;
 			}
 
 			# Generate the object keys for the columns
-			if ( $table->{array} ) {
+			if ( $t->{array} ) {
 				foreach my $i ( 0 .. $#$columns ) {
 					$columns->[$i]->{xs}    = $i;
 					$columns->[$i]->{key}   = "[$i]";
@@ -400,51 +400,56 @@ END_PERL
 			}
 
 			# Generate the primary key list
-			$table->{pk}     = [ grep { $_->{pk} } @$columns ];
-			$table->{pks}    = scalar @{$table->{pk}};
-			$table->{create} = !! ( $table->{pks} and ! $readonly );
+			$t->{pk}     = [ grep { $_->{pk} } @$columns ];
+			$t->{pks}    = scalar @{$t->{pk}};
+			$t->{create} = !! ( $t->{pks} and ! $readonly );
+			if ( $t->{pks} == 1 ) {
+				if ( $t->{pk}->[0]->{name} eq $t->{name} . '_id' ) {
+					$t->{id} = $t->{pk}->[0];
+				}
+			}
 
 			# Generate the main SQL fragments
-			$table->{sql_cols}   = join ', ', map { $_->{qname} } @$columns;
-			$table->{sql_vals}   = join ', ', ( '?' ) x scalar @$columns;
-			$table->{sql_select} = "select $table->{sql_cols} from $table->{qname}";
-			$table->{sql_count}  = "select count(*) from $table->{qname}";
-			$table->{sql_insert} =
-				"insert into $table->{qname} " .
-				"( $table->{sql_cols} ) " .
-				"values ( $table->{sql_vals} )";
-			$table->{sql_where} = join ' and ',
-				map { "$_->{qname} = ?" } @{$table->{pk}};
+			$t->{sql_cols}   = join ', ', map { $_->{qname} } @$columns;
+			$t->{sql_vals}   = join ', ', ( '?' ) x scalar @$columns;
+			$t->{sql_select} = "select $t->{sql_cols} from $t->{qname}";
+			$t->{sql_count}  = "select count(*) from $t->{qname}";
+			$t->{sql_insert} =
+				"insert into $t->{qname} " .
+				"( $t->{sql_cols} ) " .
+				"values ( $t->{sql_vals} )";
+			$t->{sql_where} = join ' and ',
+				map { "$_->{qname} = ?" } @{$t->{pk}};
 
 			# Generate the new Perl fragments
-			$table->{pl_new} = join "\n", map {
-				$table->{array}
+			$t->{pl_new} = join "\n", map {
+				$t->{array}
 					? "\t\t\$attr{$_->{name}},"
 					: "\t\t$_->{name} => \$attr{$_->{name}},"
 			} @$columns;
 
-			$table->{pl_insert} = join "\n", map {
+			$t->{pl_insert} = join "\n", map {
 				"\t\t\$self->$_->{key},"
 			} @$columns;
 
-			if ( $table->{pks} == 1 ) {
-				$table->{pl_fill} = "\t\$self->$table->{pk}->[0]->{key} " .
+			if ( $t->{pks} == 1 ) {
+				$t->{pl_fill} = "\t\$self->$t->{pk}->[0]->{key} " .
 					"= \$dbh->func('last_insert_rowid') " .
-					"unless \$self->$table->{pk}->[0]->{key};";
+					"unless \$self->$t->{pk}->[0]->{key};";
 			} else {
-				$table->{pl_fill} = '';
+				$t->{pl_fill} = '';
 			}
 
-			$table->{pl_where} = join "\n", map {
+			$t->{pl_where} = join "\n", map {
 				"\t\t\$self->$_->{key},"
-			} @{$table->{pk}};
+			} @{$t->{pk}};
 		}
 
 		# Generate the foreign key metadata
-		foreach my $table ( @$tables ) {
+		foreach my $t ( @$tables ) {
 			# Locate the foreign keys
 			my %fk     = ();
-			my @fk_sql = $table->{sql} =~ /[(,]\s*(.+?REFERENCES.+?)\s*[,)]/g;
+			my @fk_sql = $t->{sql} =~ /[(,]\s*(.+?REFERENCES.+?)\s*[,)]/g;
 
 			# Extract the details
 			foreach ( @fk_sql ) {
@@ -453,20 +458,20 @@ END_PERL
 				}
 				$fk{"$1"} = [ "$2", $tindex{"$2"}, "$3" ];
 			}
-			foreach ( @{$table->{columns}} ) {
+			foreach ( @{$t->{columns}} ) {
 				$_->{fk} = $fk{$_->{name}};
 			}
 
 			# One final code fragment we need the fk for
-			$table->{pl_accessor} = join "\n",
+			$t->{pl_accessor} = join "\n",
 				map { "\t\t$_->{name} => $_->{xs}," }
-				grep { ! $_->{fk} } @{$table->{columns}};
+				grep { ! $_->{fk} } @{$t->{columns}};
 		}
 
 		# Generate the per-table code
-		foreach my $table ( @$tables ) {
-			my @columns = @{$table->{columns}};
-			my $slice   = $table->{array}
+		foreach my $t ( @$tables ) {
+			my @columns = @{$t->{columns}};
+			my $slice   = $t->{array}
 				? '{}'
 				: '{ Slice => {} }';
 
@@ -474,17 +479,17 @@ END_PERL
 			if ( $params{shim} ) {
 				# Generate a shim-wrapper class
 				$code .= <<"END_PERL";
-package $table->{class};
+package $t->{class};
 
-\@$table->{class}::ISA = '$table->{class}::Shim';
+\@$t->{class}::ISA = '$t->{class}::Shim';
 
-package $table->{class}::Shim;
+package $t->{class}::Shim;
 
 END_PERL
 			} else {
 				# Plain vanilla package header
 				$code .= <<"END_PERL";
-package $table->{class};
+package $t->{class};
 
 END_PERL
 			}
@@ -493,27 +498,27 @@ END_PERL
 			$code .= <<"END_PERL";
 sub base { '$pkg' }
 
-sub table { '$table->{name}' }
+sub table { '$t->{name}' }
 
 sub table_info {
 	$pkg->selectall_arrayref(
-		"pragma table_info('$table->{name}')",
+		"pragma table_info('$t->{name}')",
 		{ Slice => {} },
 	);
 }
 
 sub select {
 	my \$class = shift;
-	my \$sql   = '$table->{sql_select} ';
+	my \$sql   = '$t->{sql_select} ';
 	   \$sql  .= shift if \@_;
 	my \$rows  = $pkg->selectall_arrayref( \$sql, $slice, \@_ );
-	bless \$_, '$table->{class}' foreach \@\$rows;
+	bless \$_, '$t->{class}' foreach \@\$rows;
 	wantarray ? \@\$rows : \$rows;
 }
 
 sub count {
 	my \$class = shift;
-	my \$sql   = '$table->{sql_count} ';
+	my \$sql   = '$t->{sql_count} ';
 	   \$sql  .= shift if \@_;
 	$pkg->selectrow_array( \$sql, {}, \@_ );
 }
@@ -521,17 +526,17 @@ sub count {
 END_PERL
 
 			# Handle different versions, because arrayref acts funny
-			if ( $table->{array} ) {
+			if ( $t->{array} ) {
 				$code .= <<"END_PERL";
 sub iterate {
 	my \$class = shift;
 	my \$call  = pop;
-	my \$sql   = '$table->{sql_select} ';
+	my \$sql   = '$t->{sql_select} ';
 	   \$sql  .= shift if \@_;
 	my \$sth   = $pkg->prepare(\$sql);
 	\$sth->execute(\@_);
 	while ( \$_ = \$sth->fetchrow_arrayref ) {
-		\$_ = bless [ \@\$_ ], '$table->{class}';
+		\$_ = bless [ \@\$_ ], '$t->{class}';
 		\$call->() or last;
 	}
 	\$sth->finish;
@@ -543,12 +548,12 @@ END_PERL
 sub iterate {
 	my \$class = shift;
 	my \$call  = pop;
-	my \$sql   = '$table->{sql_select} ';
+	my \$sql   = '$t->{sql_select} ';
 	   \$sql  .= shift if \@_;
 	my \$sth   = $pkg->prepare(\$sql);
 	\$sth->execute(\@_);
 	while ( \$_ = \$sth->fetchrow_hashref ) {
-		bless \$_, '$table->{class}';
+		bless \$_, '$t->{class}';
 		\$call->() or last;
 	}
 	\$sth->finish;
@@ -558,19 +563,19 @@ END_PERL
 			}
 
 			# Add the primary key based single object loader
-			if ( $table->{pks} ) {
-				if ( $table->{array} ) {
+			if ( $t->{pks} ) {
+				if ( $t->{array} ) {
 					$code .= <<"END_PERL";
 sub load {
 	my \$class = shift;
 	my \@row   = $pkg->selectrow_array(
-		'$table->{sql_select} where $table->{sql_where}',
+		'$t->{sql_select} where $t->{sql_where}',
 		undef, \@_,
 	);
 	unless ( \@row ) {
-		Carp::croak("$table->{class} row does not exist");
+		Carp::croak("$t->{class} row does not exist");
 	}
-	bless \\\@row, '$table->{class}';
+	bless \\\@row, '$t->{class}';
 }
 
 END_PERL
@@ -579,13 +584,13 @@ END_PERL
 sub load {
 	my \$class = shift;
 	my \$row   = $pkg->selectrow_hashref(
-		'$table->{sql_select} where $table->{sql_where}',
+		'$t->{sql_select} where $t->{sql_where}',
 		undef, \@_,
 	);
 	unless ( \$row ) {
-		Carp::croak("$table->{class} row does not exist");
+		Carp::croak("$t->{class} row does not exist");
 	}
-	bless \$row, '$table->{class}';
+	bless \$row, '$t->{class}';
 }
 
 END_PERL
@@ -593,15 +598,15 @@ END_PERL
 			}
 
 			# Generate the elements for tables with primary keys
-			if ( $table->{create} ) {
-				my $l = $table->{array} ? '['  : '{';
-				my $r = $table->{array} ? ']'  : '}';
+			if ( $t->{create} ) {
+				my $l = $t->{array} ? '['  : '{';
+				my $r = $t->{array} ? ']'  : '}';
 				$code .= <<"END_PERL";
 sub new {
 	my \$class = shift;
 	my \%attr  = \@_;
 	bless $l
-$table->{pl_new}
+$t->{pl_new}
 	$r, \$class;
 }
 
@@ -612,42 +617,42 @@ sub create {
 sub insert {
 	my \$self = shift;
 	my \$dbh  = $pkg->dbh;
-	\$dbh->do( '$table->{sql_insert}', {},
-$table->{pl_insert}
+	\$dbh->do( '$t->{sql_insert}', {},
+$t->{pl_insert}
 	);
-$table->{pl_fill}
+$t->{pl_fill}
 	return \$self;
 }
 
 sub delete {
 	my \$self = shift;
 	return $pkg->do(
-		'delete from $table->{qname} where $table->{sql_where}',
+		'delete from $t->{qname} where $t->{sql_where}',
 		{},
-$table->{pl_where}
+$t->{pl_where}
 	) if ref \$self;
 	Carp::croak("Must use truncate to delete all rows") unless \@_;
 	return $pkg->do(
-		'delete from $table->{qname} ' . shift,
+		'delete from $t->{qname} ' . shift,
 		{}, \@_,
 	);
 }
 
 sub truncate {
-	$pkg->do('delete from $table->{qname}');
+	$pkg->do('delete from $t->{qname}');
 }
 
 END_PERL
 			}
 
-			if ( $table->{create} and $table->{array} ) {
+			if ( $t->{create} and $t->{array} ) {
 				# Add an additional set method to avoid having
 				# the user have to enter manual positions.
 				$code .= <<"END_PERL";
 sub set {
 	my \$self = shift;
 	my \$i    = {
-$table->{pl_accessor}
+$t->{pl_accessor}
 	}->{\$_[0]};
 	die "Bad name '\$_[0]'" unless defined \$i;
 	\$self->[\$i] = \$_[1];
@@ -658,20 +663,32 @@ END_PERL
 
 			# Generate the boring accessors
 			if ( $xsaccessor ) {
-				my $type    = $table->{create} ? 'accessors' : 'getters';
-				my $xsclass = $table->{array}
+				my $type    = $t->{create} ? 'accessors' : 'getters';
+				my $xsclass = $t->{array}
 					? 'Class::XSAccessor::Array'
 					: 'Class::XSAccessor';
+				my $pkid = $t->{id}
+					? "\t\t$t->{id}->{name} => $t->{id}->{xs},\n"
+					: '';
+			
+
 
 				$code .= <<"END_PERL";
 use $xsclass 1.05 {
 	getters => {
-$table->{pl_accessor}
+$pkid
+$t->{pl_accessor}
 	},
 };
 
 END_PERL
 			} else {
+				$code .= <<"END_PERL" if $t->{id};
+sub id {
+	\$_[0]->$t->{id}->{key};
+}
+END_PERL
+
 				$code .= join "\n\n", map { <<"END_PERL" } grep { ! $_->{fk} } @columns;
 sub $_->{name} {
 	\$_[0]->$_->{key};
@@ -687,11 +704,11 @@ sub $_->{name} {
 END_PERL
 
 			# Add the experimental update method
-			if ( $table->{create} and $params{x_update} ) {
-				my @pk    = map { $_->{name} } @{$table->{pk}};
+			if ( $t->{create} and $params{x_update} ) {
+				my @pk    = map { $_->{name} } @{$t->{pk}};
 				my $wsql  = join ' and ', map { "\"$_\" = ?" } @pk;
 				my $wattr = join ', ',    map { "\$self->$_" } @pk;
-				my $set   = $table->{array}
+				my $set   = $t->{array}
 					? '$self->set( $_ => $set{$_} ) foreach keys %set;'
 					: '$self->{$_} = $set{$_} foreach keys %set;';
 				$code .= <<"END_PERL";
@@ -701,7 +718,7 @@ sub update {
 	my \$self = shift;
 	my \%set  = \@_;
 	my \$rows = $pkg->do(
-		'update $table->{qname} set ' .
+		'update $t->{qname} set ' .
 		join( ', ', map { "\\"\$_\\" = ?" } keys \%set ) .
 		' where $wsql',
 		{}, values \%set, $wattr,
@@ -872,8 +889,9 @@ gives a pretty good idea of how it works.
 
 =head2 How ORLite Works
 
-In short, ORLite discovers the schema of a SQLite database, and then uses
-code generation to build a set of packages for talking to that database.
+ORLite discovers the schema of a SQLite database, and then generates the
+code for a complete set of classes that let you work with the objects stored
+in that database.
 
 In the simplest form, your target root package "uses" ORLite, which will do
 the schema discovery and code generation at compile-time.
@@ -911,9 +929,9 @@ The behaviour of each of the options is as follows:
 
 =head2 package
 
-The optional C<package> parameter is used to provide the Perl root namespace to generate
-the code for. This class does not need to exist as a module on disk,
-nor does it need to have anything loaded or in the namespace.
+The optional C<package> parameter is used to provide the Perl root namespace
+to generate the code for. This class does not need to exist as a module on
+disk, nor does it need to have anything loaded or in the namespace.
 
 By default, the package used is the package that is calling ORLite's import
 method (typically via the C<use ORLite { ... }> line).
@@ -1460,10 +1478,10 @@ C<name>, C<notnull>, C<pk> and C<type>.
       age  => 23,
   );
 
-The C<new> constructor creates an anonymous object, without reading it
-from or writing it to the database. It also won't do validation of any
-kind, since ORLite is designed for use with embedded databases and
-presumes that you know what you are doing.
+The C<new> constructor creates an anonymous object, without reading or
+writing it to the database. It also won't do validation of any kind,
+since ORLite is designed for use with embedded databases and presumes that
+you know what you are doing.
 
 =head2 insert
 
@@ -1473,7 +1491,7 @@ presumes that you know what you are doing.
   )->insert;
 
 The C<insert> method takes an existing anonymous object and inserts it
-into the database, returning the object as a convenience.
+into the database, returning the object back as a convenience.
 
 It provides the second half of the slower manual two-phase object
 construction process.
@@ -1521,6 +1539,35 @@ be used for cases where your code trusts the record to already exists.
 
 It returns a C<Foo::Bar::User> object, or throws an exception if the
 object does not exist.
+
+=head2 id
+
+The C<id> accessor is a convenience method that is added to your table
+class to increase the readability of your code when ORLite detects certain
+patterns of column naming.
+
+For example, take the following definition where convention is that all
+primary keys are the table name followed by "_id".
+
+  create table foo_bar (
+      foo_bar_id integer not null primary key,
+      name string not null,
+  )
+
+When ORLite detects the use of this pattern, and as long as the table does
+not have an "id" column, the additional C<id> accessor will be added to your
+class, making these expressions equivalent both in function and performance.
+
+  my $foo_bar = My::FooBar->create( name => 'Hello' );
+  
+  # Column name accessor
+  $foo_bar->foo_bar_id;
+  
+  # Convenience id accessor
+  $foo_bar->id;
+
+As you can see, the latter involves much less repetition and reads much
+more cleanly.
 
 =head2 select
 

@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 74;
+use Test::More tests => 79;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -88,6 +88,8 @@ my $new = Foo::Bar::TableOne->create( ColumnTwo => 'bar' );
 isa_ok( $new, 'Foo::Bar::TableOne' );
 is( $new->columnID, 2,     '->columnID ok' );
 is( $new->ColumnTwo, 'bar', '->ColumnTwo ok' );
+ok( ! $new->can('id'), 'Convenience ->id method is not created' );
+
 ok(
 	Foo::Bar::TableOne->create( ColumnTwo => 'bar' ),
 	'Created row 3',
@@ -204,4 +206,21 @@ SCOPE: {
 	};
 	is( scalar(@rv), 0, 'Exception returns nothing' );
 	like( $@, qr/Foo::Bar::TableOne row does not exist/, 'Foo::Bar::TableOne row does not exist' );
+}
+
+
+
+
+
+
+######################################################################
+# ID Normalisation
+
+# Test that the convenience ->id method is created
+SCOPE: {
+	my $foo = Foo::Bar::Foo->create( name => 'bar' );
+	isa_ok( $foo, 'Foo::Bar::Foo' );
+	is( $foo->foo_id, 1,   '->foo_id ok' );
+	is( $foo->name, 'bar', '->name ok' );
+	is( $foo->id, 1,       '->id ok' );
 }

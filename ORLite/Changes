@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite
 
+1.53 Tue 21 Feb 2012
+	- Add a ->id convenience method alias when table 'foo' has a single
+	  numeric primary key 'foo_id' so you can use $foo->id
+
 1.52 Sat 21 Jan 2012
 	- Added initial unicode => 1 support (MEMOWE)
 	- Bumped Params::Util dependency to 1.0 for *LIKE fixes (ADAMK)
