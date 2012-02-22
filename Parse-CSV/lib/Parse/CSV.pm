@@ -103,13 +103,13 @@ To signal an error, throw an exception
 use 5.005;
 use strict;
 use Carp              ();
-use IO::File     1.14 ();
+use IO::File     1.13 ();
 use Text::CSV_XS 0.42 ();
 use Params::Util 0.22 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.99';
+	$VERSION = '2.00';
 }
 
 

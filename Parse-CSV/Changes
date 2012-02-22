@@ -1,5 +1,9 @@
 Revision history for Perl extension Parse-CSV
 
+2.00 Thu 23 Feb 2012
+	- IO::File 1.14 dependency was too aggressive and wouldn't install
+	  on RHEL5. Moved back to 1.13 (Kirby Smith)
+
 1.99 Tue 29 Nov 2011
 	- Significant refactoring of the way column names are handled
 	- Upgrade to Module::Install::DSL 1.04
