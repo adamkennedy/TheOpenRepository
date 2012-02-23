@@ -1,5 +1,11 @@
 Changes for Perl extension ORLite
 
+1.91 Thu 23 Feb 2012
+	- Calculate column affinity types in the metadata preparation phase
+	- Throw an exception when tables contain BLOB types and the database
+	  is unicode, as the blob data will be corrupted.
+	- Improved testing for blobs and unicode, and TODO a known problem
+
 1.90 Tue 21 Feb 2012
 	- Removed x_rowid parameter and make the rowid logic compulsory.
 	- Removed x_update parameter and make update method compulsory at

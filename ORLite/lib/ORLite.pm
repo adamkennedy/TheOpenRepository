@@ -14,7 +14,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.90';
+	$VERSION = '1.91';
 }
 
 # Support for the 'prune' option
@@ -406,9 +406,25 @@ END_PERL
 				}
 			}
 
-			# Convenience escaping for the column names
 			foreach my $c ( @$select ) {
+				# Convenience escaping for the column names
 				$c->{qname} = "\"$c->{name}\"";
+
+				# Affinity detection
+				if ( $c->{type} =~ /INT/i ) {
+					$c->{affinity} = 'INTEGER';
+				} elsif ( $c->{type} =~ /(?:CHAR|CLOB|TEXT)/i ) {
+					$c->{affinity} = 'TEXT';
+				} elsif ( $c->{type} =~ /BLOB/i or not $c->{type} ) {
+					$c->{affinity} = 'BLOB';
+
+					# Unicode currently breaks BLOB columns
+					if ( $unicode ) {
+						die "BLOB column $t->{name}.$c->{name} is not supported in unicode database";
+					}
+				} elsif ( $c->{type} =~ /(?:REAL|FLOA|DOUB)/i ) {
+					$c->{affinity} = 'NUMERIC';
+				}
 			}
 
 			# Generate the main SQL fragments
