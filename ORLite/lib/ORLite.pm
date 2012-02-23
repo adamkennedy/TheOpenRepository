@@ -14,7 +14,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.91';
+	$VERSION = '1.92';
 }
 
 # Support for the 'prune' option
@@ -133,6 +133,7 @@ sub import {
 	my $dbh = DBI->connect( $dsn, undef, undef, {
 		PrintError => 0,
 		RaiseError => 1,
+		ReadOnly   => $params{create} ? 0 : 1,
 		$params{unicode} ? ( sqlite_unicode => 1 ) : ( ),
 	} );
 
@@ -156,10 +157,10 @@ sub import {
 	}
 
 	# Prepare to generate code
-	my $readonly   = $params{readonly};
 	my $cleanup    = $params{cleanup};
 	my $xsaccessor = $params{xsaccessor};
 	my $array      = $params{array};
+	my $readonly   = $params{readonly} ? "\n\t\tReadOnly => 1," : '';
 	my $unicode    = $params{unicode} ? "\n\t\tsqlite_unicode => 1," : '';
 	my $version    = $unicode ? '5.008005' : '5.006';
 
@@ -188,7 +189,7 @@ sub dbh {
 sub connect {
 	DBI->connect( \$_[0]->dsn, undef, undef, {
 		PrintError => 0,
-		RaiseError => 1,$unicode
+		RaiseError => 1,$readonly$unicode
 	} );
 }
 
@@ -330,7 +331,7 @@ END_PERL
 		# Capture the raw schema information and do first-pass work
 		foreach my $t ( @$tables ) {
 			# Convenience pre-quoted form of the table name
-			$t->{qname} = '"' . $t->{name} . '"';
+			$t->{qname} = $dbh->quote_identifier(undef, undef, $t->{name});
 
 			# What will be the class for this table
 			$t->{class} = $t->{name};
@@ -408,7 +409,7 @@ END_PERL
 
 			foreach my $c ( @$select ) {
 				# Convenience escaping for the column names
-				$c->{qname} = "\"$c->{name}\"";
+				$c->{qname} = $dbh->quote_identifier($c->{name});
 
 				# Affinity detection
 				if ( $c->{type} =~ /INT/i ) {

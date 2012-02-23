@@ -1,5 +1,10 @@
 Changes for Perl extension ORLite
 
+1.92 to be released
+	- Always do the initial metadata scan using ReadOnly => 1.
+	- When generating readonly, DBI connections use ReadOnly => 1 too.
+	- Quote identifiers more correctly via $dbh->quote_identifier.
+
 1.91 Thu 23 Feb 2012
 	- Calculate column affinity types in the metadata preparation phase
 	- Throw an exception when tables contain BLOB types and the database
