@@ -26,7 +26,7 @@ use t::lib::Test;
 #####################################################################
 # Set up for testing
 
-plan tests => 3;
+plan tests => 6;
 
 # Connect
 my $file = test_db();
@@ -56,8 +56,11 @@ END_PERL
 # Tests for the unicode option
 
 # Loaded correctly
-my $smiley = TestDB::Foo->load('smiley');
+my $smiley = TestDB::Foo->load(1);
 isa_ok($smiley, 'TestDB::Foo');
 
-# Got right utf8 smiley without explicit decode
+# Check that the is_utf8 flags are set as expected
+ok( ! utf8::is_utf8($smiley->id), '->id is not utf8' );
+ok( utf8::is_utf8($smiley->name), '->name is utf8' );
+ok( utf8::is_utf8($smiley->text), '->text is utf8' );
 is($smiley->text, '☺', 'right smiley');

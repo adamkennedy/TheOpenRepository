@@ -1,6 +1,7 @@
 create table foo (
-    id text primary key,
-    text text
+    foo_id integer not null primary key,
+    name text not null unique,
+    text text not null
 );
 
-insert into foo values ('smiley', '☺');
+insert into foo values ( 1, 'smiley', '☺');
