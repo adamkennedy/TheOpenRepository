@@ -238,9 +238,8 @@ sub iterate {
 	my \$sth   = \$class->prepare(shift);
 	\$sth->execute(\@_);
 	while ( \$_ = \$sth->fetchrow_arrayref ) {
-		\$call->() or last;
+		\$call->() or return 1;;
 	}
-	\$sth->finish;
 }
 
 sub begin {
@@ -430,7 +429,6 @@ END_PERL
 			$t->{sql_icols}  = join ', ', map { $_->{qname} } @$columns;
 			$t->{sql_ivals}  = join ', ', ( '?' ) x scalar @$columns;
 			$t->{sql_select} = "select $t->{sql_scols} from $t->{qname}";
-			$t->{sql_count}  = "select count(*) from $t->{qname}";
 			$t->{sql_insert} =
 				"insert into $t->{qname} " .
 				"( $t->{sql_icols} ) " .
@@ -449,6 +447,7 @@ END_PERL
 				"\t\t\$self->$_->{key},"
 			} @$columns;
 
+			$t->{pl_fill} = '';
 			if ( $t->{pk1} ) {
 				$t->{pl_fill} =
 					"\t\$self->$t->{pk1}->{key} " .
@@ -458,8 +457,6 @@ END_PERL
 				$t->{pl_fill} =
 					"\t\$self->$t->{rowid}->{key} " .
 					"= \$dbh->func('last_insert_rowid');";
-			} else {
-				$t->{pl_fill} = '';
 			}
 		}
 
@@ -538,7 +535,7 @@ sub select {
 
 sub count {
 	my \$class = shift;
-	my \$sql   = '$t->{sql_count} ';
+	my \$sql   = 'select count(*) from $t->{qname} ';
 	   \$sql  .= shift if \@_;
 	$pkg->selectrow_array( \$sql, {}, \@_ );
 }
@@ -661,7 +658,7 @@ sub update {
 		\$self->rowid,
 	);
 	unless ( \$rows == 1 ) {
-		die "Expected to update 1 row, actually updated \$rows";
+		Carp::croak("Expected to update 1 row, actually updated \$rows");
 	}
 	$set
 	return 1;
@@ -687,7 +684,7 @@ sub set {
 	my \$i    = {
 $t->{pl_accessor}
 	}->{\$_[0]};
-	die "Bad name '\$_[0]'" unless defined \$i;
+	Carp::croak("Bad name '\$_[0]'") unless defined \$i;
 	\$self->[\$i] = \$_[1];
 }
 
