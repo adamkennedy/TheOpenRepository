@@ -7,7 +7,7 @@ use strict;
 use Carp              ();
 use File::Spec   0.80 ();
 use File::Path   2.08 ();
-use File::Basename  0 ();
+use File::Basename    ();
 use Params::Util 1.00 ();
 use DBI         1.607 ();
 use DBD::SQLite  1.27 ();
@@ -158,8 +158,6 @@ sub import {
 
 	# Prepare to generate code
 	my $cleanup    = $params{cleanup};
-	my $xsaccessor = $params{xsaccessor};
-	my $array      = $params{array};
 	my $readonly   = $params{readonly} ? "\n\t\tReadOnly => 1," : '';
 	my $unicode    = $params{unicode} ? "\n\t\tsqlite_unicode => 1," : '';
 	my $version    = $unicode ? '5.008005' : '5.006';
@@ -326,7 +324,6 @@ END_PERL
 			'select * from sqlite_master where name not like ? and type in ( ?, ? )',
 			{ Slice => {} }, 'sqlite_%', 'table', 'view',
 		);
-		my %tindex = map { $_->{name} => $_ } @$tables;
 
 		# Capture the raw schema information and do first-pass work
 		foreach my $t ( @$tables ) {
@@ -357,7 +354,7 @@ END_PERL
 			# basis so that we can force views to always be done
 			# array-wise (to compensate for some weird SQLite
 			# column quoting differences between tables and views
-			$t->{array} = $array;
+			$t->{array} = $params{array};
 			if ( $t->{type} eq 'view' ) {
 				$t->{array} = 1;
 			}
@@ -464,13 +461,10 @@ END_PERL
 			} else {
 				$t->{pl_fill} = '';
 			}
-
-			$t->{pl_where} = join "\n", map {
-				"\t\t\$self->$_->{key},"
-			} @{$t->{pk}};
 		}
 
 		# Generate the foreign key metadata
+		my %tindex = map { $_->{name} => $_ } @$tables;
 		foreach my $t ( @$tables ) {
 			# Locate the foreign keys
 			my %fk     = ();
@@ -701,7 +695,7 @@ END_PERL
 			}
 
 			# Generate the boring accessors
-			if ( $xsaccessor ) {
+			if ( $params{xsaccessor} ) {
 				my $type    = $t->{create} ? 'accessors' : 'getters';
 				my $xsclass = $t->{array}
 					? 'Class::XSAccessor::Array'
