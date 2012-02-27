@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite
 
+1.95 Mon 27 Feb 2012
+	- Fixed a fatal rowid big when generating in array mode
+
 1.94 Mon 27 Feb 2012
 	- Fixed a fatal rowid bug when a table had a single non-INTEGER
 	  primary key.

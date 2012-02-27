@@ -27,6 +27,7 @@ package Foo::Bar;
 use strict;
 use ORLite {
 	file     => '$file',
+	array    => 1,
 	x_update => 1,
 };
 

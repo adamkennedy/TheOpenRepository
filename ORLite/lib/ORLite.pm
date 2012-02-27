@@ -14,7 +14,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.94';
+	$VERSION = '1.95';
 }
 
 # Support for the 'prune' option
@@ -423,8 +423,8 @@ END_PERL
 			# Generate the object keys for the columns
 			if ( $t->{array} ) {
 				foreach my $i ( 0 .. $#$select ) {
-					$columns->[$i]->{xs}    = $i;
-					$columns->[$i]->{key}   = "[$i]";
+					$select->[$i]->{xs}  = $i;
+					$select->[$i]->{key} = "[$i]";
 				}
 			} else {
 				foreach my $c ( @$select ) {
