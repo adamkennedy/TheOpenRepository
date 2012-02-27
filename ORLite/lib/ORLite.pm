@@ -14,7 +14,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.95';
+	$VERSION = '1.96';
 }
 
 # Support for the 'prune' option
@@ -680,8 +680,10 @@ sub delete {
 	) if ref \$_[0];
 
 	# Legacy compatibility, to be removed
-	if ( \$_[1] and \$_[1] =~ s/\\s*where\\s+//i ) {
-		return shift->delete_where(\@_);
+	my \$class = shift;
+	my \$where = shift;
+	if ( \$where and \$where =~ s/\\s*where\\s+//i ) {
+		return \$class->delete_where( \$where, \@_ );
 	}
 
 	Carp::croak("Invalid or unsupported use of $pkg->delete");

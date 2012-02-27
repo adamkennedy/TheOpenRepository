@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite
 
+1.96 Mon 27 Feb 2012
+	- Fixed a crash in the legacy delete emulation where the condition
+	  clause provided was a constant or read-only.
+
 1.95 Mon 27 Feb 2012
 	- Fixed a fatal rowid big when generating in array mode
 
