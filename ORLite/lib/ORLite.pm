@@ -14,7 +14,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.92';
+	$VERSION = '1.93';
 }
 
 # Support for the 'prune' option
@@ -665,7 +665,21 @@ sub update {
 }
 
 sub delete {
-	$pkg->do('delete from $t->{qname} where "rowid" = ?', {}, shift->rowid);
+	return $pkg->do(
+		'delete from $t->{qname} where "rowid" = ?', {},
+		shift->rowid,
+	) if ref \$_[0];
+
+	# Legacy compatibility, to be removed
+	if ( \$_[1] and \$_[1] =~ s/\\s*where\\s+//i ) {
+		return shift->delete_where(\@_);
+	}
+
+	Carp::croak("Invalid or unsupported use of $pkg->delete");
+}
+
+sub delete_where {
+	shift; $pkg->do('delete from $t->{qname} where ' . shift, {}, \@_);
 }
 
 sub truncate {
@@ -1670,22 +1684,30 @@ as with the C<select> method.
   # Delete a range of rows from the database
   Foo::Bar::User->delete( 'where age <= ?', 13 );
 
-The C<delete> method comes in two variations, depending on whether
-you call it on a single object or an entire class.
-
-When called as an instance methods C<delete> will delete the single
-row representing that object, based on the primary key of that object.
+The C<delete> method will delete the single row representing an object,
+based on the primary key or SQLite rowid of that object.
 
 The object that you delete will be left intact and untouched, and you
 remain free to do with it whatever you wish.
 
-When called as a static method on the class name C<delete> allows
-the deletion of a range of zero or more records from that table.
+=head2 delete_where
+
+  # Delete a range of rows from the database
+  Foo::Bar::User->delete( 'age <= ?', 13 );
+
+The C<delete_where> static method allows the delete of large numbers of
+rows from a database while protecting against accidentally doing a
+boundless delete (the C<truncate> method is provided specifically for
+this purpose).
 
 It takes the same parameters for deleting as the C<select> method,
-with the exception that you B<MUST> provide a condition parameter
-and can B<NOT> use a conditionless C<delete> call to clear out the
-entire table. This is done to limit accidental deletion.
+with the exception that the "where" keyword is automatically provided
+for your and should not be passed in.
+
+This ensures that providing an empty of null condition results in an
+invalid SQL query and the deletion will not occur.
+
+Returns the number of rows deleted from the database (which may be zero).
 
 =head2 truncate
 

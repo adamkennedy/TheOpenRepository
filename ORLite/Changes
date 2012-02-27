@@ -1,9 +1,17 @@
 Changes for Perl extension ORLite
 
-1.92 to be released
+1.93 Mon 27 Feb 2012
+	- The previous release 1.92 was done with a missing commit,
+	  this release restores that missing code.
+
+1.92 Mon 27 Feb 2012
+	- Add the ->delete_where method for bulk deletion
 	- Always do the initial metadata scan using ReadOnly => 1.
 	- When generating readonly, DBI connections use ReadOnly => 1 too.
 	- Quote identifiers more correctly via $dbh->quote_identifier.
+	- Temporarily restory the static delete call to prevent breaking
+	  Padre and other applications still using the old version of
+	  delete.
 
 1.91 Thu 23 Feb 2012
 	- Calculate column affinity types in the metadata preparation phase
