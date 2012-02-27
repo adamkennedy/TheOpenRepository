@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 43;
+use Test::More tests => 51;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -173,4 +173,35 @@ SCOPE: {
 	is( $object->firstname, 'Adam', '->firstname ok' );
 	is( $object->lastname, 'Kennedy', '->lastname ok' );
 	is( $object->age, 123, '->age ok' );
+}
+
+
+
+
+
+#####################################################################
+# Table with a single non-integer primary key
+
+SCOPE: {
+	my $object = Foo::Bar::Seven->create(
+		name => 'Adam',
+		age  => '123',
+	);
+	isa_ok( $object, 'Foo::Bar::Seven' );
+	is( $object->rowid, 1, '->rowid ok' );
+	is( $object->name, 'Adam', '->firstname ok' );
+	is( $object->age, 123, '->age ok' );
+	
+	# Update the object
+	$object->update( age => 125 );
+	
+	# Load it back from the database
+	my $loaded = Foo::Bar::Seven->load('Adam');
+	isa_ok( $loaded, 'Foo::Bar::Seven' );
+	is( $loaded->rowid, 1, '->rowid ok' );
+	is( $loaded->name, 'Adam', '->firstname ok' );
+	is( $loaded->age, 125, '->age ok' );
+	
+	# Delete the object
+	$object->delete;
 }

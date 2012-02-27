@@ -1,5 +1,11 @@
 Changes for Perl extension ORLite
 
+1.94 Mon 27 Feb 2012
+	- Fixed a fatal rowid bug when a table had a single non-INTEGER
+	  primary key.
+	- Fixed bug in affinity detection code to now set REAL and
+	  NUMERIC affinity correctly.
+
 1.93 Mon 27 Feb 2012
 	- The previous release 1.92 was done with a missing commit,
 	  this release restores that missing code.

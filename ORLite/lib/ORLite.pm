@@ -14,7 +14,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.93';
+	$VERSION = '1.94';
 }
 
 # Support for the 'prune' option
@@ -362,14 +362,42 @@ END_PERL
 			# views don't always support rowid.
 			$t->{rowid} = $t->{type} eq 'table';
 
+			foreach my $c ( @$select ) {
+				# Convenience escaping for the column names
+				$c->{qname} = $dbh->quote_identifier($c->{name});
+
+				# Affinity detection
+				if ( $c->{type} =~ /INT/i ) {
+					$c->{affinity} = 'INTEGER';
+				} elsif ( $c->{type} =~ /(?:CHAR|CLOB|TEXT)/i ) {
+					$c->{affinity} = 'TEXT';
+				} elsif ( $c->{type} =~ /BLOB/i or not $c->{type} ) {
+					$c->{affinity} = 'BLOB';
+
+					# Unicode currently breaks BLOB columns
+					if ( $unicode ) {
+						die "BLOB column $t->{name}.$c->{name} is not supported in unicode database";
+					}
+				} elsif ( $c->{type} =~ /(?:REAL|FLOA|DOUB)/i ) {
+					$c->{affinity} = 'REAL';
+				} else {
+					$c->{affinity} = 'NUMERIC';
+				}
+			}
+
 			# Analyze the primary keys structure
 			$t->{pk}  = [ grep { $_->{pk} } @$columns ];
 			$t->{pkn} = scalar @{$t->{pk}};
-			$t->{pk1} = $t->{pk}->[0] if $t->{pkn} == 1;
-			if ( $t->{pk1} ) {
-				$t->{rowid} &&= $t->{pk1};
-				if ( $t->{pk1}->{name} eq $t->{name} . '_id' ) {
-					$t->{id} = $t->{pk1};
+			if ( $t->{pkn} == 1 ) {
+				$t->{pk1} = $t->{pk}->[0];
+				if ( $t->{pk1}->{affinity} eq 'INTEGER' ) {
+					$t->{pki} = $t->{pk1};
+				}
+			}
+			if ( $t->{pki} ) {
+				$t->{rowid} &&= $t->{pki};
+				if ( $t->{pki}->{name} eq $t->{name} . '_id' ) {
+					$t->{id} = $t->{pki};
 				}
 
 			} elsif ( $t->{rowid} ) {
@@ -377,7 +405,9 @@ END_PERL
 				$t->{rowid} = {
 					cid        => -1,
 					name       => 'rowid',
+					qname      => '"rowid"',
 					type       => 'integer',
+					affinity   => 'INTEGER',
 					notnull    => 1,
 					dflt_value => undef,
 					pk         => 0,
@@ -400,27 +430,6 @@ END_PERL
 				foreach my $c ( @$select ) {
 					$c->{xs}  = "'$c->{name}'";
 					$c->{key} = "{$c->{name}}";
-				}
-			}
-
-			foreach my $c ( @$select ) {
-				# Convenience escaping for the column names
-				$c->{qname} = $dbh->quote_identifier($c->{name});
-
-				# Affinity detection
-				if ( $c->{type} =~ /INT/i ) {
-					$c->{affinity} = 'INTEGER';
-				} elsif ( $c->{type} =~ /(?:CHAR|CLOB|TEXT)/i ) {
-					$c->{affinity} = 'TEXT';
-				} elsif ( $c->{type} =~ /BLOB/i or not $c->{type} ) {
-					$c->{affinity} = 'BLOB';
-
-					# Unicode currently breaks BLOB columns
-					if ( $unicode ) {
-						die "BLOB column $t->{name}.$c->{name} is not supported in unicode database";
-					}
-				} elsif ( $c->{type} =~ /(?:REAL|FLOA|DOUB)/i ) {
-					$c->{affinity} = 'NUMERIC';
 				}
 			}
 
@@ -448,11 +457,11 @@ END_PERL
 			} @$columns;
 
 			$t->{pl_fill} = '';
-			if ( $t->{pk1} ) {
+			if ( $t->{pki} ) {
 				$t->{pl_fill} =
-					"\t\$self->$t->{pk1}->{key} " .
+					"\t\$self->$t->{pki}->{key} " .
 					"= \$dbh->func('last_insert_rowid') " .
-					"unless \$self->$t->{pk1}->{key};";
+					"unless \$self->$t->{pki}->{key};";
 			} elsif ( $t->{rowid} ) {
 				$t->{pl_fill} =
 					"\t\$self->$t->{rowid}->{key} " .
@@ -727,7 +736,7 @@ ${rowid}${id}$t->{pl_accessor}
 
 END_PERL
 			} else {
-				if ( $t->{pk1} and $t->{rowid} ) {
+				if ( $t->{pki} and $t->{rowid} ) {
 					$code .= <<"END_PERL";
 sub rowid {
 	\$_[0]->$t->{rowid}->{key};
