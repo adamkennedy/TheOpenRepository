@@ -1,5 +1,12 @@
 Revision history for Perl extension File-Remove
 
+1.52 Mon 19 Mar 2012 - Adam Kennedy
+	- No functional changes
+	- Updating Module::Install to 1.06
+	- Moved File::Spec dependency to 3.29 to fix problems with
+	  four-digit decimal dependencies in some downstream packaging
+	  systems.
+
 1.51 Thu 27 Oct 2011 - Adam Kennedy
 	- END-time deletion by clear() is now fork-safe, it will only remove
 	  paths created in the same process.

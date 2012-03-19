@@ -6,7 +6,7 @@ use strict;
 use vars qw{ $VERSION @ISA @EXPORT_OK };
 use vars qw{ $DEBUG $unlink $rmdir    };
 BEGIN {
-	$VERSION   = '1.51';
+	$VERSION   = '1.52';
 	# $VERSION   = eval $VERSION;
 	@ISA       = qw{ Exporter };
 	@EXPORT_OK = qw{ remove rm clear trash };
@@ -14,8 +14,8 @@ BEGIN {
 
 use File::Path ();
 use File::Glob ();
-use File::Spec 3.2701 ();
-use Cwd        3.2701 ();
+use File::Spec 3.29 ();
+use Cwd        3.29 ();
 
 # $debug variable must be set before loading File::Remove.
 # Convert to a constant to allow debugging code to be pruned out.
@@ -368,7 +368,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Some parts copyright 2006 - 2011 Adam Kennedy.
+Some parts copyright 2006 - 2012 Adam Kennedy.
 
 Taken over by Adam Kennedy E<lt>adamk@cpan.orgE<gt> to fix the
 "deep readonly files" bug, and do some package cleaning.
