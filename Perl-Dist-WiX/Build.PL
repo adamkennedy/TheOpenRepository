@@ -69,7 +69,7 @@ my $builder = Builder->new(
 		'namespace::autoclean'       => '0.12',
 		'PAR::Dist'                  => '0.42',
 		'Params::Util'               => '0.35',
-		'Portable::Dist'             => '0.03',
+		'Portable::Dist'             => '1.04',
 		'Probe::Perl'                => '0.01',
 		'Readonly'                   => '1.03',
 		# Template 2.21 will not install on Windows, anyway.
