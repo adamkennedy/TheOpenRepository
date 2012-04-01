@@ -113,6 +113,7 @@ around '_build_toolchain_modules' => sub {
     Module::Metadata
     Perl::OSType
     Version::Requirements
+    CPAN::Meta::Requirements
     CPAN::Meta
     Module::Build
     Term::Cap
