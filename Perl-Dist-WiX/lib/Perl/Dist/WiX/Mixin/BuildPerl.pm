@@ -432,6 +432,10 @@ sub _skip_upgrade {
 	# If the ID is CGI::Carp, there's a bug in the index.
 	return 1 if $module->id() eq 'CGI::Carp';
 
+	# Issue with packages with names that differ only in case
+	# CPAN shell uses these packages as upgrades for integer.pm and attributes.pm
+	return 1 if $module->cpan_file() =~ m{/(?:CORBA-IDL|Class-PObject)-}sx;
+
 	# upgrading Locale::Constants causes installation of older Locale-Codes-3.16
 	return 1 if $module->cpan_file() =~ m{/Locale-Codes-3 [.] 16}msx;
 
