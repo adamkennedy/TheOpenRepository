@@ -1,0 +1,5 @@
+Revision history for App-module-version
+
+1.003   2012/04/19
+        Moved by kmx from Perl::Dist::Strawberry to separate App::module::version
+
