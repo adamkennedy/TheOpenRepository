@@ -1,8 +1,8 @@
 NAME
-    module-version - Gets the version of a module
+    module-version - Gets the version info about a module
 
 VERSION
-    This document describes module-version version 1.002.
+    This document describes module-version version 1.004
 
 DESCRIPTION
     This script gets the version of a requested list of modules.

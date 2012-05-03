@@ -14,11 +14,11 @@ __END__
 
 =head1 NAME
 
-module-version - Gets the version of a module
+module-version - Gets the version info about a module
 
 =head1 VERSION
 
-This document describes module-version version 1.002.
+This document describes module-version version 1.004
 
 =head1 DESCRIPTION
 

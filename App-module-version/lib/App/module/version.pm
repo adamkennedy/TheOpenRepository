@@ -12,7 +12,7 @@ use File::Spec::Functions qw(splitpath catfile);
 use Carp                  qw(carp);
 
 # following recommendation from http://www.dagolden.com/index.php/369/version-numbers-should-be-boring/
-our $VERSION = "1.003";
+our $VERSION = "1.004";
 $VERSION = eval $VERSION;
 
 sub new {
@@ -182,3 +182,13 @@ EOF
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+App::module::version - Gets the version info about a module
+
+=head1 DESCRIPTION
+
+This is just a helper module for the main script L<module-version|module-version>.

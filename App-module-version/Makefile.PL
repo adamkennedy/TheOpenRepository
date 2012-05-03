@@ -7,8 +7,9 @@ WriteMakefile(
     NAME             => 'App::module::version',
     AUTHOR           => 'Curtis Jewell, <csjewell@cpan.org>',
     VERSION_FROM     => 'lib/App/module/version.pm',
+    ABSTRACT_FROM    => 'lib/App/module/version.pm',
     LICENSE          => 'perl',
-    EXE_FILES        => [ 'script/module-version.pl' ],
+    EXE_FILES        => [ 'script/module-version' ],
     MIN_PERL_VERSION => 5.008009,
     PREREQ_PM        => {
       'Test::More'   => 0,
