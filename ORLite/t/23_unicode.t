@@ -79,7 +79,7 @@ SCOPE: {
 SCOPE: {
 	my $smiley1 = My::Foo->create(
 		one  => 1,
-		two  => 1.23,
+		two  => 1.125,
 		name => 'foo',
 		text => "\x{263A}",
 	);
