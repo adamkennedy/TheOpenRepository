@@ -238,6 +238,7 @@ sub run {
 		maxage        => 60 * 60,
 		show_progress => 1,
 	} );
+	$self->say_age("ORDB::CPANUploads");
 
 	# Load the CPAN RT database
 	$self->say("Fetching CPAN RT...");
@@ -246,6 +247,7 @@ sub run {
 		maxage        => 60 * 60,
 		show_progress => 1,
 	} );
+	$self->say_age("ORDB::CPANRT");
 
 	# Load the CPAN Testers summary database
 	$self->say("Fetching CPAN Testers...");
@@ -254,6 +256,7 @@ sub run {
 		maxage        => 60 * 60,
 		show_progress => 1,
 	} );
+	$self->say_age("ORDB::CPANRelease");
 
 	# Load the CPAN META.yml database
 	my $cpanmeta;
@@ -279,6 +282,7 @@ sub run {
 			show_progress => 1,
 		} );
 	}
+	$self->say_age("ORDB::CPANMeta");
 
 	# Attach the various databases
 	my $cpanmeta_sqlite = $cpanmeta ? $cpanmeta->sqlite : ORDB::CPANMeta->sqlite;
@@ -387,6 +391,9 @@ END_SQL
 		status
 		severity
 	} );
+
+	# Check ages for data sources that need secondary information
+	
 
 	# Create the author table
 	$self->say("Generating table author...");
@@ -962,6 +969,17 @@ sub say {
 	} elsif ( $self->trace ) {
 		my $t = scalar localtime time;
 		print map { "[$t] $_\n" } @_;
+	}
+}
+
+sub say_age {
+	my $self = shift;
+	my $package = shift;
+	if ( Params::Util::_CLASS($package) and $package->can('age') ) {
+		my $age = $package->age;
+		$self->say("$package->age = $age day(s)");
+	} else {
+		$self->say("$package->age = Not Implemented");
 	}
 }
 
