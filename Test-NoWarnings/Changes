@@ -1,5 +1,8 @@
 Changes for Perl extension Test-NoWarnings
 
+        - Made had_no_warnings turn off the checking at END time for use with
+          done_testing based tests with no test count. Also added docs.
+
 1.04 Thu 1 Dec 2011 - Adam Kennedy
 	- Added the experimental :early debugging pragma to cause warnings
 	  to be emitted immediately. This should stay off otherwise (ADAMK)
