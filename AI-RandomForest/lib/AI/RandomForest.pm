@@ -3,8 +3,9 @@ package AI::RandomForest;
 use 5.008;
 use strict;
 use warnings;
-use AI::RandomForest::Tree   ();
-use AI::RandomForest::Branch ();
+use AI::RandomForest::Tree     ();
+use AI::RandomForest::Branch   ();
+use AI::RandomForest::Instance ();
 
 our $VERSION = '0.01';
 

@@ -3,9 +3,6 @@ package AI::RandomForest::Tree;
 use strict;
 use warnings;
 use Params::Util ();
-use Object::Tiny qw{
-	root
-};
 
 our $VERSION = '0.01';
 
@@ -18,9 +15,11 @@ our $VERSION = '0.01';
 
 sub new {
 	my $class = shift;
-	my $self  = bless { @_ }, $class;
+	bless { @_ }, $class;
+}
 
-	return $self;
+sub root {
+	$_[0]->{root};
 }
 
 
