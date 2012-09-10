@@ -265,8 +265,9 @@ sub run {
 		$self->say("Generating META.yml Data...");
 		require ORDB::CPANMeta::Generator;
 		my $prefer_bin = $^O eq 'MSWin32' ? 0 : 1;
+		my $minicpan   = $self->minicpan || "C:\\minicpan";
 		$cpanmeta = ORDB::CPANMeta::Generator->new(
-			minicpan   => $self->minicpan,
+			minicpan   => $minicpan,
 			trace      => $self->trace,
 			prefer_bin => $prefer_bin,
 			publish    => undef,
@@ -278,7 +279,7 @@ sub run {
 		$self->say("Fetching META.yml Data...");
 		require ORDB::CPANMeta;
 		ORDB::CPANMeta->import( {
-			maxage        => 60 * 60,
+			maxage        => 60,
 			show_progress => 1,
 		} );
 	}
@@ -861,6 +862,10 @@ END_SQL
 		volatility
 	} );
 
+	# Check our META coverage
+	my $meta = $self->count("distribution WHERE meta = 1");
+	$self->say("Meta coverage for table distribution = $meta");
+
 	# Clean up tables
 	$self->say("Dropping excess tables...");
 	$self->do( "DROP TABLE t_requires"     );
@@ -905,6 +910,8 @@ END_SQL
 sub create_index {
 	my $self  = shift;
 	my $table = shift;
+	my $count = $self->count($table);
+	$self->say("Indexing   table $table ($count rows)");
 	foreach my $column ( @_ ) {
 		$self->do("CREATE INDEX ${table}__${column} ON ${table} ( ${column} )");
 	}
@@ -962,6 +969,14 @@ sub do {
 	return 1;
 }
 
+sub count {
+	my $self  = shift;
+	my $table = shift;
+	my $dbh   = $self->dbh;
+	my @row   = $dbh->selectrow_array("SELECT COUNT(*) FROM $table");
+	return $row[0];
+}
+
 sub say {
 	my $self = shift;
 	if ( Params::Util::_CODE($self->trace) ) {
@@ -973,7 +988,7 @@ sub say {
 }
 
 sub say_age {
-	my $self = shift;
+	my $self    = shift;
 	my $package = shift;
 	if ( Params::Util::_CLASS($package) and $package->can('age') ) {
 		my $age = $package->age;
@@ -981,6 +996,15 @@ sub say_age {
 	} else {
 		$self->say("$package->age = Not Implemented");
 	}
+}
+
+sub say_rows {
+	my $self  = shift;
+	my $table = shift;
+	my $dbh   = $self->dbh;
+	my @row   = $dbh->selectrow_array("SELECT COUNT(*) FROM $table");
+	my $count = $row[0];
+	$self->say("Table $table = $count rows");
 }
 
 1;

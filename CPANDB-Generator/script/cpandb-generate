@@ -10,13 +10,16 @@ our $VERSION = '0.20';
 
 # Check params
 my $QUIET = 0;
+my $CPANMETA = 0;
 Getopt::Long::GetOptions(
-	'quiet' => \$QUIET,
+	'quiet'    => \$QUIET,
+	'cpanmeta' => \$CPANMETA,
 ) or die("Failed to parse options");
 
 my $start  = time;
 my $cpandb = CPANDB::Generator->new(
-	trace => ! $QUIET,
+	trace    => ! $QUIET,
+	cpanmeta => !! $CPANMETA,
 );
 $cpandb->run;
 
