@@ -260,6 +260,7 @@ END_SQL
 		callback   => sub {
 			print STDERR "$_[0]->{dist}\n" if $self->trace;
 			my $the  = shift;
+			my $meta = undef;
 			my @deps = ();
 			my $dist = {
 				release => $the->{dist},
@@ -271,7 +272,6 @@ END_SQL
 			my $json_file = File::Spec->catfile(
 				$the->{tempdir}, 'META.json',
 			);
-			my $meta = ();
 			if ( -f $json_file ) {
 				$meta = eval {
 					CPAN::Meta->load_file($json_file)
@@ -281,7 +281,7 @@ END_SQL
 					CPAN::Meta->load_file($yaml_file)
 				};
 			}
-			unless ( $@ ) {
+			unless ( $@ or not defined $meta ) {
 				$dist->{meta}           = 1;
 				$dist->{meta_name}      = $meta->name;
 				$dist->{meta_version}   = $meta->version;
