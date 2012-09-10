@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 1.04;
+use inc::Module::Install::DSL 1.06;
 
 all_from       lib/ORDB/CPANMeta/Generator.pm
 requires_from  lib/ORDB/CPANMeta/Generator.pm
