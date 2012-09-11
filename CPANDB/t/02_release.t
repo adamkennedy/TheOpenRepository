@@ -12,7 +12,7 @@ unless ( $ENV{RELEASE_TESTING} ) {
 	exit(0);
 }
 
-plan( tests => 37 );
+plan( tests => 35 );
 
 # Download and load the database
 use_ok( 'CPANDB' );
@@ -33,7 +33,7 @@ SCOPE: {
 		defined Params::Util::_NONNEGINT($age),
 		'Got non-negative integer for ->age',
 	);
-	diag("Age: $age days");
+	# diag("Age: $age days");
 }
 
 
@@ -140,21 +140,4 @@ SCOPE: {
 		isa_ok( $_, 'CPANDB::Distribution' );
 		is( $_->quartile, 1, $_->distribution . ' is in quartile 1' );
 	}
-}
-
-
-
-
-
-######################################################################
-# Statistics Support
-
-SCOPE: {
-	my $vector = CPANDB::Distribution->vector('weight');
-	isa_ok( $vector, 'Statistics::Basic::Vector' );
-	my $age = CPANDB::Distribution->vector(
-		'age_months',
-		'WHERE uploaded IS NOT NULL',
-	);
-	isa_ok( $age, 'Statistics::Basic::Vector' );
 }

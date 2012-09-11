@@ -4,9 +4,8 @@ use 5.008005;
 use strict;
 use warnings;
 use DateTime 0.50 ();
-use ORLite::Statistics 0.03;
 
-our $VERSION = '0.16';
+our $VERSION = '0.18';
 
 my $today = DateTime->today( time_zone => 'UTC' );
 
