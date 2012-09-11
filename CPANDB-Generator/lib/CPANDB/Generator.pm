@@ -230,6 +230,7 @@ sub run {
 	unless ( -f $self->cpan_sql ) {
 		Carp::croak("Failed to fetch CPAN index");
 	}
+	$self->attach( cpan => $self->cpan_sql );
 
 	# Load the CPAN Uploads database
 	$self->say("Fetching CPAN Uploads...");
@@ -239,6 +240,7 @@ sub run {
 		show_progress => 1,
 	} );
 	$self->say_age("ORDB::CPANUploads");
+	$self->attach( upload => ORDB::CPANUploads->sqlite );
 
 	# Load the CPAN RT database
 	$self->say("Fetching CPAN RT...");
@@ -248,6 +250,7 @@ sub run {
 		show_progress => 1,
 	} );
 	$self->say_age("ORDB::CPANRT");
+	$self->attach( rt => ORDB::CPANRT->sqlite );
 
 	# Load the CPAN Testers summary database
 	$self->say("Fetching CPAN Testers...");
@@ -257,6 +260,7 @@ sub run {
 		show_progress => 1,
 	} );
 	$self->say_age("ORDB::CPANRelease");
+	$self->attach( testers => ORDB::CPANRelease->sqlite );
 
 	# Load the CPAN META.yml database
 	my $cpanmeta;
@@ -284,14 +288,7 @@ sub run {
 		} );
 	}
 	$self->say_age("ORDB::CPANMeta");
-
-	# Attach the various databases
-	my $cpanmeta_sqlite = $cpanmeta ? $cpanmeta->sqlite : ORDB::CPANMeta->sqlite;
-	$self->do( "ATTACH DATABASE ? AS meta",    {}, $cpanmeta_sqlite          );
-	$self->do( "ATTACH DATABASE ? AS cpan",    {}, $self->cpan_sql           );
-	$self->do( "ATTACH DATABASE ? AS upload",  {}, ORDB::CPANUploads->sqlite );
-	$self->do( "ATTACH DATABASE ? AS rt",      {}, ORDB::CPANRT->sqlite      );
-	$self->do( "ATTACH DATABASE ? AS testers", {}, ORDB::CPANRelease->sqlite );
+	$self->attach( meta => $cpanmeta ? $cpanmeta->sqlite : ORDB::CPANMeta->sqlite );
 
 	# Pre-process the cpan data to produce cleaner intermediate
 	# temp tables that produce better joins later on.
@@ -862,9 +859,19 @@ END_SQL
 		volatility
 	} );
 
-	# Check our META coverage
-	my $meta = $self->count("distribution WHERE meta = 1");
-	$self->say("Meta coverage for table distribution = $meta");
+	# Report on merge coverage
+	$self->say(
+		"Coverage for column uploaded = " .
+		$self->count("distribution WHERE uploaded IS NOT NULL")
+	);
+	$self->say(
+		"Coverage for column meta = " .
+		$self->count("distribution WHERE meta = 1")
+	);
+	$self->say(
+		"Coverage for column rating = " .
+		$self->count("distribution WHERE rating IS NOT NULL")
+	);
 
 	# Clean up tables
 	$self->say("Dropping excess tables...");
@@ -975,6 +982,10 @@ sub count {
 	my $dbh   = $self->dbh;
 	my @row   = $dbh->selectrow_array("SELECT COUNT(*) FROM $table");
 	return $row[0];
+}
+
+sub attach {
+	$_[0]->do( "ATTACH DATABASE ? AS $_[1]", {}, $_[2] );
 }
 
 sub say {
