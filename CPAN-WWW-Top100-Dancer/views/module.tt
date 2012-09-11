@@ -5,6 +5,7 @@
             <h2>You&rsquo;ve joined the dance floor!</h2>
         </div>
         <h1>Module: [% this.module %]</h1>
+        <p>Distribution: <a href="/distribution/[% this.distribution %]">[% this.distribution %]</a></p>
         <pre>[% json %]</pre>
     </div>
 </div>

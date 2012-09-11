@@ -5,7 +5,8 @@
             <h2>You&rsquo;ve joined the dance floor!</h2>
         </div>
         <h1>Distribution: [% this.distribution %]</h1>
-        <pre>[% json %]</pre>
+        <p>Author: <a href="/author/[% this.author %]">[% this.author %]</a></p>
 	<p><a href="/distribution/[% this.distribution %]/graph">Dependency Graph</a></p>
+        <pre>[% json %]</pre>
     </div>
 </div>
