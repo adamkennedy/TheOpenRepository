@@ -100,6 +100,7 @@ get '/distribution/:id/graph' => sub {
 	my $graph = $this->dependency_graphviz(
 		perl    => '5.008',
 		rankdir => 1,
+		params,
 	)->as_png;
 
 	content_type 'image/png';
