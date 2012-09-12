@@ -413,6 +413,11 @@ sub template_db { <<'END_TT' }
 |
 |TO BE COMPLETED
 |
+| Contains the following tables: 
+[% FOREACH table IN tables %]
+|   L<[% table.class %]>,
+[% END %]
+|
 |=head1 METHODS
 |
 [% IF method.dsn %]
@@ -638,6 +643,7 @@ sub template_db { <<'END_TT' }
 |
 |[%+ self.author_pod %]
 [% END %]
+|
 |=head1 COPYRIGHT
 |
 |Copyright [% self.copyyear %] [%+ self.author %].
