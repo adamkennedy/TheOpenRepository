@@ -2,15 +2,48 @@
 
 ORDB::AU::Census2006::BcpCdB07 - ORDB::AU::Census2006 class for the bcp_cd_b07 table
 
-=head1 SYNOPSIS
-
-  TO BE COMPLETED
-
 =head1 DESCRIPTION
 
 TO BE COMPLETED
 
 =head1 METHODS
+
+=head2 base
+
+  # Returns 'ORDB::AU::Census2006'
+  my $namespace = ORDB::AU::Census2006::BcpCdB07->base;
+
+Normally you will only need to work directly with a table class,
+and only with one ORLite package.
+
+However, if for some reason you need to work with multiple ORLite packages
+at the same time without hardcoding the root namespace all the time, you
+can determine the root namespace from an object or table class with the
+C<base> method.
+
+=head2 table
+
+  # Returns 'bcp_cd_b07'
+  print ORDB::AU::Census2006::BcpCdB07->table;
+
+While you should not need the name of table for any simple operations,
+from time to time you may need it programatically. If you do need it,
+you can use the C<table> method to get the table name.
+
+=head2 load
+
+  my $object = ORDB::AU::Census2006::BcpCdB07->load( $region_id );
+
+If your table has single column primary key, a C<load> method will be
+generated in the class. If there is no primary key, the method is not
+created.
+
+The C<load> method provides a shortcut mechanism for fetching a single
+object based on the value of the primary key. However it should only
+be used for cases where your code trusts the record to already exists.
+
+It returns a C<ORDB::AU::Census2006::BcpCdB07> object, or throws an exception if the
+object does not exist.
 
 =head2 select
 
@@ -19,7 +52,7 @@ TO BE COMPLETED
   
   # Get a subset of objects in scalar context
   my $array_ref = ORDB::AU::Census2006::BcpCdB07->select(
-      'where  > ? order by ',
+      'where region_id > ? order by region_id',
       1000,
   );
 
@@ -33,9 +66,54 @@ compatible with SQLite can be used in the parameter.
 
 Returns a list of B<ORDB::AU::Census2006::BcpCdB07> objects when called in list context, or a
 reference to an C<ARRAY> of B<ORDB::AU::Census2006::BcpCdB07> objects when called in scalar
- context.
+context.
 
 Throws an exception on error, typically directly from the L<DBI> layer.
+
+=head2 iterate
+
+  ORDB::AU::Census2006::BcpCdB07->iterate( sub {
+      print $_->region_id . "\n";
+  } );
+
+The C<iterate> method enables the processing of large tables one record at
+a time without loading having to them all into memory in advance.
+
+This plays well to the strength of SQLite, allowing it to do the work of
+loading arbitrarily large stream of records from disk while retaining the
+full power of Perl when processing the records.
+
+The last argument to C<iterate> must be a subroutine reference that will be
+called for each element in the list, with the object provided in the topic
+variable C<$_>.
+
+This makes the C<iterate> code fragment above functionally equivalent to the
+following, except with an O(1) memory cost instead of O(n).
+
+  foreach ( ORDB::AU::Census2006::BcpCdB07->select ) {
+      print $_->region_id . "\n";
+  }
+
+You can filter the list via SQL in the same way you can with C<select>.
+
+  ORDB::AU::Census2006::BcpCdB07->iterate(
+      'order by ?', 'region_id',
+      sub {
+          print $_->region_id . "\n";
+      }
+  );
+
+You can also use it in raw form from the root namespace for better control.
+Using this form also allows for the use of arbitrarily complex queries,
+including joins. Instead of being objects, rows are provided as C<ARRAY>
+references when used in this form.
+
+  ORDB::AU::Census2006->iterate(
+      'select name from bcp_cd_b07 order by region_id',
+      sub {
+          print $_->[0] . "\n";
+      }
+  );
 
 =head2 count
 
@@ -44,7 +122,7 @@ Throws an exception on error, typically directly from the L<DBI> layer.
   
   # How many objects 
   my $small = ORDB::AU::Census2006::BcpCdB07->count(
-      'where  > ?',
+      'where region_id > ?',
       1000,
   );
 
@@ -62,6 +140,15 @@ Throws an exception on error, typically directly from the L<DBI> layer.
 
 =head1 ACCESSORS
 
+=head2 region_id
+
+  if ( $object->region_id ) {
+      print "Object has been inserted\n";
+  } else {
+      print "Object has not been inserted\n";
+  }
+
+Returns true, or throws an exception on error.
 
 REMAINING ACCESSORS TO BE COMPLETED
 
@@ -71,189 +158,188 @@ The bcp_cd_b07 table was originally created with the
 following SQL command.
 
   CREATE TABLE bcp_cd_b07 (
-      region_id REAL NOT NULL,
-      b863 BLOB NOT NULL,
-      b864 BLOB NOT NULL,
-      b865 BLOB NOT NULL,
-      b866 BLOB NOT NULL,
-      b867 BLOB NOT NULL,
-      b868 BLOB NOT NULL,
-      b869 BLOB NOT NULL,
-      b870 BLOB NOT NULL,
-      b871 BLOB NOT NULL,
-      b872 BLOB NOT NULL,
-      b873 BLOB NOT NULL,
-      b874 BLOB NOT NULL,
-      b875 BLOB NOT NULL,
-      b876 BLOB NOT NULL,
-      b877 BLOB NOT NULL,
-      b878 BLOB NOT NULL,
-      b879 BLOB NOT NULL,
-      b880 BLOB NOT NULL,
-      b881 BLOB NOT NULL,
-      b882 BLOB NOT NULL,
-      b883 BLOB NOT NULL,
-      b884 BLOB NOT NULL,
-      b885 BLOB NOT NULL,
-      b886 BLOB NOT NULL,
-      b887 BLOB NOT NULL,
-      b888 BLOB NOT NULL,
-      b889 BLOB NOT NULL,
-      b890 BLOB NOT NULL,
-      b891 BLOB NOT NULL,
-      b892 BLOB NOT NULL,
-      b893 BLOB NOT NULL,
-      b894 BLOB NOT NULL,
-      b895 BLOB NOT NULL,
-      b896 BLOB NOT NULL,
-      b897 BLOB NOT NULL,
-      b898 BLOB NOT NULL,
-      b899 BLOB NOT NULL,
-      b900 BLOB NOT NULL,
-      b901 BLOB NOT NULL,
-      b902 BLOB NOT NULL,
-      b903 BLOB NOT NULL,
-      b904 BLOB NOT NULL,
-      b905 BLOB NOT NULL,
-      b906 BLOB NOT NULL,
-      b907 BLOB NOT NULL,
-      b908 BLOB NOT NULL,
-      b909 BLOB NOT NULL,
-      b910 BLOB NOT NULL,
-      b911 BLOB NOT NULL,
-      b912 BLOB NOT NULL,
-      b913 BLOB NOT NULL,
-      b914 BLOB NOT NULL,
-      b915 BLOB NOT NULL,
-      b916 BLOB NOT NULL,
-      b917 BLOB NOT NULL,
-      b918 BLOB NOT NULL,
-      b919 BLOB NOT NULL,
-      b920 BLOB NOT NULL,
-      b921 BLOB NOT NULL,
-      b922 BLOB NOT NULL,
-      b923 BLOB NOT NULL,
-      b924 BLOB NOT NULL,
-      b925 BLOB NOT NULL,
-      b926 BLOB NOT NULL,
-      b927 BLOB NOT NULL,
-      b928 BLOB NOT NULL,
-      b929 BLOB NOT NULL,
-      b930 BLOB NOT NULL,
-      b931 BLOB NOT NULL,
-      b932 BLOB NOT NULL,
-      b933 BLOB NOT NULL,
-      b934 BLOB NOT NULL,
-      b935 BLOB NOT NULL,
-      b936 BLOB NOT NULL,
-      b937 BLOB NOT NULL,
-      b938 BLOB NOT NULL,
-      b939 BLOB NOT NULL,
-      b940 BLOB NOT NULL,
-      b941 BLOB NOT NULL,
-      b942 BLOB NOT NULL,
-      b943 BLOB NOT NULL,
-      b944 BLOB NOT NULL,
-      b945 BLOB NOT NULL,
-      b946 BLOB NOT NULL,
-      b947 BLOB NOT NULL,
-      b948 BLOB NOT NULL,
-      b949 BLOB NOT NULL,
-      b950 BLOB NOT NULL,
-      b951 BLOB NOT NULL,
-      b952 BLOB NOT NULL,
-      b953 BLOB NOT NULL,
-      b954 BLOB NOT NULL,
-      b955 BLOB NOT NULL,
-      b956 BLOB NOT NULL,
-      b957 BLOB NOT NULL,
-      b958 BLOB NOT NULL,
-      b959 BLOB NOT NULL,
-      b960 BLOB NOT NULL,
-      b961 BLOB NOT NULL,
-      b962 BLOB NOT NULL,
-      b963 BLOB NOT NULL,
-      b964 BLOB NOT NULL,
-      b965 BLOB NOT NULL,
-      b966 BLOB NOT NULL,
-      b967 BLOB NOT NULL,
-      b968 BLOB NOT NULL,
-      b969 BLOB NOT NULL,
-      b970 BLOB NOT NULL,
-      b971 BLOB NOT NULL,
-      b972 BLOB NOT NULL,
-      b973 BLOB NOT NULL,
-      b974 BLOB NOT NULL,
-      b975 BLOB NOT NULL,
-      b976 BLOB NOT NULL,
-      b977 BLOB NOT NULL,
-      b978 BLOB NOT NULL,
-      b979 BLOB NOT NULL,
-      b980 BLOB NOT NULL,
-      b981 BLOB NOT NULL,
-      b982 BLOB NOT NULL,
-      b983 BLOB NOT NULL,
-      b984 BLOB NOT NULL,
-      b985 BLOB NOT NULL,
-      b986 BLOB NOT NULL,
-      b987 BLOB NOT NULL,
-      b988 BLOB NOT NULL,
-      b989 BLOB NOT NULL,
-      b990 BLOB NOT NULL,
-      b991 BLOB NOT NULL,
-      b992 BLOB NOT NULL,
-      b993 BLOB NOT NULL,
-      b994 BLOB NOT NULL,
-      b995 BLOB NOT NULL,
-      b996 BLOB NOT NULL,
-      b997 BLOB NOT NULL,
-      b998 BLOB NOT NULL,
-      b999 BLOB NOT NULL,
-      b1000 BLOB NOT NULL,
-      b1001 BLOB NOT NULL,
-      b1002 BLOB NOT NULL,
-      b1003 BLOB NOT NULL,
-      b1004 BLOB NOT NULL,
-      b1005 BLOB NOT NULL,
-      b1006 BLOB NOT NULL,
-      b1007 BLOB NOT NULL,
-      b1008 BLOB NOT NULL,
-      b1009 BLOB NOT NULL,
-      b1010 BLOB NOT NULL,
-      b1011 BLOB NOT NULL,
-      b1012 BLOB NOT NULL,
-      b1013 BLOB NOT NULL,
-      b1014 BLOB NOT NULL,
-      b1015 BLOB NOT NULL,
-      b1016 BLOB NOT NULL,
-      b1017 BLOB NOT NULL,
-      b1018 BLOB NOT NULL,
-      b1019 BLOB NOT NULL,
-      b1020 BLOB NOT NULL,
-      b1021 BLOB NOT NULL,
-      b1022 BLOB NOT NULL,
-      b1023 BLOB NOT NULL,
-      b1024 BLOB NOT NULL,
-      b1025 BLOB NOT NULL,
-      b1026 BLOB NOT NULL,
-      b1027 BLOB NOT NULL,
-      b1028 BLOB NOT NULL,
-      b1029 BLOB NOT NULL,
-      b1030 BLOB NOT NULL,
-      b1031 BLOB NOT NULL,
-      b1032 BLOB NOT NULL,
-      b1033 BLOB NOT NULL,
-      b1034 BLOB NOT NULL,
-      b1035 BLOB NOT NULL,
-      b1036 BLOB NOT NULL,
-      b1037 BLOB NOT NULL,
-      b1038 BLOB NOT NULL,
-      b1039 BLOB NOT NULL,
-      b1040 BLOB NOT NULL,
-      b1041 BLOB NOT NULL,
-      b1042 BLOB NOT NULL
+      region_id INTEGER NOT NULL PRIMARY KEY,
+      b863 REAL NOT NULL,
+      b864 REAL NOT NULL,
+      b865 REAL NOT NULL,
+      b866 REAL NOT NULL,
+      b867 REAL NOT NULL,
+      b868 REAL NOT NULL,
+      b869 REAL NOT NULL,
+      b870 REAL NOT NULL,
+      b871 REAL NOT NULL,
+      b872 REAL NOT NULL,
+      b873 REAL NOT NULL,
+      b874 REAL NOT NULL,
+      b875 REAL NOT NULL,
+      b876 REAL NOT NULL,
+      b877 REAL NOT NULL,
+      b878 REAL NOT NULL,
+      b879 REAL NOT NULL,
+      b880 REAL NOT NULL,
+      b881 REAL NOT NULL,
+      b882 REAL NOT NULL,
+      b883 REAL NOT NULL,
+      b884 REAL NOT NULL,
+      b885 REAL NOT NULL,
+      b886 REAL NOT NULL,
+      b887 REAL NOT NULL,
+      b888 REAL NOT NULL,
+      b889 REAL NOT NULL,
+      b890 REAL NOT NULL,
+      b891 REAL NOT NULL,
+      b892 REAL NOT NULL,
+      b893 REAL NOT NULL,
+      b894 REAL NOT NULL,
+      b895 REAL NOT NULL,
+      b896 REAL NOT NULL,
+      b897 REAL NOT NULL,
+      b898 REAL NOT NULL,
+      b899 REAL NOT NULL,
+      b900 REAL NOT NULL,
+      b901 REAL NOT NULL,
+      b902 REAL NOT NULL,
+      b903 REAL NOT NULL,
+      b904 REAL NOT NULL,
+      b905 REAL NOT NULL,
+      b906 REAL NOT NULL,
+      b907 REAL NOT NULL,
+      b908 REAL NOT NULL,
+      b909 REAL NOT NULL,
+      b910 REAL NOT NULL,
+      b911 REAL NOT NULL,
+      b912 REAL NOT NULL,
+      b913 REAL NOT NULL,
+      b914 REAL NOT NULL,
+      b915 REAL NOT NULL,
+      b916 REAL NOT NULL,
+      b917 REAL NOT NULL,
+      b918 REAL NOT NULL,
+      b919 REAL NOT NULL,
+      b920 REAL NOT NULL,
+      b921 REAL NOT NULL,
+      b922 REAL NOT NULL,
+      b923 REAL NOT NULL,
+      b924 REAL NOT NULL,
+      b925 REAL NOT NULL,
+      b926 REAL NOT NULL,
+      b927 REAL NOT NULL,
+      b928 REAL NOT NULL,
+      b929 REAL NOT NULL,
+      b930 REAL NOT NULL,
+      b931 REAL NOT NULL,
+      b932 REAL NOT NULL,
+      b933 REAL NOT NULL,
+      b934 REAL NOT NULL,
+      b935 REAL NOT NULL,
+      b936 REAL NOT NULL,
+      b937 REAL NOT NULL,
+      b938 REAL NOT NULL,
+      b939 REAL NOT NULL,
+      b940 REAL NOT NULL,
+      b941 REAL NOT NULL,
+      b942 REAL NOT NULL,
+      b943 REAL NOT NULL,
+      b944 REAL NOT NULL,
+      b945 REAL NOT NULL,
+      b946 REAL NOT NULL,
+      b947 REAL NOT NULL,
+      b948 REAL NOT NULL,
+      b949 REAL NOT NULL,
+      b950 REAL NOT NULL,
+      b951 REAL NOT NULL,
+      b952 REAL NOT NULL,
+      b953 REAL NOT NULL,
+      b954 REAL NOT NULL,
+      b955 REAL NOT NULL,
+      b956 REAL NOT NULL,
+      b957 REAL NOT NULL,
+      b958 REAL NOT NULL,
+      b959 REAL NOT NULL,
+      b960 REAL NOT NULL,
+      b961 REAL NOT NULL,
+      b962 REAL NOT NULL,
+      b963 REAL NOT NULL,
+      b964 REAL NOT NULL,
+      b965 REAL NOT NULL,
+      b966 REAL NOT NULL,
+      b967 REAL NOT NULL,
+      b968 REAL NOT NULL,
+      b969 REAL NOT NULL,
+      b970 REAL NOT NULL,
+      b971 REAL NOT NULL,
+      b972 REAL NOT NULL,
+      b973 REAL NOT NULL,
+      b974 REAL NOT NULL,
+      b975 REAL NOT NULL,
+      b976 REAL NOT NULL,
+      b977 REAL NOT NULL,
+      b978 REAL NOT NULL,
+      b979 REAL NOT NULL,
+      b980 REAL NOT NULL,
+      b981 REAL NOT NULL,
+      b982 REAL NOT NULL,
+      b983 REAL NOT NULL,
+      b984 REAL NOT NULL,
+      b985 REAL NOT NULL,
+      b986 REAL NOT NULL,
+      b987 REAL NOT NULL,
+      b988 REAL NOT NULL,
+      b989 REAL NOT NULL,
+      b990 REAL NOT NULL,
+      b991 REAL NOT NULL,
+      b992 REAL NOT NULL,
+      b993 REAL NOT NULL,
+      b994 REAL NOT NULL,
+      b995 REAL NOT NULL,
+      b996 REAL NOT NULL,
+      b997 REAL NOT NULL,
+      b998 REAL NOT NULL,
+      b999 REAL NOT NULL,
+      b1000 REAL NOT NULL,
+      b1001 REAL NOT NULL,
+      b1002 REAL NOT NULL,
+      b1003 REAL NOT NULL,
+      b1004 REAL NOT NULL,
+      b1005 REAL NOT NULL,
+      b1006 REAL NOT NULL,
+      b1007 REAL NOT NULL,
+      b1008 REAL NOT NULL,
+      b1009 REAL NOT NULL,
+      b1010 REAL NOT NULL,
+      b1011 REAL NOT NULL,
+      b1012 REAL NOT NULL,
+      b1013 REAL NOT NULL,
+      b1014 REAL NOT NULL,
+      b1015 REAL NOT NULL,
+      b1016 REAL NOT NULL,
+      b1017 REAL NOT NULL,
+      b1018 REAL NOT NULL,
+      b1019 REAL NOT NULL,
+      b1020 REAL NOT NULL,
+      b1021 REAL NOT NULL,
+      b1022 REAL NOT NULL,
+      b1023 REAL NOT NULL,
+      b1024 REAL NOT NULL,
+      b1025 REAL NOT NULL,
+      b1026 REAL NOT NULL,
+      b1027 REAL NOT NULL,
+      b1028 REAL NOT NULL,
+      b1029 REAL NOT NULL,
+      b1030 REAL NOT NULL,
+      b1031 REAL NOT NULL,
+      b1032 REAL NOT NULL,
+      b1033 REAL NOT NULL,
+      b1034 REAL NOT NULL,
+      b1035 REAL NOT NULL,
+      b1036 REAL NOT NULL,
+      b1037 REAL NOT NULL,
+      b1038 REAL NOT NULL,
+      b1039 REAL NOT NULL,
+      b1040 REAL NOT NULL,
+      b1041 REAL NOT NULL,
+      b1042 REAL NOT NULL
   )
-
 
 =head1 SUPPORT
 
@@ -261,9 +347,13 @@ ORDB::AU::Census2006::BcpCdB07 is part of the L<ORDB::AU::Census2006> API.
 
 See the documentation for L<ORDB::AU::Census2006> for more information.
 
+=head1 AUTHOR
+
+AdamKennedy E<lt>adamk@cpan.orgE<gt>
+
 =head1 COPYRIGHT
 
-Copyright 2009 Adam Kennedy.
+Copyright 2009 - 2012 AdamKennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

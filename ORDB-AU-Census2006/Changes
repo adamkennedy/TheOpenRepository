@@ -1,4 +1,7 @@
 Changes for Perl extension ORDB-AU-Census2006
 
-0.01 to be release
+0.02 Wed 12 Sep 2012
+	- update Pod using M::I::ORLite2Pod
+
+0.01 23 Nov 2009
 	- Created initial version

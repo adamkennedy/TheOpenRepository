@@ -2,15 +2,48 @@
 
 ORDB::AU::Census2006::BcpCdB13 - ORDB::AU::Census2006 class for the bcp_cd_b13 table
 
-=head1 SYNOPSIS
-
-  TO BE COMPLETED
-
 =head1 DESCRIPTION
 
 TO BE COMPLETED
 
 =head1 METHODS
+
+=head2 base
+
+  # Returns 'ORDB::AU::Census2006'
+  my $namespace = ORDB::AU::Census2006::BcpCdB13->base;
+
+Normally you will only need to work directly with a table class,
+and only with one ORLite package.
+
+However, if for some reason you need to work with multiple ORLite packages
+at the same time without hardcoding the root namespace all the time, you
+can determine the root namespace from an object or table class with the
+C<base> method.
+
+=head2 table
+
+  # Returns 'bcp_cd_b13'
+  print ORDB::AU::Census2006::BcpCdB13->table;
+
+While you should not need the name of table for any simple operations,
+from time to time you may need it programatically. If you do need it,
+you can use the C<table> method to get the table name.
+
+=head2 load
+
+  my $object = ORDB::AU::Census2006::BcpCdB13->load( $region_id );
+
+If your table has single column primary key, a C<load> method will be
+generated in the class. If there is no primary key, the method is not
+created.
+
+The C<load> method provides a shortcut mechanism for fetching a single
+object based on the value of the primary key. However it should only
+be used for cases where your code trusts the record to already exists.
+
+It returns a C<ORDB::AU::Census2006::BcpCdB13> object, or throws an exception if the
+object does not exist.
 
 =head2 select
 
@@ -19,7 +52,7 @@ TO BE COMPLETED
   
   # Get a subset of objects in scalar context
   my $array_ref = ORDB::AU::Census2006::BcpCdB13->select(
-      'where  > ? order by ',
+      'where region_id > ? order by region_id',
       1000,
   );
 
@@ -33,9 +66,54 @@ compatible with SQLite can be used in the parameter.
 
 Returns a list of B<ORDB::AU::Census2006::BcpCdB13> objects when called in list context, or a
 reference to an C<ARRAY> of B<ORDB::AU::Census2006::BcpCdB13> objects when called in scalar
- context.
+context.
 
 Throws an exception on error, typically directly from the L<DBI> layer.
+
+=head2 iterate
+
+  ORDB::AU::Census2006::BcpCdB13->iterate( sub {
+      print $_->region_id . "\n";
+  } );
+
+The C<iterate> method enables the processing of large tables one record at
+a time without loading having to them all into memory in advance.
+
+This plays well to the strength of SQLite, allowing it to do the work of
+loading arbitrarily large stream of records from disk while retaining the
+full power of Perl when processing the records.
+
+The last argument to C<iterate> must be a subroutine reference that will be
+called for each element in the list, with the object provided in the topic
+variable C<$_>.
+
+This makes the C<iterate> code fragment above functionally equivalent to the
+following, except with an O(1) memory cost instead of O(n).
+
+  foreach ( ORDB::AU::Census2006::BcpCdB13->select ) {
+      print $_->region_id . "\n";
+  }
+
+You can filter the list via SQL in the same way you can with C<select>.
+
+  ORDB::AU::Census2006::BcpCdB13->iterate(
+      'order by ?', 'region_id',
+      sub {
+          print $_->region_id . "\n";
+      }
+  );
+
+You can also use it in raw form from the root namespace for better control.
+Using this form also allows for the use of arbitrarily complex queries,
+including joins. Instead of being objects, rows are provided as C<ARRAY>
+references when used in this form.
+
+  ORDB::AU::Census2006->iterate(
+      'select name from bcp_cd_b13 order by region_id',
+      sub {
+          print $_->[0] . "\n";
+      }
+  );
 
 =head2 count
 
@@ -44,7 +122,7 @@ Throws an exception on error, typically directly from the L<DBI> layer.
   
   # How many objects 
   my $small = ORDB::AU::Census2006::BcpCdB13->count(
-      'where  > ?',
+      'where region_id > ?',
       1000,
   );
 
@@ -62,6 +140,15 @@ Throws an exception on error, typically directly from the L<DBI> layer.
 
 =head1 ACCESSORS
 
+=head2 region_id
+
+  if ( $object->region_id ) {
+      print "Object has been inserted\n";
+  } else {
+      print "Object has not been inserted\n";
+  }
+
+Returns true, or throws an exception on error.
 
 REMAINING ACCESSORS TO BE COMPLETED
 
@@ -71,102 +158,101 @@ The bcp_cd_b13 table was originally created with the
 following SQL command.
 
   CREATE TABLE bcp_cd_b13 (
-      region_id REAL NOT NULL,
-      b2111 BLOB NOT NULL,
-      b2112 BLOB NOT NULL,
-      b2113 BLOB NOT NULL,
-      b2114 BLOB NOT NULL,
-      b2115 BLOB NOT NULL,
-      b2116 BLOB NOT NULL,
-      b2117 BLOB NOT NULL,
-      b2118 BLOB NOT NULL,
-      b2119 BLOB NOT NULL,
-      b2120 BLOB NOT NULL,
-      b2121 BLOB NOT NULL,
-      b2122 BLOB NOT NULL,
-      b2123 BLOB NOT NULL,
-      b2124 BLOB NOT NULL,
-      b2125 BLOB NOT NULL,
-      b2126 BLOB NOT NULL,
-      b2127 BLOB NOT NULL,
-      b2128 BLOB NOT NULL,
-      b2129 BLOB NOT NULL,
-      b2130 BLOB NOT NULL,
-      b2131 BLOB NOT NULL,
-      b2132 BLOB NOT NULL,
-      b2133 BLOB NOT NULL,
-      b2134 BLOB NOT NULL,
-      b2135 BLOB NOT NULL,
-      b2136 BLOB NOT NULL,
-      b2137 BLOB NOT NULL,
-      b2138 BLOB NOT NULL,
-      b2139 BLOB NOT NULL,
-      b2140 BLOB NOT NULL,
-      b2141 BLOB NOT NULL,
-      b2142 BLOB NOT NULL,
-      b2143 BLOB NOT NULL,
-      b2144 BLOB NOT NULL,
-      b2145 BLOB NOT NULL,
-      b2146 BLOB NOT NULL,
-      b2147 BLOB NOT NULL,
-      b2148 BLOB NOT NULL,
-      b2149 BLOB NOT NULL,
-      b2150 BLOB NOT NULL,
-      b2151 BLOB NOT NULL,
-      b2152 BLOB NOT NULL,
-      b2153 BLOB NOT NULL,
-      b2154 BLOB NOT NULL,
-      b2155 BLOB NOT NULL,
-      b2156 BLOB NOT NULL,
-      b2157 BLOB NOT NULL,
-      b2158 BLOB NOT NULL,
-      b2159 BLOB NOT NULL,
-      b2160 BLOB NOT NULL,
-      b2161 BLOB NOT NULL,
-      b2162 BLOB NOT NULL,
-      b2163 BLOB NOT NULL,
-      b2164 BLOB NOT NULL,
-      b2165 BLOB NOT NULL,
-      b2166 BLOB NOT NULL,
-      b2167 BLOB NOT NULL,
-      b2168 BLOB NOT NULL,
-      b2169 BLOB NOT NULL,
-      b2170 BLOB NOT NULL,
-      b2171 BLOB NOT NULL,
-      b2172 BLOB NOT NULL,
-      b2173 BLOB NOT NULL,
-      b2174 BLOB NOT NULL,
-      b2175 BLOB NOT NULL,
-      b2176 BLOB NOT NULL,
-      b2177 BLOB NOT NULL,
-      b2178 BLOB NOT NULL,
-      b2179 BLOB NOT NULL,
-      b2180 BLOB NOT NULL,
-      b2181 BLOB NOT NULL,
-      b2182 BLOB NOT NULL,
-      b2183 BLOB NOT NULL,
-      b2184 BLOB NOT NULL,
-      b2185 BLOB NOT NULL,
-      b2186 BLOB NOT NULL,
-      b2187 BLOB NOT NULL,
-      b2188 BLOB NOT NULL,
-      b2189 BLOB NOT NULL,
-      b2190 BLOB NOT NULL,
-      b2191 BLOB NOT NULL,
-      b2192 BLOB NOT NULL,
-      b2193 BLOB NOT NULL,
-      b2194 BLOB NOT NULL,
-      b2195 BLOB NOT NULL,
-      b2196 BLOB NOT NULL,
-      b2197 BLOB NOT NULL,
-      b2198 BLOB NOT NULL,
-      b2199 BLOB NOT NULL,
-      b2200 BLOB NOT NULL,
-      b2201 BLOB NOT NULL,
-      b2202 BLOB NOT NULL,
-      b2203 BLOB NOT NULL
+      region_id INTEGER NOT NULL PRIMARY KEY,
+      b2111 REAL NOT NULL,
+      b2112 REAL NOT NULL,
+      b2113 REAL NOT NULL,
+      b2114 REAL NOT NULL,
+      b2115 REAL NOT NULL,
+      b2116 REAL NOT NULL,
+      b2117 REAL NOT NULL,
+      b2118 REAL NOT NULL,
+      b2119 REAL NOT NULL,
+      b2120 REAL NOT NULL,
+      b2121 REAL NOT NULL,
+      b2122 REAL NOT NULL,
+      b2123 REAL NOT NULL,
+      b2124 REAL NOT NULL,
+      b2125 REAL NOT NULL,
+      b2126 REAL NOT NULL,
+      b2127 REAL NOT NULL,
+      b2128 REAL NOT NULL,
+      b2129 REAL NOT NULL,
+      b2130 REAL NOT NULL,
+      b2131 REAL NOT NULL,
+      b2132 REAL NOT NULL,
+      b2133 REAL NOT NULL,
+      b2134 REAL NOT NULL,
+      b2135 REAL NOT NULL,
+      b2136 REAL NOT NULL,
+      b2137 REAL NOT NULL,
+      b2138 REAL NOT NULL,
+      b2139 REAL NOT NULL,
+      b2140 REAL NOT NULL,
+      b2141 REAL NOT NULL,
+      b2142 REAL NOT NULL,
+      b2143 REAL NOT NULL,
+      b2144 REAL NOT NULL,
+      b2145 REAL NOT NULL,
+      b2146 REAL NOT NULL,
+      b2147 REAL NOT NULL,
+      b2148 REAL NOT NULL,
+      b2149 REAL NOT NULL,
+      b2150 REAL NOT NULL,
+      b2151 REAL NOT NULL,
+      b2152 REAL NOT NULL,
+      b2153 REAL NOT NULL,
+      b2154 REAL NOT NULL,
+      b2155 REAL NOT NULL,
+      b2156 REAL NOT NULL,
+      b2157 REAL NOT NULL,
+      b2158 REAL NOT NULL,
+      b2159 REAL NOT NULL,
+      b2160 REAL NOT NULL,
+      b2161 REAL NOT NULL,
+      b2162 REAL NOT NULL,
+      b2163 REAL NOT NULL,
+      b2164 REAL NOT NULL,
+      b2165 REAL NOT NULL,
+      b2166 REAL NOT NULL,
+      b2167 REAL NOT NULL,
+      b2168 REAL NOT NULL,
+      b2169 REAL NOT NULL,
+      b2170 REAL NOT NULL,
+      b2171 REAL NOT NULL,
+      b2172 REAL NOT NULL,
+      b2173 REAL NOT NULL,
+      b2174 REAL NOT NULL,
+      b2175 REAL NOT NULL,
+      b2176 REAL NOT NULL,
+      b2177 REAL NOT NULL,
+      b2178 REAL NOT NULL,
+      b2179 REAL NOT NULL,
+      b2180 REAL NOT NULL,
+      b2181 REAL NOT NULL,
+      b2182 REAL NOT NULL,
+      b2183 REAL NOT NULL,
+      b2184 REAL NOT NULL,
+      b2185 REAL NOT NULL,
+      b2186 REAL NOT NULL,
+      b2187 REAL NOT NULL,
+      b2188 REAL NOT NULL,
+      b2189 REAL NOT NULL,
+      b2190 REAL NOT NULL,
+      b2191 REAL NOT NULL,
+      b2192 REAL NOT NULL,
+      b2193 REAL NOT NULL,
+      b2194 REAL NOT NULL,
+      b2195 REAL NOT NULL,
+      b2196 REAL NOT NULL,
+      b2197 REAL NOT NULL,
+      b2198 REAL NOT NULL,
+      b2199 REAL NOT NULL,
+      b2200 REAL NOT NULL,
+      b2201 REAL NOT NULL,
+      b2202 REAL NOT NULL,
+      b2203 REAL NOT NULL
   )
-
 
 =head1 SUPPORT
 
@@ -174,9 +260,13 @@ ORDB::AU::Census2006::BcpCdB13 is part of the L<ORDB::AU::Census2006> API.
 
 See the documentation for L<ORDB::AU::Census2006> for more information.
 
+=head1 AUTHOR
+
+AdamKennedy E<lt>adamk@cpan.orgE<gt>
+
 =head1 COPYRIGHT
 
-Copyright 2009 Adam Kennedy.
+Copyright 2009 - 2012 AdamKennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

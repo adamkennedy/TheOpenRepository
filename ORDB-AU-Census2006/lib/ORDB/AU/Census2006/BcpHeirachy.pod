@@ -2,15 +2,48 @@
 
 ORDB::AU::Census2006::BcpHeirachy - ORDB::AU::Census2006 class for the bcp_heirachy table
 
-=head1 SYNOPSIS
-
-  TO BE COMPLETED
-
 =head1 DESCRIPTION
 
 TO BE COMPLETED
 
 =head1 METHODS
+
+=head2 base
+
+  # Returns 'ORDB::AU::Census2006'
+  my $namespace = ORDB::AU::Census2006::BcpHeirachy->base;
+
+Normally you will only need to work directly with a table class,
+and only with one ORLite package.
+
+However, if for some reason you need to work with multiple ORLite packages
+at the same time without hardcoding the root namespace all the time, you
+can determine the root namespace from an object or table class with the
+C<base> method.
+
+=head2 table
+
+  # Returns 'bcp_heirachy'
+  print ORDB::AU::Census2006::BcpHeirachy->table;
+
+While you should not need the name of table for any simple operations,
+from time to time you may need it programatically. If you do need it,
+you can use the C<table> method to get the table name.
+
+=head2 load
+
+  my $object = ORDB::AU::Census2006::BcpHeirachy->load( $cd );
+
+If your table has single column primary key, a C<load> method will be
+generated in the class. If there is no primary key, the method is not
+created.
+
+The C<load> method provides a shortcut mechanism for fetching a single
+object based on the value of the primary key. However it should only
+be used for cases where your code trusts the record to already exists.
+
+It returns a C<ORDB::AU::Census2006::BcpHeirachy> object, or throws an exception if the
+object does not exist.
 
 =head2 select
 
@@ -19,7 +52,7 @@ TO BE COMPLETED
   
   # Get a subset of objects in scalar context
   my $array_ref = ORDB::AU::Census2006::BcpHeirachy->select(
-      'where  > ? order by ',
+      'where cd > ? order by cd',
       1000,
   );
 
@@ -33,9 +66,54 @@ compatible with SQLite can be used in the parameter.
 
 Returns a list of B<ORDB::AU::Census2006::BcpHeirachy> objects when called in list context, or a
 reference to an C<ARRAY> of B<ORDB::AU::Census2006::BcpHeirachy> objects when called in scalar
- context.
+context.
 
 Throws an exception on error, typically directly from the L<DBI> layer.
+
+=head2 iterate
+
+  ORDB::AU::Census2006::BcpHeirachy->iterate( sub {
+      print $_->cd . "\n";
+  } );
+
+The C<iterate> method enables the processing of large tables one record at
+a time without loading having to them all into memory in advance.
+
+This plays well to the strength of SQLite, allowing it to do the work of
+loading arbitrarily large stream of records from disk while retaining the
+full power of Perl when processing the records.
+
+The last argument to C<iterate> must be a subroutine reference that will be
+called for each element in the list, with the object provided in the topic
+variable C<$_>.
+
+This makes the C<iterate> code fragment above functionally equivalent to the
+following, except with an O(1) memory cost instead of O(n).
+
+  foreach ( ORDB::AU::Census2006::BcpHeirachy->select ) {
+      print $_->cd . "\n";
+  }
+
+You can filter the list via SQL in the same way you can with C<select>.
+
+  ORDB::AU::Census2006::BcpHeirachy->iterate(
+      'order by ?', 'cd',
+      sub {
+          print $_->cd . "\n";
+      }
+  );
+
+You can also use it in raw form from the root namespace for better control.
+Using this form also allows for the use of arbitrarily complex queries,
+including joins. Instead of being objects, rows are provided as C<ARRAY>
+references when used in this form.
+
+  ORDB::AU::Census2006->iterate(
+      'select name from bcp_heirachy order by cd',
+      sub {
+          print $_->[0] . "\n";
+      }
+  );
 
 =head2 count
 
@@ -44,7 +122,7 @@ Throws an exception on error, typically directly from the L<DBI> layer.
   
   # How many objects 
   my $small = ORDB::AU::Census2006::BcpHeirachy->count(
-      'where  > ?',
+      'where cd > ?',
       1000,
   );
 
@@ -62,6 +140,15 @@ Throws an exception on error, typically directly from the L<DBI> layer.
 
 =head1 ACCESSORS
 
+=head2 cd
+
+  if ( $object->cd ) {
+      print "Object has been inserted\n";
+  } else {
+      print "Object has not been inserted\n";
+  }
+
+Returns true, or throws an exception on error.
 
 REMAINING ACCESSORS TO BE COMPLETED
 
@@ -71,15 +158,15 @@ The bcp_heirachy table was originally created with the
 following SQL command.
 
   CREATE TABLE bcp_heirachy (
-      cd REAL NOT NULL,
-      ste REAL NOT NULL,
-      sla REAL NOT NULL,
-      ssd REAL NOT NULL,
-      sd REAL NOT NULL,
+      cd INTEGER NOT NULL PRIMARY KEY,
+      ste INTEGER NOT NULL,
+      sla INTEGER NOT NULL,
+      ssd INTEGER NOT NULL,
+      sd INTEGER NOT NULL,
       lga TEXT NOT NULL,
-      sdi BLOB NOT NULL,
-      msr REAL NOT NULL,
-      sr REAL NOT NULL,
+      sdi REAL NOT NULL,
+      msr INTEGER NOT NULL,
+      sr INTEGER NOT NULL,
       srs TEXT NOT NULL,
       sos TEXT NOT NULL,
       sosr TEXT NOT NULL,
@@ -93,16 +180,19 @@ following SQL command.
       iloc TEXT NOT NULL
   )
 
-
 =head1 SUPPORT
 
 ORDB::AU::Census2006::BcpHeirachy is part of the L<ORDB::AU::Census2006> API.
 
 See the documentation for L<ORDB::AU::Census2006> for more information.
 
+=head1 AUTHOR
+
+AdamKennedy E<lt>adamk@cpan.orgE<gt>
+
 =head1 COPYRIGHT
 
-Copyright 2009 Adam Kennedy.
+Copyright 2009 - 2012 AdamKennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

@@ -2,15 +2,48 @@
 
 ORDB::AU::Census2006::BcpCdB22 - ORDB::AU::Census2006 class for the bcp_cd_b22 table
 
-=head1 SYNOPSIS
-
-  TO BE COMPLETED
-
 =head1 DESCRIPTION
 
 TO BE COMPLETED
 
 =head1 METHODS
+
+=head2 base
+
+  # Returns 'ORDB::AU::Census2006'
+  my $namespace = ORDB::AU::Census2006::BcpCdB22->base;
+
+Normally you will only need to work directly with a table class,
+and only with one ORLite package.
+
+However, if for some reason you need to work with multiple ORLite packages
+at the same time without hardcoding the root namespace all the time, you
+can determine the root namespace from an object or table class with the
+C<base> method.
+
+=head2 table
+
+  # Returns 'bcp_cd_b22'
+  print ORDB::AU::Census2006::BcpCdB22->table;
+
+While you should not need the name of table for any simple operations,
+from time to time you may need it programatically. If you do need it,
+you can use the C<table> method to get the table name.
+
+=head2 load
+
+  my $object = ORDB::AU::Census2006::BcpCdB22->load( $region_id );
+
+If your table has single column primary key, a C<load> method will be
+generated in the class. If there is no primary key, the method is not
+created.
+
+The C<load> method provides a shortcut mechanism for fetching a single
+object based on the value of the primary key. However it should only
+be used for cases where your code trusts the record to already exists.
+
+It returns a C<ORDB::AU::Census2006::BcpCdB22> object, or throws an exception if the
+object does not exist.
 
 =head2 select
 
@@ -19,7 +52,7 @@ TO BE COMPLETED
   
   # Get a subset of objects in scalar context
   my $array_ref = ORDB::AU::Census2006::BcpCdB22->select(
-      'where  > ? order by ',
+      'where region_id > ? order by region_id',
       1000,
   );
 
@@ -33,9 +66,54 @@ compatible with SQLite can be used in the parameter.
 
 Returns a list of B<ORDB::AU::Census2006::BcpCdB22> objects when called in list context, or a
 reference to an C<ARRAY> of B<ORDB::AU::Census2006::BcpCdB22> objects when called in scalar
- context.
+context.
 
 Throws an exception on error, typically directly from the L<DBI> layer.
+
+=head2 iterate
+
+  ORDB::AU::Census2006::BcpCdB22->iterate( sub {
+      print $_->region_id . "\n";
+  } );
+
+The C<iterate> method enables the processing of large tables one record at
+a time without loading having to them all into memory in advance.
+
+This plays well to the strength of SQLite, allowing it to do the work of
+loading arbitrarily large stream of records from disk while retaining the
+full power of Perl when processing the records.
+
+The last argument to C<iterate> must be a subroutine reference that will be
+called for each element in the list, with the object provided in the topic
+variable C<$_>.
+
+This makes the C<iterate> code fragment above functionally equivalent to the
+following, except with an O(1) memory cost instead of O(n).
+
+  foreach ( ORDB::AU::Census2006::BcpCdB22->select ) {
+      print $_->region_id . "\n";
+  }
+
+You can filter the list via SQL in the same way you can with C<select>.
+
+  ORDB::AU::Census2006::BcpCdB22->iterate(
+      'order by ?', 'region_id',
+      sub {
+          print $_->region_id . "\n";
+      }
+  );
+
+You can also use it in raw form from the root namespace for better control.
+Using this form also allows for the use of arbitrarily complex queries,
+including joins. Instead of being objects, rows are provided as C<ARRAY>
+references when used in this form.
+
+  ORDB::AU::Census2006->iterate(
+      'select name from bcp_cd_b22 order by region_id',
+      sub {
+          print $_->[0] . "\n";
+      }
+  );
 
 =head2 count
 
@@ -44,7 +122,7 @@ Throws an exception on error, typically directly from the L<DBI> layer.
   
   # How many objects 
   my $small = ORDB::AU::Census2006::BcpCdB22->count(
-      'where  > ?',
+      'where region_id > ?',
       1000,
   );
 
@@ -62,6 +140,15 @@ Throws an exception on error, typically directly from the L<DBI> layer.
 
 =head1 ACCESSORS
 
+=head2 region_id
+
+  if ( $object->region_id ) {
+      print "Object has been inserted\n";
+  } else {
+      print "Object has not been inserted\n";
+  }
+
+Returns true, or throws an exception on error.
 
 REMAINING ACCESSORS TO BE COMPLETED
 
@@ -71,38 +158,38 @@ The bcp_cd_b22 table was originally created with the
 following SQL command.
 
   CREATE TABLE bcp_cd_b22 (
-      region_id REAL NOT NULL,
+      region_id INTEGER NOT NULL PRIMARY KEY,
       b3719 NONE NULL,
-      b3720 BLOB NOT NULL,
-      b3721 BLOB NOT NULL,
-      b3722 BLOB NOT NULL,
-      b3723 BLOB NOT NULL,
-      b3724 BLOB NOT NULL,
-      b3725 BLOB NOT NULL,
-      b3726 BLOB NOT NULL,
-      b3727 BLOB NOT NULL,
-      b3728 BLOB NOT NULL,
+      b3720 REAL NOT NULL,
+      b3721 REAL NOT NULL,
+      b3722 REAL NOT NULL,
+      b3723 REAL NOT NULL,
+      b3724 REAL NOT NULL,
+      b3725 REAL NOT NULL,
+      b3726 REAL NOT NULL,
+      b3727 REAL NOT NULL,
+      b3728 REAL NOT NULL,
       b3729 NONE NULL,
-      b3730 BLOB NOT NULL,
-      b3731 BLOB NOT NULL,
-      b3732 BLOB NOT NULL,
-      b3733 BLOB NOT NULL,
-      b3734 BLOB NOT NULL,
-      b3735 BLOB NOT NULL,
-      b3736 BLOB NOT NULL,
-      b3737 BLOB NOT NULL,
-      b3738 BLOB NOT NULL,
+      b3730 REAL NOT NULL,
+      b3731 REAL NOT NULL,
+      b3732 REAL NOT NULL,
+      b3733 REAL NOT NULL,
+      b3734 REAL NOT NULL,
+      b3735 REAL NOT NULL,
+      b3736 REAL NOT NULL,
+      b3737 REAL NOT NULL,
+      b3738 REAL NOT NULL,
       b3739 NONE NULL,
-      b3740 BLOB NOT NULL,
-      b3741 BLOB NOT NULL,
-      b3742 BLOB NOT NULL,
-      b3743 BLOB NOT NULL,
-      b3744 BLOB NOT NULL,
-      b3745 BLOB NOT NULL,
-      b3746 BLOB NOT NULL,
-      b3747 BLOB NOT NULL,
-      b3748 BLOB NOT NULL,
-      b3749 BLOB NOT NULL,
+      b3740 REAL NOT NULL,
+      b3741 REAL NOT NULL,
+      b3742 REAL NOT NULL,
+      b3743 REAL NOT NULL,
+      b3744 REAL NOT NULL,
+      b3745 REAL NOT NULL,
+      b3746 REAL NOT NULL,
+      b3747 REAL NOT NULL,
+      b3748 REAL NOT NULL,
+      b3749 REAL NOT NULL,
       b3750 NONE NULL,
       b3751 NONE NULL,
       b3752 NONE NULL,
@@ -111,9 +198,9 @@ following SQL command.
       b3755 NONE NULL,
       b3756 NONE NULL,
       b3757 NONE NULL,
-      b3758 BLOB NOT NULL,
+      b3758 REAL NOT NULL,
       b3759 NONE NULL,
-      b3760 BLOB NOT NULL,
+      b3760 REAL NOT NULL,
       b3761 NONE NULL,
       b3762 NONE NULL,
       b3763 NONE NULL,
@@ -121,108 +208,108 @@ following SQL command.
       b3765 NONE NULL,
       b3766 NONE NULL,
       b3767 NONE NULL,
-      b3768 BLOB NOT NULL,
+      b3768 REAL NOT NULL,
       b3769 NONE NULL,
-      b3770 BLOB NOT NULL,
-      b3771 BLOB NOT NULL,
-      b3772 BLOB NOT NULL,
-      b3773 BLOB NOT NULL,
-      b3774 BLOB NOT NULL,
-      b3775 BLOB NOT NULL,
-      b3776 BLOB NOT NULL,
-      b3777 BLOB NOT NULL,
-      b3778 BLOB NOT NULL,
+      b3770 REAL NOT NULL,
+      b3771 REAL NOT NULL,
+      b3772 REAL NOT NULL,
+      b3773 REAL NOT NULL,
+      b3774 REAL NOT NULL,
+      b3775 REAL NOT NULL,
+      b3776 REAL NOT NULL,
+      b3777 REAL NOT NULL,
+      b3778 REAL NOT NULL,
       b3779 NONE NULL,
-      b3780 BLOB NOT NULL,
-      b3781 BLOB NOT NULL,
-      b3782 BLOB NOT NULL,
-      b3783 BLOB NOT NULL,
-      b3784 BLOB NOT NULL,
-      b3785 BLOB NOT NULL,
-      b3786 BLOB NOT NULL,
-      b3787 BLOB NOT NULL,
-      b3788 BLOB NOT NULL,
+      b3780 REAL NOT NULL,
+      b3781 REAL NOT NULL,
+      b3782 REAL NOT NULL,
+      b3783 REAL NOT NULL,
+      b3784 REAL NOT NULL,
+      b3785 REAL NOT NULL,
+      b3786 REAL NOT NULL,
+      b3787 REAL NOT NULL,
+      b3788 REAL NOT NULL,
       b3789 NONE NULL,
-      b3790 BLOB NOT NULL,
-      b3791 BLOB NOT NULL,
-      b3792 BLOB NOT NULL,
-      b3793 BLOB NOT NULL,
-      b3794 BLOB NOT NULL,
-      b3795 BLOB NOT NULL,
-      b3796 BLOB NOT NULL,
-      b3797 BLOB NOT NULL,
-      b3798 BLOB NOT NULL,
+      b3790 REAL NOT NULL,
+      b3791 REAL NOT NULL,
+      b3792 REAL NOT NULL,
+      b3793 REAL NOT NULL,
+      b3794 REAL NOT NULL,
+      b3795 REAL NOT NULL,
+      b3796 REAL NOT NULL,
+      b3797 REAL NOT NULL,
+      b3798 REAL NOT NULL,
       b3799 NONE NULL,
-      b3800 BLOB NOT NULL,
-      b3801 BLOB NOT NULL,
-      b3802 BLOB NOT NULL,
-      b3803 BLOB NOT NULL,
-      b3804 BLOB NOT NULL,
-      b3805 BLOB NOT NULL,
-      b3806 BLOB NOT NULL,
-      b3807 BLOB NOT NULL,
-      b3808 BLOB NOT NULL,
+      b3800 REAL NOT NULL,
+      b3801 REAL NOT NULL,
+      b3802 REAL NOT NULL,
+      b3803 REAL NOT NULL,
+      b3804 REAL NOT NULL,
+      b3805 REAL NOT NULL,
+      b3806 REAL NOT NULL,
+      b3807 REAL NOT NULL,
+      b3808 REAL NOT NULL,
       b3809 NONE NULL,
-      b3810 BLOB NOT NULL,
-      b3811 BLOB NOT NULL,
-      b3812 BLOB NOT NULL,
-      b3813 BLOB NOT NULL,
-      b3814 BLOB NOT NULL,
-      b3815 BLOB NOT NULL,
-      b3816 BLOB NOT NULL,
-      b3817 BLOB NOT NULL,
-      b3818 BLOB NOT NULL,
-      b3819 BLOB NOT NULL,
-      b3820 BLOB NOT NULL,
-      b3821 BLOB NOT NULL,
-      b3822 BLOB NOT NULL,
-      b3823 BLOB NOT NULL,
-      b3824 BLOB NOT NULL,
-      b3825 BLOB NOT NULL,
-      b3826 BLOB NOT NULL,
-      b3827 BLOB NOT NULL,
-      b3828 BLOB NOT NULL,
-      b3829 BLOB NOT NULL,
-      b3830 BLOB NOT NULL,
-      b3831 BLOB NOT NULL,
-      b3832 BLOB NOT NULL,
-      b3833 BLOB NOT NULL,
-      b3834 BLOB NOT NULL,
-      b3835 BLOB NOT NULL,
-      b3836 BLOB NOT NULL,
-      b3837 BLOB NOT NULL,
-      b3838 BLOB NOT NULL,
+      b3810 REAL NOT NULL,
+      b3811 REAL NOT NULL,
+      b3812 REAL NOT NULL,
+      b3813 REAL NOT NULL,
+      b3814 REAL NOT NULL,
+      b3815 REAL NOT NULL,
+      b3816 REAL NOT NULL,
+      b3817 REAL NOT NULL,
+      b3818 REAL NOT NULL,
+      b3819 REAL NOT NULL,
+      b3820 REAL NOT NULL,
+      b3821 REAL NOT NULL,
+      b3822 REAL NOT NULL,
+      b3823 REAL NOT NULL,
+      b3824 REAL NOT NULL,
+      b3825 REAL NOT NULL,
+      b3826 REAL NOT NULL,
+      b3827 REAL NOT NULL,
+      b3828 REAL NOT NULL,
+      b3829 REAL NOT NULL,
+      b3830 REAL NOT NULL,
+      b3831 REAL NOT NULL,
+      b3832 REAL NOT NULL,
+      b3833 REAL NOT NULL,
+      b3834 REAL NOT NULL,
+      b3835 REAL NOT NULL,
+      b3836 REAL NOT NULL,
+      b3837 REAL NOT NULL,
+      b3838 REAL NOT NULL,
       b3839 NONE NULL,
-      b3840 BLOB NOT NULL,
-      b3841 BLOB NOT NULL,
-      b3842 BLOB NOT NULL,
-      b3843 BLOB NOT NULL,
-      b3844 BLOB NOT NULL,
-      b3845 BLOB NOT NULL,
-      b3846 BLOB NOT NULL,
-      b3847 BLOB NOT NULL,
-      b3848 BLOB NOT NULL,
+      b3840 REAL NOT NULL,
+      b3841 REAL NOT NULL,
+      b3842 REAL NOT NULL,
+      b3843 REAL NOT NULL,
+      b3844 REAL NOT NULL,
+      b3845 REAL NOT NULL,
+      b3846 REAL NOT NULL,
+      b3847 REAL NOT NULL,
+      b3848 REAL NOT NULL,
       b3849 NONE NULL,
-      b3850 BLOB NOT NULL,
-      b3851 BLOB NOT NULL,
-      b3852 BLOB NOT NULL,
-      b3853 BLOB NOT NULL,
-      b3854 BLOB NOT NULL,
-      b3855 BLOB NOT NULL,
-      b3856 BLOB NOT NULL,
-      b3857 BLOB NOT NULL,
-      b3858 BLOB NOT NULL,
+      b3850 REAL NOT NULL,
+      b3851 REAL NOT NULL,
+      b3852 REAL NOT NULL,
+      b3853 REAL NOT NULL,
+      b3854 REAL NOT NULL,
+      b3855 REAL NOT NULL,
+      b3856 REAL NOT NULL,
+      b3857 REAL NOT NULL,
+      b3858 REAL NOT NULL,
       b3859 NONE NULL,
-      b3860 BLOB NOT NULL,
-      b3861 BLOB NOT NULL,
-      b3862 BLOB NOT NULL,
-      b3863 BLOB NOT NULL,
-      b3864 BLOB NOT NULL,
-      b3865 BLOB NOT NULL,
-      b3866 BLOB NOT NULL,
-      b3867 BLOB NOT NULL,
-      b3868 BLOB NOT NULL,
-      b3869 BLOB NOT NULL,
+      b3860 REAL NOT NULL,
+      b3861 REAL NOT NULL,
+      b3862 REAL NOT NULL,
+      b3863 REAL NOT NULL,
+      b3864 REAL NOT NULL,
+      b3865 REAL NOT NULL,
+      b3866 REAL NOT NULL,
+      b3867 REAL NOT NULL,
+      b3868 REAL NOT NULL,
+      b3869 REAL NOT NULL,
       b3870 NONE NULL,
       b3871 NONE NULL,
       b3872 NONE NULL,
@@ -231,9 +318,9 @@ following SQL command.
       b3875 NONE NULL,
       b3876 NONE NULL,
       b3877 NONE NULL,
-      b3878 BLOB NOT NULL,
+      b3878 REAL NOT NULL,
       b3879 NONE NULL,
-      b3880 BLOB NOT NULL,
+      b3880 REAL NOT NULL,
       b3881 NONE NULL,
       b3882 NONE NULL,
       b3883 NONE NULL,
@@ -241,108 +328,108 @@ following SQL command.
       b3885 NONE NULL,
       b3886 NONE NULL,
       b3887 NONE NULL,
-      b3888 BLOB NOT NULL,
+      b3888 REAL NOT NULL,
       b3889 NONE NULL,
-      b3890 BLOB NOT NULL,
-      b3891 BLOB NOT NULL,
-      b3892 BLOB NOT NULL,
-      b3893 BLOB NOT NULL,
-      b3894 BLOB NOT NULL,
-      b3895 BLOB NOT NULL,
-      b3896 BLOB NOT NULL,
-      b3897 BLOB NOT NULL,
-      b3898 BLOB NOT NULL,
+      b3890 REAL NOT NULL,
+      b3891 REAL NOT NULL,
+      b3892 REAL NOT NULL,
+      b3893 REAL NOT NULL,
+      b3894 REAL NOT NULL,
+      b3895 REAL NOT NULL,
+      b3896 REAL NOT NULL,
+      b3897 REAL NOT NULL,
+      b3898 REAL NOT NULL,
       b3899 NONE NULL,
-      b3900 BLOB NOT NULL,
-      b3901 BLOB NOT NULL,
-      b3902 BLOB NOT NULL,
-      b3903 BLOB NOT NULL,
-      b3904 BLOB NOT NULL,
-      b3905 BLOB NOT NULL,
-      b3906 BLOB NOT NULL,
-      b3907 BLOB NOT NULL,
-      b3908 BLOB NOT NULL,
+      b3900 REAL NOT NULL,
+      b3901 REAL NOT NULL,
+      b3902 REAL NOT NULL,
+      b3903 REAL NOT NULL,
+      b3904 REAL NOT NULL,
+      b3905 REAL NOT NULL,
+      b3906 REAL NOT NULL,
+      b3907 REAL NOT NULL,
+      b3908 REAL NOT NULL,
       b3909 NONE NULL,
-      b3910 BLOB NOT NULL,
-      b3911 BLOB NOT NULL,
-      b3912 BLOB NOT NULL,
-      b3913 BLOB NOT NULL,
-      b3914 BLOB NOT NULL,
-      b3915 BLOB NOT NULL,
-      b3916 BLOB NOT NULL,
-      b3917 BLOB NOT NULL,
-      b3918 BLOB NOT NULL,
+      b3910 REAL NOT NULL,
+      b3911 REAL NOT NULL,
+      b3912 REAL NOT NULL,
+      b3913 REAL NOT NULL,
+      b3914 REAL NOT NULL,
+      b3915 REAL NOT NULL,
+      b3916 REAL NOT NULL,
+      b3917 REAL NOT NULL,
+      b3918 REAL NOT NULL,
       b3919 NONE NULL,
-      b3920 BLOB NOT NULL,
-      b3921 BLOB NOT NULL,
-      b3922 BLOB NOT NULL,
-      b3923 BLOB NOT NULL,
-      b3924 BLOB NOT NULL,
-      b3925 BLOB NOT NULL,
-      b3926 BLOB NOT NULL,
-      b3927 BLOB NOT NULL,
-      b3928 BLOB NOT NULL,
+      b3920 REAL NOT NULL,
+      b3921 REAL NOT NULL,
+      b3922 REAL NOT NULL,
+      b3923 REAL NOT NULL,
+      b3924 REAL NOT NULL,
+      b3925 REAL NOT NULL,
+      b3926 REAL NOT NULL,
+      b3927 REAL NOT NULL,
+      b3928 REAL NOT NULL,
       b3929 NONE NULL,
-      b3930 BLOB NOT NULL,
-      b3931 BLOB NOT NULL,
-      b3932 BLOB NOT NULL,
-      b3933 BLOB NOT NULL,
-      b3934 BLOB NOT NULL,
-      b3935 BLOB NOT NULL,
-      b3936 BLOB NOT NULL,
-      b3937 BLOB NOT NULL,
-      b3938 BLOB NOT NULL,
-      b3939 BLOB NOT NULL,
-      b3940 BLOB NOT NULL,
-      b3941 BLOB NOT NULL,
-      b3942 BLOB NOT NULL,
-      b3943 BLOB NOT NULL,
-      b3944 BLOB NOT NULL,
-      b3945 BLOB NOT NULL,
-      b3946 BLOB NOT NULL,
-      b3947 BLOB NOT NULL,
-      b3948 BLOB NOT NULL,
-      b3949 BLOB NOT NULL,
-      b3950 BLOB NOT NULL,
-      b3951 BLOB NOT NULL,
-      b3952 BLOB NOT NULL,
-      b3953 BLOB NOT NULL,
-      b3954 BLOB NOT NULL,
-      b3955 BLOB NOT NULL,
-      b3956 BLOB NOT NULL,
-      b3957 BLOB NOT NULL,
-      b3958 BLOB NOT NULL,
+      b3930 REAL NOT NULL,
+      b3931 REAL NOT NULL,
+      b3932 REAL NOT NULL,
+      b3933 REAL NOT NULL,
+      b3934 REAL NOT NULL,
+      b3935 REAL NOT NULL,
+      b3936 REAL NOT NULL,
+      b3937 REAL NOT NULL,
+      b3938 REAL NOT NULL,
+      b3939 REAL NOT NULL,
+      b3940 REAL NOT NULL,
+      b3941 REAL NOT NULL,
+      b3942 REAL NOT NULL,
+      b3943 REAL NOT NULL,
+      b3944 REAL NOT NULL,
+      b3945 REAL NOT NULL,
+      b3946 REAL NOT NULL,
+      b3947 REAL NOT NULL,
+      b3948 REAL NOT NULL,
+      b3949 REAL NOT NULL,
+      b3950 REAL NOT NULL,
+      b3951 REAL NOT NULL,
+      b3952 REAL NOT NULL,
+      b3953 REAL NOT NULL,
+      b3954 REAL NOT NULL,
+      b3955 REAL NOT NULL,
+      b3956 REAL NOT NULL,
+      b3957 REAL NOT NULL,
+      b3958 REAL NOT NULL,
       b3959 NONE NULL,
-      b3960 BLOB NOT NULL,
-      b3961 BLOB NOT NULL,
-      b3962 BLOB NOT NULL,
-      b3963 BLOB NOT NULL,
-      b3964 BLOB NOT NULL,
-      b3965 BLOB NOT NULL,
-      b3966 BLOB NOT NULL,
-      b3967 BLOB NOT NULL,
-      b3968 BLOB NOT NULL,
+      b3960 REAL NOT NULL,
+      b3961 REAL NOT NULL,
+      b3962 REAL NOT NULL,
+      b3963 REAL NOT NULL,
+      b3964 REAL NOT NULL,
+      b3965 REAL NOT NULL,
+      b3966 REAL NOT NULL,
+      b3967 REAL NOT NULL,
+      b3968 REAL NOT NULL,
       b3969 NONE NULL,
-      b3970 BLOB NOT NULL,
-      b3971 BLOB NOT NULL,
-      b3972 BLOB NOT NULL,
-      b3973 BLOB NOT NULL,
-      b3974 BLOB NOT NULL,
-      b3975 BLOB NOT NULL,
-      b3976 BLOB NOT NULL,
-      b3977 BLOB NOT NULL,
-      b3978 BLOB NOT NULL,
+      b3970 REAL NOT NULL,
+      b3971 REAL NOT NULL,
+      b3972 REAL NOT NULL,
+      b3973 REAL NOT NULL,
+      b3974 REAL NOT NULL,
+      b3975 REAL NOT NULL,
+      b3976 REAL NOT NULL,
+      b3977 REAL NOT NULL,
+      b3978 REAL NOT NULL,
       b3979 NONE NULL,
-      b3980 BLOB NOT NULL,
-      b3981 BLOB NOT NULL,
-      b3982 BLOB NOT NULL,
-      b3983 BLOB NOT NULL,
-      b3984 BLOB NOT NULL,
-      b3985 BLOB NOT NULL,
-      b3986 BLOB NOT NULL,
-      b3987 BLOB NOT NULL,
-      b3988 BLOB NOT NULL,
-      b3989 BLOB NOT NULL,
+      b3980 REAL NOT NULL,
+      b3981 REAL NOT NULL,
+      b3982 REAL NOT NULL,
+      b3983 REAL NOT NULL,
+      b3984 REAL NOT NULL,
+      b3985 REAL NOT NULL,
+      b3986 REAL NOT NULL,
+      b3987 REAL NOT NULL,
+      b3988 REAL NOT NULL,
+      b3989 REAL NOT NULL,
       b3990 NONE NULL,
       b3991 NONE NULL,
       b3992 NONE NULL,
@@ -351,9 +438,9 @@ following SQL command.
       b3995 NONE NULL,
       b3996 NONE NULL,
       b3997 NONE NULL,
-      b3998 BLOB NOT NULL,
+      b3998 REAL NOT NULL,
       b3999 NONE NULL,
-      b4000 BLOB NOT NULL,
+      b4000 REAL NOT NULL,
       b4001 NONE NULL,
       b4002 NONE NULL,
       b4003 NONE NULL,
@@ -361,79 +448,78 @@ following SQL command.
       b4005 NONE NULL,
       b4006 NONE NULL,
       b4007 NONE NULL,
-      b4008 BLOB NOT NULL,
+      b4008 REAL NOT NULL,
       b4009 NONE NULL,
-      b4010 BLOB NOT NULL,
-      b4011 BLOB NOT NULL,
-      b4012 BLOB NOT NULL,
-      b4013 BLOB NOT NULL,
-      b4014 BLOB NOT NULL,
-      b4015 BLOB NOT NULL,
-      b4016 BLOB NOT NULL,
-      b4017 BLOB NOT NULL,
-      b4018 BLOB NOT NULL,
+      b4010 REAL NOT NULL,
+      b4011 REAL NOT NULL,
+      b4012 REAL NOT NULL,
+      b4013 REAL NOT NULL,
+      b4014 REAL NOT NULL,
+      b4015 REAL NOT NULL,
+      b4016 REAL NOT NULL,
+      b4017 REAL NOT NULL,
+      b4018 REAL NOT NULL,
       b4019 NONE NULL,
-      b4020 BLOB NOT NULL,
-      b4021 BLOB NOT NULL,
-      b4022 BLOB NOT NULL,
-      b4023 BLOB NOT NULL,
-      b4024 BLOB NOT NULL,
-      b4025 BLOB NOT NULL,
-      b4026 BLOB NOT NULL,
-      b4027 BLOB NOT NULL,
-      b4028 BLOB NOT NULL,
+      b4020 REAL NOT NULL,
+      b4021 REAL NOT NULL,
+      b4022 REAL NOT NULL,
+      b4023 REAL NOT NULL,
+      b4024 REAL NOT NULL,
+      b4025 REAL NOT NULL,
+      b4026 REAL NOT NULL,
+      b4027 REAL NOT NULL,
+      b4028 REAL NOT NULL,
       b4029 NONE NULL,
-      b4030 BLOB NOT NULL,
-      b4031 BLOB NOT NULL,
-      b4032 BLOB NOT NULL,
-      b4033 BLOB NOT NULL,
-      b4034 BLOB NOT NULL,
-      b4035 BLOB NOT NULL,
-      b4036 BLOB NOT NULL,
-      b4037 BLOB NOT NULL,
-      b4038 BLOB NOT NULL,
+      b4030 REAL NOT NULL,
+      b4031 REAL NOT NULL,
+      b4032 REAL NOT NULL,
+      b4033 REAL NOT NULL,
+      b4034 REAL NOT NULL,
+      b4035 REAL NOT NULL,
+      b4036 REAL NOT NULL,
+      b4037 REAL NOT NULL,
+      b4038 REAL NOT NULL,
       b4039 NONE NULL,
-      b4040 BLOB NOT NULL,
-      b4041 BLOB NOT NULL,
-      b4042 BLOB NOT NULL,
-      b4043 BLOB NOT NULL,
-      b4044 BLOB NOT NULL,
-      b4045 BLOB NOT NULL,
-      b4046 BLOB NOT NULL,
-      b4047 BLOB NOT NULL,
-      b4048 BLOB NOT NULL,
+      b4040 REAL NOT NULL,
+      b4041 REAL NOT NULL,
+      b4042 REAL NOT NULL,
+      b4043 REAL NOT NULL,
+      b4044 REAL NOT NULL,
+      b4045 REAL NOT NULL,
+      b4046 REAL NOT NULL,
+      b4047 REAL NOT NULL,
+      b4048 REAL NOT NULL,
       b4049 NONE NULL,
-      b4050 BLOB NOT NULL,
-      b4051 BLOB NOT NULL,
-      b4052 BLOB NOT NULL,
-      b4053 BLOB NOT NULL,
-      b4054 BLOB NOT NULL,
-      b4055 BLOB NOT NULL,
-      b4056 BLOB NOT NULL,
-      b4057 BLOB NOT NULL,
-      b4058 BLOB NOT NULL,
-      b4059 BLOB NOT NULL,
-      b4060 BLOB NOT NULL,
-      b4061 BLOB NOT NULL,
-      b4062 BLOB NOT NULL,
-      b4063 BLOB NOT NULL,
-      b4064 BLOB NOT NULL,
-      b4065 BLOB NOT NULL,
-      b4066 BLOB NOT NULL,
-      b4067 BLOB NOT NULL,
-      b4068 BLOB NOT NULL,
-      b4069 BLOB NOT NULL,
-      b4070 BLOB NOT NULL,
-      b4071 BLOB NOT NULL,
-      b4072 BLOB NOT NULL,
-      b4073 BLOB NOT NULL,
-      b4074 BLOB NOT NULL,
-      b4075 BLOB NOT NULL,
-      b4076 BLOB NOT NULL,
-      b4077 BLOB NOT NULL,
-      b4078 BLOB NOT NULL
+      b4050 REAL NOT NULL,
+      b4051 REAL NOT NULL,
+      b4052 REAL NOT NULL,
+      b4053 REAL NOT NULL,
+      b4054 REAL NOT NULL,
+      b4055 REAL NOT NULL,
+      b4056 REAL NOT NULL,
+      b4057 REAL NOT NULL,
+      b4058 REAL NOT NULL,
+      b4059 REAL NOT NULL,
+      b4060 REAL NOT NULL,
+      b4061 REAL NOT NULL,
+      b4062 REAL NOT NULL,
+      b4063 REAL NOT NULL,
+      b4064 REAL NOT NULL,
+      b4065 REAL NOT NULL,
+      b4066 REAL NOT NULL,
+      b4067 REAL NOT NULL,
+      b4068 REAL NOT NULL,
+      b4069 REAL NOT NULL,
+      b4070 REAL NOT NULL,
+      b4071 REAL NOT NULL,
+      b4072 REAL NOT NULL,
+      b4073 REAL NOT NULL,
+      b4074 REAL NOT NULL,
+      b4075 REAL NOT NULL,
+      b4076 REAL NOT NULL,
+      b4077 REAL NOT NULL,
+      b4078 REAL NOT NULL
   )
-
 
 =head1 SUPPORT
 
@@ -441,9 +527,13 @@ ORDB::AU::Census2006::BcpCdB22 is part of the L<ORDB::AU::Census2006> API.
 
 See the documentation for L<ORDB::AU::Census2006> for more information.
 
+=head1 AUTHOR
+
+AdamKennedy E<lt>adamk@cpan.orgE<gt>
+
 =head1 COPYRIGHT
 
-Copyright 2009 Adam Kennedy.
+Copyright 2009 - 2012 AdamKennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
