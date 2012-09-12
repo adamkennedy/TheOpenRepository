@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite-Pod
 
+0.12 Wed 12 Sep 2012
+	- Small docco change to highlight orlite2pod
+
 0.11 Thu 21 Jul 2011
 	- Fixing whitespace separation on the ->create method
 

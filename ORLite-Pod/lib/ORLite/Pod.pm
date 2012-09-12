@@ -8,6 +8,13 @@ ORLite::Pod - Documentation generator for ORLite
 
 =head1 SYNOPSIS
 
+orlite2pod My::Project::DB
+
+OR
+
+  use My::Project::DB;
+  use ORLite::Pod;
+
   my $generator = ORLite::Pod->new(
       from   => 'My::Project::DB',
       to     => 'My-Project/lib',
@@ -25,6 +32,10 @@ API without anywhere for documentation for the API to exist.
 
 The result is quick efficient creation of APIs that nobody can
 understand or use :)
+
+L<orlite2pod> is the quickest way to generate or update the documentation 
+for your ORM - just run it from the root dir of your distribution, specifying 
+the base Class::Name.
 
 B<ORLite::Pod> was created to fix this problem by allowing you to keep
 your slimline Perl module as is, but generating a tree of .pod files
@@ -51,7 +62,7 @@ use Class::Inspector   1.23 ();
 use ORLite             1.23 ();
 use Template           2.20 ();
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 my $year = (localtime(time))[5] + 1900;
 

@@ -92,6 +92,10 @@ root of an L<ORLite> ORM.
 An additional C<--author> option can be set to set the name of the
 author to be used when generating the POD files.
 
+WARNING: at this point, if you're updating an existing ORLite::Pod, 
+you need to re-specify the author, year and email - it will not mine 
+it from the previous file.
+
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker at
