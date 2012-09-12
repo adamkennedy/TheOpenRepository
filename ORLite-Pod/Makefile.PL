@@ -11,3 +11,5 @@ test_requires  File::Remove        1.42
 test_requires  File::pushd         1.00
 test_requires  autodie             2.10
 install_script orlite2pod
+
+repository     http://svn.ali.as/cpan/trunk/ORLite-Pod
