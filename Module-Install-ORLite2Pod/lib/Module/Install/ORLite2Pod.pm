@@ -15,7 +15,7 @@ sub orlite2pod {
     my $self = shift;
     return if not $Module::Install::AUTHOR;
 
-    my ( $from, $to, $author, $email ) = @_;
+    my ( $from, $to, $author, $email, $year ) = @_;
 
     #die unless things are defined?
 
@@ -38,6 +38,7 @@ sub orlite2pod {
         to     => $to,
         author => $author,
         email  => $email,
+        year   => $year
     );
 
     $generator->run;
@@ -58,7 +59,7 @@ Module::Install::ORLite2Pod - Updates the Pod for an ORLite generated distributi
 
   # in Makefile.PL
   use inc::Module::Install;
-  orlite2pod('My::Project::DB', 'lib', 'Adam Kennedy', 'adamk@cpan.org');
+  orlite2pod('My::Project::DB', 'lib', 'Adam Kennedy', 'adamk@cpan.org', '2009');
 
 =head1 DESCRIPTION
 
