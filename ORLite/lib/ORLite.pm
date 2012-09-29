@@ -14,7 +14,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.97';
+	$VERSION = '1.98';
 }
 
 # Support for the 'prune' option
@@ -229,7 +229,7 @@ sub selectrow_hashref {
 
 sub pragma {
 	\$_[0]->do("pragma \$_[1] = \$_[2]") if \@_ > 2;
-	\$_[0]->selectrow_arrayref("pragma \$_[1]")->[0];
+	\$_[0]->selectrow_arrayref("pragma \$_[1]")->[0] if defined wantarray;
 }
 
 sub iterate {
@@ -678,15 +678,7 @@ sub delete {
 		'delete from $t->{qname} where "rowid" = ?', {},
 		shift->rowid,
 	) if ref \$_[0];
-
-	# Legacy compatibility, to be removed
-	my \$class = shift;
-	my \$where = shift;
-	if ( \$where and \$where =~ s/\\s*where\\s+//i ) {
-		return \$class->delete_where( \$where, \@_ );
-	}
-
-	Carp::croak("Invalid or unsupported use of $pkg->delete");
+	Carp::croak("Static $pkg->delete has been deprecated");
 }
 
 sub delete_where {

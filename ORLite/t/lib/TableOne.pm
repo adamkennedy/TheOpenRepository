@@ -2,7 +2,7 @@ package t::lib::TableOne;
 
 use strict;
 
-our $VERSION = '1.97';
+our $VERSION = '1.98';
 
 sub dummy {
 	return 2;

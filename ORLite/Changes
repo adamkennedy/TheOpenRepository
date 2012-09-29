@@ -1,5 +1,10 @@
 Changes for Perl extension ORLite
 
+1.98 Sat 29 Sep 2012
+	- When setting pragmas in void context, skip reading the changed
+	  pragma back out of the database pointlessly.
+	- Removed legacy support for static ->delete('where ...')
+
 1.97 Mon 21 May 2012
 	- Use reproducible longdouble in tests (HMBRAND)
 
