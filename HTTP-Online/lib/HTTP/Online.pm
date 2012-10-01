@@ -29,7 +29,7 @@ L<Microsoft NCSI|http://technet.microsoft.com/en-us/library/cc766017.aspx>.
 
 use 5.006;
 use strict;
-use HTTP::Tiny 0.018 ();
+use HTTP::Tiny 0.019 ();
 
 use vars qw{$VERSION};
 BEGIN {
