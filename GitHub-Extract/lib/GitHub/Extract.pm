@@ -43,6 +43,7 @@ use File::pushd      1.00 ();
 use HTTP::Tiny      0.019 ();
 use Params::Util     1.00 ();
 use Archive::Extract 0.56 ();
+use IO::Socket::SSL  1.56 (); # Needed for HTTP::Tiny SSL
 
 our $VERSION = '0.01';
 our $WARN    = 1;
@@ -313,7 +314,7 @@ sub files {
 	my $simple  = $project->error;
 	my $verbose = $project->error(1);
 
-The C<error> methpd returns the last encountered error as string.
+The C<error> method returns the last encountered error as string.
 
 Pass it a true value to get the detailed output instead, as produced by
 L<Carp/longmess>.
