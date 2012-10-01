@@ -23,6 +23,24 @@ B<HTTP::Online> is a port of the older L<LWP::Online> module to L<HTTP::Tiny>
 that uses only the (most accurate) methodology,
 L<Microsoft NCSI|http://technet.microsoft.com/en-us/library/cc766017.aspx>.
 
+=head2 Test Mode
+
+  use LWP::Online ':skip_all';
+
+As a convenience when writing tests scripts base on L<Test::More>, the
+special ':skip_all' param can be provided when loading B<LWP::Online>.
+
+This implements the functional equivalent of the following.
+
+	BEGIN {
+		unless ( HTTP::Online->new->online ) {
+			require Test::More;
+			Test::More->import(
+				skip_all => 'Test requires a working internet connection'
+			);
+		}
+	}
+
 =head1 METHODS
 
 =cut
@@ -33,7 +51,17 @@ use HTTP::Tiny 0.019 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
+}
+
+sub import {
+	my $class = shift;
+	if ( $_[0] and $_[0] eq ':skip_all' ) {
+		require Test::More;
+		unless ( HTTP::Online->new->online ) {
+			Test::More->import( skip_all => 'Test requires a working internet connection' );			
+		}
+	}
 }
 
 
