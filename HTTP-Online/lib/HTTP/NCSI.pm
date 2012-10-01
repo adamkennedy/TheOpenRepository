@@ -1,8 +1,41 @@
 package HTTP::Online;
 
-use strict;
+=pod
 
-our $VERSION = '0.01';
+=head1 NAME
+
+HTTP::Online - Detect full "Internet" (HTTP) access using Microsoft NCSI
+
+=head1 SYNOPSIS
+
+    if ( HTTP::Online->new->online ) {
+        print "Confirmed internet connection\n";
+    } else {
+        print "Internet is not available\n";
+        exit(0);
+    }
+    
+    # Now do your task that needs the internet...
+
+=head1 DESCRIPTION
+
+B<HTTP::Online> is a port of the older L<LWP::Online> module to L<HTTP::Tiny>
+that uses only the (most accurate)
+L<Microsoft NCSI|http://technet.microsoft.com/en-us/library/cc766017.aspx>
+methodology.
+
+=head1 METHODS
+
+=cut
+
+use 5.006;
+use strict;
+use HTTP::Tiny ();
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.01';
+}
 
 
 
@@ -74,3 +107,15 @@ sub offline {
 }
 
 1;
+
+=pod
+
+=head1 SEE ALSO
+
+L<LWP::Online>
+
+L<HTTP::Tiny>
+
+L<http://technet.microsoft.com/en-us/library/cc766017.aspx>
+
+=cut
