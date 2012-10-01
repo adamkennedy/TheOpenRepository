@@ -20,9 +20,8 @@ HTTP::Online - Detect full "Internet" (HTTP) access using Microsoft NCSI
 =head1 DESCRIPTION
 
 B<HTTP::Online> is a port of the older L<LWP::Online> module to L<HTTP::Tiny>
-that uses only the (most accurate)
-L<Microsoft NCSI|http://technet.microsoft.com/en-us/library/cc766017.aspx>
-methodology.
+that uses only the (most accurate) methodology,
+L<Microsoft NCSI|http://technet.microsoft.com/en-us/library/cc766017.aspx>.
 
 =head1 METHODS
 
@@ -44,6 +43,27 @@ BEGIN {
 ######################################################################
 # Constructor and Accessors
 
+=pod
+
+=head2 new
+
+	my $internet = HTTP::Online->new;
+
+	my $custom = HTTP::Online->new(
+		http    => $custom_http_client,
+		url     => 'http://my-ncsi-server.com/',
+		content => 'Our Custom NCSI Server',
+	);
+
+The C<new> constructor creates a query object.
+
+By default, it will be configured to use the same Microsoft NCSI service that
+the Windows Network Awareness system does (from Windows Vista onwards).
+
+Returns a L<HTTP::Online> object.
+
+=cut
+
 sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
@@ -64,13 +84,38 @@ sub new {
 	return $self;
 }
 
+=pod
+
+=head2 http
+
+The C<http> method returns the HTTP client that will be used for the query.
+
+=cut
+
 sub http {
 	$_[0]->{http};
 }
 
+=pod
+
+=head2 url
+
+The C<url> method returns a string with the location URL of the NCSI file.
+
+=cut
+
 sub url {
 	$_[0]->{url};
 }
+
+=pod
+
+=head2 content
+
+The C<content> method returns a string with the expected string to be returned
+from the NCSI server.
+
+=cut
 
 sub content {
 	$_[0]->{content};
@@ -82,6 +127,18 @@ sub content {
 
 ######################################################################
 # Main Methods
+
+=pod
+
+=head2 online
+
+The C<online> method issues a C<Pragma: no-cache> request to the server, and
+examines the response to confirm that no redirects have occurred, and that the
+returned content matches the expected value.
+
+Returns true if full HTTP internet access is available, or false otherwise.
+
+=cut
 
 sub online {
 	my $self     = shift;
@@ -102,6 +159,20 @@ sub online {
 	);
 }
 
+=pod
+
+=head2 offline
+
+The C<offline> method is a convenience which currently returns the opposite of
+the C<online> method, returning false if full HTTP internet access is available,
+or true otherwise.
+
+This may change in future to only return true if we are completely offline, and
+true in situations where we have partial internet access or the user needs to
+fill out some web form or view advertising to get full internet access.
+
+=cut
+
 sub offline {
 	not $_[0]->online;
 }
@@ -110,6 +181,18 @@ sub offline {
 
 =pod
 
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=HTTP-Online>
+
+For other issues, contact the author.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
 =head1 SEE ALSO
 
 L<LWP::Online>
@@ -117,5 +200,15 @@ L<LWP::Online>
 L<HTTP::Tiny>
 
 L<http://technet.microsoft.com/en-us/library/cc766017.aspx>
+
+=head1 COPYRIGHT
+
+Copyright 2012 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
 
 =cut
