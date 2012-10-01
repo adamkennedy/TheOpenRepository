@@ -29,7 +29,7 @@ L<Microsoft NCSI|http://technet.microsoft.com/en-us/library/cc766017.aspx>.
 
 use 5.006;
 use strict;
-use HTTP::Tiny ();
+use HTTP::Tiny 0.018 ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -71,7 +71,7 @@ sub new {
 	# Apply defaults
 	unless ( defined $self->{http} ) {
 		$self->{http} = HTTP::Tiny->new(
-			agent => "HTTP::Online/$VERSION",
+			agent => "$class/$VERSION",
 		);
 	}
 	unless ( defined $self->{url} ) {
@@ -174,7 +174,16 @@ fill out some web form or view advertising to get full internet access.
 =cut
 
 sub offline {
-	not $_[0]->online;
+	my $self     = shift;
+	my $response = $self->http->get( $self->url, {
+		headers => {
+			Pragma => 'no-cache',
+		},
+	} );
+
+	return 1 unless $response;
+	return 1 unless $response->{success};
+	
 }
 
 1;
