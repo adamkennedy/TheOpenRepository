@@ -174,16 +174,7 @@ fill out some web form or view advertising to get full internet access.
 =cut
 
 sub offline {
-	my $self     = shift;
-	my $response = $self->http->get( $self->url, {
-		headers => {
-			Pragma => 'no-cache',
-		},
-	} );
-
-	return 1 unless $response;
-	return 1 unless $response->{success};
-	
+	not $_[0]->online;
 }
 
 1;
