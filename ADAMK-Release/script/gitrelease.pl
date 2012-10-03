@@ -23,8 +23,9 @@ my $NO_TEST      = '';
 # Set the settings and arg the arguments
 Getopt::Long::GetOptions(
 	verbose       => \$VERBOSE,
-	nort          => \$NO_RT,
 	nochanges     => \$NO_CHANGES,
+	nocopyright   => \$NO_COPYRIGHT,
+	nort          => \$NO_RT,
 	notest        => \$NO_TEST,
 );
 
@@ -49,6 +50,10 @@ my $release = ADAMK::Release->new(
 		username   => 'adamkennedy',
 		repository => $repository,
 	},
+	no_changes   => $NO_CHANGES,
+	no_copyright => $NO_COPYRIGHT,
+	no_rt        => $NO_RT,
+	no_test      => $NO_TEST,
 );
 
 
