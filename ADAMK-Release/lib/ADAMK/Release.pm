@@ -28,6 +28,9 @@ use Object::Tiny 1.01 qw{
 	module
 	github
 	verbose
+	no_rt
+	no_changes
+	no_copyright
 	no_test
 }, map { "bin_$_" } TOOLS;
 
@@ -195,7 +198,7 @@ sub assemble {
 	}
 
 	# Check the Changes file
-	SCOPE: {
+	unless ( $self->no_changes ) {
 		# Read in the Changes file
 		unless ( -f $self->dist_changes ) {
 			$self->error("Distribution does not have a Changes file");
@@ -230,7 +233,7 @@ sub assemble {
 	}
 
 	# Check that the main module documentation Copyright is the current year
-	SCOPE: {
+	unless ( $self->no_copyright ) {
 		# Read the file
 		unless ( open( MODULE, $self->module_doc ) ) {
 			$self->error(
@@ -247,16 +250,17 @@ sub assemble {
 			$self->error("Missing Copyright, or does not refer to current year");
 		}
 
-		# TODO Merge the module to a single string
-		# my $merged = join "\n", @lines;
-		# unless ( $NO_RT ) {
-			# unless ( $merged =~ /L\<http\:\/\/rt\.cpan\.org\/.+?=([\w-]+)\>/ ) {
-				# $self->error("Failed to find a link to the public RT queue");
-			# }
-			# unless ( $dist eq $1 ) {
-				# die "Expected a public link to $dist RT queue, but found a link to the $1 queue";
-			# }
-		# }
+		# Merge the module to a single string
+		my $merged = join "\n", @lines;
+		unless ( $self->no_rt ) {
+			my $dist_name = $self->dist_name;
+			unless ( $merged =~ /L\<http\:\/\/rt\.cpan\.org\/.+?=([\w-]+)\>/ ) {
+				$self->error("Failed to find a link to the public RT queue");
+			}
+			unless ( $dist_name eq $1 ) {
+				$self->error("Expected a public link to $dist_name RT queue, but found a link to the $1 queue");
+			}
+		}
 	}
 
 	# Touch all files to correct any potential time skews
