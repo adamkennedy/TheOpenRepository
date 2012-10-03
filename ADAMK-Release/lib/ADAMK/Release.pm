@@ -9,6 +9,8 @@ use File::Spec::Functions    0.80 ':ALL';
 use File::Slurp           9999.19 ();
 use File::Find::Rule         0.32 ();
 use File::Flat                    ();
+use File::ShareDir                ();
+use File::LocalizeNewlines        ();
 use Params::Util             1.00 ':ALL';
 use GitHub::Extract          0.01 ();
 use Module::Extract::VERSION 1.01 ();
@@ -72,7 +74,7 @@ sub run {
 	my $self = shift;
 
 	# Export from GitHub and change to the directory
-	my $pushd = $self->github->extract;
+	my $pushd = $self->github->pushd;
 	unless ( $pushd ) {
 		$self->error(
 			"Failed to download and extract %s: %s",
@@ -120,12 +122,12 @@ sub assemble {
 		);
 
 	} elsif ( not -f $self->dist_manifest ) {
-		copy( $self->shared_manifest_skip => $self->dist_manifest_skip );
+		$self->copy( $self->shared_manifest_skip => $self->dist_manifest_skip );
 	}
 
 	# Apply a default LICENSE file
 	unless ( -f $self->dist_license ) {
-		copy( $self->shared_license => $self->dist_license );
+		$self->copy( $self->shared_license => $self->dist_license );
 	}
 
 	# Add ppport.h if any XS files use it
