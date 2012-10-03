@@ -3,6 +3,7 @@
 
 # Distribution build and packaging files
 ^MYMETA.yml$
+^MYMETA.json$
 ^Makefile$
 ^Makefile\.[a-z]+$
 ^blib/
