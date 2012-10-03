@@ -15,12 +15,20 @@ use Module::Extract::VERSION 1.01 ();
 
 our $VERSION = '0.01';
 
+use constant TOOLS => qw{
+	cat
+	chmod
+	make
+	touch
+};
+
 use Object::Tiny 1.01 qw{
 	module
 	github
 	verbose
 	no_test
-};
+}, map { "bin_$_" } TOOLS;
+
 
 
 
@@ -43,6 +51,11 @@ sub new {
 	}
 	unless ( Params::Util::_INSTANCE($self->github, 'GitHub::Extract')) {
 		$self->error("Missing or invalid GitHub specification");
+	}
+
+	# Find all of the command line tools
+	foreach my $tool ( TOOLS ) {
+		$self->{ "bin_" . $tool } = $self->which($tool);
 	}
 
 	return $self;

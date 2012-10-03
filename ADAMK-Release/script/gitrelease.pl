@@ -18,7 +18,8 @@ unless ( @ARGV ) {
 	die "Missing or invalid distribution name";
 }
 
-my $repository = lc shift @ARGV;
+my $module     = shift @ARGV;
+my $repository = lc $module;
 $repository =~ s/::/-/g;
 
 
@@ -29,6 +30,7 @@ $repository =~ s/::/-/g;
 # Initialisation
 
 my $release = ADAMK::Release->new(
+	module => $module,
 	github => {
 		username   => 'adamkennedy',
 		repository => $repository,
