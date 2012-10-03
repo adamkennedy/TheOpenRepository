@@ -3,6 +3,7 @@
 use 5.10.0;
 use strict;
 use warnings;
+use Getopt::Long   ();
 use ADAMK::Release ();
 
 our $VERSION = '0.01';
