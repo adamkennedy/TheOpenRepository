@@ -265,7 +265,7 @@ sub assemble {
 
 	# Touch all files to correct any potential time skews
 	foreach my $file ( $self->find_files->in( $self->dist_dir ) ) {
-		shell(
+		$self->shell(
 			$self->bin_touch,
 			$file,
 			"Error while touching $file to prevent clock skew",
