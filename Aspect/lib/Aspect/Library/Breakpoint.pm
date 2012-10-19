@@ -4,7 +4,7 @@ use strict;
 use Aspect::Library        ();
 use Aspect::Advice::Before ();
 
-our $VERSION = '1.02';
+our $VERSION = '1.03';
 our @ISA     = 'Aspect::Library';
 
 sub get_advice {

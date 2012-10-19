@@ -3,7 +3,7 @@ package Aspect::Pointcut::True;
 use strict;
 use Aspect::Pointcut ();
 
-our $VERSION = '1.02';
+our $VERSION = '1.03';
 our @ISA     = 'Aspect::Pointcut';
 
 

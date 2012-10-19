@@ -4,7 +4,7 @@ use strict;
 use Carp          ();
 use Aspect::Point ();
 
-our $VERSION = '1.02';
+our $VERSION = '1.03';
 our @ISA     = 'Aspect::Point';
 
 

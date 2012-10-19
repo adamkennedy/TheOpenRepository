@@ -30,7 +30,7 @@ It's usage is effectively summarised by the synopsis.
 
 use strict;
 
-our $VERSION = '1.02';
+our $VERSION = '1.03';
 
 =pod
 

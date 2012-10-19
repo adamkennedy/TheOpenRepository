@@ -1,6 +1,7 @@
 Revision history for Perl extension Aspect
 
-1.03 to be released
+1.03 Fri 19 Oct 2012
+        - Updating to Module::Install 1.06
 	- Removed warnings except in the test suite to prevent log spamming
 
 1.02 Wed 1 Feb 2012

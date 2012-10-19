@@ -5,7 +5,7 @@ use Aspect::Modular        ();
 use Aspect::Advice::Before ();
 use Aspect::Pointcut::Call ();
 
-our $VERSION = '1.02';
+our $VERSION = '1.03';
 our @ISA     = 'Aspect::Modular';
 
 my %CACHE = ();
