@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 1.04;
+use inc::Module::Install::DSL 1.06;
 
 abstract      Prebuilt timing, profiling and benchmarking aspects
 all_from      lib/Aspect/Library/Timer.pm

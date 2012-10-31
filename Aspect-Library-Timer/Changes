@@ -1,5 +1,8 @@
 Changes for Perl extension Aspect-Library-Timer
 
+1.10 Tue 30 Oct 2012
+	- Updating Module::Install to 1.06
+
 1.09 Fri 3 Feb 2012
 	- Added recursion protection to Aspect::Library::Timer
 	- Bug fix in recursion protection across all modules
