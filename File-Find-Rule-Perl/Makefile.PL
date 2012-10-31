@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 1.00;
+use inc::Module::Install::DSL 1.06;
 
 all_from      lib/File/Find/Rule/Perl.pm
 requires_from lib/File/Find/Rule/Perl.pm

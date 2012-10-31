@@ -1,5 +1,8 @@
 Revision history for Perl extension File-Find-Rule-Perl
 
+1.13 Wed 30 Oct 2012
+	- Updating to Module::Install (ADAMK)
+
 1.12 Mon 31 Oct 2011
 	- Ignore debian directory in tests (ADAMK)
 	- Ignore all dot dirs in tests (ADAMK)
