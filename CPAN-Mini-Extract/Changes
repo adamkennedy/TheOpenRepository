@@ -1,5 +1,8 @@
 Revision history for Perl extension CPAN-Mini-Extract
 
+1.23 Tue 30 Oct 2012
+	- Updating to Module::Install::DSL 1.06
+
 1.22 Wed 1 Feb 2012
 	- Updating to Module::Install::DSL 1.04
 	- Updating author tests

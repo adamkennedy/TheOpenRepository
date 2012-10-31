@@ -72,7 +72,7 @@ use CPAN::Mini          1.111004 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.22';
+	$VERSION = '1.23';
 	@ISA     = 'CPAN::Mini';
 }
 
