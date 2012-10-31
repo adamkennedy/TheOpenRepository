@@ -1,5 +1,9 @@
 Changes for Perl extension CPAN-Mini-Visit
 
+1.15 Tue 30 Oct 2012
+	- Upgrading to Module::Install::DSL 1.06
+	- Updating copyright to 2012
+
 1.14 Fri 11 Nov 2011
 	- Moving to a production version.
 	- Force dependency on new Locale::Maketext to rid ourself of some

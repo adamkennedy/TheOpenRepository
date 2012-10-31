@@ -75,7 +75,7 @@ use Archive::Extract  0.32 ();
 use CPAN::Mini       0.576 ();
 use Params::Util      1.00 ();
 
-our $VERSION = '1.14';
+our $VERSION = '1.15';
 # $VERSION = eval $VERSION;
 
 use Object::Tiny 1.06 qw{
@@ -335,7 +335,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2009 - 2011 Adam Kennedy.
+Copyright 2009 - 2012 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
