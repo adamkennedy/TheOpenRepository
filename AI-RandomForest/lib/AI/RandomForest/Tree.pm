@@ -29,17 +29,15 @@ sub root {
 ######################################################################
 # Main Methods
 
-sub resolve {
+sub classify {
 	my $self   = shift;
 	my $sample = shift;
 	my $cursor = $self->root or die "No root branch";
 
 	while ($cursor) {
 		if ( $sample->[ $cursor->{variable} ] > $cursor->{separator} ) {
-			$cursor->{nright}++;
 			$cursor = $cursor->{right};
 		} else {
-			$cursor->{nleft}++;
 			$cursor = $cursor->{left};
 		}
 		next if Params::Util::_INSTANCE($cursor, 'AI::RandomForest::Branch');

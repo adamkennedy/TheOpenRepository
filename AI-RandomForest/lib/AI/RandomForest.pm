@@ -3,11 +3,48 @@ package AI::RandomForest;
 use 5.008;
 use strict;
 use warnings;
-use AI::RandomForest::Tree     ();
-use AI::RandomForest::Branch   ();
-use AI::RandomForest::Instance ();
+use Params::Util        1.00 ();
+use List::MoreUtils     0.30 ();
+use AI::RandomForest::Tree   ();
+use AI::RandomForest::Branch ();
+use AI::RandomForest::Sample ();
 
 our $VERSION = '0.01';
+
+
+
+
+
+######################################################################
+# Constructor and Accessors
+
+sub new {
+	my $class = shift;
+	my $self  = bless {
+		trees => [ ],
+	}, $class;
+}
+
+sub trees {
+	return @{$_[0]->{trees}};
+}
+
+
+
+
+
+######################################################################
+# Main Methods
+
+sub classify {
+	my $self   = shift;
+	my $sample = shift;
+	my $total  = 0;
+	foreach my $tree ( $self->trees ) {
+		$total += $tree->classify($sample);
+	}
+	return $total / $self->trees;
+}
 
 1;
 

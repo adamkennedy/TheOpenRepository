@@ -21,10 +21,10 @@ my $parser = Parse::CSV->new(
 	file   => $train,
 	names  => 1,
 	filter => sub {
-		AI::RandomForest::Instance->new(%$_)
+		AI::RandomForest::Sample->new(%$_)
 	},
 );
 isa_ok( $parser, 'Parse::CSV' );
 
 my $record = $parser->fetch;
-isa_ok( $record, 'AI::RandomForest::Instance' );
+isa_ok( $record, 'AI::RandomForest::Sample' );

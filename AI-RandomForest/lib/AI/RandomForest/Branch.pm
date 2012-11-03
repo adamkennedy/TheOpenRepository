@@ -16,10 +16,6 @@ sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
 
-	# Apply defaults and check params
-	$self->{nleft}  ||= 0;
-	$self->{nright} ||= 0;
-
 	return $self;
 }
 
@@ -39,12 +35,15 @@ sub right {
 	$_[0]->{right};
 }
 
-sub nleft {
-	$_[0]->{nleft};
-}
 
-sub nright {
-	$_[0]->{nright};
+
+
+
+######################################################################
+# Main Methods
+
+sub as_string {
+	print "Branch: $_[0]->{feature} > $_[0]->{separator}";
 }
 
 1;
