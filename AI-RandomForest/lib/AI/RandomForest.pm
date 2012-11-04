@@ -1,13 +1,16 @@
 package AI::RandomForest;
 
-use 5.008;
+use 5.16.0;
 use strict;
 use warnings;
-use Params::Util        1.00 ();
-use List::MoreUtils     0.30 ();
-use AI::RandomForest::Tree   ();
-use AI::RandomForest::Branch ();
-use AI::RandomForest::Sample ();
+use Params::Util           1.00 ();
+use List::MoreUtils        0.30 ();
+use AI::RandomForest::Tree      ();
+use AI::RandomForest::Branch    ();
+use AI::RandomForest::Sample    ();
+use AI::RandomForest::Table     ();
+use AI::RandomForest::Frame     ();
+use AI::RandomForest::Selection ();
 
 our $VERSION = '0.01';
 
@@ -23,6 +26,12 @@ sub new {
 	my $self  = bless {
 		trees => [ ],
 	}, $class;
+
+	return $self;
+}
+
+sub count {
+	return scalar @{$_[0]->{trees}};
 }
 
 sub trees {
@@ -35,6 +44,10 @@ sub trees {
 
 ######################################################################
 # Main Methods
+
+sub add {
+	push @{$_[0]->{trees}}, $_[1];
+}
 
 sub classify {
 	my $self   = shift;

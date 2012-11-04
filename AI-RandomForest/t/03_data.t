@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 3;
+use Test::More tests => 5;
 use File::Spec::Functions;
 use Parse::CSV       ();
 use AI::RandomForest ();
@@ -17,14 +17,27 @@ ok( -f $train, 'Found training data set' );
 ######################################################################
 # Parser Checks
 
-my $parser = Parse::CSV->new(
-	file   => $train,
-	names  => 1,
-	filter => sub {
-		AI::RandomForest::Sample->new(%$_)
-	},
-);
-isa_ok( $parser, 'Parse::CSV' );
+SCOPE: {
+	my $parser = Parse::CSV->new(
+		file   => $train,
+		names  => 1,
+		filter => sub {
+			AI::RandomForest::Sample->new(%$_)
+		},
+	);
+	isa_ok( $parser, 'Parse::CSV' );
 
-my $record = $parser->fetch;
-isa_ok( $record, 'AI::RandomForest::Sample' );
+	my $record = $parser->fetch;
+	isa_ok( $record, 'AI::RandomForest::Sample' );
+}
+
+SCOPE: {
+	my $parser = Parse::CSV->new(
+		file   => $train,
+		names  => 1,
+	);
+	isa_ok($parser, 'Parse::CSV');
+
+	my $table = AI::RandomForest::Table->from_csv($parser);
+	isa_ok($table, 'AI::RandomForest::Table' );
+}

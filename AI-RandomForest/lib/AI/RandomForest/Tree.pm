@@ -1,5 +1,6 @@
 package AI::RandomForest::Tree;
 
+use 5.16.0;
 use strict;
 use warnings;
 use Params::Util ();

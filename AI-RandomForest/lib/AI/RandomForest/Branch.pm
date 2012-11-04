@@ -1,5 +1,6 @@
 package AI::RandomForest::Branch;
 
+use 5.16.0;
 use strict;
 use warnings;
 
@@ -19,8 +20,8 @@ sub new {
 	return $self;
 }
 
-sub variable {
-	$_[0]->{variable};
+sub feature {
+	$_[0]->{feature};
 }
 
 sub separator {
