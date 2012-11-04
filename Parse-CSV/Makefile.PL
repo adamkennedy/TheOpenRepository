@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 1.04;
+use inc::Module::Install::DSL 1.06;
 
 all_from      lib/Parse/CSV.pm
 requires_from lib/Parse/CSV.pm

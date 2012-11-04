@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 71;
+use Test::More tests => 73;
 use File::Spec::Functions ':ALL';
 use Parse::CSV;
 
@@ -29,6 +29,7 @@ SCOPE: {
 	isa_ok( $csv, 'Parse::CSV' );
 	is( $csv->row,    0,  '->row returns 0' );
 	is( $csv->errstr, '', '->errstr returns ""' );
+	is_deeply( [ $csv->names ], [ ], '->names returns a null list' );
 
 	# Pull the first line
 	my $fetch1 = $csv->fetch;
@@ -71,30 +72,55 @@ SCOPE: {
 	isa_ok( $csv, 'Parse::CSV' );
 	is( $csv->row,    1,  '->row returns 1' );
 	is( $csv->errstr, '', '->errstr returns ""' );
-
-	is_deeply( [$csv->fields],[ qw{a b c d e} ],'->fields() before first line and after open $csv returns as expected');
+	is_deeply(
+		[ $csv->names ],
+		[ qw{a b c d e} ],
+		'->names ok',
+	);
+	is_deeply(
+		[$csv->fields],
+		[ qw{a b c d e} ],
+		'->fields() before first line and after open $csv returns as expected'
+	);
 
 	# Get the first line
 	my $fetch1 = $csv->fetch;
-	is_deeply( $fetch1, { a => 'this', b => 'is', c => 'also', d => 'a', e => 'sample' },
-		'->fetch returns as expected' );
 	is( $csv->row,    2,  '->row returns 2' );
 	is( $csv->errstr, '', '->errstr returns ""' );
+	is_deeply(
+		$fetch1,
+		{ a => 'this', b => 'is', c => 'also', d => 'a', e => 'sample' },
+		'->fetch returns as expected',
+	);
 
-	my $line=$csv->string; 
-	chomp($line);  # $csv->string has linefeed
+	my $line = $csv->string; 
+	chomp($line); # $csv->string has linefeed
 	is( $line,"this,is,also,a,sample",'->string() works');
-	is_deeply( [$csv->fields],[ qw{this is also a sample} ],'->fields() after first line returns as expected');
+	is_deeply(
+		[ $csv->fields ],
+		[ qw{this is also a sample} ],
+		'->fields() after first line returns as expected'
+	);
 
 	# Get the second line
 	my $fetch2 = $csv->fetch;	
-	is_deeply( $fetch2, { a => 1, b => 2, c => 3, d => 4.5, e => 5 },
-		'->fetch returns as expected' );
 	is( $csv->row,    3,  '->row returns 3' );
 	is( $csv->errstr, '', '->errstr returns ""' );
-
-	is_deeply( [ $csv->names ], [ qw{a b c d e} ], '->colnames() (get) returns as expected' );
-	is_deeply( [ $csv->names(qw{aa b c d e fext}) ], [ qw{aa b c d e fext} ], '->colnames() (set) returns as expected' );
+	is_deeply(
+		$fetch2,
+		{ a => 1, b => 2, c => 3, d => 4.5, e => 5 },
+		'->fetch returns as expected',
+	);
+	is_deeply(
+		[ $csv->names ],
+		[ qw{a b c d e} ],
+		'->colnames() (get) returns as expected',
+	);
+	is_deeply(
+		[ $csv->names(qw{aa b c d e fext}) ],
+		[ qw{aa b c d e fext} ],
+		'->colnames() (set) returns as expected',
+	);
 
 	# Get the line after the end
 	my $fetch3 = $csv->fetch;
@@ -112,36 +138,56 @@ SCOPE: {
 	isa_ok( $csv, 'Parse::CSV' );
 	is( $csv->row,    1,  '->row returns 1' );
 	is( $csv->errstr, '', '->errstr returns ""' );
-
-	is_deeply( [$csv->fields],[ qw{a b c d e} ],'->fields() before first line and after open $csv returns as expected');
+	is_deeply(
+		[$csv->fields],
+		[ qw{a b c d e} ],
+		'->fields() before first line and after open $csv returns as expected',
+	);
 
 	# Get the first line
 	my $fetch1 = $csv->fetch;
-	is_deeply( $fetch1, { a => 'this', b => 'is', c => 'also', d => 'a', e => 'sample' },
-		'->fetch returns as expected' );
 	is( $csv->row,    2,  '->row returns 2' );
 	is( $csv->errstr, '', '->errstr returns ""' );
+	is_deeply(
+		$fetch1,
+		{ a => 'this', b => 'is', c => 'also', d => 'a', e => 'sample' },
+		'->fetch returns as expected',
+	);
 
-	my $line=$csv->string; 
+	my $line = $csv->string; 
 	chomp($line);  # $csv->string has linefeed
 	is( $line,"this,is,also,a,sample",'->string() works');
-	is_deeply( [$csv->fields],[ qw{this is also a sample} ],'->fields() after first line returns as expected');
+	is_deeply(
+		[ $csv->fields ],
+		[ qw{this is also a sample} ],
+		'->fields() after first line returns as expected',
+	);
 
 	# Get the second line
 	my $fetch2 = $csv->fetch;	
-	is_deeply( $fetch2, { a => 1, b => 2, c => 3, d => 4.5, e => 5 },
-		'->fetch returns as expected' );
 	is( $csv->row,    3,  '->row returns 3' );
 	is( $csv->errstr, '', '->errstr returns ""' );
-
-	is_deeply( [ $csv->names ], [ qw{a b c d e} ], '->colnames() (get) returns as expected' );
-	is_deeply( [ $csv->names(qw{aa b c d e fext}) ], [ qw{aa b c d e fext} ], '->colnames() (set) returns as expected' );
+	is_deeply(
+		$fetch2,
+		{ a => 1, b => 2, c => 3, d => 4.5, e => 5 },
+		'->fetch returns as expected',
+	);
+	is_deeply(
+		[ $csv->names ],
+		[ qw{a b c d e} ],
+		'->colnames() (get) returns as expected',
+	);
+	is_deeply(
+		[ $csv->names( qw{aa b c d e fext} ) ],
+		[ qw{aa b c d e fext} ],
+		'->colnames() (set) returns as expected',
+	);
 
 	# Get the line after the end
 	my $fetch3 = $csv->fetch;
-	is( $fetch3, undef, '->fetch returns undef' );
 	is( $csv->row,    3,  '->row returns 3' );
 	is( $csv->errstr, '', '->errstr returns ""' );
+	is( $fetch3, undef, '->fetch returns undef' );
 }
 
 
@@ -164,17 +210,23 @@ SCOPE: {
 
 	# Get the first line
 	my $fetch1 = $csv->fetch;
-	is_deeply( $fetch1, bless( { a => 'this', b => 'is', c => 'also', d => 'a', e => 'sample' }, 'Foo' ),
-		'->fetch returns as expected' );
 	is( $csv->row,    2,  '->row returns 2' );
 	is( $csv->errstr, '', '->errstr returns ""' );
+	is_deeply(
+		$fetch1,
+		bless( { a => 'this', b => 'is', c => 'also', d => 'a', e => 'sample' }, 'Foo' ),
+		'->fetch returns as expected',
+	);
 
 	# Get the second line
 	my $fetch2 = $csv->fetch;	
-	is_deeply( $fetch2, bless( { a => 1, b => 2, c => 3, d => 4.5, e => 5 }, 'Foo' ),
-		'->fetch returns as expected' );
 	is( $csv->row,    3,  '->row returns 3' );
 	is( $csv->errstr, '', '->errstr returns ""' );
+	is_deeply(
+		$fetch2,
+		bless( { a => 1, b => 2, c => 3, d => 4.5, e => 5 }, 'Foo' ),
+		'->fetch returns as expected',
+	);
 
 	# Get the line after the end
 	my $fetch3 = $csv->fetch;
@@ -196,10 +248,13 @@ SCOPE: {
 
 	# Get the first line
 	my $fetch1 = $csv->fetch;
-	is_deeply( $fetch1, bless( { a => 'this', b => 'is', c => 'also', d => 'a', e => 'sample' }, 'Foo' ),
-		'->fetch returns as expected' );
 	is( $csv->row,    2,  '->row returns 2' );
 	is( $csv->errstr, '', '->errstr returns ""' );
+	is_deeply(
+		$fetch1,
+		bless( { a => 'this', b => 'is', c => 'also', d => 'a', e => 'sample' }, 'Foo' ),
+		'->fetch returns as expected',
+	);
 
 	# Get the line after the end
 	my $fetch2 = $csv->fetch;

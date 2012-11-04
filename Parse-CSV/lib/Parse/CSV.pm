@@ -104,12 +104,12 @@ use 5.005;
 use strict;
 use Carp              ();
 use IO::File     1.13 ();
-use Text::CSV_XS 0.42 ();
-use Params::Util 0.22 ();
+use Text::CSV_XS 0.80 ();
+use Params::Util 1.00 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '2.00';
+	$VERSION = '2.01';
 }
 
 
@@ -191,6 +191,7 @@ sub new {
 		unless ( -f $self->{file} and -r _ ) {
 			Carp::croak("Parse::CSV file '$self->{file}' does not exist");
 		}
+
 		$self->{handle} = IO::File->new();
 		unless ( $self->{handle}->open($self->{file}) ) {
 			Carp::croak("Parse::CSV file '$self->{file}' failed to load: $!");
@@ -450,13 +451,19 @@ sub fields {
 
 The C<names> method gets or sets the column name mapping for the parser.
 
+If the parser has no names or fields, returns the null list.
+
 =cut
 
 sub names {
 	my $self  = shift;
 	my $names = $self->{names};
-	@$names = @_ if @_;
-	return @$names;
+	if ( $names ) {
+		@$names = @_ if @_;
+		return @$names;
+	}
+	$self->{names} = [ @_ ] if @_;
+	return @_;
 }
 
 =pod

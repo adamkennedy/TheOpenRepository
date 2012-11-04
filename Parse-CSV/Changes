@@ -1,5 +1,9 @@
 Revision history for Perl extension Parse-CSV
 
+2.01 Sun 4 Nov 2012
+	- Upgrading to Module::Install 1.06
+	- The names method returns a null list if there are no names
+
 2.00 Thu 23 Feb 2012
 	- IO::File 1.14 dependency was too aggressive and wouldn't install
 	  on RHEL5. Moved back to 1.13 (Kirby Smith)
