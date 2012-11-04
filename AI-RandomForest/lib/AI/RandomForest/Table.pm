@@ -16,37 +16,45 @@ our $VERSION = '0.01';
 
 sub new {
 	my $class = shift;
-	my $self  = bless [ @_ ], $class;
+	my @names = @_ or die "Missing or invalid column names";
+	return bless {
+		columns => [ map { [ ]              } 0 .. $#names ],
+		names   => [ map { $names[$_] => $_ } 0 .. $#names ],
+	}, $class;
+}
 
-	unless ( $self->samples ) {
-		die "Table must contain at least one sample";
+sub from_parse_csv {
+	my $class  = shift;
+	my $parser = Params::Util::_INSTANCE(shift, 'Parse::CSV');
+	unless ( $parser ) {
+		die "Missing or invalid Parse::CSV param";
+	}
+	if ( $parser->names ) {
+		die "Parse::CSV should not use the 'names' param";
+	}
+
+	# Manually parse the names to create the table object
+	my $names   = $parser->fetch;
+	my $self    = $class->new(@$names);
+
+	# Fill the table
+	my $n       = 0;
+	my @column  = @{$self->{columns}};
+	my $columns = $#column;
+	while ( my $row = $parser->fetch ) {
+		$column[$_]->[$n] = $row->[$_] foreach 0 .. $columns;
+		$n++;
 	}
 
 	return $self;
 }
 
-sub from_csv {
-	my $class = shift;
-	my $parser = Params::Util::_INSTANCE(shift, 'Parse::CSV');
-	unless ( $parser ) {
-		die "Missing or invalid CSV param";
-	}
-
-	# Parse the CSV file into a fresh table
-	my @rows = ();
-	while ( my $row = $parser->fetch ) {
-		push @rows, $row;
-	}
-
-	return $class->new(@rows);
+sub features {
+	return scalar @{$_[0]->{columns}};
 }
 
 sub samples {
-	return @{$_[0]};
-}
-
-sub features {
-	return keys %{ $_[0]->[0] }
+	return scalar @{$_[0]->{columns}->[0]};
 }
 
 1;

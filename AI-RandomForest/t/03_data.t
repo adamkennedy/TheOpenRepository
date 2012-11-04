@@ -33,11 +33,12 @@ SCOPE: {
 
 SCOPE: {
 	my $parser = Parse::CSV->new(
-		file   => $train,
-		names  => 1,
+		file => $train,
 	);
 	isa_ok($parser, 'Parse::CSV');
 
-	my $table = AI::RandomForest::Table->from_csv($parser);
+	my $table = AI::RandomForest::Table->from_parse_csv($parser);
 	isa_ok($table, 'AI::RandomForest::Table' );
+	is( $table->features, 1777, '->features = 1777' );
+	is( $table->samples, 3751, '->samples = 3751' );
 }
