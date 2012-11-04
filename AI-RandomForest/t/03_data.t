@@ -2,13 +2,13 @@
 
 use strict;
 use warnings;
-use Test::More tests => 5;
+use Test::More tests => 7;
 use File::Spec::Functions;
 use Parse::CSV       ();
 use AI::RandomForest ();
 
-my $train = catfile('t', 'data', 'train.csv');
-ok( -f $train, 'Found training data set' );
+my $titanic = catfile('t', 'data', 'titanic-train.csv');
+ok( -f $titanic, 'Found training data set' );
 
 
 
@@ -19,7 +19,7 @@ ok( -f $train, 'Found training data set' );
 
 SCOPE: {
 	my $parser = Parse::CSV->new(
-		file   => $train,
+		file   => $titanic,
 		names  => 1,
 		filter => sub {
 			AI::RandomForest::Sample->new(%$_)
@@ -33,12 +33,12 @@ SCOPE: {
 
 SCOPE: {
 	my $parser = Parse::CSV->new(
-		file => $train,
+		file => $titanic,
 	);
 	isa_ok($parser, 'Parse::CSV');
 
 	my $table = AI::RandomForest::Table->from_parse_csv($parser);
 	isa_ok($table, 'AI::RandomForest::Table' );
-	is( $table->features, 1777, '->features = 1777' );
-	is( $table->samples, 3751, '->samples = 3751' );
+	is( $table->features, 11, '->features = 1777' );
+	is( $table->samples, 891, '->samples = 3751' );
 }
