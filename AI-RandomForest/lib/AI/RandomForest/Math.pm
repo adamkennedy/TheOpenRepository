@@ -31,4 +31,13 @@ sub gini {
 	$G - 1 - (1/$n);
 }
 
+# Entropy calculation (variables and method based on R implementation)
+sub entropy {
+	my $freqs = shift;
+
+	foreach ( @$freqs ) {
+		$_ = ($_ > 0) ? ($_ * log($_)) : 0;
+	}
+}
+
 1;
