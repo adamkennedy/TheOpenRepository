@@ -44,6 +44,7 @@ use inc::Module::Install 1.00;
 all_from      'lib/Task/Weaken.pm';
 test_requires 'Test::More' => '0.42';
 test_requires 'File::Spec' => '0.80';
+perl_version  '5.006';
 
 check_scalar_util();
 
@@ -78,7 +79,7 @@ sub check_scalar_util {
 		return;
 	}
 
-	my $latest_scalar_util = 1.21;
+	my $latest_scalar_util = 1.21; #does not support 5.5, but weak references were introduced in 5.6
 	$latest_scalar_util = 1.19 if $] < 5.006;
 	# will not work of course - CPAN automatically installs only latest version
         
@@ -94,7 +95,7 @@ sub check_scalar_util {
 		# with a solution at some point in the
 		# future.
 		message1();
-		requires 'Scalar::Util' => $latest_scalar_util;
+		requires 'List::Util::XS' => $latest_scalar_util;
 		return;
 	}
 
@@ -104,7 +105,7 @@ sub check_scalar_util {
 	if ( $module_version < $latest_scalar_util ) {
 		# We should be able to do a straight
 		# forward upgrade of the module
-		requires 'Scalar::Util' => $latest_scalar_util;
+		requires 'List::Util::XS' => $latest_scalar_util;
 		return;
 	}
 
@@ -113,7 +114,7 @@ sub check_scalar_util {
 	# message to the user, and then add a high dependency in the
 	# vague hope it does something.
 	message2();
-	requires 'Scalar::Util' => $latest_scalar_util;
+	requires 'List::Util::XS' => $latest_scalar_util;
 	return;
 }
 

@@ -1,5 +1,7 @@
 Chanbges for Perl extension Task-Weaken
 
+   - Require List::Util::XS in some cases
+
 1.04 Tue 8 Mar 2011
 	- Updating author tests (ADAMK)
 	- Updating to Module::Install (ADAMK)
