@@ -137,7 +137,7 @@ ok(
 
 # We should match_all both functions
 is_deeply(
-	[ $complex->match_all ],
+	[ sort $complex->match_all ], #sort for new hash randomization
 	[ 'Two::one', 'Two::two' ],
 	'->match_all works as expected',
 );
