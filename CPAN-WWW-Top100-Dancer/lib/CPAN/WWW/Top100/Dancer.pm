@@ -17,8 +17,8 @@ implemented using L<Dancer>.
 use 5.008;
 use strict;
 use warnings;
-use Dancer ':syntax';
-use CPANDB {
+use Dancer 0.01 ':syntax';
+use CPANDB 0.01 {
 	array => 0,
 };
 
