@@ -8,8 +8,9 @@ BEGIN {
 }
 use Test::More;
 use Test::Database;
+my $handle;
 BEGIN {
-	my $handle = (Test::Database->handles('mysql'))[0];
+	$handle = (Test::Database->handles('mysql'))[0];
 	if ( $handle ) {
 		plan( tests => 3 );
 	} else {
@@ -23,7 +24,7 @@ use File::Remove 'clear';
 use Xtract ();
 
 # Can we find a test handle?
-my $handle = 
+#my $handle = 
 # Command row data
 my @data = (
 	[ 1, 'a', 'one'   ],
@@ -38,9 +39,9 @@ clear($to, "$to.gz", "$to.bz2", "$to.lz");
 
 # Create the Xtract object
 my $object = Xtract->new(
-	from  => $ENV{XTRACT_MYSQL_DSN},
-	user  => $ENV{XTRACT_MYSQL_USER},
-	pass  => $ENV{XTRACT_MYSQL_PASSWORD},
+	from  => $handle->dsn(),
+	user  => $handle->username(),
+	pass  => $handle->password(),
 	to    => $to,
 	index => 1,
 	trace => 0,

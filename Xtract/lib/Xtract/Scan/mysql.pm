@@ -35,7 +35,7 @@ sub add_table {
 	my $from  = shift || $tname;
 
 	# Capture table metadata from a select on the table
-	my $sth = $self->from_dbh->prepare("select * from $from");
+	my $sth = $self->dbh->prepare("select * from $from");
 	unless ( $sth and $sth->execute ) {
 		return $self->SUPER::add_table( $table, $from );
 	}

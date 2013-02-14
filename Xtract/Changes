@@ -1,5 +1,7 @@
 Changes for Perl extension Xtract
 
+    - 11_mysql.t and Xtract::Scan::mysql fixes (CHORNY)
+
 0.16 Mon 7 Nov 2011
 	- Migrating all code from ->fill to ->create_table
 	- Completed refactoring to only use the driver API for scanning
