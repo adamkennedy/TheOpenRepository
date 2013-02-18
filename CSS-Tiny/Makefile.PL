@@ -1,13 +1,13 @@
 use strict;
 use vars qw{$VERSION};
 BEGIN {
-	require 5.004;
+	require 5.005;
 	$VERSION = '1.19';
 }
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
-	MIN_PERL_VERSION => '5.004',
+	MIN_PERL_VERSION => '5.005',
 	META_MERGE => {
 		resources => {
 			repository => 'http://svn.ali.as/cpan/trunk/CSS-Tiny',
