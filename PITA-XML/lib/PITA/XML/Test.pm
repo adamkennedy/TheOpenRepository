@@ -21,7 +21,7 @@ use Params::Util qw{ _STRING _SCALAR0 };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.51';
+	$VERSION = '0.52';
 }
 
 
@@ -194,7 +194,7 @@ The Perl Image-based Testing Architecture (L<http://ali.as/pita/>)
 
 =head1 COPYRIGHT
 
-Copyright 2005 - 2011 Adam Kennedy.
+Copyright 2005 - 2013 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
