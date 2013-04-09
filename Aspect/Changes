@@ -1,5 +1,6 @@
 Revision history for Perl extension Aspect
 
+1.04 Mon 8 Apr 2013
 	- fix failures on 5.17.6 (RT#81400)
 
 1.03 Fri 19 Oct 2012
