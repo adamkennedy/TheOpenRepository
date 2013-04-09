@@ -38,7 +38,7 @@ use Test::Inline::IO::File ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '2.212';
+	$VERSION = '2.213';
 }
 
 # Predeclare things

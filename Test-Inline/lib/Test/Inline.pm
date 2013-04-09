@@ -145,7 +145,7 @@ use Test::Inline::IO::File         ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '2.212';
+	$VERSION = '2.213';
 	@ISA     = 'Algorithm::Dependency::Source';
 }
 
@@ -848,7 +848,7 @@ the open sourcing and release of this distribution.
 
 =head1 COPYRIGHT
 
-Copyright 2004 - 2010 Adam Kennedy.
+Copyright 2004 - 2013 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
