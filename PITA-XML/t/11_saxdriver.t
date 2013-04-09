@@ -9,7 +9,6 @@ BEGIN {
 }
 
 use Test::More tests => 40;
-use Test::LongString;
 use Config           ();
 use PITA::XML        ();
 use XML::SAX::Writer ();
@@ -38,7 +37,7 @@ sub driver_is {
 	$string =~ s/>\n</></g;
 
 	# Compare the two
-	is_string( $$output, $string, $message );
+	is_xml( $$output, $string, $message );
 }
 
 
