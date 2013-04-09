@@ -120,7 +120,7 @@ ok( ! $Depends->anonymous, '=begin testing foo after bar that: ->anonymous retur
 ok(   scalar($Depends->depends) == 2, '=begin testing foo after bar that: ->depends returns null list' );
 is(   $Depends->content, "This is another test\n", "=begin testing foo after bar that: ->content returns expected" );
 is(   $Depends->tests, 3, "=begin testing foo after bar that: ->tests returns correct value" );
-my @dep = $Depends->depends;
+my @dep = sort $Depends->depends;
 is(   $dep[0], 'bar', '->depends returns as expected' );
 is(   $dep[1], 'that', '->depends returns as expected' );
 is_deeply( [ $Depends->after ], [ $Depends->depends ], '->after matches ->depends' );
@@ -134,7 +134,7 @@ ok( ! $That->anonymous, '=begin testing that after bar: ->anonymous returns fals
 ok(   scalar($That->depends) == 1, '=begin testing that after bar: ->depends returns null list' );
 is(   $That->content, "Final test\n", "=begin testing that after bar: ->content returns expected" );
 is(   $That->tests, 4, "=begin testing that after bar: ->tests returns false" );
-@dep = $That->depends;
+@dep = sort $That->depends;
 is(   $dep[0], 'bar', '->depends returns as expected' );
 is_deeply( [ $That->after ], [ $That->depends ], '->after matches ->depends' );
 }
