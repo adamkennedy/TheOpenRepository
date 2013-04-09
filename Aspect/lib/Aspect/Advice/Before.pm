@@ -10,7 +10,7 @@ use Aspect::Hook   ();
 use Aspect::Advice ();
 use Aspect::Point  ();
 
-our $VERSION = '1.03';
+our $VERSION = '1.04';
 our @ISA     = 'Aspect::Advice';
 
 sub _install {
@@ -187,7 +187,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2010 - 2012 Adam Kennedy.
+Copyright 2010 - 2013 Adam Kennedy.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

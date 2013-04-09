@@ -27,7 +27,7 @@ use strict;
 use Aspect   ();
 use Exporter ();
 
-our $VERSION   = '1.03';
+our $VERSION   = '1.04';
 our @ISA       = 'Exporter';
 our @EXPORT    = qw( aspect before after call cflow );
 our $INSTALLED = 0;
@@ -127,7 +127,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2009 - 2012 Adam Kennedy.
+Copyright 2009 - 2013 Adam Kennedy.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

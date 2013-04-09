@@ -30,7 +30,7 @@ It's usage is effectively summarised by the synopsis.
 
 use strict;
 
-our $VERSION = '1.03';
+our $VERSION = '1.04';
 
 =pod
 
@@ -62,7 +62,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2011 - 2012 Adam Kennedy.
+Copyright 2011 - 2013 Adam Kennedy.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

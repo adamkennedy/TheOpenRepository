@@ -5,7 +5,7 @@ use Aspect::Modular        ();
 use Aspect::Advice::Before ();
 use Aspect::Pointcut::Call ();
 
-our $VERSION = '1.03';
+our $VERSION = '1.04';
 our @ISA     = 'Aspect::Modular';
 
 my %CACHE = ();
@@ -94,7 +94,7 @@ Ran Eilam E<lt>eilara@cpan.orgE<gt>
 
 Copyright 2001 by Marcel GrE<uuml>nauer
 
-Some parts copyright 2009 - 2012 Adam Kennedy.
+Some parts copyright 2009 - 2013 Adam Kennedy.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
