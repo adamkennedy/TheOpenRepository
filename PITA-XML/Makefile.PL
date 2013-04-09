@@ -13,7 +13,7 @@ requires      Params::Util            1.00
 requires      Class::Inspector        1.11
 requires      Class::Autouse          1.23
 requires      Data::Digest            0.02
-requires      XML::SAX::Writer        0.53
+requires      XML::SAX::Writer        0.52
 requires      XML::SAX::ParserFactory 1.01
 # requires      XML::Validator::Schema  1.08
 test_requires File::Spec              0.80
