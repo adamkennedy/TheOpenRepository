@@ -115,6 +115,7 @@ use overload 'bool' => sub () { 1 };
 use overload '""'   => 'as_string';
 use overload 'eq'   => sub { "$_[0]" eq "$_[1]" };
 use overload 'ne'   => sub { "$_[0]" ne "$_[1]" };
+use Carp ();
 
 
 
