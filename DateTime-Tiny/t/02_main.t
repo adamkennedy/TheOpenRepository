@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;	
 }
 
-use Test::More tests => 31;
+use Test::More tests => 33;
 use DateTime::Tiny;
 
 
@@ -112,3 +112,17 @@ SCOPE: {
 		$tiny, '->from_string ok',
 	);
 }
+
+SKIP: {
+	eval "use IPC::Open3 qw(open3); use Symbol qw(gensym);";
+	skip 'Need IPC::Open3 and Symbol for this test', 2 if $@;
+	my ($stdin, $stdout, $stderr);
+	$stderr = gensym();
+	my $pid = open3($stdin, $stdout, $stderr,
+		 qq{$^X -MDateTime::Tiny -e "DateTime::Tiny->from_string( '2006-12-20T23:59:59x' );"} );
+	my $err = join '', <$stderr>;
+	my $out = join '', <$stdout>;
+	like $err, qr/Invalid time format \(does not match ISO 8601\)/, 'stderr';
+	is $out, '', 'stdout';
+}
+
