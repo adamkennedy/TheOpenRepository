@@ -10,7 +10,7 @@ GitHub::Extract - Extract an exported copy of a GitHub project
 
 	my $project = GitHub::Extract->new(
 		username => 'adamkennedy',
-		project  => 'test-class',
+		project  => 'PPI',
 	);
 	
 	$project->extract( to => '/my/directory' );
@@ -45,7 +45,7 @@ use Params::Util     1.00 ();
 use Archive::Extract 0.56 ();
 use IO::Socket::SSL  1.56 (); # Needed for HTTP::Tiny SSL
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 our $WARN    = 1;
 our $DEBUG   = 0;
 
@@ -73,14 +73,14 @@ use Object::Tiny 1.01 qw{
 
 	my $branch = GitHub::Extract->new(
 		username   => 'adamkennedy',
-		repository => 'test-class',
+		repository => 'PPI',
 
 		# Fetch a branch other than master
 		branch     => 'mybranch',
 
 		# A custom HTTP client can be provided to any constructor
 		http       => HTTP::Tiny->new(
-			# Custom HTTP setup
+			# Custom HTTP setup goes here
 		),
 	);
 
@@ -405,7 +405,7 @@ L<http://github.com/>
 
 =head1 COPYRIGHT
 
-Copyright 2012 Adam Kennedy.
+Copyright 2012-2013 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

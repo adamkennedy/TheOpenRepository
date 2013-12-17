@@ -29,13 +29,13 @@ ok( -d TO, 'Test directory created' );
 
 my $github = GitHub::Extract->new(
 	username   => 'adamkennedy',
-	repository => 'test-class',
+	repository => 'PPI',
 );
 isa_ok( $github, 'GitHub::Extract' );
 is( $github->username, 'adamkennedy', '->username' );
-is( $github->repository, 'test-class', '->repository' );
+is( $github->repository, 'PPI', '->repository' );
 is( $github->branch, 'master', '->branch defaults to master' );
-is( $github->url, 'https://github.com/adamkennedy/test-class/zipball/master', '->url' );
+is( $github->url, 'https://github.com/adamkennedy/PPI/zipball/master', '->url' );
 isa_ok( $github->http, 'HTTP::Tiny' );
 is( $github->archive, undef, '->archive undef before download' );
 is( $github->archive_extract, undef, '->archive_extract undef before download' );
