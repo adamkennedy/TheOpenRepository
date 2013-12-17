@@ -12,7 +12,7 @@ use File::Flat                    ();
 use File::ShareDir                ();
 use File::LocalizeNewlines        ();
 use Params::Util             1.00 ':ALL';
-use GitHub::Extract          0.01 ();
+use GitHub::Extract          0.02 ();
 use Module::Extract::VERSION 1.01 ();
 
 our $VERSION = '0.01';
