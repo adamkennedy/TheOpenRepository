@@ -1,11 +1,10 @@
 package Archive::Rar::Passthrough;
 
-require 5.005;
+require 5.006;
 
 use strict;
 
-use vars qw/$VERSION/;
-$VERSION = '2.00_03';
+our $VERSION = '2.00_03';
 
 use ExtUtils::MakeMaker;
 use Config ();

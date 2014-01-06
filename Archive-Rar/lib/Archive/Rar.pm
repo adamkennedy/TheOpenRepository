@@ -1,10 +1,9 @@
 package Archive::Rar;
 
-require 5.005;
+require 5.006;
 
 use strict;
-use vars ('$VERSION');
-$VERSION = '2.02';
+our $VERSION = '2.02';
 
 use Data::Dumper;
 use Cwd;
