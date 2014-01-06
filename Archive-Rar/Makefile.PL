@@ -20,6 +20,7 @@ test_requires 'Test::More'       => '0';
 if (not $iswindows) {
   requires_external_bin 'rar';
 } else {
+  requires_external_bin 'perl' if author; #Module::Install::External should be bundled
   warn "We cannot check at this time that there is a 'rar' command when running on Windows. Please make sure that you have RAR or WinRAR installed before proceeding.";
 }
 
