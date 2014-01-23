@@ -258,10 +258,8 @@ EOT
 			TESTS => join( ' ', map { "$_/*.t" } grep { -d $_ } qw{ t xt } ),
 		};
 	}
-	if ( $] >= 5.005 ) {
-		$args->{ABSTRACT} = $self->abstract;
-		$args->{AUTHOR}   = join ', ', @{$self->author || []};
-	}
+	$args->{ABSTRACT} = $self->abstract;
+	$args->{AUTHOR}   = join ', ', @{$self->author || []};
 	if ( $self->makemaker(6.10) ) {
 		$args->{NO_META}   = 1;
 		#$args->{NO_MYMETA} = 1;
