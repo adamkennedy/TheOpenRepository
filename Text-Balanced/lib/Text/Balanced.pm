@@ -6,7 +6,7 @@ package Text::Balanced;
 use 5.00503;
 use strict;
 use Exporter ();
-use SelfLoader;
+#use SelfLoader;
 
 use vars qw { $VERSION @ISA %EXPORT_TAGS };
 BEGIN {
