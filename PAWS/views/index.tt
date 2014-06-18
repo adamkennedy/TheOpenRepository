@@ -1,0 +1,65 @@
+	<div class="grid_3">
+		<div class="search_area">
+			<form action="/search" method="get" accept-charset="utf-8">
+				<fieldset id="search_for_modules_or_functions"
+				 		  class="clearfix">
+					<legend>Search for modules or functions</legend>
+					<label for="terms">Search Terms:</label>
+					<div style="float: right">
+						<input type="text" style="width: 166px" size="25" name="terms" id="terms"/>
+					</div>
+					<div style="float: right; width: 85px;">
+					<input type="submit" 
+						class="search"
+						value="Continue &rarr;"
+						onClick="
+						display_document($F('terms'));
+						return false;
+						"
+						/>
+						<div class="autocomplete" id="autocomplete">
+					</div>
+					<script>
+					new Ajax.Autocompleter(
+						'terms','autocomplete','/complete', 
+						{autoSelect: false}
+						);
+					</script>
+				</fieldset>
+				<fieldset id="options"
+						  class="clearfix">
+					<label for="view">View mode</label>
+					<select name="view" id="view"
+					 		onchange="refresh_document()">
+						<option value="normal">Normal</option>
+						<option value="summary">Summary only</option>
+						<option value="uncut">With code</option>
+					</select>
+					<label for="overlay">Show from overlay?</label>
+					<input type="checkbox" onchange="refresh_document()"
+						   name="overlay" checked="1" id="overlay"/>
+					<label for="sort">Sort methods?</label>
+					<input type="checkbox" name="sort" id="sort"
+					       onchange="refresh_document()"/>
+				</fieldset>
+			</form>
+			<div id="menu">
+			</div>
+			
+			<div class="links clearfix">
+				<h3>Document Links</h3>
+			<ul id="doc_links">
+			</ul>
+			</div>
+		</div>
+	</div>
+	<div class="grid_9">
+		<div class="search_area short clearfix">
+			<ul id="recent_searches">
+				
+			</ul>
+		</div>
+		<div id="pod_content" class="pod_content">
+			
+		</div>
+	</div>
