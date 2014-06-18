@@ -197,6 +197,7 @@ sub load_file {
     $p->parse_from_file($filename);
     $p->root->coalesce_body(":verbatim");
     $p->root->coalesce_body(":text");
+    $_->detach foreach $p->root->select('//:verbatim[ . =~ {^[\s]*$}]');
     return $p->root;
 }
 
@@ -217,6 +218,7 @@ sub load_filehandle {
     $p->parse_from_filehandle($fh);
     $p->root->coalesce_body(":verbatim");
     $p->root->coalesce_body(":text");
+    $_->detach foreach $p->root->select('//:verbatim[ . =~ {^[\s]*$}]');
     return $p->root;
 }
 

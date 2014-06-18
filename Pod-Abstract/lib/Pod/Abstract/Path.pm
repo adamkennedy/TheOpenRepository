@@ -10,27 +10,28 @@ $Data::Dumper::Indent = 1;
 
 our $VERSION = '0.20';
 
-use constant CHILDREN  => 1;  # /
-use constant ALL       => 2;  # //
-use constant NAME      => 3;  # head1
-use constant INDEX     => 4;  # (3)
-use constant L_SELECT  => 5;  # [
-use constant ATTR      => 6;  # @label
-use constant N_CMP     => 7;  # == != < <= > >=
-use constant STRING    => 8;  # 'foobar'
-use constant R_SELECT  => 9;  # ]
-use constant NUM_OF    => 10; # #
-use constant NOT       => 15; # !
-use constant PARENT    => 16; # ..
-use constant MATCHES   => 17; # =~
-use constant REGEXP    => 18; # {<pattern>}
-use constant NOP       => 19; # .
-use constant PREV      => 20; # <<
-use constant NEXT      => 21; # >>
-use constant ROOT      => 22; # ^
-use constant UNION     => 23; # |
-use constant INTERSECT => 24; # &
-use constant S_CMP     => 25; # eq lt gt le ge ne
+use constant CHILDREN   => 1;  # /
+use constant ALL        => 2;  # //
+use constant NAME       => 3;  # head1
+use constant INDEX      => 4;  # (3)
+use constant L_SELECT   => 5;  # [
+use constant ATTR       => 6;  # @label
+use constant N_CMP      => 7;  # == != < <= > >=
+use constant STRING     => 8;  # 'foobar'
+use constant R_SELECT   => 9;  # ]
+use constant NUM_OF     => 10; # #
+use constant NOT        => 15; # !
+use constant PARENT     => 16; # ..
+use constant MATCHES    => 17; # =~
+use constant REGEXP     => 18; # {<pattern>}
+use constant NOP        => 19; # .
+use constant PREV       => 20; # <<
+use constant NEXT       => 21; # >>
+use constant ROOT       => 22; # ^
+use constant UNION      => 23; # |
+use constant INTERSECT  => 24; # &
+use constant S_CMP      => 25; # eq lt gt le ge ne
+use constant ALL_PARENT => 26; # ...
 
 =pod
 
@@ -83,6 +84,10 @@ Selects children of the left hand side.
 
 Selects all descendants of the left hand side.
 
+=item (I<index>)
+
+Selects only the element at I<index>.
+
 =item .
 
 Selects the current node - this is a NOP that can be used in
@@ -90,8 +95,18 @@ expressions.
 
 =item ..
 
-Selects the parrent node. If there are multiple nodes selected, all of
+Selects the parent node. If there are multiple nodes selected, all of
 their parents will be included.
+
+=item ...
+
+Selects ALL parent nodes, up to the document root. e.g, C<"..."> on a
+paragraph in a head3 will yield the head3, head2, head1 and root nodes (in
+that order).
+
+Practical application: Find the first enclosing heading node:
+
+ ...[@heaading](0)
 
 =item ^
 
@@ -446,7 +461,11 @@ sub select_index {
     my $index = shift;
     
     if($index < scalar @$ilist) {
-        return [ $ilist->[$index] ];
+        if($index >= 0) {
+            return [ $ilist->[$index] ];
+        } else {
+            
+        }
     } else {
         return [ ];
     }
