@@ -350,6 +350,38 @@ sub param {
     return $self->{params}{$param_name};
 }
 
+=head2 link_info
+
+ my $link_info = $node->link_info;
+
+For C<:L> nodes (Links), break up the link according to the Perl Pod rules
+and return a hashref containing C<text>, C<document> and C<section>.
+
+=cut
+
+sub link_info {
+    my $self = shift;
+    my $t = $self->text;
+    $t =~ m/^(([^\|]*)\|)?([^\/]*)\/?(.*)$/;
+    
+    my ($text,$doc,$section) = ($2,$3,$4);
+    if($doc =~ m/^.+\:\$/) {
+        my $url = "$doc/$section";
+        return {
+            url => $url,
+            text => $text || $url,
+        };
+    } else {
+        return {
+            text => $text || $doc || $section,
+            document => $doc,
+            section => $section,
+        };
+    }
+}
+
+=cut
+
 =head2 duplicate
 
  my $new_node = $node->duplicate;

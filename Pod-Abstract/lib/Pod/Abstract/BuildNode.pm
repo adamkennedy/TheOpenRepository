@@ -303,6 +303,19 @@ sub over {
         );
 }
 
+sub link {
+    my $class = shift;
+    my $link = shift;
+    
+    my $l = Pod::Abstract::Node->new(
+        type => ':L',
+        body => undef,
+    );
+    my $body = $class->text($link);
+    $l->nest($body);
+    return $l;
+}
+
 =head2 item
 
  my $item = node->item('*');
@@ -372,7 +385,7 @@ sub pod {
         );
 }
 
-=head1
+=head2 cut
 
  my $cut = node->cut;
 

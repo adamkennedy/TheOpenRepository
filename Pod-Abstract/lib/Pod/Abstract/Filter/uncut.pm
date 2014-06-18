@@ -31,14 +31,18 @@ sub filter {
         next unless $cut->body =~ m/^=cut/;
         my $n = $cut->next;
         while( $n && $n->type eq '#cut' ) {
-            $cut->push(node->verbatim($n->body));
+            my $body = $n->body;
+            $body =~ s/\n\s*$//m;
+            $cut->push(node->verbatim($body));
             $n->detach;
             $n = $cut->next;
         }
-        $cut->coalesce_body(':verbatim');
         $cut->hoist;
         $cut->detach;
     }
+    $pa->coalesce_body(":verbatim");
+    $pa->coalesce_body(":text");
+    $_->detach foreach $pa->select('//:verbatim[ . =~ {^[\s]*$}]');
     
     return $pa;
 }
