@@ -5,10 +5,12 @@
 				 		  class="clearfix">
 					<legend>Search for modules or functions</legend>
 					<label for="terms">Search Terms:</label>
-					<div style="float: right">
+					<div style="float: right; position: relative;">
 						<input type="text" style="width: 166px" size="25" name="terms" id="terms"/>
+						<div id="paws_fsearch" style="display: none; positon: absolute; left: 0px; top: 20px;">
+						</div>
 					</div>
-					<div style="float: right; width: 85px;">
+					<div style="position: relative; float: right; width: 85px;">
 					<input type="submit" 
 						class="search"
 						value="Continue &rarr;"
@@ -17,12 +19,9 @@
 						return false;
 						"
 						/>
-						<div class="autocomplete" id="autocomplete">
-					</div>
 					<script>
-					new Ajax.Autocompleter(
-						'terms','autocomplete','/complete', 
-						{autoSelect: false}
+					new PAWS_FastSearch(
+						'terms','/complete'
 						);
 					</script>
 				</fieldset>

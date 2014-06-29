@@ -130,3 +130,91 @@ function kill_recent(k) {
         afterFinish: function(){ update_recents() }
     });
 }
+
+PAWS_FastSearch = Class.create();
+PAWS_FastSearch.prototype = {
+    initialize: function(field,request_path) {
+        var obj = this;
+        obj.s_field = field;
+        obj.s_path = request_path;
+        obj.initializeElements();
+    },
+    initializeElements: function() {
+        var fs_field = $(this.s_field);
+        var div_name = "paws_fsearch";
+        var obj = this;
+        
+        this.prev_value = this.terms();
+        this.has_results = false;
+        this.px = new PeriodicalExecuter(obj.fs_load_praps.bind(obj),0.5);
+        this.ajax_active = false;
+        this.key_select = false;
+        
+        var div = $(div_name);
+        if (div) {
+            fs_field.observe("focus", obj.fs_focus.bind(obj));
+            fs_field.observe("blur", obj.fs_blur.bind(obj));
+            //fs_field.observe("keydown", obj.fs_select.bind(obj));
+        }
+  },
+  fs_div: function() {
+      var div_name = "paws_fsearch";
+      return $(div_name);
+  },
+  fs_load_praps: function() {
+      if(this.prev_value != this.terms()) {
+          if(!this.ajax_active) {
+              this.fs_load();
+          }
+      }
+  },
+  fs_focus: function() {
+      if( this.has_results ) {
+          this.fs_show()
+      }
+  },
+  fs_blur: function() {
+      this.fs_hide();
+  },
+  fs_hide: function() {
+      var obj = this;
+      var f = function() {
+          obj.fs_div().hide();
+      }.delay(0.2);  
+  },
+  fs_show: function() {
+      this.fs_div().show();
+  },
+  fs_load: function() {
+      var div = this.fs_div();
+      var path = this.s_path;
+      var obj = this;
+      var tval = this.terms();
+      this.ajax_active = true;
+      new Ajax.Updater(div,path, {
+          parameters: { "terms" : tval },
+          evalScripts: false,
+          method: "GET",
+          onComplete: function(transport) {
+              var response_divs = div.select("div.fs_section");
+              var section_count = response_divs.length;
+              div.setStyle({width: '' + (300 * section_count) + 'px', position: 'absolute'})
+              obj.ajax_active = false;
+              
+              var total_lines = div.select("div.result_line");
+              if(total_lines.length == 0) {
+                  obj.fs_hide();
+                  return true;
+              } else {
+                  obj.has_results = true;
+                  obj.fs_div().show();
+                  obj.prev_value = tval;
+              }
+          }
+      }
+      );
+  },
+  terms: function() {
+      return $(this.s_field).getValue();
+  }
+}

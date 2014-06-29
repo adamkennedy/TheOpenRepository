@@ -125,3 +125,6 @@
 
 [% BLOCK tt_begin %]
 [% END %]
+
+[% BLOCK tt_encoding %]
+[% END %]

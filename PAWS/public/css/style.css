@@ -595,25 +595,33 @@ code, tt {
     font-style: italic;
 }
 
-div.autocomplete {
+div#paws_fsearch {
   position:absolute;
-  width:400px;
   z-index: 100;
   background-color:white;
   border:1px solid #888;
   margin:0;
   padding:0;
 }
-div.autocomplete ul {
-  list-style-type:none;
-  margin:0;
-  padding:0;
+
+div.fs_section {
+    width: 290px;
+    margin: 0 5px 0 5px;
+    float: left;
 }
-div.autocomplete ul li.selected { background-color: #ffb;}
-div.autocomplete ul li {
-  list-style-type:none;
-  display:block;
-  margin:0;
-  padding:2px;
-  cursor:pointer;
+
+div.fs_heading {
+    font-weight: bold;
+    border-bottom: 1px solid black;
+}
+
+div.result_line {
+    height: 40px;
+    margin-bottom: 5px;
+    overflow: hidden;
+}
+
+div.result_line div.result_sd {
+    font-size: 0.8em;
+    color: #888;
 }

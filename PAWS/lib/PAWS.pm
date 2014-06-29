@@ -10,6 +10,8 @@ use Pod::Abstract::Filter::sort;
 use PodSummary;
 use Pod::Abstract::BuildNode qw(node);
 
+use Search::Elasticsearch;
+
 our $VERSION = '0.1';
 
 sub error_doc {
@@ -25,6 +27,17 @@ Error - Couldn't find a document called $term
 My not-so-clever search through your C<\@INC> path has failed, I guess that's no good.
 
 EOF
+}
+
+my $elastic = undef;
+
+sub elastic {
+    my $self = shift
+    return $elastic if defined $elastic;
+    my $e = Search::Elasticsearch->new( nodes => [ 'localhost:9200' ] );
+    $elastic = $e;
+    
+    return $e;
 }
 
 sub load_pa($) {
@@ -53,7 +66,7 @@ sub extract_title($) {
     if($name_para) {
         my $name = $name_para->text;
 
-        my ($title, $sub) = split /-+/, $name;
+        my ($title, $sub) = split /\s+-+\s+/, $name;
 
         return $title, $sub;
     } else {
@@ -115,38 +128,45 @@ any '/menu' => sub {
 any '/complete' => sub {
     my $terms = params->{terms};
     
-    my @parts = split "::", $terms, -1;
-    my $l = pop @parts;
-    my $p = join "/",@parts;
-    my @paths = map { "$_/$p" } @INC;
-    @paths = grep { -d $_ } @paths;
-    my %names = ( );
-    
-    find( sub {
-        my $f = $_;
-        if($f =~ m/^\Q$l\E/ || !$f) {
-            if(-d $f) {
-                if($f !~ m/^\./) {
-                    $names{(join("::", (@parts, $f)) . "\:\:")} = 1;
+    my $e = elastic();
+    my $results = $e->search(
+        index => 'perldoc',
+        type => 'module',
+        _source => [ "title","shortdesc" ],
+        body => {
+            query => {
+                multi_match => {
+                    query => $terms,
+                    fields => ["title^4", "shortdesc^2","head2^2", "pod"]
                 }
-                unless($f eq '.') {
-                    $File::Find::prune = 1;
-                }
-            } else {
-                if($f =~ m/\.pm$/) {
-                    $f =~ s/\.pm$//;
-                    $names{join("::", (@parts, $f))} = 1;
-                }
-            }
-        } else {
-            unless( $f eq '.') {
-                $File::Find::prune = 1;
             }
         }
-    }, @paths);
+        );
+    
+    my $out_mod = [ map { $_->{_source} } @{$results->{hits}{hits}} ];
+
+    $results = $e->search(
+        index => 'perldoc',
+        type => 'function',
+        _source => [ "title","shortdesc" ],
+        body => {
+            query => {
+                multi_match => {
+                    query => $terms,
+                    fields => ["title^4", "shortdesc^2","pod"]
+                }
+            }
+        }
+        );
+    my $out_fn = [ map { $_->{_source} } @{$results->{hits}{hits}} ];
+        
+    my $out = {
+        functions => $out_fn,
+        modules => $out_mod,
+    };
     
     template "autocomplete.tt",
-        { results => [sort keys %names] },
+        { results => $out },
         { layout => undef };
 };
 
