@@ -47,7 +47,13 @@
 			
 			<div class="links clearfix">
 				<h3>Document Links</h3>
-			<ul id="doc_links">
+			<ul class="doc_links" id="doc_links">
+			</ul>
+			</div>
+
+			<div class="links clearfix">
+				<h3>Inbound Links</h3>
+			<ul class="doc_links" id="inbound_links">
 			</ul>
 			</div>
 		</div>

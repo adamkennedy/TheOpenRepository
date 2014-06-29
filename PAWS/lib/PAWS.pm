@@ -8,6 +8,7 @@ use Pod::Abstract::Filter::overlay;
 use Pod::Abstract::Filter::uncut;
 use Pod::Abstract::Filter::sort;
 use PodSummary;
+use PAWS::Indexer;
 use Pod::Abstract::BuildNode qw(node);
 
 use Search::Elasticsearch;
@@ -170,26 +171,40 @@ any '/complete' => sub {
         { layout => undef };
 };
 
+any '/inbound_links' => sub {
+    my $original_doc = params->{terms};
+    
+    my $e = elastic();
+    my $results = $e->search(
+        index => 'perldoc',
+        type => 'module',
+        _source => ['title'],
+        body => {
+            "query" => {
+                "filtered" => {
+                    "filter" => {
+                        "term" => {
+                	        "links_to" => $original_doc
+            	        }
+                	}
+                }
+            }
+        }
+        );
+        
+    my @out_links = map { node->link($_->{_source}{title}) } @{$results->{hits}{hits}};
+    
+    template "links.tt",
+        {links => \@out_links},
+        {layout => undef};
+};
+
 any '/links' => sub {
     my $terms = params->{terms};
     
     my $pa = load_pa $terms;
     
-    my %links = map { $_->link_info->{document} => $_ } grep { $_->link_info->{document} } $pa->select("//:L");
-
-    # Find the "SEE ALSO" section and extract all the module names
-    my ($see_also) = $pa->select("/head1[\@heading eq 'SEE ALSO']");
-    if($see_also) {
-        foreach my $text ($see_also->select("//:text")) {
-            my $str = $text->body;
-            my @matches = $str =~ m/(\w+\:\:[\w\:]+)/g;
-            foreach my $l (@matches) {
-                my $link = node->link($l);
-                $links{$l} = $link;
-            }
-        }
-    }
-    my @links = map { $links{$_} } sort keys %links;
+    my @links = PAWS::Indexer->links($pa);
     
     template "links.tt", 
         { links => \@links }, 

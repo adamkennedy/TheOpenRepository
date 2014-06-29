@@ -94,7 +94,10 @@ function display_document(name) {
                 'doc_links','/links',
                 {parameters: {terms: name}}
                 );
-                
+            new Ajax.Updater(
+                'inbound_links','/inbound_links',
+                {parameters: {terms: name}}
+                );
         }
     }
     );
