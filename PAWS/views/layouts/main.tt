@@ -14,8 +14,12 @@
 
 </head>
 <body>
-<div class="container_12" style="position: relative; top: 25px;">
-	<div class="grid_12">
+<div class="container_12">
+	<div class="grid_6 paws_banner">
+		<h1>PAWS</h1>
+		<p>You know, for POD</p>
+	</div>
+	<div class="grid_6" style="text-align: right; padding-top: 5px;">
 		<a 
 			href="#"
 			class="style_switch" 

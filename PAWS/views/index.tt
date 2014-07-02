@@ -1,24 +1,15 @@
 	<div class="grid_3">
 		<div class="search_area">
-			<form action="/search" method="get" accept-charset="utf-8">
+			<form onSubmit="return false;" accept-charset="utf-8">
 				<fieldset id="search_for_modules_or_functions"
 				 		  class="clearfix">
 					<legend>Search for modules or functions</legend>
 					<label for="terms">Search Terms:</label>
 					<div style="float: right; position: relative;">
-						<input type="text" style="width: 166px" size="25" name="terms" id="terms"/>
+						<input type="text" style="width: 166px" size="25" name="terms" id="terms" autocomplete="off"/>
 						<div id="paws_fsearch" style="display: none; positon: absolute; left: 0px; top: 20px;">
 						</div>
 					</div>
-					<div style="position: relative; float: right; width: 85px;">
-					<input type="submit" 
-						class="search"
-						value="Continue &rarr;"
-						onClick="
-						display_document($F('terms'));
-						return false;
-						"
-						/>
 					<script>
 					new PAWS_FastSearch(
 						'terms','/complete'

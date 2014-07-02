@@ -74,9 +74,9 @@ function display_document(name) {
     var f_sort = $F('sort');
     
     new Ajax.Updater(
-    'pod_content','/search',
+    'pod_content','/load',
     { 
-        parameters: { terms: name, overlay: f_overlay, sort: f_sort, view: f_view },
+        parameters: { paws_key: name, overlay: f_overlay, sort: f_sort, view: f_view },
         onSuccess: function(response) {
             recents.set(name, '1');
             current_document = name;
@@ -107,11 +107,17 @@ function update_recents(name) { // returns the element created for "name" if pos
     var out = null;
     $(recent_searches).childElements().each(function(e) { e.remove() });
     recents.keys().sort().each( function(k) {
+        var pm = /^([a-z]+):(.*)$/;
+        var match = pm.exec(k);
+        var label = match[2];
+        var doctype = match[1];
+        
         var li = new Element('li');
         var a = new Element("a",{ href: "#", onClick: "display_document('"+k+"')" });
         var x = new Element("a",{ href: "#", 'onClick': "kill_recent('"+k+"')", 'class': "close"});
-        a.appendChild(document.createTextNode(k));
-        x.appendChild(document.createTextNode("•"));
+        
+        a.appendChild(document.createTextNode(label));
+        x.appendChild(document.createTextNode("×"));
 
         li.appendChild(x);
         li.appendChild(a);
@@ -140,6 +146,7 @@ PAWS_FastSearch.prototype = {
         var obj = this;
         obj.s_field = field;
         obj.s_path = request_path;
+        obj.keynav = false;
         obj.initializeElements();
     },
     initializeElements: function() {
@@ -157,7 +164,7 @@ PAWS_FastSearch.prototype = {
         if (div) {
             fs_field.observe("focus", obj.fs_focus.bind(obj));
             fs_field.observe("blur", obj.fs_blur.bind(obj));
-            //fs_field.observe("keydown", obj.fs_select.bind(obj));
+            fs_field.observe("keydown", obj.fs_keynav.bind(obj));
         }
   },
   fs_div: function() {
@@ -188,6 +195,93 @@ PAWS_FastSearch.prototype = {
   fs_show: function() {
       this.fs_div().show();
   },
+  fs_mousefollow: function(lines) {
+      var obj = this;
+      lines.each( function(e) {
+          e.observe('mouseover',function(event) {
+              obj.fs_result_over(event, e);
+          });
+          e.observe('click',function(event) {
+              obj.fs_result_click(event, e);
+          });
+      });
+  },
+  fs_result_over: function(ev,elt) {
+      if(this.selected_elt != null) {
+          this.selected_elt.removeClassName("hilight");
+      }
+      this.selected_elt = elt;
+      this.keynav = false;
+      elt.addClassName("hilight");
+  },
+  fs_keynav: function(ev) {
+      if(ev.keyCode == Event.KEY_UP || ev.keyCode == Event.KEY_DOWN) {
+          var next_el = this.fs_div().select(".result_line").first();
+          if(this.selected_elt != null) {
+              switch (ev.keyCode) {
+              case Event.KEY_UP:
+                  next_el = this.selected_elt.previous(".result_line");
+                  break;
+              case Event.KEY_DOWN:
+                  next_el = this.selected_elt.next(".result_line");
+                  break;
+              }
+          }
+          if(next_el) {
+              if(this.selected_elt)
+                  this.selected_elt.removeClassName("hilight");
+              this.selected_elt = next_el;
+              this.selected_elt.addClassName("hilight");
+              this.keynav = true;
+          }
+          ev.stop();
+      } else if(this.keynav && 
+                this.selected_elt &&
+                (ev.keyCode == Event.KEY_LEFT || ev.keyCode == Event.KEY_RIGHT)) {
+          var sibs = this.selected_elt.previousSiblings();
+          var position = sibs.length - 1; /* one for heading */
+          var column = this.selected_elt.up(".fs_section");
+          var next_el = null;
+          switch (ev.keyCode) {
+              case Event.KEY_LEFT:
+                next_col = column.previous(".fs_section");
+                break;
+              case Event.KEY_RIGHT:
+                next_col = column.next(".fs_section");
+                break;
+          }
+          if(next_col) {
+              var col_results = next_col.select(".result_line");
+              if(col_results.length < position) {
+                  next_el = col_results.last();
+              } else {
+                  next_el = col_results[position];
+              }
+              if(next_el) {
+                  if(this.selected_elt)
+                      this.selected_elt.removeClassName("hilight");
+                  this.selected_elt = next_el;
+                  this.selected_elt.addClassName("hilight");
+              }
+          }
+          ev.stop()
+      } else if(ev.keyCode != Event.KEY_RETURN) {
+          this.keynav = false;
+      }
+
+      if(ev.keyCode == Event.KEY_RETURN) {
+          if(this.keynav && this.selected_elt) {
+              var paws_link = this.selected_elt.readAttribute('paws_link')
+              display_document(paws_link);
+              ev.stop();
+          }
+      }
+      
+  },
+  fs_result_click: function(ev,elt) {
+      var paws_link = elt.readAttribute('paws_link')
+      display_document(paws_link);
+  },
   fs_load: function() {
       var div = this.fs_div();
       var path = this.s_path;
@@ -203,6 +297,7 @@ PAWS_FastSearch.prototype = {
               var section_count = response_divs.length;
               div.setStyle({width: '' + (300 * section_count) + 'px', position: 'absolute'})
               obj.ajax_active = false;
+              obj.selected_elt = null;
               
               var total_lines = div.select("div.result_line");
               if(total_lines.length == 0) {
@@ -211,6 +306,7 @@ PAWS_FastSearch.prototype = {
               } else {
                   obj.has_results = true;
                   obj.fs_div().show();
+                  obj.fs_mousefollow(total_lines);
                   obj.prev_value = tval;
               }
           }

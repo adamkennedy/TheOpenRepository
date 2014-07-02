@@ -41,21 +41,30 @@ sub elastic {
     return $e;
 }
 
+sub split_key($) {
+    my $term = shift;
+    return split ':',$term,2;
+}
+
 sub load_pa($) {
     my $term = shift;
-    my $filename = $term;
+    my ($doctype, $id) = split_key $term;
     
-    $filename =~ s/::/\//g;
-    $filename .= '.pm' unless $filename =~ m/.pm$/;
-    foreach my $path (@INC) {
-        if(-r "$path/$filename") {
-            $filename = "$path/$filename";
-            last;
-        }
-    }
+    my $e = elastic;
     
-    if(-r $filename) {
-        return Pod::Abstract->load_file($filename);
+    my $results = $e->mget(
+            index   => 'perldoc',
+            type    => $doctype,
+            body    => {
+                docs => [
+                    { _id => $id},
+                ]
+            }
+        );
+    my $doc = $results->{docs}[0];
+    
+    if($doc) {
+        return Pod::Abstract->load_string($doc->{_source}{pod});
     } else {
         return Pod::Abstract->load_string(error_doc($term));
     }
@@ -77,6 +86,39 @@ sub extract_title($) {
 
 get '/' => sub {
     template 'index';
+};
+
+any '/load' => sub {
+    my $key = params->{paws_key};
+    my $view = params->{view};
+    
+    my $pa = load_pa $key;
+    
+    my ($name, $subtitle) = extract_title $pa;
+
+    if($view eq 'summary') {
+        my $summ = PodSummary->new->filter($pa);
+        $_->detach foreach $summ->select('/head1[@heading eq \'NAME\']');
+        $pa = $summ;
+    } elsif($view eq 'uncut') {
+        my $filter = Pod::Abstract::Filter::uncut->new;
+        $pa = $filter->filter($pa);
+    }
+    if(params->{overlay}) {
+        my ($overlay_list) = $pa->select("//begin[. =~ {^:overlay}](0)");
+        if($overlay_list) {
+            $pa = Pod::Abstract::Filter::overlay->new->filter($pa);
+        }
+    }
+    if(params->{sort}) {
+        $pa = Pod::Abstract::Filter::sort->new->filter($pa);
+    }
+    my ($doctype,$id) = split_key $key;
+    $name = $id unless $name;
+    
+    template "display_module.tt", 
+        { title => $name, sub => $subtitle, pa => $pa }, 
+        {layout => undef};
 };
 
 any '/search' => sub {
@@ -149,7 +191,7 @@ any '/complete' => sub {
     $results = $e->search(
         index => 'perldoc',
         type => 'function',
-        _source => [ "title","shortdesc" ],
+        _source => [ "title","shortdesc","parent_module" ],
         body => {
             query => {
                 multi_match => {
@@ -184,7 +226,7 @@ any '/inbound_links' => sub {
                 "filtered" => {
                     "filter" => {
                         "term" => {
-                	        "links_to" => $original_doc
+                	        "links_to" => [ $original_doc ]
             	        }
                 	}
                 }
