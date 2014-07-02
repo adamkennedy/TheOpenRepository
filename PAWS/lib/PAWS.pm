@@ -154,7 +154,7 @@ any '/search' => sub {
 };
 
 any '/menu' => sub {
-    my $terms = params->{terms};
+    my $terms = params->{key};
     
     my $pa = load_pa $terms;
 
@@ -214,7 +214,7 @@ any '/complete' => sub {
 };
 
 any '/inbound_links' => sub {
-    my $original_doc = params->{terms};
+    my ($doctype,$original_doc) = split_key params->{key};
     
     my $e = elastic();
     my $results = $e->search(
@@ -242,9 +242,9 @@ any '/inbound_links' => sub {
 };
 
 any '/links' => sub {
-    my $terms = params->{terms};
+    my ($doctype,$module) = split_key params->{key};
     
-    my $pa = load_pa $terms;
+    my $pa = load_pa params->{key};
     
     my @links = PAWS::Indexer->links($pa);
     

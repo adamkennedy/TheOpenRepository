@@ -88,15 +88,15 @@ function display_document(name) {
             
             new Ajax.Updater(
                 'menu','/menu',
-                {parameters: {terms: name}}
+                {parameters: {key: name}}
                 );
             new Ajax.Updater(
                 'doc_links','/links',
-                {parameters: {terms: name}}
+                {parameters: {key: name}}
                 );
             new Ajax.Updater(
                 'inbound_links','/inbound_links',
-                {parameters: {terms: name}}
+                {parameters: {key: name}}
                 );
         }
     }
