@@ -365,7 +365,7 @@ sub link_info {
     $t =~ m/^(([^\|]*)\|)?([^\/]*)\/?(.*)$/;
     
     my ($text,$doc,$section) = ($2,$3,$4);
-    if($doc =~ m/^.+\:\$/) {
+    if($doc =~ m/^.+\:$/) {
         my $url = "$doc/$section";
         return {
             url => $url,
