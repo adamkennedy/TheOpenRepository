@@ -365,7 +365,7 @@ sub link_info {
     $t =~ m/^(([^\|]*)\|)?([^\/]*)\/?(.*)$/;
     
     my ($text,$doc,$section) = ($2,$3,$4);
-    if($doc =~ m/^.+\:$/) {
+    if($doc && $doc =~ m/^.+\:$/) {
         my $url = "$doc/$section";
         return {
             url => $url,
@@ -642,9 +642,9 @@ sub detach {
 
 =head2 parent
 
- $node->parent;
+ my $parent = $node->parent;
 
-Returns the parent of $node if available. Returns undef if no parent.
+Returns the parent of C<$node> if available. Returns undef if no parent.
 
 =cut
 
@@ -666,6 +666,58 @@ sub parent {
     
     return $self->{parent};
 }
+
+=head2 parents
+
+ my @parents = $node->parents;
+
+Returns a list of the parents of C<$node>, including C<$node>.
+
+=cut
+
+sub parents {
+    my $self = shift;
+    
+    my $current = $self;
+    my @r = ( );
+    while($current) {
+        CORE::push @r, $current;
+        $current = $current->parent;
+    }
+    
+    return @r;
+}
+
+=head2 path_to
+
+ my $path_to = $node->path_to;
+
+Returns a L<ppath|Pod::Abstract::Path> expression that will lead to the
+heading/item containing C<$node>, as best as is possible by named nodes.
+
+=cut
+
+sub path_to {
+    my $self = shift;
+    my @parents = reverse $self->parents;
+    
+    my $result = '';
+    foreach my $p (@parents) {
+        if($p->type =~ m/^head[123456]$/) {
+            my $heading = $p->param('heading')->text;
+            $result .= "/" . $p->{type} . "[ \@heading eq '$heading' ]"
+        } elsif($p->type eq 'over') {
+            $result .= "/over"
+        } elsif($p->type eq 'item') {
+            my $label = $p->param('label')->text;
+            $result .= "/item[ \@label eq '$label' ]";
+        }
+    }
+    
+    return $result;
+}
+
+=cut
 
 =head2 root
 
