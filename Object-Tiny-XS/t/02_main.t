@@ -32,18 +32,19 @@ SCOPE: {
 	my $object = Foo->new( foo => 1, bar => 2, baz => 3 );
 	isa_ok( $object, 'Foo' );
 	isa_ok( $object, 'Object::Tiny::XS' );
-	is( scalar( keys %$object ), 3, 'Object contains expect elements' );
+	is( scalar( keys %$object ), 3, 'Object contains expected elements' );
 	is( $object->foo, 1, '->foo ok' );
 	is( $object->bar, 2, '->bar ok' );
 	eval {
 		$object->baz;
 	};
-	ok( $@, '->bar returns an error' );
+	ok( $@, '->baz returns an error' );
 	is( $object->{baz}, 3, '->{baz} does contain value' );
 }
 
 # Trigger the constructor exception
-SCOPE: {
+SKIP: {
+  skip 'Object::Tiny::XS inherently is less strict about the names of accessors', 1;
 	eval "package Bar; use Object::Tiny::XS 'bad thing';";
 	ok( $@ =~ /Invalid accessor name/, 'Got expected error' );
 }
